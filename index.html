@@ -303,6 +303,19 @@ main{max-width:1080px;margin:0 auto;padding:26px 22px 80px}
   display:flex;align-items:center;gap:10px;margin-bottom:18px
 }
 .cfg-warn b{font-weight:700}
+.offline-warn{
+  background:#FDE7E7;border:1.5px solid #F2B5B5;color:#B11919;
+  padding:14px 16px;border-radius:var(--raio-sm);font-size:13.5px;font-weight:600;
+  display:flex;align-items:center;gap:11px;margin-bottom:18px;
+  animation:offpulse 1.8s ease-in-out infinite;
+}
+.offline-warn b{font-weight:800}
+.offline-warn svg{flex:0 0 auto;color:#D11}
+.offline-warn button{margin-left:auto;flex:0 0 auto;font-size:12.5px;font-weight:700;color:#fff;background:#D11;border:none;padding:7px 13px;border-radius:8px;cursor:pointer}
+.offline-warn button:hover{background:#B11919}
+@keyframes offpulse{0%,100%{box-shadow:0 0 0 0 rgba(209,17,17,0)}50%{box-shadow:0 0 0 4px rgba(209,17,17,.14)}}
+body.dark .offline-warn{background:#2A1212;border-color:#5A2424;color:#FF8B8B}
+body.dark .offline-warn button{background:#C62828;color:#fff}
 .cfg-warn button{margin-left:auto;font-size:12.5px;font-weight:700;color:#8A6D00;background:#fff;border:1px solid #F0D88A;padding:6px 12px;border-radius:8px;cursor:pointer}
 
 /* ====== AREA DE IMPRESSAO ====== */
@@ -352,6 +365,13 @@ main{max-width:1080px;margin:0 auto;padding:26px 22px 80px}
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L14.7 3.9a2 2 0 00-3.4 0z" stroke-linecap="round" stroke-linejoin="round"/></svg>
     <span><b>Modo local.</b> A sincronização na nuvem e o leitor por IA precisam do endereço do servidor. Configure uma vez.</span>
     <button id="btnCfg">Configurar</button>
+  </div>
+
+  <!-- aviso de SEM CONEXÃO (servidor configurado mas offline) -->
+  <div class="offline-warn" id="offlineWarn" style="display:none">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L14.7 3.9a2 2 0 00-3.4 0z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span><b>⚠️ Sem conexão com o servidor.</b> Não salve vouchers agora — a numeração e a sincronização dependem da nuvem. Aguarde reconectar para evitar números repetidos.</span>
+    <button id="btnRetry">Tentar reconectar</button>
   </div>
 
   <!-- LEITOR IA -->
@@ -622,7 +642,7 @@ const SERVICES = {
 };
 
 /* ===== ESTADO ===== */
-let state = { num:'', services:[], editingId:null, salvo:false };
+let state = { num:'', services:[], editingId:null, salvo:false, clienteAuto:true };
 let savedCache = [];
 let svcSeq = 0;
 
@@ -663,6 +683,9 @@ function setCloud(status,txt){
   const c=$('#cloud');
   c.className='cloud '+status;
   $('#cloudTxt').textContent=txt;
+  // banner grande de "sem conexão": só quando há servidor configurado mas a conexão caiu
+  const ow=$('#offlineWarn');
+  if(ow) ow.style.display=(status==='offline' && getWorkerUrl()) ? 'flex' : 'none';
 }
 async function api(path,opts={}){
   const base=getWorkerUrl();
@@ -686,11 +709,18 @@ function paxRow(val=''){
   row.className='pax-row';
   row.innerHTML=`<input type="text" placeholder="Nome completo do passageiro" value="${esc(val)}">
     <button class="pax-x" title="Remover"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg></button>`;
-  row.querySelector('.pax-x').onclick=()=>row.remove();
+  row.querySelector('.pax-x').onclick=()=>{ row.remove(); syncClienteComPax(); };
   return row;
 }
 function getPax(){ return [...$$('#paxList .pax-row input')].map(i=>i.value.trim()).filter(Boolean); }
 function setPax(arr){ $('#paxList').innerHTML=''; (arr&&arr.length?arr:['']).forEach(v=>$('#paxList').appendChild(paxRow(v))); }
+// Espelha o nome do 1º passageiro no campo "Cliente" (a menos que o cliente tenha sido digitado manualmente)
+function syncClienteComPax(){
+  const fc=$('#fCliente'); if(!fc) return;
+  const primeiro=(getPax()[0]||'').trim();
+  if(!primeiro) return; // sem passageiro: não mexe no cliente
+  if(state.clienteAuto || !fc.value.trim()){ fc.value=primeiro; state.clienteAuto=true; }
+}
 
 /* ===== SERVIÇOS ===== */
 function renderAddMenu(){
@@ -809,6 +839,7 @@ function loadVoucher(v){
   $('#voucherNum').textContent='#'+(v.num||'—');
   $('#fData').value=v.data||'';
   $('#fCliente').value=v.cliente||'';
+  state.clienteAuto = !v.cliente || v.cliente===((v.passageiros&&v.passageiros[0])||'');
   $('#fVendedor').value=v.vendedor||'';
   $('#fEvento').value=v.evento||'';
   $('#fContato').value=v.contato||'';
@@ -831,7 +862,7 @@ function setSalvo(b){
   if(bi){ bi.style.opacity=b?'1':'0.5'; bi.title=b?'Imprimir / Gerar PDF':'Salve o voucher antes de gerar o PDF'; }
 }
 function novoVoucher(){
-  state={num:'',services:[],editingId:null,criadoEm:null,salvo:false};
+  state={num:'',services:[],editingId:null,criadoEm:null,salvo:false,clienteAuto:true};
   $('#fData').value=new Date().toISOString().slice(0,10);
   ['fCliente','fVendedor','fContato','fObs','fMensagem','iFornecedor','iCusto','iVenda','iOver','iComissaoPct'].forEach(id=>$('#'+id).value='');
   $('#fEvento').value='';
@@ -975,6 +1006,13 @@ Em caso de qualquer necessidade relacionada à sua reserva, conte com a Ultravel
 Tenha uma excelente estadia e um evento inesquecível!
 Seja muito bem-vindo(a) ao WeCann Summit 2026!`;
 
+// Identifica a companhia aérea pelo prefixo do código do voo (ex: G31983 -> Gol)
+const CIAS_CODIGO = { 'G3':'Gol Linhas Aéreas', 'LA':'Latam Linhas Aéreas', 'JJ':'Latam Linhas Aéreas', 'AD':'Azul Linhas Aéreas' };
+function companhiaPorCodigo(codigo){
+  if(!codigo) return '';
+  const c = String(codigo).toUpperCase().replace(/[^A-Z0-9]/g,'');
+  return CIAS_CODIGO[c.slice(0,2)] || '';
+}
 function aplicarIA(r){
   if(!r||typeof r!=='object') return;
   if(r.cliente && !$('#fCliente').value) $('#fCliente').value=r.cliente;
@@ -983,6 +1021,7 @@ function aplicarIA(r){
     const atuais=getPax();
     setPax([...new Set([...atuais,...r.passageiros])].filter(Boolean));
   }
+  syncClienteComPax();
   const itens = Array.isArray(r.servicos)?r.servicos : (r.tipo?[{tipo:r.tipo,dados:r.dados||{}}]:[]);
   const ALIAS = {entrada:'checkin','entrada_hora':'checkinHora',saida:'checkout','saída':'checkout','saida_hora':'checkoutHora',checkindata:'checkin',checkoutdata:'checkout',horaentrada:'checkinHora',horasaida:'checkoutHora'};
   const norm = s => (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
@@ -1000,6 +1039,10 @@ function aplicarIA(r){
     if(type==='hotel'){
       const nh=norm(data.hotel);
       if(HOTEIS_WECANN.some(h=>nh.includes(h))) eventoWecann=true;
+    }
+    if(type==='aereo' && !String(data.companhia||'').trim()){
+      const cia=companhiaPorCodigo(data.voo);
+      if(cia) data.companhia=cia;
     }
     addService(type,data);
   });
@@ -1145,9 +1188,13 @@ $('#btnSalvar').onclick=salvar;
 $('#btnImprimir').onclick=()=>imprimir(null);
 $('#btnAddPax').onclick=()=>{ $('#paxList').appendChild(paxRow('')); setSalvo(false); };
 $('#btnReload').onclick=()=>{ checkCloud(); loadSaved(); };
+$('#btnRetry').onclick=()=>{ setCloud('sync','Reconectando…'); checkCloud().then(ok=>{ if(ok){ toast('Conexão restabelecida!','ok'); loadSaved(); refreshNext(); } else { toast('Ainda sem conexão','err'); } }); };
 $('#btnCfg').onclick=configurar;
 $('#searchInput').oninput=()=>renderSaved(savedCache);
 $('#internalHead').onclick=()=>$('#internalBox').classList.toggle('open');
+// cliente espelha o 1º passageiro; digitar manualmente no cliente desativa o espelhamento
+$('#fCliente').addEventListener('input',()=>{ state.clienteAuto=false; });
+$('#paxList').addEventListener('input',e=>{ if(e.target&&e.target.matches('input')) syncClienteComPax(); });
 ['iCusto','iVenda','iOver','iComissaoPct'].forEach(id=>$('#'+id).addEventListener('input',calc));
 // qualquer edição manual nos campos do voucher exige salvar de novo antes de imprimir
 ['input','change'].forEach(ev=>document.addEventListener(ev,e=>{
