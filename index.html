@@ -325,6 +325,11 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .rk-nome{flex:1;min-width:0;color:#C5D0E4;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rk-vendas{flex:0 0 auto;color:#8595AD;font-size:10.5px;font-weight:500}
 .rk-vazio{color:#8595AD;font-size:11.5px;text-align:center;padding:10px 0}
+.est-rodape{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid #2C3B66}
+.est-rodape-info{color:#A9B6CC;font-size:11.5px}
+.est-rodape-info b{color:#3DD6C0;font-weight:700}
+.est-import{background:rgba(53,208,127,.12);color:#35D07F;border:1px solid rgba(53,208,127,.35);border-radius:9px;padding:7px 14px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif}
+.est-import:hover{background:rgba(53,208,127,.2)}
 @media(max-width:560px){.est-card{padding:15px 16px}.est-linha{font-size:11px;gap:8px}.est-led{width:9px;height:9px}}
 .pvw-ov{position:fixed;inset:0;z-index:9000;background:rgba(5,12,22,.86);backdrop-filter:blur(4px);display:flex;flex-direction:column;animation:pvwFade .18s ease}
 @keyframes pvwFade{from{opacity:0}to{opacity:1}}
@@ -424,6 +429,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
 
   <!-- PAINEL DE DISPONIBILIDADE (WeCann) -->
   <div class="est-card" id="estoqueCard" style="display:none"></div>
+  <input type="file" id="inputParticipantes" accept=".csv,text/csv" style="display:none">
 
   <!-- LEITOR IA -->
   <div class="section-eyebrow">
@@ -960,6 +966,7 @@ async function refreshNext(){
 
 /* ===== SALVAR ===== */
 async function salvar(){
+  aplicarWecannPorParticipante();
   const v=collectVoucher();
   if(!v.cliente){ toast('Informe o nome do cliente','err'); $('#fCliente').focus(); return; }
   if(!v.services.length){ toast('Adicione ao menos um serviço','err'); return; }
@@ -1103,6 +1110,68 @@ function renderRankingCol(){
   }
   return `<div class="est-hotel est-rk"><div class="est-titulo">Ranking de Vendedores</div>${corpo}</div>`;
 }
+/* ===== PARTICIPANTES WECANN (lista CSV) ===== */
+let participantesWecann = new Set();
+function normNome(s){ return (s||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' '); }
+function ehParticipanteWecann(nome){
+  const n=normNome(nome);
+  if(!n || !participantesWecann.size) return false;
+  if(participantesWecann.has(n)) return true;
+  const tk=n.split(' ');
+  if(tk.length<2) return false; // nome muito curto: só match exato (evita falso positivo)
+  for(const p of participantesWecann){
+    const pt=p.split(' ');
+    const menor = pt.length<=tk.length ? pt : tk;
+    const maior = pt.length<=tk.length ? tk : pt;
+    if(menor.length>=2 && menor.every((t,i)=>maior[i]===t)) return true; // um é prefixo do outro (em nomes)
+  }
+  return false;
+}
+function primeiraCelulaCSV(linha){
+  let i=0, cell='', emAspas=false;
+  while(i<linha.length){
+    const c=linha[i];
+    if(c==='"'){ if(emAspas && linha[i+1]==='"'){ cell+='"'; i+=2; continue; } emAspas=!emAspas; i++; continue; }
+    if((c===';'||c===',') && !emAspas) break;
+    cell+=c; i++;
+  }
+  return cell.trim();
+}
+function parseCSVNomes(texto){
+  texto=texto.replace(/^\uFEFF/,''); // remove BOM
+  const linhas=texto.split(/\r?\n/).filter(l=>l.trim());
+  const nomes=[];
+  for(let i=1;i<linhas.length;i++){ const c=primeiraCelulaCSV(linhas[i]); if(c) nomes.push(c); } // pula cabeçalho
+  return nomes;
+}
+async function importarParticipantes(file){
+  try{
+    const texto=await file.text();
+    const nomes=parseCSVNomes(texto);
+    const norm=[...new Set(nomes.map(normNome).filter(Boolean))];
+    if(!norm.length){ toast('Nenhum nome encontrado no CSV','err'); return; }
+    participantesWecann=new Set(norm);
+    localStorage.setItem('uv_participantes',JSON.stringify(norm));
+    try{ await api('/api/participantes',{method:'POST',body:JSON.stringify({nomes:norm,atualizadoEm:new Date().toISOString()})}); }catch(e){}
+    toast('Lista importada: '+norm.length+' participante(s)','ok');
+    renderDisponibilidade();
+  }catch(e){ toast('Erro ao ler o CSV','err'); }
+}
+async function carregarParticipantes(){
+  try{ const l=JSON.parse(localStorage.getItem('uv_participantes')||'[]'); if(l.length) participantesWecann=new Set(l); }catch(e){}
+  try{ const r=await api('/api/participantes'); if(r&&Array.isArray(r.nomes)){ participantesWecann=new Set(r.nomes); localStorage.setItem('uv_participantes',JSON.stringify(r.nomes)); } }catch(e){}
+}
+// se o cliente ou algum passageiro estiver na lista, marca o voucher como WeCann
+function aplicarWecannPorParticipante(){
+  if(!participantesWecann.size) return false;
+  const nomes=[$('#fCliente').value, ...getPax()];
+  const bateu=nomes.some(ehParticipanteWecann);
+  if(bateu){
+    const ev=$('#fEvento');
+    if(ev && !/wecann/i.test(ev.value)){ ev.value='WeCann Summit 2026'; if(!$('#fMensagem').value.trim()) $('#fMensagem').value=MSG_WECANN; }
+  }
+  return bateu;
+}
 function renderDisponibilidade(){
   const el=$('#estoqueCard'); if(!el) return;
   // o cálculo é sempre derivado dos vouchers salvos (nunca para); aqui só controlamos a exibição
@@ -1118,7 +1187,12 @@ function renderDisponibilidade(){
     }).join('');
     return `<div class="est-hotel"><div class="est-titulo">${cfg.nome}: Disponibilidade</div>${linhas}</div>`;
   }).join('');
-  el.innerHTML=`<div class="est-grid">${cols}${renderRankingCol()}</div>`;
+  el.innerHTML=`<div class="est-grid">${cols}${renderRankingCol()}</div>
+    <div class="est-rodape">
+      <span class="est-rodape-info">📋 Lista WeCann: <b>${participantesWecann.size}</b> participante(s)</span>
+      <button class="est-import" id="btnImportarParticipantes">Importar / Atualizar lista (CSV)</button>
+    </div>`;
+  const bi=$('#btnImportarParticipantes'); if(bi) bi.onclick=()=>$('#inputParticipantes').click();
   el.style.display='block';
 }
 
@@ -1255,6 +1329,7 @@ function aplicarIA(r){
     addService(type,data);
   });
   if(eventoWecann){ $('#fEvento').value='WeCann Summit 2026'; if(!$('#fMensagem').value.trim()) $('#fMensagem').value=MSG_WECANN; }
+  aplicarWecannPorParticipante();
   if(!itens.length) toast('A IA não identificou serviços no documento','info');
 }
 
@@ -1422,6 +1497,9 @@ $('#internalHead').onclick=()=>$('#internalBox').classList.toggle('open');
 // cliente espelha o 1º passageiro; digitar manualmente no cliente desativa o espelhamento
 $('#fCliente').addEventListener('input',()=>{ state.clienteAuto=false; });
 $('#paxList').addEventListener('input',e=>{ if(e.target&&e.target.matches('input')) syncClienteComPax(); });
+$('#inputParticipantes').addEventListener('change',e=>{ const f=e.target.files&&e.target.files[0]; if(f) importarParticipantes(f); e.target.value=''; });
+$('#fCliente').addEventListener('blur',aplicarWecannPorParticipante);
+$('#paxList').addEventListener('blur',e=>{ if(e.target&&e.target.matches('input')) aplicarWecannPorParticipante(); },true);
 // prévia do voucher
 $('#pvwFechar').onclick=fecharPreview;
 $('#pvwEditar').onclick=()=>{ const v=pvwAtual; fecharPreview(); if(v)loadVoucher(v); };
@@ -1505,6 +1583,7 @@ async function init(){
   loadLocal();
   renderSaved(savedCache);
   await carregarConfig();
+  await carregarParticipantes();
   const online=await checkCloud();
   if(online){ await loadSaved(); await refreshNext(); await carregarConfig(); }
 }
