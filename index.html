@@ -147,6 +147,7 @@ main{max-width:1080px;margin:0 auto;padding:26px 22px 80px}
 }
 .section-eyebrow h2{font-size:18px;font-weight:700}
 .section-eyebrow .hint{font-size:13px;color:var(--texto-suave);margin-left:auto}
+#savedCount.filtrando{color:#35D07F;font-weight:700}
 
 /* dropzone IA */
 .ai-zone{
@@ -466,7 +467,19 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
         </div>
         <div class="field">
           <label>Atendente</label>
-          <input type="text" id="fVendedor" placeholder="Nome do atendente">
+          <select id="fVendedor">
+            <option value="">Selecione o atendente</option>
+            <option>Eduardo Vinícius</option>
+            <option>Ghabriella Bressan</option>
+            <option>Letícia Rosa</option>
+            <option>Diego Oliveira</option>
+            <option>Liliane Gaspar</option>
+            <option>Israel Hespanhol</option>
+            <option>Maria Eduarda</option>
+            <option>Fernando Pires</option>
+            <option>Ana Maria</option>
+            <option>Hynaê Teston</option>
+          </select>
         </div>
       </div>
       <div class="grid g2" style="margin-top:15px">
@@ -558,7 +571,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
   <div class="saved-tools">
     <div class="search">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg>
-      <input type="text" id="searchInput" placeholder="Buscar por cliente, nº, destino…">
+      <input type="text" id="searchInput" placeholder="Buscar por cliente, atendente, evento, hotel, cia aérea, localizador, nº…">
     </div>
     <select id="ordemSelect" class="ordem-select" title="Ordenar lista">
       <option value="cadastro">📅 Data de cadastro (mais recente)</option>
@@ -912,13 +925,25 @@ function collectVoucher(){
     criadoEm: state.criadoEm || new Date().toISOString()
   };
 }
+function setVendedor(valor){
+  const sel=$('#fVendedor'); valor=(valor||'').trim();
+  // remove opções antigas adicionadas dinamicamente (de vouchers fora da lista)
+  [...sel.querySelectorAll('option[data-dyn]')].forEach(o=>o.remove());
+  // se o nome do voucher não estiver na lista fixa, adiciona uma opção temporária para não perder o dado
+  if(valor && ![...sel.options].some(o=>o.value===valor)){
+    const o=document.createElement('option');
+    o.value=valor; o.textContent=valor+' (fora da lista)'; o.dataset.dyn='1';
+    sel.appendChild(o);
+  }
+  sel.value=valor;
+}
 function loadVoucher(v){
   state.num=v.num||''; state.editingId=v.id; state.criadoEm=v.criadoEm;
   $('#voucherNum').textContent='#'+(v.num||'—');
   $('#fData').value=v.data||'';
   $('#fCliente').value=v.cliente||'';
   state.clienteAuto = !v.cliente || v.cliente===((v.passageiros&&v.passageiros[0])||'');
-  $('#fVendedor').value=v.vendedor||'';
+  setVendedor(v.vendedor);
   $('#fEvento').value=v.evento||'';
   $('#fContato').value=v.contato||'';
   setPax(v.passageiros||[]);
@@ -942,7 +967,8 @@ function setSalvo(b){
 function novoVoucher(){
   state={num:'',services:[],editingId:null,criadoEm:null,salvo:false,clienteAuto:true};
   $('#fData').value=new Date().toISOString().slice(0,10);
-  ['fCliente','fVendedor','fContato','fObs','fMensagem','iFornecedor','iCusto','iVenda','iOver','iComissaoPct'].forEach(id=>$('#'+id).value='');
+  ['fCliente','fContato','fObs','fMensagem','iFornecedor','iCusto','iVenda','iOver','iComissaoPct'].forEach(id=>$('#'+id).value='');
+  setVendedor('');
   $('#fEvento').value='';
   $('#iPgtoForn').value=''; $('#iPgtoCli').value='';
   setPax(['']); $('#svcList').innerHTML=''; state.services=[]; svcSeq=0; calc();
@@ -969,6 +995,7 @@ async function salvar(){
   aplicarWecannPorParticipante();
   const v=collectVoucher();
   if(!v.cliente){ toast('Informe o nome do cliente','err'); $('#fCliente').focus(); return; }
+  if(!v.vendedor){ toast('Selecione o atendente','err'); $('#fVendedor').focus(); return; }
   if(!v.services.length){ toast('Adicione ao menos um serviço','err'); return; }
   $('#btnSalvar').disabled=true;
   try{
@@ -1215,9 +1242,31 @@ function ordenarVouchers(arr){
   return a;
 }
 function renderSaved(list){
-  const q=($('#searchInput').value||'').toLowerCase();
-  const filt=ordenarVouchers(list.filter(v=>!q||[v.num,v.cliente,v.evento,...(v.services||[]).map(s=>s.data?.destino||s.data?.hotel||'')].join(' ').toLowerCase().includes(q)));
-  $('#savedCount').textContent=list.length+' voucher'+(list.length!==1?'s':'');
+  const q=_normE(($('#searchInput').value||'').trim());
+  const termos=q.split(/\s+/).filter(Boolean); // cada palavra é buscada separadamente (parcial + multi-termo)
+  const filt=ordenarVouchers(list.filter(v=>{
+    if(!termos.length) return true;
+    const campos=[v.num, v.cliente, v.vendedor, v.evento, v.contato];
+    (v.services||[]).forEach(s=>{
+      if(s&&s.data){
+        Object.values(s.data).forEach(val=>{
+          if(val==null||val==='') return;
+          if(Array.isArray(val)){ campos.push(val.map(x=>(x&&typeof x==='object')?Object.values(x).join(' '):x).join(' ')); }
+          else { campos.push(String(val)); }
+        });
+      }
+    });
+    const texto=_normE(campos.filter(Boolean).join(' '));
+    return termos.every(t=>texto.includes(t)); // precisa conter TODOS os termos digitados
+  }));
+  const sc=$('#savedCount');
+  if(termos.length){
+    sc.textContent=filt.length+(filt.length!==1?' resultados':' resultado')+' de '+list.length;
+    sc.classList.add('filtrando');
+  } else {
+    sc.textContent=list.length+' voucher'+(list.length!==1?'s':'');
+    sc.classList.remove('filtrando');
+  }
   renderDisponibilidade();
   if(!filt.length){
     $('#savedList').innerHTML=`<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 7h16M4 7l1 13a1 1 0 001 1h12a1 1 0 001-1l1-13M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2" stroke-linecap="round" stroke-linejoin="round"/></svg><p>${q?'Nenhum voucher encontrado':'Nenhum voucher salvo ainda'}</p></div>`;
