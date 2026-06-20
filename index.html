@@ -1089,11 +1089,11 @@ function calcRanking(){
   });
   return Object.entries(map).map(([nome,qtd])=>({nome,qtd})).sort((a,b)=>b.qtd-a.qtd || a.nome.localeCompare(b.nome,'pt'));
 }
-function iconeRanking(pos,total){
-  if(pos===0) return '🥇';
-  if(pos===1) return '🥈';
-  if(pos===2) return '🥉';
-  if(pos===total-1) return '🥵'; // último colocado
+function iconePorNivel(nivel,totalNiveis){
+  if(nivel===0) return '🥇';            // maior número de vendas
+  if(nivel===totalNiveis-1) return '🥵'; // menor número de vendas
+  if(nivel===1) return '🥈';
+  if(nivel===2) return '🥉';
   return '🏃';
 }
 function renderRankingCol(){
@@ -1102,11 +1102,17 @@ function renderRankingCol(){
   if(!rk.length){
     corpo=`<div class="rk-vazio">Nenhuma venda registrada ainda</div>`;
   } else {
-    corpo=rk.map((r,i)=>`<div class="rk-linha">
-      <span class="rk-icon">${iconeRanking(i,rk.length)}</span>
-      <span class="rk-nome">${esc(r.nome)}</span>
-      <span class="rk-vendas">(${r.qtd} ${r.qtd===1?'Venda':'Vendas'})</span>
-    </div>`).join('');
+    // níveis = quantidades distintas de vendas (já em ordem decrescente). Mesmo nº de vendas => mesmo ícone.
+    const qtds=[...new Set(rk.map(r=>r.qtd))];
+    const k=qtds.length;
+    corpo=rk.map(r=>{
+      const nivel=qtds.indexOf(r.qtd);
+      return `<div class="rk-linha">
+        <span class="rk-icon">${iconePorNivel(nivel,k)}</span>
+        <span class="rk-nome">${esc(r.nome)}</span>
+        <span class="rk-vendas">(${r.qtd} ${r.qtd===1?'Venda':'Vendas'})</span>
+      </div>`;
+    }).join('');
   }
   return `<div class="est-hotel est-rk"><div class="est-titulo">Ranking de Vendedores</div>${corpo}</div>`;
 }
