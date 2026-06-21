@@ -148,6 +148,19 @@ main{max-width:1080px;margin:0 auto;padding:26px 22px 80px}
 .section-eyebrow h2{font-size:18px;font-weight:700}
 .section-eyebrow .hint{font-size:13px;color:var(--texto-suave);margin-left:auto}
 #savedCount.filtrando{color:#35D07F;font-weight:700}
+.paginacao{margin-top:18px;display:flex;flex-direction:column;align-items:center;gap:12px}
+.paginacao:empty{display:none}
+.pg-info{font-size:13px;color:var(--texto-suave)}
+.pg-info b{color:var(--texto);font-weight:700}
+.pg-controles{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center}
+.pg-btn{min-width:40px;height:40px;padding:0 12px;border-radius:var(--raio-sm);border:1px solid var(--borda);background:#fff;color:var(--texto);font-size:14px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:.15s;display:inline-flex;align-items:center;justify-content:center}
+.pg-btn:hover:not(:disabled){border-color:var(--azul);color:var(--azul)}
+.pg-btn.ativo{background:var(--azul);color:#fff;border-color:var(--azul)}
+.pg-btn:disabled{opacity:.38;cursor:not-allowed}
+.pg-seta{font-size:20px;line-height:1}
+.pg-ell{padding:0 4px;color:var(--texto-suave);font-weight:700}
+body.dark .pg-btn{background:#16212E;border-color:#243447;color:#E8EEF4}
+body.dark .pg-btn.ativo{background:var(--azul);border-color:var(--azul);color:#fff}
 
 /* dropzone IA */
 .ai-zone{
@@ -586,6 +599,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     </button>
   </div>
   <div id="savedList"></div>
+  <div id="paginacao" class="paginacao"></div>
 </main>
 <div class="print-area" id="printArea"></div>
 
@@ -734,6 +748,8 @@ const SERVICES = {
 
 /* ===== ESTADO ===== */
 let state = { num:'', services:[], editingId:null, salvo:false, clienteAuto:true };
+let paginaAtual = 1;
+const VOUCHERS_POR_PAGINA = 10;
 let savedCache = [];
 let svcSeq = 0;
 
@@ -1270,9 +1286,16 @@ function renderSaved(list){
   renderDisponibilidade();
   if(!filt.length){
     $('#savedList').innerHTML=`<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 7h16M4 7l1 13a1 1 0 001 1h12a1 1 0 001-1l1-13M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2" stroke-linecap="round" stroke-linejoin="round"/></svg><p>${q?'Nenhum voucher encontrado':'Nenhum voucher salvo ainda'}</p></div>`;
+    $('#paginacao').innerHTML='';
     return;
   }
-  $('#savedList').innerHTML=filt.map(v=>{
+  // PAGINAÇÃO: mostra somente os 10 vouchers da página atual
+  const totalPaginas=Math.max(1, Math.ceil(filt.length/VOUCHERS_POR_PAGINA));
+  if(paginaAtual>totalPaginas) paginaAtual=totalPaginas;
+  if(paginaAtual<1) paginaAtual=1;
+  const ini=(paginaAtual-1)*VOUCHERS_POR_PAGINA;
+  const pagina=filt.slice(ini, ini+VOUCHERS_POR_PAGINA);
+  $('#savedList').innerHTML=pagina.map(v=>{
     const tipos=(v.services||[]).map(s=>SERVICES[s.type]?.label||s.type).join(' · ');
     return `<div class="voucher-item" data-preview="${esc(v.id)}" title="Clique para ver a prévia">
       <span class="vi-num">#${esc(v.num||'—')}</span>
@@ -1303,6 +1326,44 @@ function renderSaved(list){
       toast('Voucher excluído','info');
     },'Excluir');
   });
+  renderPaginacao(totalPaginas, filt.length);
+}
+
+/* ===== PAGINAÇÃO ===== */
+function paginasVisiveis(atual, total){
+  // mostra: 1, …, atual-1, atual, atual+1, …, total (sem repetir)
+  const set=new Set([1,total,atual,atual-1,atual+1]);
+  const arr=[...set].filter(n=>n>=1&&n<=total).sort((a,b)=>a-b);
+  const out=[];
+  for(let i=0;i<arr.length;i++){
+    out.push(arr[i]);
+    if(i<arr.length-1 && arr[i+1]-arr[i]>1) out.push('…');
+  }
+  return out;
+}
+function renderPaginacao(totalPaginas, totalItens){
+  const el=$('#paginacao'); if(!el) return;
+  if(totalPaginas<=1){ el.innerHTML=''; return; }
+  const ini=(paginaAtual-1)*VOUCHERS_POR_PAGINA+1;
+  const fim=Math.min(paginaAtual*VOUCHERS_POR_PAGINA, totalItens);
+  const seta=(label,pag,desativado)=>`<button class="pg-btn pg-seta"${desativado?' disabled':''} data-pg="${pag}" title="${pag<paginaAtual?'Anterior':'Próxima'}">${label}</button>`;
+  let html=`<div class="pg-info">Exibindo <b>${ini}–${fim}</b> de <b>${totalItens}</b></div><div class="pg-controles">`;
+  html+=seta('‹', paginaAtual-1, paginaAtual<=1);
+  paginasVisiveis(paginaAtual, totalPaginas).forEach(n=>{
+    if(n==='…') html+=`<span class="pg-ell">…</span>`;
+    else html+=`<button class="pg-btn${n===paginaAtual?' ativo':''}" data-pg="${n}">${n}</button>`;
+  });
+  html+=seta('›', paginaAtual+1, paginaAtual>=totalPaginas);
+  html+=`</div>`;
+  el.innerHTML=html;
+  $$('#paginacao [data-pg]').forEach(b=>{ if(!b.disabled) b.onclick=()=>irParaPagina(parseInt(b.dataset.pg,10)); });
+}
+function irParaPagina(n){
+  if(isNaN(n)) return;
+  paginaAtual=n;
+  renderSaved(savedCache);
+  const sec=document.querySelector('.saved-tools')||$('#savedList');
+  if(sec) sec.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
 /* ===== LEITOR IA ===== */
@@ -1545,8 +1606,8 @@ $('#btnAddPax').onclick=()=>{ $('#paxList').appendChild(paxRow('')); setSalvo(fa
 $('#btnReload').onclick=()=>{ checkCloud(); loadSaved(); };
 $('#btnRetry').onclick=()=>{ setCloud('sync','Reconectando…'); checkCloud().then(ok=>{ if(ok){ toast('Conexão restabelecida!','ok'); loadSaved(); refreshNext(); } else { toast('Ainda sem conexão','err'); } }); };
 $('#btnCfg').onclick=configurar;
-$('#searchInput').oninput=()=>renderSaved(savedCache);
-$('#ordemSelect').onchange=()=>{ localStorage.setItem('uv_ordem',$('#ordemSelect').value); renderSaved(savedCache); };
+$('#searchInput').oninput=()=>{ paginaAtual=1; renderSaved(savedCache); };
+$('#ordemSelect').onchange=()=>{ paginaAtual=1; localStorage.setItem('uv_ordem',$('#ordemSelect').value); renderSaved(savedCache); };
 (function(){ const o=localStorage.getItem('uv_ordem'); if(o) $('#ordemSelect').value=o; })();
 $('#internalHead').onclick=()=>$('#internalBox').classList.toggle('open');
 // cliente espelha o 1º passageiro; digitar manualmente no cliente desativa o espelhamento
