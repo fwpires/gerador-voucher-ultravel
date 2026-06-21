@@ -333,7 +333,11 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .est-txt{white-space:nowrap}
 .est-linha:last-child{margin-bottom:0}
 .est-led{width:10px;height:10px;border-radius:50%;flex:0 0 auto;background:var(--led);box-shadow:0 0 5px 1px var(--led);animation:ledBlink 2.6s ease-in-out infinite}
+.est-x{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;color:#F0463F;font-weight:900;font-size:1.25em;line-height:1;text-shadow:0 0 7px rgba(240,70,63,.9),0 0 3px rgba(240,70,63,.95);animation:soldBlink 1.05s steps(1,end) infinite}
+.est-soldout{color:#F0463F;font-weight:800;text-shadow:0 0 7px rgba(240,70,63,.85),0 0 2px rgba(240,70,63,.9);animation:soldBlink 1.05s steps(1,end) infinite;white-space:nowrap}
+@keyframes soldBlink{0%,50%{opacity:1}51%,100%{opacity:.12}}
 .est-txt b{font-weight:700;color:#C5D0E4}
+.est-txt b.est-soldout{color:#F0463F}
 @keyframes ledBlink{0%,100%{opacity:1}50%{opacity:.22}}
 .rk-linha{display:flex;align-items:center;gap:10px;padding:6px 2px}
 .rk-icon{font-size:18px;line-height:1;flex:0 0 auto;width:24px;text-align:center}
@@ -1119,10 +1123,10 @@ function calcDisponibilidadeHotel(cfg){
 }
 function corDisponibilidade(disp,total){
   const pct = total>0 ? (disp/total)*100 : 0;
-  if(pct>=70) return '#35D07F';   // verde
-  if(pct>=40) return '#F2C829';   // amarelo
-  if(pct>=20) return '#F2922B';   // laranja
-  return '#F0463F';               // vermelho (20%–1% e zerado)
+  if(pct>=80) return '#35D07F';   // verde     100–80%
+  if(pct>=60) return '#F2C829';   // amarelo     79–60%
+  if(pct>=40) return '#F2922B';   // laranja     59–40%
+  return '#F0463F';               // vermelho    39–1% (e zerado)
 }
 function calcRanking(){
   const map={};
@@ -1230,9 +1234,14 @@ function renderDisponibilidade(){
     const blocos=calcDisponibilidadeHotel(cfg);
     const linhas=blocos.map(b=>{
       const cor=corDisponibilidade(b.disp,b.total);
+      const esgotado = b.total>0 && b.disp<=0;
+      const marcador = esgotado
+        ? `<span class="est-x" title="Esgotado">✕</span>`
+        : `<span class="est-led" style="--led:${cor}"></span>`;
+      const soldout = esgotado ? ` <b class="est-soldout">Sold Out</b>` : '';
       return `<div class="est-linha">
-        <span class="est-led" style="--led:${cor}"></span>
-        <span class="est-txt"><b>${b.label}:</b> Bloqueados – ${b.total} / Disponíveis: ${b.disp}</span>
+        ${marcador}
+        <span class="est-txt"><b>${b.label}:</b> Bloqueados – ${b.total} / Disponíveis: ${b.disp}${soldout}</span>
       </div>`;
     }).join('');
     return `<div class="est-hotel"><div class="est-titulo">${cfg.nome}: Disponibilidade</div>${linhas}</div>`;
@@ -1262,7 +1271,7 @@ function ajustarFonteEstoque(){
     let menorEscala=Infinity;
     linhas.forEach(l=>{
       const txt=l.querySelector('.est-txt'); if(!txt) return;
-      const led=l.querySelector('.est-led');
+      const led=l.querySelector('.est-led, .est-x');
       const cs=getComputedStyle(l);
       const padX=parseFloat(cs.paddingLeft||0)+parseFloat(cs.paddingRight||0);
       const gap=parseFloat(cs.columnGap||cs.gap||8)||8;
