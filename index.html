@@ -1244,7 +1244,44 @@ function renderDisponibilidade(){
     </div>`;
   const bi=$('#btnImportarParticipantes'); if(bi) bi.onclick=()=>$('#inputParticipantes').click();
   el.style.display='block';
+  // após o layout assentar, ajusta a fonte para preencher exatamente cada coluna
+  requestAnimationFrame(ajustarFonteEstoque);
 }
+
+/* Auto-ajuste: aumenta a fonte das linhas de disponibilidade até preencher
+   a largura útil da coluna (sem estourar a linha). Mede a linha mais larga e
+   escala todas as linhas da coluna pelo mesmo fator. Robusto em qualquer tela. */
+function ajustarFonteEstoque(){
+  const card=$('#estoqueCard'); if(!card || card.style.display==='none') return;
+  const BASE=13, MIN=10, MAX=18, SEGURANCA=0.97; // margem p/ não encostar na borda
+  card.querySelectorAll('.est-hotel').forEach(col=>{
+    const linhas=[...col.querySelectorAll('.est-linha')];
+    if(!linhas.length) return;
+    // mede tudo num tamanho base conhecido
+    linhas.forEach(l=>l.style.fontSize=BASE+'px');
+    let menorEscala=Infinity;
+    linhas.forEach(l=>{
+      const txt=l.querySelector('.est-txt'); if(!txt) return;
+      const led=l.querySelector('.est-led');
+      const cs=getComputedStyle(l);
+      const padX=parseFloat(cs.paddingLeft||0)+parseFloat(cs.paddingRight||0);
+      const gap=parseFloat(cs.columnGap||cs.gap||8)||8;
+      const ledW=led?led.getBoundingClientRect().width:0;
+      const disponivel=l.clientWidth - padX - ledW - gap; // espaço útil p/ o texto
+      const necessario=txt.scrollWidth;                   // largura do texto no tamanho base
+      if(necessario>0 && disponivel>0) menorEscala=Math.min(menorEscala, disponivel/necessario);
+    });
+    if(!isFinite(menorEscala)) return;
+    let fonte=Math.max(MIN, Math.min(MAX, BASE*menorEscala*SEGURANCA));
+    linhas.forEach(l=>l.style.fontSize=fonte.toFixed(2)+'px');
+  });
+}
+// reaplica o ajuste quando a janela muda de tamanho (debounce)
+let _tmrFonteEstoque=null;
+window.addEventListener('resize',()=>{
+  clearTimeout(_tmrFonteEstoque);
+  _tmrFonteEstoque=setTimeout(ajustarFonteEstoque,150);
+});
 
 function ordenarVouchers(arr){
   const modo=($('#ordemSelect')&&$('#ordemSelect').value)||'cadastro';
