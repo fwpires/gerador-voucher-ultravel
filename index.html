@@ -328,7 +328,17 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .est-grid{display:flex;gap:0;align-items:stretch}
 .est-hotel{flex:1;padding:2px 14px;min-width:0;container-type:inline-size}
 .est-hotel + .est-hotel{border-left:1px solid #2C3B66}
-@media(max-width:1000px){.est-grid{flex-direction:column;gap:14px}.est-hotel{padding:0}.est-hotel + .est-hotel{border-left:none;border-top:1px solid #2C3B66;padding-top:16px}}
+/* Carrossel das duas visões (Disponibilidade ↔ Ocupação) */
+.est-carousel{flex:2;min-width:0;position:relative;overflow:hidden;padding-right:36px}
+.est-track{display:flex;width:200%;transition:transform .42s cubic-bezier(.4,0,.2,1)}
+.est-track[data-view="1"]{transform:translateX(-50%)}
+.est-face{flex:0 0 50%;width:50%;display:flex;align-items:stretch;min-width:0}
+.est-seta{position:absolute;top:50%;right:3px;transform:translateY(-50%);z-index:6;width:30px;height:30px;border-radius:50%;border:1px solid #2C3B66;background:#1B2A55;color:#9FB0CE;font-size:20px;font-weight:700;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.32);transition:background .15s,color .15s,transform .15s}
+.est-seta:hover{background:var(--azul);color:#fff;transform:translateY(-50%) scale(1.08)}
+.est-rk{flex:1;border-left:1px solid #2C3B66}
+.est-cnt{color:#3DD6C0;font-weight:800;font-size:1.05em}
+.est-vazio-diaria{color:#8595AD;font-size:11.5px;text-align:center;padding:10px 0}
+@media(max-width:1000px){.est-grid{flex-direction:column;gap:14px}.est-hotel{padding:0}.est-hotel + .est-hotel{border-left:none;border-top:1px solid #2C3B66;padding-top:16px}.est-carousel{flex:none;width:100%;padding-right:0}.est-face{flex-direction:column;gap:14px}.est-rk{border-left:none;border-top:1px solid #2C3B66;padding-top:16px}.est-seta{top:6px;right:6px;transform:none}.est-seta:hover{transform:scale(1.08)}}
 .est-linha{display:flex;align-items:center;gap:8px;padding:7px 13px;margin-bottom:8px;border:1px solid rgba(255,255,255,.09);border-radius:10px;font-weight:500;font-size:clamp(9px,3cqi,11.5px);line-height:1.3;color:#A9B6CC}
 .est-txt{white-space:nowrap}
 .est-linha:last-child{margin-bottom:0}
@@ -1060,6 +1070,7 @@ async function loadSaved(){
 }
 /* ===== PAINEL DE DISPONIBILIDADE (WeCann) ===== */
 let appConfig = { estoqueVisivel:false };
+let estView = 0; // 0 = Disponibilidade, 1 = Ocupação (contador de diárias)
 async function carregarConfig(){
   let local={};
   try{ local=JSON.parse(localStorage.getItem('uv_config')||'{}'); }catch(e){}
@@ -1120,6 +1131,33 @@ function calcDisponibilidadeHotel(cfg){
     if(!tocou && (!ci||!co)){ const pr=blocos.find(x=>x.principal)||blocos[0]; if(pr) pr.ocupados++; }
   });
   return blocos.map(b=>({...b, disp:Math.max(0,b.total-b.ocupados)}));
+}
+
+/* Formata um período entrada→saída a partir de datas ISO (AAAA-MM-DD).
+   Mesmo mês: "28 – 31/10". Meses diferentes: "29/10 – 01/11". */
+function fmtPeriodo(ci,co){
+  const a=(ci||'').split('-'), b=(co||'').split('-');
+  if(a.length<3||b.length<3) return (ci||'?')+' – '+(co||'?');
+  const di=a[2], mi=a[1], dc=b[2], mc=b[1];
+  return mi===mc ? `${di} – ${dc}/${mc}` : `${di}/${mi} – ${dc}/${mc}`;
+}
+
+/* Contador de diárias: agrupa os vouchers de hospedagem do hotel pela data
+   exata de entrada→saída e conta quantos vouchers há em cada período. */
+function calcDiariasHotel(cfg){
+  const mapa=new Map(); let semDatas=0;
+  (savedCache||[]).forEach(v=>{
+    const hotel=(v.services||[]).find(s=>s.type==='hotel' && cfg.match(s.data&&s.data.hotel));
+    if(!hotel) return;
+    const ci=(hotel.data&&hotel.data.checkin)||'', co=(hotel.data&&hotel.data.checkout)||'';
+    if(!ci||!co){ semDatas++; return; }
+    const k=ci+'|'+co;
+    if(!mapa.has(k)) mapa.set(k,{ci,co,count:0});
+    mapa.get(k).count++;
+  });
+  const periodos=[...mapa.values()].sort((x,y)=> (x.ci.localeCompare(y.ci)) || (x.co.localeCompare(y.co)) );
+  const total=periodos.reduce((s,p)=>s+p.count,0)+semDatas;
+  return { periodos, semDatas, total };
 }
 function corDisponibilidade(disp,total){
   const pct = total>0 ? (disp/total)*100 : 0;
@@ -1230,7 +1268,7 @@ function renderDisponibilidade(){
   const el=$('#estoqueCard'); if(!el) return;
   // o cálculo é sempre derivado dos vouchers salvos (nunca para); aqui só controlamos a exibição
   if(!appConfig.estoqueVisivel){ el.style.display='none'; return; }
-  const cols=HOTEIS_ESTOQUE.map(cfg=>{
+  const colsDisp=HOTEIS_ESTOQUE.map(cfg=>{
     const blocos=calcDisponibilidadeHotel(cfg);
     const linhas=blocos.map(b=>{
       const cor=corDisponibilidade(b.disp,b.total);
@@ -1246,12 +1284,53 @@ function renderDisponibilidade(){
     }).join('');
     return `<div class="est-hotel"><div class="est-titulo">${cfg.nome}: Disponibilidade</div>${linhas}</div>`;
   }).join('');
-  el.innerHTML=`<div class="est-grid">${cols}${renderRankingCol()}</div>
+
+  // 2ª visão: contador de diárias (ocupação) por período entrada→saída
+  const colsDiarias=HOTEIS_ESTOQUE.map(cfg=>{
+    const d=calcDiariasHotel(cfg);
+    let corpo;
+    if(!d.periodos.length && !d.semDatas){
+      corpo=`<div class="est-vazio-diaria">Nenhuma diária registrada ainda</div>`;
+    } else {
+      corpo=d.periodos.map(p=>`<div class="est-linha">
+          <span class="est-led" style="--led:#3DD6C0"></span>
+          <span class="est-txt"><b>Período:</b> ${fmtPeriodo(p.ci,p.co)}: <b class="est-cnt">${p.count}</b></span>
+        </div>`).join('');
+      if(d.semDatas){
+        corpo+=`<div class="est-linha">
+          <span class="est-led" style="--led:#8595AD"></span>
+          <span class="est-txt"><b>Sem datas:</b> <b class="est-cnt">${d.semDatas}</b></span>
+        </div>`;
+      }
+    }
+    return `<div class="est-hotel"><div class="est-titulo">${cfg.nome}: Ocupação</div>${corpo}</div>`;
+  }).join('');
+
+  el.innerHTML=`<div class="est-grid">
+      <div class="est-carousel">
+        <div class="est-track" id="estTrack" data-view="${estView}">
+          <div class="est-face">${colsDisp}</div>
+          <div class="est-face">${colsDiarias}</div>
+        </div>
+        <button class="est-seta" id="btnSeta" type="button"></button>
+      </div>
+      ${renderRankingCol()}
+    </div>
     <div class="est-rodape">
       <span class="est-rodape-info">📋 Lista WeCann: <b>${participantesWecann.size}</b> participante(s)</span>
       <button class="est-import" id="btnImportarParticipantes">Importar / Atualizar lista (CSV)</button>
     </div>`;
   const bi=$('#btnImportarParticipantes'); if(bi) bi.onclick=()=>$('#inputParticipantes').click();
+  // seta do carrossel: alterna entre Disponibilidade (0) e Ocupação (1)
+  const track=$('#estTrack'), seta=$('#btnSeta');
+  function aplicarSeta(){
+    if(!track||!seta) return;
+    track.setAttribute('data-view', String(estView));
+    seta.innerHTML = estView===1 ? '‹' : '›';
+    seta.title = estView===1 ? 'Voltar para Disponibilidade' : 'Ver contador de diárias (Ocupação)';
+  }
+  if(seta) seta.onclick=()=>{ estView = estView===1 ? 0 : 1; aplicarSeta(); requestAnimationFrame(ajustarFonteEstoque); };
+  aplicarSeta();
   el.style.display='block';
   // após o layout assentar, ajusta a fonte para preencher exatamente cada coluna
   requestAnimationFrame(ajustarFonteEstoque);
