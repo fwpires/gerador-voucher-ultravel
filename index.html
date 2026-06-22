@@ -328,11 +328,12 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .est-grid{display:flex;gap:0;align-items:stretch}
 .est-hotel{flex:1;padding:2px 14px;min-width:0;container-type:inline-size}
 .est-hotel + .est-hotel{border-left:1px solid #2C3B66}
-/* Carrossel das duas visões (Disponibilidade ↔ Ocupação) — envolve TUDO, inclusive o ranking */
+/* Carrossel das TRÊS visões (Disponibilidade ↔ Ocupação ↔ Status Hotel) — envolve tudo */
 .est-carousel{flex:1;min-width:0;position:relative;overflow:hidden}
-.est-track{display:flex;width:200%;transition:transform .42s cubic-bezier(.4,0,.2,1)}
-.est-track[data-view="1"]{transform:translateX(-50%)}
-.est-face{flex:0 0 50%;width:50%;min-width:0}
+.est-track{display:flex;width:300%;transition:transform .42s cubic-bezier(.4,0,.2,1)}
+.est-track[data-view="1"]{transform:translateX(-33.3333%)}
+.est-track[data-view="2"]{transform:translateX(-66.6667%)}
+.est-face{flex:0 0 33.3333%;width:33.3333%;min-width:0}
 .est-face-disp{display:flex;align-items:stretch}
 .est-face-ocup{display:flex;flex-direction:column}
 .est-ocup-hoteis{display:flex;align-items:stretch}
@@ -341,7 +342,10 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .est-ocup-total{margin-top:auto;display:flex;align-items:center;justify-content:center;gap:7px;font-weight:600;font-size:clamp(10px,3cqi,12.5px);color:#C5D0E4;border-top:1px dashed rgba(61,214,192,.32);padding-top:11px;white-space:nowrap}
 .est-ocup-total b{color:#3DD6C0;font-weight:800;font-size:1.15em}
 .est-ocup-rodape{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:16px;padding-top:12px;border-top:1px solid #2C3B66}
-.est-seta-col{flex:0 0 auto;display:flex;align-items:center;justify-content:center;padding:0 4px 0 9px}
+.est-seta-col{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:0 4px 0 9px}
+.est-dots{display:flex;flex-direction:column;gap:7px}
+.est-dot{width:8px;height:8px;border-radius:50%;background:#34406B;cursor:pointer;transition:all .15s}
+.est-dot.on{background:#3DD6C0;box-shadow:0 0 6px rgba(61,214,192,.7)}
 .est-seta{width:30px;height:30px;border-radius:50%;border:1px solid #2C3B66;background:#1B2A55;color:#9FB0CE;font-size:20px;font-weight:700;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.32);transition:background .15s,color .15s,transform .15s}
 .est-seta:hover{background:var(--azul);color:#fff;transform:scale(1.08)}
 .est-rk{flex:1}
@@ -350,7 +354,34 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .est-aviso{background:rgba(240,70,63,.12);border:1px solid rgba(240,70,63,.45);color:#FFD9D7;border-radius:11px;padding:10px 14px;margin-bottom:16px;font-size:12.5px;font-weight:600;line-height:1.4}
 .est-aviso b{color:#FF8A85}
 .est-aviso-nums{color:#FFE3E1;font-weight:700}
-@media(max-width:1000px){.est-grid{flex-direction:column;gap:14px}.est-hotel{padding:0}.est-hotel + .est-hotel{border-left:none;border-top:1px solid #2C3B66;padding-top:16px}.est-carousel{flex:none;width:100%}.est-face-disp,.est-ocup-hoteis{flex-direction:column;gap:14px}.est-seta-col{padding:6px 0}.est-ocup-total{margin-top:14px}}
+/* ===== Face 3: Status Hotel (leitor de CSV) ===== */
+.est-face-status{display:flex;flex-direction:column}
+.sh-topo{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.sh-titulo{font-family:'Sora',sans-serif;font-weight:800;font-size:14px;color:#fff;margin-right:auto}
+.sh-busca{flex:1 1 220px;min-width:160px;background:#0F1A3A;border:1px solid #2C3B66;color:#E7EDF7;border-radius:9px;padding:8px 12px;font-size:13px;outline:none}
+.sh-busca:focus{border-color:#3DD6C0}
+.sh-info{font-size:11.5px;color:#8595AD;width:100%}
+.sh-cols{display:flex;align-items:stretch;gap:12px}
+.sh-col{flex:1;min-width:0;background:rgba(255,255,255,.03);border:1px solid #2C3B66;border-radius:12px;display:flex;flex-direction:column;overflow:hidden}
+.sh-head{display:flex;align-items:center;gap:8px;padding:11px 13px;font-weight:800;font-size:13.5px;color:#fff;border-bottom:1px solid #2C3B66}
+.sh-head .sh-dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
+.sh-head .sh-count{margin-left:auto;font-size:13px;font-weight:800}
+.sh-body{max-height:330px;overflow-y:auto;padding:8px}
+.sh-body::-webkit-scrollbar{width:7px}.sh-body::-webkit-scrollbar-thumb{background:#2C3B66;border-radius:4px}
+.sh-item{padding:7px 9px;border-radius:8px;margin-bottom:5px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.05)}
+.sh-item:last-child{margin-bottom:0}
+.sh-nome{font-size:12.5px;font-weight:700;color:#E7EDF7;line-height:1.25}
+.sh-meta{font-size:11px;color:#9FB0CE;line-height:1.3;margin-top:2px;word-break:break-word}
+.sh-vazio{color:#8595AD;font-size:11.5px;text-align:center;padding:14px 6px}
+.sh-act{margin-top:7px;font-size:11px;font-weight:700;border-radius:7px;padding:5px 10px;cursor:pointer;border:1px solid transparent;transition:all .14s;line-height:1}
+.sh-check{background:rgba(53,208,127,.14);color:#5BE0A8;border-color:rgba(53,208,127,.4)}
+.sh-check:hover{background:#35D07F;color:#0B1530}
+.sh-undo{background:rgba(255,255,255,.05);color:#9FB0CE;border-color:rgba(255,255,255,.12)}
+.sh-undo:hover{background:rgba(240,70,63,.16);color:#FF8A85;border-color:rgba(240,70,63,.45)}
+.sh-fechado .sh-head{color:#5BE0A8} .sh-fechado .sh-dot{background:#35D07F;box-shadow:0 0 6px rgba(53,208,127,.6)} .sh-fechado .sh-count{color:#5BE0A8}
+.sh-tratativa .sh-head{color:#F2C829} .sh-tratativa .sh-dot{background:#F2C829;box-shadow:0 0 6px rgba(242,200,41,.6)} .sh-tratativa .sh-count{color:#F2C829}
+.sh-contato .sh-head{color:#FF8A85} .sh-contato .sh-dot{background:#F0463F;box-shadow:0 0 6px rgba(240,70,63,.6)} .sh-contato .sh-count{color:#FF8A85}
+@media(max-width:1000px){.est-grid{flex-direction:column;gap:14px}.est-hotel{padding:0}.est-hotel + .est-hotel{border-left:none;border-top:1px solid #2C3B66;padding-top:16px}.est-carousel{flex:none;width:100%}.est-face-disp,.est-ocup-hoteis,.sh-cols{flex-direction:column;gap:14px}.est-seta-col{flex-direction:row;padding:6px 0}.est-dots{flex-direction:row}.est-ocup-total{margin-top:14px}.sh-body{max-height:260px}}
 .est-linha{display:flex;align-items:center;gap:8px;padding:7px 13px;margin-bottom:8px;border:1px solid rgba(255,255,255,.09);border-radius:10px;font-weight:500;font-size:clamp(9px,3cqi,11.5px);line-height:1.3;color:#A9B6CC}
 .est-txt{white-space:nowrap}
 .est-linha:last-child{margin-bottom:0}
@@ -1198,6 +1229,209 @@ function calcDatasInvalidas(){
   });
   return out;
 }
+
+/* ===================== STATUS HOTEL (leitor de CSV na nuvem) ===================== */
+let statusHotelData = { rows: [], importadoEm: null };
+let shBusca = '';
+
+// parser CSV robusto: trata BOM, separador ';' , aspas e quebras dentro de aspas
+function parseCSVMatriz(text, sep){
+  sep = sep || ';';
+  text = (text||'').replace(/^\uFEFF/, '');
+  const rows=[]; let row=[]; let campo=''; let i=0; let aspas=false;
+  while(i<text.length){
+    const c=text[i];
+    if(aspas){
+      if(c==='"'){ if(text[i+1]==='"'){ campo+='"'; i+=2; continue; } aspas=false; i++; continue; }
+      campo+=c; i++; continue;
+    }
+    if(c==='"'){ aspas=true; i++; continue; }
+    if(c===sep){ row.push(campo); campo=''; i++; continue; }
+    if(c==='\r'){ i++; continue; }
+    if(c==='\n'){ row.push(campo); rows.push(row); row=[]; campo=''; i++; continue; }
+    campo+=c; i++;
+  }
+  if(campo.length>0 || row.length>0){ row.push(campo); rows.push(row); }
+  return rows;
+}
+
+// transforma o CSV "Status Hotel" em lista de objetos com os campos úteis
+function parseCSVStatusHotel(text){
+  const m=parseCSVMatriz(text, ';');
+  if(!m.length) return [];
+  const header=m[0].map(h=>(h||'').trim());
+  const idx=nome=> header.findIndex(h=>_normE(h)===_normE(nome));
+  const I={ nome:idx('Nome'), email:idx('Email'), status:idx('Status Hotel'), agente:idx('Agente'),
+    hotel:idx('Hotel'), cin:idx('Check-in'), cout:idx('Check-out'), dia:idx('Diárias'),
+    tipo:idx('Tipo Hóspede'), valor:idx('Valor'), voucher:idx('Voucher') };
+  const out=[];
+  for(let r=1;r<m.length;r++){
+    const c=m[r]; if(!c) continue;
+    const get=i=> (i>=0 && i<c.length) ? (c[i]||'').trim() : '';
+    const nome=get(I.nome); if(!nome) continue;
+    out.push({ nome, email:get(I.email), statusRaw:get(I.status), agente:get(I.agente),
+      hotel:get(I.hotel), checkin:get(I.cin), checkout:get(I.cout), diarias:get(I.dia),
+      tipo:get(I.tipo), valor:get(I.valor), voucher:get(I.voucher) });
+  }
+  return out;
+}
+
+// normaliza o status em 3 grupos: fechado / tratativa / contato (em branco)
+function normStatusHotel(raw){
+  const s=_normE(raw||'').trim();
+  if(!s) return 'contato';
+  if(s.indexOf('fechado')>=0) return 'fechado';
+  if(s.indexOf('tratativa')>=0) return 'tratativa';
+  return 'tratativa'; // qualquer outro status preenchido = em andamento
+}
+
+// importa um arquivo CSV, salva localmente e envia para a nuvem (todos os dispositivos)
+async function importarStatusHotel(file){
+  if(!file) return;
+  let text=''; try{ text=await file.text(); }catch(e){ toast('Não consegui ler o arquivo','err'); return; }
+  const rows=parseCSVStatusHotel(text);
+  if(!rows.length){ toast('CSV vazio ou em formato inesperado','err'); return; }
+  statusHotelData={ rows, importadoEm:new Date().toISOString() };
+  localStorage.setItem('uv_statushotel', JSON.stringify(statusHotelData));
+  renderStatusColunas();
+  toast('Enviando '+rows.length+' contatos para a nuvem...','info');
+  try{
+    const res=await api('/api/statushotel',{method:'POST',body:JSON.stringify({rows})});
+    if(res&&res.importadoEm) statusHotelData.importadoEm=res.importadoEm;
+    localStorage.setItem('uv_statushotel', JSON.stringify(statusHotelData));
+    toast('Relatório atualizado na nuvem: '+rows.length+' contatos ✅','ok');
+  }catch(e){ toast('Salvo no aparelho, mas falhou enviar à nuvem (verifique conexão)','err'); }
+  renderStatusColunas();
+}
+
+// carrega o relatório: cache local primeiro, depois a versão da nuvem
+async function carregarStatusHotel(){
+  try{ const l=JSON.parse(localStorage.getItem('uv_statushotel')||'null'); if(l&&Array.isArray(l.rows)) statusHotelData=l; }catch(e){}
+  renderStatusColunas();
+  try{
+    const d=await api('/api/statushotel');
+    if(d && Array.isArray(d.rows)){ statusHotelData=d; localStorage.setItem('uv_statushotel',JSON.stringify(d)); renderStatusColunas(); }
+  }catch(e){}
+}
+
+// monta um período "DD/MM – DD/MM (N diárias)" a partir do contato
+function shPeriodo(r){
+  if(!r.checkin || !r.checkout) return '';
+  let p=fmtPeriodo(r.checkin,r.checkout);
+  if(r.diarias) p+=' ('+r.diarias+(r.diarias==='1'?' diária':' diárias')+')';
+  return p;
+}
+
+// conjunto de nomes que aparecem em vouchers cadastrados (cliente + passageiros + hóspedes)
+function nomesDeVouchers(){
+  const s=new Set();
+  (savedCache||[]).forEach(v=>{
+    if(v.cliente) s.add(normNome(v.cliente));
+    (v.passageiros||[]).forEach(p=> p && s.add(normNome(p)));
+    (v.services||[]).forEach(sv=>{ const h=sv.data&&sv.data.hospedes; if(Array.isArray(h)) h.forEach(x=> x && s.add(normNome(x))); });
+  });
+  s.delete('');
+  return s;
+}
+// o nome bate com algum voucher? (match exato OU prefixo de 2+ tokens, como nos participantes)
+function nomeBateVoucher(nome, setNomes){
+  const n=normNome(nome); if(!n || !setNomes.size) return false;
+  if(setNomes.has(n)) return true;
+  const tk=n.split(' '); if(tk.length<2) return false;
+  for(const p of setNomes){
+    const pt=p.split(' ');
+    const menor = pt.length<=tk.length ? pt : tk;
+    const maior = pt.length<=tk.length ? tk : pt;
+    if(menor.length>=2 && menor.every((t,i)=>maior[i]===t)) return true;
+  }
+  return false;
+}
+// status EFETIVO = o mais avançado entre: CSV, ✅ manual (→tratativa), voucher (→fechado)
+function statusEfetivo(row, vSet, checSet){
+  const ordem={contato:0,tratativa:1,fechado:2};
+  let nivel=ordem[normStatusHotel(row.statusRaw)];
+  if(checSet.has(normNome(row.nome))) nivel=Math.max(nivel,1);
+  if(nomeBateVoucher(row.nome, vSet)) nivel=Math.max(nivel,2);
+  return ['contato','tratativa','fechado'][nivel];
+}
+// ✅ atendente marca que o contato foi feito → vai para "Em tratativa" (salva na nuvem)
+function marcarContatoFeito(nome){
+  const n=normNome(nome); if(!n) return;
+  if(!Array.isArray(appConfig.contatosTratativa)) appConfig.contatosTratativa=[];
+  if(!appConfig.contatosTratativa.includes(n)) appConfig.contatosTratativa.push(n);
+  salvarConfig();
+  renderStatusColunas();
+  toast('✅ Contato feito → movido para "Em tratativa"','ok');
+}
+// desfaz o ✅ manual → volta para "Fazer contato"
+function desfazerContatoFeito(nome){
+  const n=normNome(nome);
+  appConfig.contatosTratativa=(appConfig.contatosTratativa||[]).filter(x=>x!==n);
+  salvarConfig();
+  renderStatusColunas();
+  toast('Voltou para "Fazer contato"','info');
+}
+
+// renderiza as 3 colunas (status efetivo: CSV + ✅ manual + reconhecimento por voucher)
+function renderStatusColunas(){
+  const wrap=document.getElementById('shCols'); if(!wrap) return;
+  const rows=(statusHotelData&&statusHotelData.rows)||[];
+  const termo=_normE(shBusca||'').trim();
+  const vSet=nomesDeVouchers();
+  const checSet=new Set(appConfig.contatosTratativa||[]);
+  const grupos={fechado:[],tratativa:[],contato:[]};
+  rows.forEach(r=>{ grupos[statusEfetivo(r,vSet,checSet)].push(r); });
+  const passa=r=> !termo || _normE([r.nome,r.email,r.agente,r.hotel].join(' ')).indexOf(termo)>=0;
+
+  const card=(r,grupo)=>{
+    const nomeN=normNome(r.nome);
+    let meta='', acao='';
+    if(grupo==='fechado'){
+      meta=[r.hotel, r.agente?('Ag.: '+r.agente):'', shPeriodo(r)].filter(Boolean).join(' · ');
+    } else if(grupo==='tratativa'){
+      meta=[r.agente?('Ag.: '+r.agente):'', shPeriodo(r)].filter(Boolean).join(' · ');
+      // só mostra "desfazer" se foi um ✅ manual (base do CSV era em branco)
+      if(normStatusHotel(r.statusRaw)==='contato' && checSet.has(nomeN))
+        acao=`<button class="sh-act sh-undo" data-acao="desfazer" data-nome="${esc(r.nome)}" title="Voltar para Fazer contato">↩ Desfazer</button>`;
+    } else {
+      meta=r.email||'';
+      acao=`<button class="sh-act sh-check" data-acao="feito" data-nome="${esc(r.nome)}" title="Marcar que o contato já foi feito">✓ Contato feito</button>`;
+    }
+    return `<div class="sh-item"><div class="sh-nome">${esc(r.nome)}</div>${meta?`<div class="sh-meta">${esc(meta)}</div>`:''}${acao}</div>`;
+  };
+
+  const coluna=(grupo,classe,rotulo)=>{
+    const todos=grupos[grupo];
+    const vis=todos.filter(passa);
+    const cont = termo ? (vis.length+' de '+todos.length) : String(todos.length);
+    const corpo = vis.length ? vis.map(r=>card(r,grupo)).join('')
+      : `<div class="sh-vazio">${termo?'Nenhum resultado':'Nenhum contato'}</div>`;
+    return `<div class="sh-col ${classe}">
+      <div class="sh-head"><span class="sh-dot"></span>${rotulo}<span class="sh-count">${cont}</span></div>
+      <div class="sh-body">${corpo}</div>
+    </div>`;
+  };
+
+  wrap.innerHTML =
+    coluna('fechado','sh-fechado','Fechado (vendido)') +
+    coluna('tratativa','sh-tratativa','Em tratativa') +
+    coluna('contato','sh-contato','Fazer contato');
+
+  // ações dos botões (delegação via onclick — não empilha entre re-renders)
+  wrap.onclick=(e)=>{
+    const btn=e.target.closest('[data-acao]'); if(!btn) return;
+    const nome=btn.getAttribute('data-nome');
+    if(btn.getAttribute('data-acao')==='feito') marcarContatoFeito(nome);
+    else if(btn.getAttribute('data-acao')==='desfazer') desfazerContatoFeito(nome);
+  };
+
+  const info=document.getElementById('shInfo');
+  if(info){
+    info.textContent = statusHotelData.importadoEm
+      ? ('Última atualização: '+new Date(statusHotelData.importadoEm).toLocaleString('pt-BR')+' · '+rows.length+' contatos')
+      : 'Nenhum relatório importado ainda — clique em “Importar / Atualizar CSV”.';
+  }
+}
 function corDisponibilidade(disp,total){
   const pct = total>0 ? (disp/total)*100 : 0;
   if(pct>=80) return '#35D07F';   // verde     100–80%
@@ -1371,21 +1605,42 @@ function renderDisponibilidade(){
               <button class="est-import" id="btnImportarParticipantes">Importar / Atualizar lista (CSV)</button>
             </div>
           </div>
+          <div class="est-face est-face-status">
+            <div class="sh-topo">
+              <span class="sh-titulo">Controle de Contatos Ativos</span>
+              <input id="shBusca" class="sh-busca" type="text" placeholder="🔎 Buscar por nome, e-mail, agente, hotel..." />
+              <button class="est-import" id="btnImportarStatus">Importar / Atualizar CSV</button>
+              <span class="sh-info" id="shInfo"></span>
+            </div>
+            <div class="sh-cols" id="shCols"></div>
+            <input id="inputStatusHotel" type="file" accept=".csv,text/csv" style="display:none" />
+          </div>
         </div>
       </div>
-      <div class="est-seta-col"><button class="est-seta" id="btnSeta" type="button"></button></div>
+      <div class="est-seta-col">
+        <div class="est-dots" id="estDots">
+          <span class="est-dot" data-v="0" title="Disponibilidade"></span>
+          <span class="est-dot" data-v="1" title="Ocupação"></span>
+          <span class="est-dot" data-v="2" title="Controle de Contatos Ativos"></span>
+        </div>
+        <button class="est-seta" id="btnSeta" type="button">›</button>
+      </div>
     </div>`;
   const bi=$('#btnImportarParticipantes'); if(bi) bi.onclick=()=>$('#inputParticipantes').click();
-  // seta do carrossel: alterna entre Disponibilidade (0) e Ocupação (1)
+  const bis=$('#btnImportarStatus'); if(bis) bis.onclick=()=>$('#inputStatusHotel').click();
+  const inS=$('#inputStatusHotel'); if(inS) inS.onchange=e=>{ const f=e.target.files&&e.target.files[0]; if(f) importarStatusHotel(f); e.target.value=''; };
+  const shB=$('#shBusca'); if(shB){ shB.value=shBusca||''; shB.oninput=()=>{ shBusca=shB.value; renderStatusColunas(); }; }
+  // navegação do carrossel (3 visões): seta avança em ciclo + dots indicam/saltam
   const track=$('#estTrack'), seta=$('#btnSeta');
   function aplicarSeta(){
-    if(!track||!seta) return;
-    track.setAttribute('data-view', String(estView));
-    seta.innerHTML = estView===1 ? '‹' : '›';
-    seta.title = estView===1 ? 'Voltar para Disponibilidade' : 'Ver contador de diárias (Ocupação)';
+    if(track) track.setAttribute('data-view', String(estView));
+    el.querySelectorAll('.est-dot').forEach(d=>d.classList.toggle('on', +d.dataset.v===estView));
+    if(seta) seta.title='Próxima visão';
   }
-  if(seta) seta.onclick=()=>{ estView = estView===1 ? 0 : 1; aplicarSeta(); requestAnimationFrame(ajustarFonteEstoque); };
+  if(seta) seta.onclick=()=>{ estView=(estView+1)%3; aplicarSeta(); requestAnimationFrame(ajustarFonteEstoque); };
+  el.querySelectorAll('.est-dot').forEach(d=> d.onclick=()=>{ estView=+d.dataset.v; aplicarSeta(); requestAnimationFrame(ajustarFonteEstoque); });
   aplicarSeta();
+  renderStatusColunas();
   el.style.display='block';
   // após o layout assentar, ajusta a fonte para preencher exatamente cada coluna
   requestAnimationFrame(ajustarFonteEstoque);
@@ -1901,8 +2156,9 @@ async function init(){
   renderSaved(savedCache);
   await carregarConfig();
   await carregarParticipantes();
+  await carregarStatusHotel();
   const online=await checkCloud();
-  if(online){ await loadSaved(); await refreshNext(); await carregarConfig(); }
+  if(online){ await loadSaved(); await refreshNext(); await carregarConfig(); await carregarStatusHotel(); }
 }
 init();
 </script>
