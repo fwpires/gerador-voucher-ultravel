@@ -1151,11 +1151,13 @@ function calcDisponibilidadeHotel(cfg){
 
 /* Formata um período entrada→saída a partir de datas ISO (AAAA-MM-DD).
    Mesmo mês: "28 – 31/10". Meses diferentes: "29/10 – 01/11". */
+/* Formata um período entrada→saída a partir de datas ISO (AAAA-MM-DD),
+   SEMPRE mostrando os dois meses ("28/10 – 01/11") para nunca haver ambiguidade
+   entre check-ins de meses diferentes (ex.: 28/10 vs 28/11). */
 function fmtPeriodo(ci,co){
   const a=(ci||'').split('-'), b=(co||'').split('-');
   if(a.length<3||b.length<3) return (ci||'?')+' – '+(co||'?');
-  const di=a[2], mi=a[1], dc=b[2], mc=b[1];
-  return mi===mc ? `${di} – ${dc}/${mc}` : `${di}/${mi} – ${dc}/${mc}`;
+  return `${a[2]}/${a[1]} – ${b[2]}/${b[1]}`;
 }
 
 /* Contador de diárias: agrupa os vouchers de hospedagem do hotel pela data
