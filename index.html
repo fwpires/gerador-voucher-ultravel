@@ -324,21 +324,30 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .cfg-warn b{font-weight:700}
 .est-card{background:#16224A;border:1px solid #2C3B66;border-radius:16px;padding:18px 22px;margin-bottom:18px;box-shadow:0 8px 28px rgba(0,0,0,.18)}
 #btnEstoque.ativo{background:var(--azul);border-color:var(--azul);color:#fff}
-.est-titulo{font-family:'Sora',sans-serif;font-weight:800;font-size:14px;color:#fff;text-align:center;margin-bottom:12px;letter-spacing:.01em}
+.est-titulo{font-family:'Sora',sans-serif;font-weight:800;font-size:14px;color:#fff;text-align:center;margin-bottom:12px;letter-spacing:.01em;white-space:nowrap;overflow:hidden}
 .est-grid{display:flex;gap:0;align-items:stretch}
 .est-hotel{flex:1;padding:2px 14px;min-width:0;container-type:inline-size}
 .est-hotel + .est-hotel{border-left:1px solid #2C3B66}
-/* Carrossel das duas visões (Disponibilidade ↔ Ocupação) */
-.est-carousel{flex:2;min-width:0;position:relative;overflow:hidden;padding-right:36px}
+/* Carrossel das duas visões (Disponibilidade ↔ Ocupação) — envolve TUDO, inclusive o ranking */
+.est-carousel{flex:1;min-width:0;position:relative;overflow:hidden}
 .est-track{display:flex;width:200%;transition:transform .42s cubic-bezier(.4,0,.2,1)}
 .est-track[data-view="1"]{transform:translateX(-50%)}
-.est-face{flex:0 0 50%;width:50%;display:flex;align-items:stretch;min-width:0}
-.est-seta{position:absolute;top:50%;right:3px;transform:translateY(-50%);z-index:6;width:30px;height:30px;border-radius:50%;border:1px solid #2C3B66;background:#1B2A55;color:#9FB0CE;font-size:20px;font-weight:700;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.32);transition:background .15s,color .15s,transform .15s}
-.est-seta:hover{background:var(--azul);color:#fff;transform:translateY(-50%) scale(1.08)}
-.est-rk{flex:1;border-left:1px solid #2C3B66}
+.est-face{flex:0 0 50%;width:50%;min-width:0}
+.est-face-disp{display:flex;align-items:stretch}
+.est-face-ocup{display:flex;flex-direction:column}
+.est-ocup-hoteis{display:flex;align-items:stretch}
+.est-hotel-ocup{display:flex;flex-direction:column}
+.est-ocup-linhas{display:flex;flex-direction:column}
+.est-ocup-total{margin-top:auto;display:flex;align-items:center;justify-content:center;gap:7px;font-weight:600;font-size:clamp(10px,3cqi,12.5px);color:#C5D0E4;border-top:1px dashed rgba(61,214,192,.32);padding-top:11px;white-space:nowrap}
+.est-ocup-total b{color:#3DD6C0;font-weight:800;font-size:1.15em}
+.est-ocup-rodape{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:16px;padding-top:12px;border-top:1px solid #2C3B66}
+.est-seta-col{flex:0 0 auto;display:flex;align-items:center;justify-content:center;padding:0 4px 0 9px}
+.est-seta{width:30px;height:30px;border-radius:50%;border:1px solid #2C3B66;background:#1B2A55;color:#9FB0CE;font-size:20px;font-weight:700;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.32);transition:background .15s,color .15s,transform .15s}
+.est-seta:hover{background:var(--azul);color:#fff;transform:scale(1.08)}
+.est-rk{flex:1}
 .est-cnt{color:#3DD6C0;font-weight:800;font-size:1.05em}
 .est-vazio-diaria{color:#8595AD;font-size:11.5px;text-align:center;padding:10px 0}
-@media(max-width:1000px){.est-grid{flex-direction:column;gap:14px}.est-hotel{padding:0}.est-hotel + .est-hotel{border-left:none;border-top:1px solid #2C3B66;padding-top:16px}.est-carousel{flex:none;width:100%;padding-right:0}.est-face{flex-direction:column;gap:14px}.est-rk{border-left:none;border-top:1px solid #2C3B66;padding-top:16px}.est-seta{top:6px;right:6px;transform:none}.est-seta:hover{transform:scale(1.08)}}
+@media(max-width:1000px){.est-grid{flex-direction:column;gap:14px}.est-hotel{padding:0}.est-hotel + .est-hotel{border-left:none;border-top:1px solid #2C3B66;padding-top:16px}.est-carousel{flex:none;width:100%}.est-face-disp,.est-ocup-hoteis{flex-direction:column;gap:14px}.est-seta-col{padding:6px 0}.est-ocup-total{margin-top:14px}}
 .est-linha{display:flex;align-items:center;gap:8px;padding:7px 13px;margin-bottom:8px;border:1px solid rgba(255,255,255,.09);border-radius:10px;font-weight:500;font-size:clamp(9px,3cqi,11.5px);line-height:1.3;color:#A9B6CC}
 .est-txt{white-space:nowrap}
 .est-linha:last-child{margin-bottom:0}
@@ -1117,6 +1126,13 @@ const HOTEIS_ESTOQUE = [
     ]
   }
 ];
+// Hotéis da visão de OCUPAÇÃO (contador de diárias). Inclui o Royal Palm Plaza,
+// que não tem limite de estoque mas passa a ter vouchers contados por período.
+const HOTEIS_OCUPACAO = [
+  { nome:'Royal Palm Tower Anhanguera', match:n=>_normE(n).includes('tower') },
+  { nome:'Hotel Contemporâneo',         match:n=>_normE(n).includes('contemporaneo') },
+  { nome:'Royal Palm Plaza',            match:n=>_normE(n).includes('plaza') }
+];
 // estadia "dorme" na noite N se: check-in <= N e check-out > N (saída não conta)
 function estadiaCobre(ci,co,n){ return !!ci && !!co && ci<=n && co>n; }
 function calcDisponibilidadeHotel(cfg){
@@ -1171,6 +1187,10 @@ function calcRanking(){
   (savedCache||[]).forEach(v=>{
     const nome=(v.vendedor||'').trim();
     if(!nome) return;
+    // só conta vendas do WeCann: voucher precisa ter hospedagem em um dos 3 hotéis
+    // (Royal Palm Tower Anhanguera, Hotel Contemporâneo ou Royal Palm Plaza)
+    const ehWecann=(v.services||[]).some(s=>s.type==='hotel' && HOTEIS_OCUPACAO.some(h=>h.match(s.data&&s.data.hotel)));
+    if(!ehWecann) return;
     map[nome]=(map[nome]||0)+1;
   });
   return Object.entries(map).map(([nome,qtd])=>({nome,qtd})).sort((a,b)=>b.qtd-a.qtd || a.nome.localeCompare(b.nome,'pt'));
@@ -1285,40 +1305,40 @@ function renderDisponibilidade(){
     return `<div class="est-hotel"><div class="est-titulo">${cfg.nome}: Disponibilidade</div>${linhas}</div>`;
   }).join('');
 
-  // 2ª visão: contador de diárias (ocupação) por período entrada→saída
-  const colsDiarias=HOTEIS_ESTOQUE.map(cfg=>{
+  // 2ª visão: contador de diárias (ocupação) por período entrada→saída — 3 hotéis
+  const colsDiarias=HOTEIS_OCUPACAO.map(cfg=>{
     const d=calcDiariasHotel(cfg);
     let corpo;
     if(!d.periodos.length && !d.semDatas){
       corpo=`<div class="est-vazio-diaria">Nenhuma diária registrada ainda</div>`;
     } else {
       corpo=d.periodos.map(p=>`<div class="est-linha">
-          <span class="est-led" style="--led:#3DD6C0"></span>
           <span class="est-txt"><b>Período:</b> ${fmtPeriodo(p.ci,p.co)}: <b class="est-cnt">${p.count}</b></span>
         </div>`).join('');
       if(d.semDatas){
         corpo+=`<div class="est-linha">
-          <span class="est-led" style="--led:#8595AD"></span>
           <span class="est-txt"><b>Sem datas:</b> <b class="est-cnt">${d.semDatas}</b></span>
         </div>`;
       }
     }
-    return `<div class="est-hotel"><div class="est-titulo">${cfg.nome}: Ocupação</div>${corpo}</div>`;
+    const total=`<div class="est-ocup-total">🛏️ Ocupação Total: <b>${d.total}</b></div>`;
+    return `<div class="est-hotel est-hotel-ocup"><div class="est-titulo">${cfg.nome}: Ocupação</div><div class="est-ocup-linhas">${corpo}</div>${total}</div>`;
   }).join('');
 
   el.innerHTML=`<div class="est-grid">
       <div class="est-carousel">
         <div class="est-track" id="estTrack" data-view="${estView}">
-          <div class="est-face">${colsDisp}</div>
-          <div class="est-face">${colsDiarias}</div>
+          <div class="est-face est-face-disp">${colsDisp}${renderRankingCol()}</div>
+          <div class="est-face est-face-ocup">
+            <div class="est-ocup-hoteis">${colsDiarias}</div>
+            <div class="est-ocup-rodape">
+              <span class="est-rodape-info">📋 Lista WeCann: <b>${participantesWecann.size}</b> participante(s)</span>
+              <button class="est-import" id="btnImportarParticipantes">Importar / Atualizar lista (CSV)</button>
+            </div>
+          </div>
         </div>
-        <button class="est-seta" id="btnSeta" type="button"></button>
       </div>
-      ${renderRankingCol()}
-    </div>
-    <div class="est-rodape">
-      <span class="est-rodape-info">📋 Lista WeCann: <b>${participantesWecann.size}</b> participante(s)</span>
-      <button class="est-import" id="btnImportarParticipantes">Importar / Atualizar lista (CSV)</button>
+      <div class="est-seta-col"><button class="est-seta" id="btnSeta" type="button"></button></div>
     </div>`;
   const bi=$('#btnImportarParticipantes'); if(bi) bi.onclick=()=>$('#inputParticipantes').click();
   // seta do carrossel: alterna entre Disponibilidade (0) e Ocupação (1)
@@ -1336,32 +1356,46 @@ function renderDisponibilidade(){
   requestAnimationFrame(ajustarFonteEstoque);
 }
 
-/* Auto-ajuste: aumenta a fonte das linhas de disponibilidade até preencher
-   a largura útil da coluna (sem estourar a linha). Mede a linha mais larga e
-   escala todas as linhas da coluna pelo mesmo fator. Robusto em qualquer tela. */
+/* Auto-ajuste: calcula UM ÚNICO tamanho de fonte que cabe em todas as linhas
+   (de ambas as telas) e o aplica a todas — assim a 2ª tela fica com a mesma
+   fonte da 1ª. O limite é a linha mais larga (normalmente a de Disponibilidade). */
 function ajustarFonteEstoque(){
   const card=$('#estoqueCard'); if(!card || card.style.display==='none') return;
   const BASE=13, MIN=10, MAX=18, SEGURANCA=0.97; // margem p/ não encostar na borda
-  card.querySelectorAll('.est-hotel').forEach(col=>{
-    const linhas=[...col.querySelectorAll('.est-linha')];
-    if(!linhas.length) return;
-    // mede tudo num tamanho base conhecido
-    linhas.forEach(l=>l.style.fontSize=BASE+'px');
-    let menorEscala=Infinity;
-    linhas.forEach(l=>{
-      const txt=l.querySelector('.est-txt'); if(!txt) return;
-      const led=l.querySelector('.est-led, .est-x');
-      const cs=getComputedStyle(l);
-      const padX=parseFloat(cs.paddingLeft||0)+parseFloat(cs.paddingRight||0);
-      const gap=parseFloat(cs.columnGap||cs.gap||8)||8;
-      const ledW=led?led.getBoundingClientRect().width:0;
-      const disponivel=l.clientWidth - padX - ledW - gap; // espaço útil p/ o texto
-      const necessario=txt.scrollWidth;                   // largura do texto no tamanho base
-      if(necessario>0 && disponivel>0) menorEscala=Math.min(menorEscala, disponivel/necessario);
-    });
-    if(!isFinite(menorEscala)) return;
-    let fonte=Math.max(MIN, Math.min(MAX, BASE*menorEscala*SEGURANCA));
-    linhas.forEach(l=>l.style.fontSize=fonte.toFixed(2)+'px');
+  const linhas=[...card.querySelectorAll('.est-hotel .est-linha')];
+  if(!linhas.length) return;
+  // mede tudo num tamanho base conhecido
+  linhas.forEach(l=>l.style.fontSize=BASE+'px');
+  let menorEscala=Infinity;
+  linhas.forEach(l=>{
+    const txt=l.querySelector('.est-txt'); if(!txt) return;
+    const led=l.querySelector('.est-led, .est-x');
+    const cs=getComputedStyle(l);
+    const padX=parseFloat(cs.paddingLeft||0)+parseFloat(cs.paddingRight||0);
+    const gap=parseFloat(cs.columnGap||cs.gap||8)||8;
+    const ledW=led?led.getBoundingClientRect().width:0;
+    const disponivel=l.clientWidth - padX - ledW - gap; // espaço útil p/ o texto
+    const necessario=txt.scrollWidth;                   // largura do texto no tamanho base
+    if(necessario>0 && disponivel>0) menorEscala=Math.min(menorEscala, disponivel/necessario);
+  });
+  if(!isFinite(menorEscala)) return;
+  const fonte=Math.max(MIN, Math.min(MAX, BASE*menorEscala*SEGURANCA));
+  linhas.forEach(l=>l.style.fontSize=fonte.toFixed(2)+'px');
+  ajustarTitulosEstoque();
+}
+
+/* Mantém cada título do painel em UMA ÚNICA linha: tenta 14px e, se não couber
+   na largura da coluna, reduz proporcionalmente (até 9px). Resolve o título do
+   Contemporâneo (e os títulos longos de Ocupação) que quebravam em duas linhas. */
+function ajustarTitulosEstoque(){
+  const card=$('#estoqueCard'); if(!card || card.style.display==='none') return;
+  const BASE=14, MIN=9;
+  card.querySelectorAll('.est-titulo').forEach(t=>{
+    t.style.fontSize=BASE+'px';
+    const disp=t.clientWidth, nec=t.scrollWidth;
+    if(nec>disp && disp>0){
+      t.style.fontSize=Math.max(MIN, BASE*(disp/nec)*0.99).toFixed(2)+'px';
+    }
   });
 }
 // reaplica o ajuste quando a janela muda de tamanho (debounce)
