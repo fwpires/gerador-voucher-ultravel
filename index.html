@@ -382,6 +382,17 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .conc-lista{list-style:none;margin:0;padding:0;max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:4px}
 .conc-lista li{font-size:12px;color:#E7EDF7;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:6px;padding:5px 9px}
 .conc-vazio{color:#5BE0A8;font-size:12px}
+/* desempate de nomes ambíguos */
+.conc-ambiguo{flex:1 1 100%}
+.conc-ambiguo .conc-grupo-tit{color:#7FB2F5}
+.conc-amb-item{padding:0 !important;background:transparent !important;border:none !important}
+.conc-amb-linha{display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:6px;padding:7px 9px}
+.conc-amb-n{color:#8595AD;font-size:11px;font-weight:600}
+.conc-resolver{flex:0 0 auto;background:#3F8AE0;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11.5px;font-weight:800;cursor:pointer;transition:all .14s}
+.conc-resolver:hover{background:#2F73C7;transform:translateY(-1px)}
+.conc-opcoes{display:flex;flex-direction:column;gap:5px;margin:6px 0 4px;padding-left:10px;border-left:2px solid rgba(63,138,224,.4)}
+.conc-opcao{text-align:left;background:rgba(63,138,224,.10);color:#CFE0F7;border:1px solid rgba(63,138,224,.3);border-radius:6px;padding:7px 10px;font-size:12px;font-weight:600;cursor:pointer;transition:all .14s}
+.conc-opcao:hover{background:#3F8AE0;color:#fff;border-color:#3F8AE0}
 /* barra de ação: seletor de atendente + trazer pra carteira */
 .sh-acaobar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:13px;padding:9px 11px;background:rgba(63,138,224,.08);border:1px solid rgba(63,138,224,.28);border-radius:10px}
 .sh-acao-lbl{font-size:12.5px;font-weight:700;color:#9FC2F0}
@@ -1385,9 +1396,23 @@ function chaveNome(nome){
   if(tk.length===1) return tk[0];           // só um nome: usa ele mesmo
   return tk[0]+' '+tk[tk.length-1];         // primeiro + último
 }
+// tokens normalizados (palavras do nome)
+function tokensNome(nome){ return normNome(nome).split(' ').filter(Boolean); }
+
+function umNomeBate(a, b){
+  const ta=tokensNome(a), tb=tokensNome(b);
+  if(!ta.length || !tb.length) return false;
+  // CASO 1: um dos lados tem só uma palavra (CSV incompleto, ex.: "Juliana")
+  // -> casa se esse primeiro nome for igual ao primeiro nome do outro lado
+  if(ta.length===1 || tb.length===1){
+    return ta[0]===tb[0];
+  }
+  // CASO 2: ambos têm sobrenome -> primeiro nome E último sobrenome iguais
+  return ta[0]===tb[0] && ta[ta.length-1]===tb[tb.length-1];
+}
 function nomeBateVoucher(nome, setNomes){
-  const ch=chaveNome(nome); if(!ch || !setNomes.size) return false;
-  for(const p of setNomes){ if(chaveNome(p)===ch) return true; }
+  if(!setNomes || !setNomes.size) return false;
+  for(const p of setNomes){ if(umNomeBate(nome, p)) return true; }
   return false;
 }
 // lista fixa de atendentes (espelha o select de cadastro de voucher)
@@ -1395,6 +1420,7 @@ const ATENDENTES=['Eduardo Vinícius','Ghabriella Bressan','Letícia Rosa','Dieg
 
 // ===== CONCILIAÇÃO: Fechado (Vendido) x Vouchers do WeCann =====
 let shConcAberto=false; // detalhe da conciliação aberto/fechado
+let shResolverAberto=''; // nome solto cujo seletor de desempate está aberto ('' = nenhum)
 
 // hóspedes dos vouchers do WeCann (hospedagem em um dos 3 hotéis) -> Map normNome -> nomeOriginal
 function wecannGuestMap(){
@@ -1410,29 +1436,69 @@ function wecannGuestMap(){
   return map;
 }
 
-// faz a conciliação nos dois sentidos e devolve os nomes que faltam de cada lado
+// faz a conciliação nos dois sentidos, tratando nomes soltos ambíguos (2+ correspondências)
 function conciliacaoWecann(){
   const rows=(statusHotelData&&statusHotelData.rows)||[];
   const vSet=nomesDeVouchers();
   const cart=carteiraMap();
   const fechados=rows.filter(r=>statusEfetivo(r,vSet,cart)==='fechado');
-  const wecMap=wecannGuestMap();
+  const wecMap=wecannGuestMap();              // norm -> nomeOriginal (hóspedes WeCann)
   const wecSet=new Set(wecMap.keys());
   const fechSet=new Set(fechados.map(r=>normNome(r.nome)));
-  // 1) está no Fechado mas NÃO tem voucher do WeCann
-  const faltaVoucher=[];
-  fechados.forEach(r=>{ if(!nomeBateVoucher(r.nome, wecSet)) faltaVoucher.push(r.nome); });
-  // 2) tem voucher do WeCann mas NÃO aparece no Fechado
-  const faltaFechado=[];
+  const vinc=vinculosMap();                   // norm(nomeSolto) -> norm(pessoaEscolhida)
+
+  const faltaVoucher=[];   // nomes do Fechado sem voucher WeCann
+  const faltaFechado=[];   // nomes em voucher WeCann sem registro no Fechado
+  const ambiguos=[];       // {nome, candidatos:[nomesOriginais]} aguardando desempate
+
+  fechados.forEach(r=>{
+    const tk=tokensNome(r.nome);
+    // nome solto (uma palavra) com possibilidade de ambiguidade
+    if(tk.length===1){
+      const candidatos=[...wecMap.values()].filter(orig=>tokensNome(orig)[0]===tk[0]);
+      if(candidatos.length===0){ faltaVoucher.push(r.nome); return; }   // ninguém: divergência real
+      if(candidatos.length===1) return;                                  // único: unifica automático ✅
+      // 2+ candidatos: só resolve se houver vínculo manual salvo
+      const escolhido=vinc[normNome(r.nome)];
+      if(escolhido && candidatos.some(o=>normNome(o)===escolhido)) return; // já resolvido ✅
+      ambiguos.push({ nome:r.nome, candidatos });                        // aguarda você decidir
+      return;
+    }
+    // nome completo: regra primeiro + último
+    if(!nomeBateVoucher(r.nome, wecSet)) faltaVoucher.push(r.nome);
+  });
+
+  // sentido 2: voucher WeCann sem registro no Fechado
   wecMap.forEach((orig)=>{ if(!nomeBateVoucher(orig, fechSet)) faltaFechado.push(orig); });
+
   const dedupSort=a=>[...new Set(a)].sort((x,y)=>x.localeCompare(y,'pt-BR'));
   return {
     totalFechado: fechados.length,
     totalWecann: wecMap.size,
     faltaVoucher: dedupSort(faltaVoucher),
     faltaFechado: dedupSort(faltaFechado),
-    ok: faltaVoucher.length===0 && faltaFechado.length===0
+    ambiguos: ambiguos.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR')),
+    ok: faltaVoucher.length===0 && faltaFechado.length===0 && ambiguos.length===0
   };
+}
+
+// vínculos manuais de desempate: { norm(nomeSolto): norm(pessoaEscolhida) } — salvo na nuvem
+function vinculosMap(){ return (appConfig.vinculos && typeof appConfig.vinculos==='object') ? appConfig.vinculos : {}; }
+
+// salva a escolha de qual pessoa o nome solto representa
+function resolverVinculo(nomeSolto, nomeEscolhido){
+  if(!appConfig.vinculos || typeof appConfig.vinculos!=='object') appConfig.vinculos={};
+  appConfig.vinculos[normNome(nomeSolto)]=normNome(nomeEscolhido);
+  shResolverAberto='';
+  salvarConfig();
+  renderConciliacao();
+  toast('Vínculo definido: '+nomeSolto+' → '+nomeEscolhido+' ✅','ok');
+}
+// desfaz um vínculo (volta a ser ambíguo)
+function limparVinculo(nomeSolto){
+  if(appConfig.vinculos) delete appConfig.vinculos[normNome(nomeSolto)];
+  salvarConfig();
+  renderConciliacao();
 }
 
 // alterna o painel de detalhes da conciliação
@@ -1444,7 +1510,7 @@ function renderConciliacao(){
   const rows=(statusHotelData&&statusHotelData.rows)||[];
   if(!rows.length){ box.innerHTML=''; return; } // sem CSV, nada a conciliar
   const c=conciliacaoWecann();
-  const totalFaltas=c.faltaVoucher.length+c.faltaFechado.length;
+  const nAmb=c.ambiguos.length;
 
   if(c.ok){
     box.innerHTML=`<div class="conc-banner conc-ok">
@@ -1459,18 +1525,49 @@ function renderConciliacao(){
       <ul class="conc-lista">${arr.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>
     </div>` : '';
 
+  // bloco de nomes soltos ambíguos (precisam de desempate manual)
+  const blocoAmbiguos = nAmb ? `<div class="conc-grupo conc-ambiguo">
+      <div class="conc-grupo-tit">🔵 Nomes que precisam que você escolha a pessoa certa <b>(${nAmb})</b></div>
+      <ul class="conc-lista">${c.ambiguos.map(a=>{
+        const aberto = shResolverAberto===normNome(a.nome);
+        const opcoes = aberto ? `<div class="conc-opcoes">${a.candidatos.map(cand=>
+          `<button class="conc-opcao" data-vinc-nome="${esc(a.nome)}" data-vinc-pessoa="${esc(cand)}">${esc(cand)}</button>`
+        ).join('')}</div>` : '';
+        return `<li class="conc-amb-item">
+          <div class="conc-amb-linha">
+            <span><b>${esc(a.nome)}</b> <span class="conc-amb-n">(${a.candidatos.length} possíveis)</span></span>
+            <button class="conc-resolver" data-resolver="${esc(a.nome)}">${aberto?'Fechar':'Resolver'}</button>
+          </div>${opcoes}
+        </li>`;
+      }).join('')}</ul>
+    </div>` : '';
+
+  const resumo = [
+    `${c.faltaVoucher.length} no Fechado sem voucher`,
+    `${c.faltaFechado.length} voucher(s) sem registro no Fechado`,
+    nAmb?`${nAmb} aguardando sua escolha`:''
+  ].filter(Boolean).join(' · ');
+
   box.innerHTML=`<div class="conc-banner conc-warn">
       <span class="conc-ico">⚠️</span>
-      <span class="conc-msg"><b>Conciliação:</b> ${c.faltaVoucher.length} no Fechado sem voucher · ${c.faltaFechado.length} voucher(s) sem registro no Fechado · (Fechado ${c.totalFechado} × WeCann ${c.totalWecann})</span>
+      <span class="conc-msg"><b>Conciliação:</b> ${resumo} · (Fechado ${c.totalFechado} × WeCann ${c.totalWecann})</span>
       <button class="conc-btn" id="btnConc" type="button">${shConcAberto?'Ocultar detalhes':'Ver detalhes'}</button>
     </div>
     ${shConcAberto?`<div class="conc-detalhe">
+      ${blocoAmbiguos}
       ${lista('🔴 No Fechado mas SEM voucher do WeCann','conc-falta-voucher',c.faltaVoucher)}
       ${lista('🟡 Em voucher WeCann mas SEM registro no Fechado','conc-falta-fechado',c.faltaFechado)}
-      ${totalFaltas===0?'<div class="conc-vazio">Tudo certo!</div>':''}
     </div>`:''}`;
 
   const btn=document.getElementById('btnConc'); if(btn) btn.onclick=toggleConciliacao;
+  // delegação dos cliques (resolver / escolher pessoa)
+  box.onclick=(e)=>{
+    const r=e.target.closest('[data-resolver]');
+    if(r){ const nm=r.getAttribute('data-resolver'); shResolverAberto = (shResolverAberto===normNome(nm))?'':normNome(nm); renderConciliacao(); return; }
+    const o=e.target.closest('[data-vinc-pessoa]');
+    if(o){ resolverVinculo(o.getAttribute('data-vinc-nome'), o.getAttribute('data-vinc-pessoa')); return; }
+    if(e.target.closest('#btnConc')) toggleConciliacao();
+  };
 }
 let shSelecionados=new Set();   // normNomes marcados (checkbox) na coluna "Fazer contato"
 let shFiltroAtendente='';       // filtro por atendente na coluna "Contato Realizado"
