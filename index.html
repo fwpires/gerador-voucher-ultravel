@@ -590,7 +590,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
   <div class="ai-status" id="aiStatus"></div>
 
   <!-- DADOS DO VOUCHER -->
-  <div class="card" style="margin-top:26px">
+  <div class="card" id="cardDadosVoucher" style="margin-top:26px">
     <div class="card-head">
       <span class="num" id="voucherNum">#00001</span>
       <h3>Dados do voucher</h3>
@@ -1100,7 +1100,13 @@ function loadVoucher(v){
   (v.services||[]).forEach(s=>addService(s.type,s.data));
   calc();
   setSalvo(true);
-  window.scrollTo({top:0,behavior:'smooth'});
+  // rola exatamente até o formulário de edição (não até o topo da página)
+  const card=document.getElementById('cardDadosVoucher');
+  if(card){
+    card.scrollIntoView({behavior:'smooth',block:'start'});
+    // dá um respiro no topo para o card não colar na borda da tela
+    setTimeout(()=>{ try{ window.scrollBy({top:-16,behavior:'smooth'}); }catch(e){} }, 350);
+  }
 }
 function setSalvo(b){
   state.salvo=!!b;
