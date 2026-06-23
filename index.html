@@ -476,6 +476,32 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .est-import:hover{background:rgba(53,208,127,.2)}
 @media(max-width:560px){.est-card{padding:15px 16px}.est-linha{font-size:11px;gap:8px}.est-led{width:9px;height:9px}}
 .pvw-ov{position:fixed;inset:0;z-index:9000;background:rgba(5,12,22,.86);backdrop-filter:blur(4px);display:flex;flex-direction:column;animation:pvwFade .18s ease}
+/* ===== Registro de Atividades (log) ===== */
+.log-ov{position:fixed;inset:0;z-index:9500;background:rgba(5,12,22,.88);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:24px}
+.log-ov.aberto{display:flex}
+.log-box{background:#0F1A2E;border:1px solid #2C3B66;border-radius:16px;width:100%;max-width:920px;max-height:86vh;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.5)}
+.log-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 20px;border-bottom:1px solid #2C3B66}
+.log-head h3{font-family:'Sora',sans-serif;font-size:16px;color:#fff;margin:0}
+.log-head-acoes{display:flex;gap:8px}
+.log-btn-sec{background:#1B2A55;border:1px solid #2C3B66;color:#9FB0CE;border-radius:8px;padding:7px 13px;font-size:12.5px;font-weight:700;cursor:pointer;transition:all .14s}
+.log-btn-sec:hover{background:#26396B;color:#fff}
+.log-filtros{display:flex;gap:7px;flex-wrap:wrap;padding:12px 20px;border-bottom:1px solid #2C3B66}
+.log-fil{background:rgba(255,255,255,.05);border:1px solid #2C3B66;color:#9FB0CE;border-radius:20px;padding:5px 13px;font-size:11.5px;font-weight:700;cursor:pointer;transition:all .14s}
+.log-fil.on{background:#3F8AE0;color:#fff;border-color:#3F8AE0}
+.log-lista{overflow-y:auto;padding:12px 20px 18px}
+.log-item{display:flex;gap:12px;padding:10px 12px;border-radius:9px;margin-bottom:7px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06)}
+.log-ts{flex:0 0 auto;font-size:11px;color:#8595AD;font-family:'JetBrains Mono','Courier New',monospace;white-space:nowrap;padding-top:2px}
+.log-corpo{min-width:0;flex:1}
+.log-msg{font-size:13px;color:#E7EDF7;line-height:1.35}
+.log-dados{font-size:11px;color:#8595AD;margin-top:3px;word-break:break-word}
+.log-tag{display:inline-block;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:2px 7px;border-radius:5px;margin-right:7px;vertical-align:middle}
+.log-tag.voucher_criado{background:rgba(53,208,127,.18);color:#5BE0A8}
+.log-tag.voucher_editado{background:rgba(63,138,224,.18);color:#7FB2F5}
+.log-tag.voucher_excluido{background:rgba(240,70,63,.18);color:#FF8A85}
+.log-tag.conflito{background:rgba(242,146,43,.20);color:#F2B873}
+.log-tag.erro{background:rgba(240,70,63,.22);color:#FF8A85}
+.log-tag.evento{background:rgba(255,255,255,.1);color:#C5D0E4}
+.log-vazio{color:#8595AD;font-size:13px;text-align:center;padding:30px}
 @keyframes pvwFade{from{opacity:0}to{opacity:1}}
 .pvw-bar{flex:0 0 auto;display:flex;align-items:center;gap:12px;padding:13px 18px;background:#0F2138;border-bottom:1px solid rgba(255,255,255,.08)}
 .pvw-title{font-family:'Sora',sans-serif;font-weight:700;font-size:15px;color:#fff}
@@ -932,6 +958,16 @@ async function api(path,opts={}){
   return r.json();
 }
 
+// envia um evento para o log central na nuvem (não trava nada se falhar)
+async function logRemoto(tipo, msg, dados){
+  try{
+    await api('/api/log',{method:'POST',body:JSON.stringify({
+      tipo, msg, dados: dados||{},
+      origem: (navigator.userAgent||'').slice(0,80)
+    })});
+  }catch(e){ /* silencioso: o log nunca pode atrapalhar o uso */ }
+}
+
 async function checkCloud(){
   if(!getWorkerUrl()){ setCloud('offline','Modo local'); $('#cfgWarn').style.display='flex'; return false; }
   $('#cfgWarn').style.display='none';
@@ -1155,6 +1191,8 @@ async function salvar(){
     toast('Voucher #'+saved.num+' salvo na nuvem','ok');
     await loadSaved();
   }catch(e){
+    // registra o erro no log central (pra rastrear depois)
+    logRemoto('erro', 'Falha ao salvar voucher na nuvem: '+(e&&e.message||e), { cliente:v.cliente, atendente:v.vendedor, numTela:state.num });
     // fallback local
     if(!v.num){ v.num=state.num||String((savedCache.reduce((m,x)=>Math.max(m,parseInt(x.num)||0),0))+1).padStart(5,'0'); }
     state.num=v.num; state.editingId=v.id;
@@ -1338,17 +1376,34 @@ function parseCSVStatusHotel(text){
   const idx=nome=> header.findIndex(h=>_normE(h)===_normE(nome));
   const I={ nome:idx('Nome'), email:idx('Email'), status:idx('Status Hotel'), agente:idx('Agente'),
     hotel:idx('Hotel'), cin:idx('Check-in'), cout:idx('Check-out'), dia:idx('Diárias'),
-    tipo:idx('Tipo Hóspede'), valor:idx('Valor'), voucher:idx('Voucher') };
+    tipo:idx('Tipo Hóspede'), valor:idx('Valor'), voucher:idx('Voucher'), obs:idx('Observação') };
   const out=[];
   for(let r=1;r<m.length;r++){
     const c=m[r]; if(!c) continue;
     const get=i=> (i>=0 && i<c.length) ? (c[i]||'').trim() : '';
     const nome=get(I.nome); if(!nome) continue;
+    const obs=get(I.obs);
     out.push({ nome, email:get(I.email), statusRaw:get(I.status), agente:get(I.agente),
       hotel:get(I.hotel), checkin:get(I.cin), checkout:get(I.cout), diarias:get(I.dia),
-      tipo:get(I.tipo), valor:get(I.valor), voucher:get(I.voucher) });
+      tipo:get(I.tipo), valor:get(I.valor), voucher:get(I.voucher),
+      obs, acompanhantes: extrairAcompanhantes(obs) });
   }
   return out;
+}
+
+// extrai nomes de acompanhantes da Observação, SOMENTE após os marcadores "Acte:" ou "Acompanhante:"
+// ex.: "Duplo casal - Acte: Ronaldo de Almeida" -> ["Ronaldo de Almeida"]
+function extrairAcompanhantes(obs){
+  if(!obs) return [];
+  const nomes=[];
+  // captura tudo depois de "acte:" ou "acompanhante:" até quebra de linha, ponto, vírgula, " - " ou fim
+  const re=/(?:acte|acompanhante)\s*:\s*([^\n\r;|]+?)(?:\s+-\s+|[.;|]|$)/gi;
+  let mt;
+  while((mt=re.exec(obs))!==null){
+    const nm=(mt[1]||'').trim();
+    if(nm && nm.length>=3) nomes.push(nm);
+  }
+  return nomes;
 }
 
 // normaliza o status em 3 grupos: fechado / tratativa / contato (em branco)
@@ -1512,14 +1567,22 @@ function conciliacaoWecann(){
   });
 
   // sentido 2: voucher WeCann sem registro no Fechado (ignora quem já foi vinculado manualmente)
+  // monta o conjunto de nomes do Fechado INCLUINDO os acompanhantes (Acte: na observação)
+  const fechSetComAcomp=new Set(fechSet);
+  fechados.forEach(r=>{ (r.acompanhantes||[]).forEach(a=> fechSetComAcomp.add(normNome(a))); });
   wecMap.forEach((orig,norm)=>{
     if(alvosVinculados.has(norm)) return;                              // já vinculado a alguém do Fechado ✅
-    if(!nomeBateVoucher(orig, fechSet)) faltaFechado.push(orig);
+    if(!nomeBateVoucher(orig, fechSetComAcomp)) faltaFechado.push(orig);
   });
+
+  // total de PESSOAS no Fechado = titulares + acompanhantes (Acte:)
+  let totalPessoasFechado=0;
+  fechados.forEach(r=>{ totalPessoasFechado += 1 + ((r.acompanhantes||[]).length); });
 
   const dedupSort=a=>[...new Set(a)].sort((x,y)=>x.localeCompare(y,'pt-BR'));
   return {
-    totalFechado: fechados.length,
+    totalFechado: totalPessoasFechado,
+    totalTitulares: fechados.length,
     totalWecann: wecMap.size,
     totalHospedes: totalHospedesWecann(),
     faltaVoucher: dedupSort(faltaVoucher),
@@ -1691,7 +1754,7 @@ function renderConciliacao(){
 
   box.innerHTML=`<div class="conc-banner conc-warn">
       <span class="conc-ico">⚠️</span>
-      <span class="conc-msg"><b>Conciliação:</b> ${resumo} · (Fechado ${c.totalFechado} pessoas × ${c.totalHospedes} hóspedes em ${c.totalWecann} nomes únicos)</span>
+      <span class="conc-msg"><b>Conciliação:</b> ${resumo} · (Fechado ${c.totalFechado} pessoas = ${c.totalTitulares} titulares + ${c.totalFechado-c.totalTitulares} acomp. × ${c.totalHospedes} hóspedes nos vouchers)</span>
       <button class="conc-btn" id="btnConc" type="button">${shConcAberto?'Ocultar detalhes':'Ver detalhes'}</button>
     </div>
     ${shConcAberto?`<div class="conc-detalhe">
@@ -1786,7 +1849,11 @@ function renderStatusColunas(){
   [...shSelecionados].forEach(n=>{ if(!contatoNomes.has(n)) shSelecionados.delete(n); });
 
   const metaTrat=r=>[r.agente?('Ag.: '+r.agente):'', shPeriodo(r)].filter(Boolean).join(' · ');
-  const metaFech=r=>[r.hotel, r.agente?('Ag.: '+r.agente):'', shPeriodo(r)].filter(Boolean).join(' · ');
+  const metaFech=r=>{
+    const base=[r.hotel, r.agente?('Ag.: '+r.agente):'', shPeriodo(r)].filter(Boolean).join(' · ');
+    const ac=(r.acompanhantes||[]).length ? ('👥 + Acte: '+r.acompanhantes.join(' // ')) : '';
+    return [base, ac].filter(Boolean).join('  •  ');
+  };
 
   // molde de coluna (header colorido + sub-header opcional + corpo rolável)
   const colHTML=(classe,rotulo,cont,corpo,extra)=>`<div class="sh-col ${classe}">
@@ -2622,7 +2689,81 @@ async function init(){
   const online=await checkCloud();
   if(online){ await loadSaved(); await refreshNext(); await carregarConfig(); await carregarStatusHotel(); }
 }
+/* ===== Registro de Atividades (log) ===== */
+let logCache=[]; let logFiltro='todos';
+const LOG_ROTULOS={ todos:'Todos', voucher_criado:'Criados', voucher_editado:'Editados', voucher_excluido:'Excluídos', conflito:'Conflitos', erro:'Erros' };
+
+async function abrirLog(){
+  const ov=$('#logOverlay'); if(!ov) return;
+  ov.classList.add('aberto');
+  $('#logLista').innerHTML='<div class="log-vazio">Carregando registros da nuvem...</div>';
+  try{
+    const d=await api('/api/log');
+    logCache=(d&&Array.isArray(d.eventos))?d.eventos:[];
+  }catch(e){ logCache=[]; $('#logLista').innerHTML='<div class="log-vazio">Não foi possível carregar o log (sem conexão com a nuvem).</div>'; renderLogFiltros(); return; }
+  renderLogFiltros();
+  renderLog();
+}
+function fecharLog(){ const ov=$('#logOverlay'); if(ov) ov.classList.remove('aberto'); }
+
+function renderLogFiltros(){
+  const wrap=$('#logFiltros'); if(!wrap) return;
+  const tipos=['todos','voucher_criado','voucher_editado','voucher_excluido','conflito','erro'];
+  wrap.innerHTML=tipos.map(t=>{
+    const n = t==='todos' ? logCache.length : logCache.filter(e=>e.tipo===t).length;
+    return `<button class="log-fil ${logFiltro===t?'on':''}" data-fil="${t}">${LOG_ROTULOS[t]||t} (${n})</button>`;
+  }).join('');
+  wrap.querySelectorAll('.log-fil').forEach(b=> b.onclick=()=>{ logFiltro=b.dataset.fil; renderLogFiltros(); renderLog(); });
+}
+function renderLog(){
+  const lista=$('#logLista'); if(!lista) return;
+  const evs = logFiltro==='todos' ? logCache : logCache.filter(e=>e.tipo===logFiltro);
+  if(!evs.length){ lista.innerHTML='<div class="log-vazio">Nenhum registro nesta categoria.</div>'; return; }
+  lista.innerHTML=evs.map(e=>{
+    const dt=new Date(e.ts);
+    const ts=isNaN(dt)?e.ts:dt.toLocaleString('pt-BR');
+    const d=e.dados||{};
+    const partes=[];
+    if(d.cliente) partes.push('Cliente: '+d.cliente);
+    if(d.atendente) partes.push('Atendente: '+d.atendente);
+    if(d.num) partes.push('Nº: #'+d.num);
+    if(d.numColisao) partes.push('Nº em conflito: #'+d.numColisao);
+    if(d.numNovo) partes.push('Realocado p/: #'+d.numNovo);
+    if(d.ocupante) partes.push('Já ocupado por: '+d.ocupante);
+    return `<div class="log-item">
+      <span class="log-ts">${esc(ts)}</span>
+      <div class="log-corpo">
+        <div class="log-msg"><span class="log-tag ${esc(e.tipo)}">${esc((LOG_ROTULOS[e.tipo]||e.tipo).replace(/_/g,' '))}</span>${esc(e.msg||'')}</div>
+        ${partes.length?`<div class="log-dados">${esc(partes.join(' · '))}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+// atalho: Ctrl+Shift+L (ou Cmd+Shift+L no Mac) abre o log
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey) && e.shiftKey && (e.key==='L'||e.key==='l')){ e.preventDefault(); abrirLog(); }
+  if(e.key==='Escape'){ const ov=$('#logOverlay'); if(ov&&ov.classList.contains('aberto')) fecharLog(); }
+});
+(function ligaLogBtns(){
+  const f=$('#logFechar'); if(f) f.onclick=fecharLog;
+  const r=$('#logRefresh'); if(r) r.onclick=abrirLog;
+  const ov=$('#logOverlay'); if(ov) ov.onclick=(e)=>{ if(e.target===ov) fecharLog(); };
+})();
+
 init();
 </script>
+<div class="log-ov" id="logOverlay">
+  <div class="log-box">
+    <div class="log-head">
+      <h3>📋 Registro de Atividades</h3>
+      <div class="log-head-acoes">
+        <button class="log-btn-sec" id="logRefresh" type="button">Atualizar</button>
+        <button class="log-btn-sec" id="logFechar" type="button">Fechar (Esc)</button>
+      </div>
+    </div>
+    <div class="log-filtros" id="logFiltros"></div>
+    <div class="log-lista" id="logLista"><div class="log-vazio">Carregando...</div></div>
+  </div>
+</div>
 </body>
 </html>
