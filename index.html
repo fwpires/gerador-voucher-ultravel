@@ -382,6 +382,8 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .conc-grupo-tit{font-size:12px;font-weight:800;margin-bottom:7px}
 .conc-falta-voucher .conc-grupo-tit{color:#FF8A85}
 .conc-falta-fechado .conc-grupo-tit{color:#F2C829}
+.conc-promo .conc-grupo-tit{color:#F2B873}
+.conc-via .conc-grupo-tit{color:#7FB2F5}
 .conc-lista{list-style:none;margin:0;padding:0;max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:4px}
 .conc-lista li{font-size:12px;color:#E7EDF7;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:6px;padding:5px 9px}
 .conc-vazio{color:#5BE0A8;font-size:12px}
@@ -436,6 +438,9 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .sh-nome{font-size:12.5px;font-weight:700;color:#E7EDF7;line-height:1.25}
 .sh-meta{font-size:11px;color:#9FB0CE;line-height:1.3;margin-top:2px;word-break:break-word}
 .sh-vazio{color:#8595AD;font-size:11.5px;text-align:center;padding:14px 6px}
+.sh-selo{display:inline-block;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;padding:2px 7px;border-radius:5px;margin-right:6px;vertical-align:middle}
+.sh-selo-vch{background:rgba(63,138,224,.20);color:#7FB2F5;border:1px solid rgba(63,138,224,.4)}
+.sh-selo-promo{background:rgba(242,146,43,.22);color:#F2B873;border:1px solid rgba(242,146,43,.5)}
 /* itens selecionáveis (checkbox) na coluna Fazer contato */
 .sh-sel{display:flex;align-items:flex-start;gap:9px;cursor:pointer}
 .sh-cb{margin-top:2px;width:16px;height:16px;flex:0 0 auto;accent-color:#3F8AE0;cursor:pointer}
@@ -1528,6 +1533,23 @@ function wecannGuestMap(){
   return map;
 }
 
+// lista detalhada dos hóspedes WeCann: cada item com nome, hotel e número do voucher
+// (sem deduplicar por nome — pra conseguir achar quem está "órfão" do CSV)
+function wecannGuestDetalhe(){
+  const lista=[];
+  (savedCache||[]).forEach(v=>{
+    const wecannServ=(v.services||[]).filter(sv=>sv.type==='hotel' && HOTEIS_OCUPACAO.some(h=>h.match(sv.data&&sv.data.hotel)));
+    if(!wecannServ.length) return;
+    const hotel=(wecannServ[0].data&&wecannServ[0].data.hotel)||'';
+    const nomes=[];
+    let temHospede=false;
+    wecannServ.forEach(sv=>{ const h=sv.data&&sv.data.hospedes; if(Array.isArray(h)) h.forEach(x=>{ if(x&&String(x).trim()){ nomes.push(String(x).trim()); temHospede=true; } }); });
+    if(!temHospede && v.cliente) nomes.push(String(v.cliente).trim());
+    nomes.forEach(nm=> lista.push({ nome:nm, hotel, num:v.num||'' }));
+  });
+  return lista;
+}
+
 // faz a conciliação nos dois sentidos, tratando nomes soltos ambíguos (2+ correspondências)
 function conciliacaoWecann(){
   const rows=(statusHotelData&&statusHotelData.rows)||[];
@@ -1579,6 +1601,23 @@ function conciliacaoWecann(){
   let totalPessoasFechado=0;
   fechados.forEach(r=>{ totalPessoasFechado += 1 + ((r.acompanhantes||[]).length); });
 
+  // PROMOVIDOS: estavam em tratativa no CSV mas têm voucher (você precisa atualizar o status no WeCann)
+  const promovidos=[];
+  (rows||[]).forEach(r=>{
+    if(normStatusHotel(r.statusRaw)==='tratativa' && statusEfetivo(r,vSet,cart)==='fechado') promovidos.push(r.nome);
+  });
+
+  // VIA VOUCHER: hóspedes de voucher WeCann que não existem em nenhuma linha do CSV (entram no Fechado)
+  const nomesCSV=new Set();
+  (rows||[]).forEach(r=>{ nomesCSV.add(normNome(r.nome)); (r.acompanhantes||[]).forEach(a=>nomesCSV.add(normNome(a))); });
+  const viaVoucher=[]; const vistos=new Set();
+  wecannGuestDetalhe().forEach(g=>{
+    const n=normNome(g.nome); if(!n||vistos.has(n)) return;
+    if(!nomeBateVoucher(g.nome, nomesCSV)){ vistos.add(n); viaVoucher.push(g.nome); }
+  });
+  // o total de pessoas no Fechado agora soma também os hóspedes "via voucher"
+  totalPessoasFechado += viaVoucher.length;
+
   const dedupSort=a=>[...new Set(a)].sort((x,y)=>x.localeCompare(y,'pt-BR'));
   return {
     totalFechado: totalPessoasFechado,
@@ -1588,6 +1627,8 @@ function conciliacaoWecann(){
     faltaVoucher: dedupSort(faltaVoucher),
     faltaFechado: dedupSort(faltaFechado),
     ambiguos: ambiguos.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR')),
+    promovidos: dedupSort(promovidos),
+    viaVoucher: dedupSort(viaVoucher),
     ok: faltaVoucher.length===0 && faltaFechado.length===0 && ambiguos.length===0
   };
 }
@@ -1749,16 +1790,39 @@ function renderConciliacao(){
   const resumo = [
     `${c.faltaVoucher.length} no Fechado sem voucher`,
     `${c.faltaFechado.length} hóspede(s) de voucher sem registro no Fechado`,
-    nAmb?`${nAmb} aguardando sua escolha`:''
+    nAmb?`${nAmb} aguardando sua escolha`:'',
+    c.promovidos.length?`${c.promovidos.length} p/ atualizar no WeCann`:'',
+    c.viaVoucher.length?`${c.viaVoucher.length} via voucher`:''
   ].filter(Boolean).join(' · ');
+
+  // registra no log central (só os promovidos novos desta sessão, pra não repetir)
+  if(c.promovidos.length){
+    window._promovLogados = window._promovLogados || new Set();
+    const novos=c.promovidos.filter(n=>!window._promovLogados.has(normNome(n)));
+    if(novos.length){
+      novos.forEach(n=>window._promovLogados.add(normNome(n)));
+      logRemoto('conflito','Status WeCann desatualizado: '+novos.length+' contato(s) em "tratativa" no CSV mas com voucher emitido', { nomes:novos.join(', ') });
+    }
+  }
+
+  const blocoPromo = c.promovidos.length ? `<div class="conc-grupo conc-promo">
+      <div class="conc-grupo-tit">🟠 Em "tratativa" no CSV mas COM voucher — atualize o status no WeCann <b>(${c.promovidos.length})</b></div>
+      <ul class="conc-lista">${c.promovidos.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>
+    </div>` : '';
+  const blocoVia = c.viaVoucher.length ? `<div class="conc-grupo conc-via">
+      <div class="conc-grupo-tit">🔵 Adicionados ao Fechado via voucher (não estavam no CSV) <b>(${c.viaVoucher.length})</b></div>
+      <ul class="conc-lista">${c.viaVoucher.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>
+    </div>` : '';
 
   box.innerHTML=`<div class="conc-banner conc-warn">
       <span class="conc-ico">⚠️</span>
-      <span class="conc-msg"><b>Conciliação:</b> ${resumo} · (Fechado ${c.totalFechado} pessoas = ${c.totalTitulares} titulares + ${c.totalFechado-c.totalTitulares} acomp. × ${c.totalHospedes} hóspedes nos vouchers)</span>
+      <span class="conc-msg"><b>Conciliação:</b> ${resumo} · (Fechado ${c.totalFechado} pessoas × ${c.totalHospedes} hóspedes nos vouchers)</span>
       <button class="conc-btn" id="btnConc" type="button">${shConcAberto?'Ocultar detalhes':'Ver detalhes'}</button>
     </div>
     ${shConcAberto?`<div class="conc-detalhe">
       ${blocoAmbiguos}
+      ${blocoPromo}
+      ${blocoVia}
       ${listaFaltaVoucher}
       ${lista('🟡 Hóspede de voucher WeCann mas SEM registro no Fechado','conc-falta-fechado',c.faltaFechado)}
     </div>`:''}`;
@@ -1841,7 +1905,28 @@ function renderStatusColunas(){
   const vSet=nomesDeVouchers();
   const cart=carteiraMap();
   const grupos={contato:[],realizado:[],tratativa:[],fechado:[]};
-  rows.forEach(r=>{ grupos[statusEfetivo(r,vSet,cart)].push(r); });
+  rows.forEach(r=>{
+    const ef=statusEfetivo(r,vSet,cart);
+    // marca quem ESTAVA em tratativa no CSV mas foi pra Fechado por ter voucher (você precisa atualizar o status no sistema WeCann)
+    if(ef==='fechado' && normStatusHotel(r.statusRaw)==='tratativa') r._promovido=true; else r._promovido=false;
+    grupos[ef].push(r);
+  });
+
+  // "DAQUI PRA LÁ": traz hóspedes dos vouchers WeCann que NÃO estão em nenhuma linha do CSV
+  // (não duplica: usa o matcher de primeiro + último nome contra todos os nomes do CSV)
+  const nomesCSV=new Set(); // nomes já presentes no CSV (titulares + acompanhantes)
+  rows.forEach(r=>{ nomesCSV.add(normNome(r.nome)); (r.acompanhantes||[]).forEach(a=>nomesCSV.add(normNome(a))); });
+  const csvNomesArr=[...nomesCSV];
+  const jaTemNoCSV=nome=> nomeBateVoucher(nome, nomesCSV); // exato OU primeiro+último
+  const orfaosVistos=new Set();
+  wecannGuestDetalhe().forEach(g=>{
+    const n=normNome(g.nome);
+    if(!n || orfaosVistos.has(n)) return;
+    if(jaTemNoCSV(g.nome)) return;              // já existe no CSV (em qualquer coluna) → não duplica
+    orfaosVistos.add(n);
+    grupos.fechado.push({ nome:g.nome, statusRaw:'Fechado', hotel:g.hotel, voucherNum:g.num, _viaVoucher:true });
+  });
+
   const passa=r=> !termo || _normE([r.nome,r.email,r.agente,r.hotel].join(' ')).indexOf(termo)>=0;
 
   // remove da seleção quem não está mais em "Fazer contato"
@@ -1850,9 +1935,25 @@ function renderStatusColunas(){
 
   const metaTrat=r=>[r.agente?('Ag.: '+r.agente):'', shPeriodo(r)].filter(Boolean).join(' · ');
   const metaFech=r=>{
+    if(r._viaVoucher){
+      const info=[r.hotel, r.voucherNum?('#'+r.voucherNum):''].filter(Boolean).join(' · ');
+      return { selo:'<span class="sh-selo sh-selo-vch">via voucher</span>', texto:info };
+    }
     const base=[r.hotel, r.agente?('Ag.: '+r.agente):'', shPeriodo(r)].filter(Boolean).join(' · ');
     const ac=(r.acompanhantes||[]).length ? ('👥 + Acte: '+r.acompanhantes.join(' // ')) : '';
-    return [base, ac].filter(Boolean).join('  •  ');
+    const selo = r._promovido ? '<span class="sh-selo sh-selo-promo">atualizar status wecann</span>' : '';
+    return { selo, texto:[base, ac].filter(Boolean).join('  •  ') };
+  };
+  // coluna Fechado: renderiza o selo como HTML e o resto do texto escapado (seguro)
+  const colFechado=()=>{
+    const todos=grupos.fechado, vis=todos.filter(passa);
+    const cont=termo?(vis.length+' de '+todos.length):String(todos.length);
+    const corpo=vis.length?vis.map(r=>{
+      const m=metaFech(r);
+      const metaHTML=(m.selo||'')+(m.texto?esc(m.texto):'');
+      return `<div class="sh-item"><div class="sh-nome">${esc(r.nome)}</div>${metaHTML?`<div class="sh-meta">${metaHTML}</div>`:''}</div>`;
+    }).join(''):`<div class="sh-vazio">${termo?'Nenhum resultado':'Nenhum contato'}</div>`;
+    return colHTML('sh-fechado','Fechado (Vendido)',cont,corpo);
   };
 
   // molde de coluna (header colorido + sub-header opcional + corpo rolável)
@@ -1904,7 +2005,7 @@ function renderStatusColunas(){
     colContato() +
     colRealizado() +
     colSimples('tratativa','sh-tratativa','Em tratativa', metaTrat) +
-    colSimples('fechado','sh-fechado','Fechado (Vendido)', metaFech);
+    colFechado();
 
   // cliques (botão devolver) e mudanças (checkbox + filtro) — via propriedade, não empilha
   wrap.onclick=(e)=>{ const btn=e.target.closest('[data-acao]'); if(btn && btn.getAttribute('data-acao')==='devolver') devolverContato(btn.getAttribute('data-nome')); };
