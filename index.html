@@ -1377,16 +1377,17 @@ function nomesDeVouchers(){
   return s;
 }
 // o nome bate com algum voucher? (match exato OU prefixo de 2+ tokens, como nos participantes)
+// duas pessoas são a mesma se o PRIMEIRO nome e o ÚLTIMO sobrenome baterem
+// (ignora nomes do meio, acentos e maiúsculas — ex.: "Ana Lyra" = "Ana Maria Lyra")
+function chaveNome(nome){
+  const tk=normNome(nome).split(' ').filter(Boolean);
+  if(!tk.length) return '';
+  if(tk.length===1) return tk[0];           // só um nome: usa ele mesmo
+  return tk[0]+' '+tk[tk.length-1];         // primeiro + último
+}
 function nomeBateVoucher(nome, setNomes){
-  const n=normNome(nome); if(!n || !setNomes.size) return false;
-  if(setNomes.has(n)) return true;
-  const tk=n.split(' '); if(tk.length<2) return false;
-  for(const p of setNomes){
-    const pt=p.split(' ');
-    const menor = pt.length<=tk.length ? pt : tk;
-    const maior = pt.length<=tk.length ? tk : pt;
-    if(menor.length>=2 && menor.every((t,i)=>maior[i]===t)) return true;
-  }
+  const ch=chaveNome(nome); if(!ch || !setNomes.size) return false;
+  for(const p of setNomes){ if(chaveNome(p)===ch) return true; }
   return false;
 }
 // lista fixa de atendentes (espelha o select de cadastro de voucher)
