@@ -283,6 +283,9 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .vi-num{font-family:'JetBrains Mono';font-weight:700;font-size:14px;color:#fff;background:var(--azul);padding:8px 12px;border-radius:8px;flex-shrink:0}
 .vi-info{flex:1;min-width:0}
 .vi-info .cli{font-weight:700;font-size:14.5px;font-family:'Sora'}
+.vi-info .cli .vi-sep{color:#5A6B8C;font-weight:800;margin:0 2px;font-family:inherit}
+/* folga no topo ao rolar até o formulário de edição (compensa a topbar fixa) */
+#cardDadosVoucher{scroll-margin-top:90px}
 .vi-info .meta{font-size:12.5px;color:var(--texto-suave);margin-top:2px;display:flex;gap:6px;flex-wrap:wrap}
 .vi-info .meta .sep{color:var(--borda-forte)}
 .vi-actions{display:flex;gap:7px;flex-shrink:0}
@@ -1100,13 +1103,10 @@ function loadVoucher(v){
   (v.services||[]).forEach(s=>addService(s.type,s.data));
   calc();
   setSalvo(true);
-  // rola exatamente até o formulário de edição (não até o topo da página)
+  // rola exatamente até o formulário de edição; o scroll-margin-top do card já
+  // reserva a folga da topbar fixa, então o card aparece inteiro e no lugar certo
   const card=document.getElementById('cardDadosVoucher');
-  if(card){
-    card.scrollIntoView({behavior:'smooth',block:'start'});
-    // dá um respiro no topo para o card não colar na borda da tela
-    setTimeout(()=>{ try{ window.scrollBy({top:-16,behavior:'smooth'}); }catch(e){} }, 350);
-  }
+  if(card) card.scrollIntoView({behavior:'smooth',block:'start'});
 }
 function setSalvo(b){
   state.salvo=!!b;
@@ -1443,6 +1443,22 @@ const ATENDENTES=['Eduardo Vinícius','Ghabriella Bressan','Letícia Rosa','Dieg
 let shConcAberto=false; // detalhe da conciliação aberto/fechado
 let shResolverAberto=''; // nome solto cujo seletor de desempate está aberto ('' = nenhum)
 
+// conta o TOTAL de hóspedes registrados em todos os vouchers do WeCann
+// (conta cada pessoa, inclusive nomes repetidos em vouchers diferentes)
+function totalHospedesWecann(){
+  let total=0;
+  (savedCache||[]).forEach(v=>{
+    (v.services||[]).forEach(sv=>{
+      if(sv.type==='hotel' && HOTEIS_OCUPACAO.some(h=>h.match(sv.data&&sv.data.hotel))){
+        const h=sv.data&&sv.data.hospedes;
+        if(Array.isArray(h)) total += h.filter(x=>x && String(x).trim()).length;
+        else if(h && String(h).trim()) total += 1;
+      }
+    });
+  });
+  return total;
+}
+
 // hóspedes dos vouchers do WeCann (hospedagem em um dos 3 hotéis) -> Map normNome -> nomeOriginal
 function wecannGuestMap(){
   const map=new Map();
@@ -1505,6 +1521,7 @@ function conciliacaoWecann(){
   return {
     totalFechado: fechados.length,
     totalWecann: wecMap.size,
+    totalHospedes: totalHospedesWecann(),
     faltaVoucher: dedupSort(faltaVoucher),
     faltaFechado: dedupSort(faltaFechado),
     ambiguos: ambiguos.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR')),
@@ -1606,7 +1623,7 @@ function renderConciliacao(){
   if(c.ok){
     box.innerHTML=`<div class="conc-banner conc-ok">
       <span class="conc-ico">✅</span>
-      <span class="conc-msg">Conciliação OK — <b>${c.totalFechado}</b> pessoa(s) no Fechado batem com <b>${c.totalWecann}</b> hóspede(s) dos vouchers WeCann.</span>
+      <span class="conc-msg">Conciliação OK — <b>${c.totalFechado}</b> pessoa(s) no Fechado batem com <b>${c.totalHospedes}</b> hóspede(s) somados nos vouchers WeCann.</span>
     </div>`;
     return;
   }
@@ -1674,7 +1691,7 @@ function renderConciliacao(){
 
   box.innerHTML=`<div class="conc-banner conc-warn">
       <span class="conc-ico">⚠️</span>
-      <span class="conc-msg"><b>Conciliação:</b> ${resumo} · (Fechado ${c.totalFechado} pessoas × WeCann ${c.totalWecann} hóspedes)</span>
+      <span class="conc-msg"><b>Conciliação:</b> ${resumo} · (Fechado ${c.totalFechado} pessoas × ${c.totalHospedes} hóspedes em ${c.totalWecann} nomes únicos)</span>
       <button class="conc-btn" id="btnConc" type="button">${shConcAberto?'Ocultar detalhes':'Ver detalhes'}</button>
     </div>
     ${shConcAberto?`<div class="conc-detalhe">
@@ -2153,11 +2170,13 @@ function renderSaved(list){
     return termos.every(t=>texto.includes(t)); // precisa conter TODOS os termos digitados
   }));
   const sc=$('#savedCount');
+  const totHosp=totalHospedesWecann();
+  const sufHosp = totHosp ? (' · '+totHosp+' hósp. WeCann') : '';
   if(termos.length){
     sc.textContent=filt.length+(filt.length!==1?' resultados':' resultado')+' de '+list.length;
     sc.classList.add('filtrando');
   } else {
-    sc.textContent=list.length+' voucher'+(list.length!==1?'s':'');
+    sc.textContent=list.length+' voucher'+(list.length!==1?'s':'')+sufHosp;
     sc.classList.remove('filtrando');
   }
   renderDisponibilidade();
@@ -2174,10 +2193,26 @@ function renderSaved(list){
   const pagina=filt.slice(ini, ini+VOUCHERS_POR_PAGINA);
   $('#savedList').innerHTML=pagina.map(v=>{
     const tipos=(v.services||[]).map(s=>SERVICES[s.type]?.label||s.type).join(' · ');
+    // monta a linha de nomes: cliente na frente + hóspedes da hospedagem (separados por //)
+    const cliente=(v.cliente||'').trim();
+    const hosp=[];
+    (v.services||[]).forEach(s=>{
+      if(s.type==='hotel' && s.data){
+        const h=s.data.hospedes;
+        if(Array.isArray(h)) h.forEach(x=>{ if(x && String(x).trim()) hosp.push(String(x).trim()); });
+        else if(h && String(h).trim()) hosp.push(String(h).trim());
+      }
+    });
+    // remove duplicados e tira o cliente da lista de hóspedes (pra não repetir na frente)
+    const vistos=new Set(); const extras=[];
+    hosp.forEach(nm=>{ const n=normNome(nm); if(n && n!==normNome(cliente) && !vistos.has(n)){ vistos.add(n); extras.push(nm); } });
+    const nomeLinha = cliente
+      ? (extras.length ? esc(cliente)+' <span class="vi-sep">//</span> '+extras.map(esc).join(' <span class="vi-sep">//</span> ') : esc(cliente))
+      : (extras.length ? extras.map(esc).join(' <span class="vi-sep">//</span> ') : 'Sem cliente');
     return `<div class="voucher-item" data-preview="${esc(v.id)}" title="Clique para ver a prévia">
       <span class="vi-num">#${esc(v.num||'—')}</span>
       <div class="vi-info">
-        <div class="cli">${esc(v.cliente||'Sem cliente')}</div>
+        <div class="cli">${nomeLinha}</div>
         <div class="meta"><span>${esc(fmtDate(v.data))}</span><span class="sep">•</span><span>${esc(v.evento||'—')}</span><span class="sep">•</span><span>${esc(tipos||'—')}</span></div>
       </div>
       ${v.vendedor?`<div class="vi-atendente" title="Atendente">${esc(v.vendedor)}</div>`:''}
