@@ -1515,7 +1515,7 @@ function renderConciliacao(){
   if(c.ok){
     box.innerHTML=`<div class="conc-banner conc-ok">
       <span class="conc-ico">✅</span>
-      <span class="conc-msg">Conciliação OK — <b>${c.totalFechado}</b> no Fechado batem com <b>${c.totalWecann}</b> voucher(s) do WeCann.</span>
+      <span class="conc-msg">Conciliação OK — <b>${c.totalFechado}</b> pessoa(s) no Fechado batem com <b>${c.totalWecann}</b> hóspede(s) dos vouchers WeCann.</span>
     </div>`;
     return;
   }
@@ -1544,29 +1544,28 @@ function renderConciliacao(){
 
   const resumo = [
     `${c.faltaVoucher.length} no Fechado sem voucher`,
-    `${c.faltaFechado.length} voucher(s) sem registro no Fechado`,
+    `${c.faltaFechado.length} hóspede(s) de voucher sem registro no Fechado`,
     nAmb?`${nAmb} aguardando sua escolha`:''
   ].filter(Boolean).join(' · ');
 
   box.innerHTML=`<div class="conc-banner conc-warn">
       <span class="conc-ico">⚠️</span>
-      <span class="conc-msg"><b>Conciliação:</b> ${resumo} · (Fechado ${c.totalFechado} × WeCann ${c.totalWecann})</span>
+      <span class="conc-msg"><b>Conciliação:</b> ${resumo} · (Fechado ${c.totalFechado} pessoas × WeCann ${c.totalWecann} hóspedes)</span>
       <button class="conc-btn" id="btnConc" type="button">${shConcAberto?'Ocultar detalhes':'Ver detalhes'}</button>
     </div>
     ${shConcAberto?`<div class="conc-detalhe">
       ${blocoAmbiguos}
       ${lista('🔴 No Fechado mas SEM voucher do WeCann','conc-falta-voucher',c.faltaVoucher)}
-      ${lista('🟡 Em voucher WeCann mas SEM registro no Fechado','conc-falta-fechado',c.faltaFechado)}
+      ${lista('🟡 Hóspede de voucher WeCann mas SEM registro no Fechado','conc-falta-fechado',c.faltaFechado)}
     </div>`:''}`;
 
-  const btn=document.getElementById('btnConc'); if(btn) btn.onclick=toggleConciliacao;
-  // delegação dos cliques (resolver / escolher pessoa)
+  // toda a interação por delegação no container (evita clique duplo no "Ver detalhes")
   box.onclick=(e)=>{
     const r=e.target.closest('[data-resolver]');
     if(r){ const nm=r.getAttribute('data-resolver'); shResolverAberto = (shResolverAberto===normNome(nm))?'':normNome(nm); renderConciliacao(); return; }
     const o=e.target.closest('[data-vinc-pessoa]');
     if(o){ resolverVinculo(o.getAttribute('data-vinc-nome'), o.getAttribute('data-vinc-pessoa')); return; }
-    if(e.target.closest('#btnConc')) toggleConciliacao();
+    if(e.target.closest('#btnConc')){ toggleConciliacao(); return; }
   };
 }
 let shSelecionados=new Set();   // normNomes marcados (checkbox) na coluna "Fazer contato"
