@@ -361,11 +361,25 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .sh-busca{flex:1 1 220px;min-width:160px;background:#0F1A3A;border:1px solid #2C3B66;color:#E7EDF7;border-radius:9px;padding:8px 12px;font-size:13px;outline:none}
 .sh-busca:focus{border-color:#3DD6C0}
 .sh-info{font-size:11.5px;color:#8595AD;width:100%}
-.sh-cols{display:flex;align-items:stretch;gap:12px}
-.sh-col{flex:1;min-width:0;background:rgba(255,255,255,.03);border:1px solid #2C3B66;border-radius:12px;display:flex;flex-direction:column;overflow:hidden}
+/* barra de ação: seletor de atendente + trazer pra carteira */
+.sh-acaobar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:13px;padding:9px 11px;background:rgba(63,138,224,.08);border:1px solid rgba(63,138,224,.28);border-radius:10px}
+.sh-acao-lbl{font-size:12.5px;font-weight:700;color:#9FC2F0}
+.sh-atendente{background:#0F1A3A;border:1px solid #2C3B66;color:#E7EDF7;border-radius:8px;padding:7px 10px;font-size:12.5px;outline:none;cursor:pointer}
+.sh-atendente:focus{border-color:#3F8AE0}
+.sh-trazer{background:#3F8AE0;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12.5px;font-weight:700;cursor:pointer;transition:all .15s}
+.sh-trazer:hover:not(:disabled){background:#2F73C7;transform:translateY(-1px)}
+.sh-trazer:disabled{opacity:.45;cursor:not-allowed}
+.sh-acao-dica{font-size:11px;color:#8595AD;flex:1 1 auto;min-width:140px}
+/* 4 colunas: mantêm proporção fixa e rolam na horizontal quando não cabem */
+.sh-cols{display:flex;align-items:stretch;gap:12px;overflow-x:auto;overflow-y:hidden;padding-bottom:10px}
+.sh-cols::-webkit-scrollbar{height:9px}.sh-cols::-webkit-scrollbar-thumb{background:#3A4A78;border-radius:5px}.sh-cols::-webkit-scrollbar-track{background:rgba(255,255,255,.04);border-radius:5px}
+.sh-col{flex:1 0 235px;min-width:235px;background:rgba(255,255,255,.03);border:1px solid #2C3B66;border-radius:12px;display:flex;flex-direction:column;overflow:hidden}
 .sh-head{display:flex;align-items:center;gap:8px;padding:11px 13px;font-weight:800;font-size:13.5px;color:#fff;border-bottom:1px solid #2C3B66}
 .sh-head .sh-dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
 .sh-head .sh-count{margin-left:auto;font-size:13px;font-weight:800}
+.sh-subhead{padding:8px 10px;border-bottom:1px solid #2C3B66}
+.sh-filtro{width:100%;background:#0F1A3A;border:1px solid #2C3B66;color:#C5D0E4;border-radius:7px;padding:5px 8px;font-size:11.5px;outline:none;cursor:pointer}
+.sh-filtro:focus{border-color:#3F8AE0}
 .sh-body{max-height:330px;overflow-y:auto;padding:8px}
 .sh-body::-webkit-scrollbar{width:7px}.sh-body::-webkit-scrollbar-thumb{background:#2C3B66;border-radius:4px}
 .sh-item{padding:7px 9px;border-radius:8px;margin-bottom:5px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.05)}
@@ -373,15 +387,23 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .sh-nome{font-size:12.5px;font-weight:700;color:#E7EDF7;line-height:1.25}
 .sh-meta{font-size:11px;color:#9FB0CE;line-height:1.3;margin-top:2px;word-break:break-word}
 .sh-vazio{color:#8595AD;font-size:11.5px;text-align:center;padding:14px 6px}
+/* itens selecionáveis (checkbox) na coluna Fazer contato */
+.sh-sel{display:flex;align-items:flex-start;gap:9px;cursor:pointer}
+.sh-cb{margin-top:2px;width:16px;height:16px;flex:0 0 auto;accent-color:#3F8AE0;cursor:pointer}
+.sh-item-txt{display:flex;flex-direction:column;min-width:0}
+/* agrupamento por atendente na coluna Contato Realizado */
+.sh-grupo{margin-bottom:10px}
+.sh-grupo:last-child{margin-bottom:0}
+.sh-grupo-tit{font-size:11.5px;font-weight:800;color:#9FC2F0;padding:3px 4px 6px;border-bottom:1px dashed rgba(63,138,224,.3);margin-bottom:6px}
+.sh-grupo-n{color:#6E86B5;font-weight:700}
 .sh-act{margin-top:7px;font-size:11px;font-weight:700;border-radius:7px;padding:5px 10px;cursor:pointer;border:1px solid transparent;transition:all .14s;line-height:1}
-.sh-check{background:rgba(53,208,127,.14);color:#5BE0A8;border-color:rgba(53,208,127,.4)}
-.sh-check:hover{background:#35D07F;color:#0B1530}
 .sh-undo{background:rgba(255,255,255,.05);color:#9FB0CE;border-color:rgba(255,255,255,.12)}
 .sh-undo:hover{background:rgba(240,70,63,.16);color:#FF8A85;border-color:rgba(240,70,63,.45)}
-.sh-fechado .sh-head{color:#5BE0A8} .sh-fechado .sh-dot{background:#35D07F;box-shadow:0 0 6px rgba(53,208,127,.6)} .sh-fechado .sh-count{color:#5BE0A8}
-.sh-tratativa .sh-head{color:#F2C829} .sh-tratativa .sh-dot{background:#F2C829;box-shadow:0 0 6px rgba(242,200,41,.6)} .sh-tratativa .sh-count{color:#F2C829}
 .sh-contato .sh-head{color:#FF8A85} .sh-contato .sh-dot{background:#F0463F;box-shadow:0 0 6px rgba(240,70,63,.6)} .sh-contato .sh-count{color:#FF8A85}
-@media(max-width:1000px){.est-grid{flex-direction:column;gap:14px}.est-hotel{padding:0}.est-hotel + .est-hotel{border-left:none;border-top:1px solid #2C3B66;padding-top:16px}.est-carousel{flex:none;width:100%}.est-face-disp,.est-ocup-hoteis,.sh-cols{flex-direction:column;gap:14px}.est-seta-col{flex-direction:row;padding:6px 0}.est-dots{flex-direction:row}.est-ocup-total{margin-top:14px}.sh-body{max-height:260px}}
+.sh-realizado .sh-head{color:#7FB2F5} .sh-realizado .sh-dot{background:#3F8AE0;box-shadow:0 0 6px rgba(63,138,224,.6)} .sh-realizado .sh-count{color:#7FB2F5}
+.sh-tratativa .sh-head{color:#F2C829} .sh-tratativa .sh-dot{background:#F2C829;box-shadow:0 0 6px rgba(242,200,41,.6)} .sh-tratativa .sh-count{color:#F2C829}
+.sh-fechado .sh-head{color:#5BE0A8} .sh-fechado .sh-dot{background:#35D07F;box-shadow:0 0 6px rgba(53,208,127,.6)} .sh-fechado .sh-count{color:#5BE0A8}
+@media(max-width:1000px){.est-grid{flex-direction:column;gap:14px}.est-hotel{padding:0}.est-hotel + .est-hotel{border-left:none;border-top:1px solid #2C3B66;padding-top:16px}.est-carousel{flex:none;width:100%}.est-face-disp,.est-ocup-hoteis,.sh-cols{flex-direction:column;gap:14px}.sh-col{flex:1 1 auto;min-width:0}.est-seta-col{flex-direction:row;padding:6px 0}.est-dots{flex-direction:row}.est-ocup-total{margin-top:14px}.sh-body{max-height:260px}}
 .est-linha{display:flex;align-items:center;gap:8px;padding:7px 13px;margin-bottom:8px;border:1px solid rgba(255,255,255,.09);border-radius:10px;font-weight:500;font-size:clamp(9px,3cqi,11.5px);line-height:1.3;color:#A9B6CC}
 .est-txt{white-space:nowrap}
 .est-linha:last-child{margin-bottom:0}
@@ -1346,84 +1368,134 @@ function nomeBateVoucher(nome, setNomes){
   }
   return false;
 }
-// status EFETIVO = o mais avançado entre: CSV, ✅ manual (→tratativa), voucher (→fechado)
-function statusEfetivo(row, vSet, checSet){
-  const ordem={contato:0,tratativa:1,fechado:2};
-  let nivel=ordem[normStatusHotel(row.statusRaw)];
-  if(checSet.has(normNome(row.nome))) nivel=Math.max(nivel,1);
-  if(nomeBateVoucher(row.nome, vSet)) nivel=Math.max(nivel,2);
-  return ['contato','tratativa','fechado'][nivel];
-}
-// ✅ atendente marca que o contato foi feito → vai para "Em tratativa" (salva na nuvem)
-function marcarContatoFeito(nome){
-  const n=normNome(nome); if(!n) return;
-  if(!Array.isArray(appConfig.contatosTratativa)) appConfig.contatosTratativa=[];
-  if(!appConfig.contatosTratativa.includes(n)) appConfig.contatosTratativa.push(n);
-  salvarConfig();
-  renderStatusColunas();
-  toast('✅ Contato feito → movido para "Em tratativa"','ok');
-}
-// desfaz o ✅ manual → volta para "Fazer contato"
-function desfazerContatoFeito(nome){
-  const n=normNome(nome);
-  appConfig.contatosTratativa=(appConfig.contatosTratativa||[]).filter(x=>x!==n);
-  salvarConfig();
-  renderStatusColunas();
-  toast('Voltou para "Fazer contato"','info');
+// lista fixa de atendentes (espelha o select de cadastro de voucher)
+const ATENDENTES=['Eduardo Vinícius','Ghabriella Bressan','Letícia Rosa','Diego Oliveira','Liliane Gaspar','Israel Hespanhol','Maria Eduarda','Fernando Pires','Ana Maria','Hynaê Teston'];
+let shSelecionados=new Set();   // normNomes marcados (checkbox) na coluna "Fazer contato"
+let shFiltroAtendente='';       // filtro por atendente na coluna "Contato Realizado"
+
+// carteira: { normNome: "Atendente" } — quem puxou cada contato (salvo na nuvem via config)
+function carteiraMap(){ return (appConfig.carteira && typeof appConfig.carteira==='object') ? appConfig.carteira : {}; }
+
+// status EFETIVO = o mais avançado entre: CSV, carteira (→Contato Realizado), voucher (→Fechado)
+// ordem: contato(0) < realizado(1) < tratativa(2) < fechado(3)
+function statusEfetivo(row, vSet, cart){
+  const ordem={contato:0,realizado:1,tratativa:2,fechado:3};
+  let nivel=ordem[normStatusHotel(row.statusRaw)];   // contato=0 · tratativa=2 · fechado=3
+  if(cart[normNome(row.nome)]) nivel=Math.max(nivel,1);          // puxado por atendente
+  if(nomeBateVoucher(row.nome, vSet)) nivel=Math.max(nivel,3);   // achou em voucher
+  return ['contato','realizado','tratativa','fechado'][nivel];
 }
 
-// renderiza as 3 colunas (status efetivo: CSV + ✅ manual + reconhecimento por voucher)
+// liga/desliga a seleção (checkbox) de um contato em "Fazer contato"
+function toggleSelecao(nome){
+  const n=normNome(nome); if(!n) return;
+  if(shSelecionados.has(n)) shSelecionados.delete(n); else shSelecionados.add(n);
+  atualizarBotaoTrazer();
+}
+// atualiza o rótulo/estado do botão "Trazer pra minha carteira"
+function atualizarBotaoTrazer(){
+  const b=document.getElementById('shTrazer');
+  if(b){ b.textContent='Trazer pra minha carteira'+(shSelecionados.size?(' ('+shSelecionados.size+')'):''); b.disabled=!shSelecionados.size; }
+}
+// puxa os selecionados para a carteira do atendente escolhido (salva na nuvem)
+function trazerParaCarteira(){
+  const sel=document.getElementById('shAtendente');
+  const atendente=sel ? sel.value : '';
+  if(!atendente){ toast('Selecione "Sou:" (seu nome) antes de trazer','err'); if(sel) sel.focus(); return; }
+  if(!shSelecionados.size){ toast('Marque ao menos um contato na coluna "Fazer contato"','err'); return; }
+  if(!appConfig.carteira || typeof appConfig.carteira!=='object') appConfig.carteira={};
+  let n=0; shSelecionados.forEach(nm=>{ appConfig.carteira[nm]=atendente; n++; });
+  shSelecionados.clear();
+  localStorage.setItem('uv_atendente', atendente); // lembra o último atendente neste aparelho
+  salvarConfig();
+  renderStatusColunas();
+  toast(n+' contato(s) na carteira de '+atendente+' ✅','ok');
+}
+// devolve um contato da carteira de volta para "Fazer contato"
+function devolverContato(nome){
+  const n=normNome(nome);
+  if(appConfig.carteira) delete appConfig.carteira[n];
+  salvarConfig();
+  renderStatusColunas();
+  toast('Contato devolvido para "Fazer contato"','info');
+}
+
+// renderiza as 4 colunas: Fazer contato → Contato Realizado → Em tratativa → Fechado
 function renderStatusColunas(){
   const wrap=document.getElementById('shCols'); if(!wrap) return;
   const rows=(statusHotelData&&statusHotelData.rows)||[];
   const termo=_normE(shBusca||'').trim();
   const vSet=nomesDeVouchers();
-  const checSet=new Set(appConfig.contatosTratativa||[]);
-  const grupos={fechado:[],tratativa:[],contato:[]};
-  rows.forEach(r=>{ grupos[statusEfetivo(r,vSet,checSet)].push(r); });
+  const cart=carteiraMap();
+  const grupos={contato:[],realizado:[],tratativa:[],fechado:[]};
+  rows.forEach(r=>{ grupos[statusEfetivo(r,vSet,cart)].push(r); });
   const passa=r=> !termo || _normE([r.nome,r.email,r.agente,r.hotel].join(' ')).indexOf(termo)>=0;
 
-  const card=(r,grupo)=>{
-    const nomeN=normNome(r.nome);
-    let meta='', acao='';
-    if(grupo==='fechado'){
-      meta=[r.hotel, r.agente?('Ag.: '+r.agente):'', shPeriodo(r)].filter(Boolean).join(' · ');
-    } else if(grupo==='tratativa'){
-      meta=[r.agente?('Ag.: '+r.agente):'', shPeriodo(r)].filter(Boolean).join(' · ');
-      // só mostra "desfazer" se foi um ✅ manual (base do CSV era em branco)
-      if(normStatusHotel(r.statusRaw)==='contato' && checSet.has(nomeN))
-        acao=`<button class="sh-act sh-undo" data-acao="desfazer" data-nome="${esc(r.nome)}" title="Voltar para Fazer contato">↩ Desfazer</button>`;
-    } else {
-      meta=r.email||'';
-      acao=`<button class="sh-act sh-check" data-acao="feito" data-nome="${esc(r.nome)}" title="Marcar que o contato já foi feito">✓ Contato feito</button>`;
-    }
-    return `<div class="sh-item"><div class="sh-nome">${esc(r.nome)}</div>${meta?`<div class="sh-meta">${esc(meta)}</div>`:''}${acao}</div>`;
+  // remove da seleção quem não está mais em "Fazer contato"
+  const contatoNomes=new Set(grupos.contato.map(r=>normNome(r.nome)));
+  [...shSelecionados].forEach(n=>{ if(!contatoNomes.has(n)) shSelecionados.delete(n); });
+
+  const metaTrat=r=>[r.agente?('Ag.: '+r.agente):'', shPeriodo(r)].filter(Boolean).join(' · ');
+  const metaFech=r=>[r.hotel, r.agente?('Ag.: '+r.agente):'', shPeriodo(r)].filter(Boolean).join(' · ');
+
+  // molde de coluna (header colorido + sub-header opcional + corpo rolável)
+  const colHTML=(classe,rotulo,cont,corpo,extra)=>`<div class="sh-col ${classe}">
+    <div class="sh-head"><span class="sh-dot"></span>${rotulo}<span class="sh-count">${cont}</span></div>
+    ${extra?`<div class="sh-subhead">${extra}</div>`:''}
+    <div class="sh-body">${corpo}</div>
+  </div>`;
+
+  // coluna 1 — FAZER CONTATO (com checkbox de seleção múltipla)
+  const colContato=()=>{
+    const todos=grupos.contato, vis=todos.filter(passa);
+    const cont=termo?(vis.length+' de '+todos.length):String(todos.length);
+    const corpo=vis.length?vis.map(r=>{
+      const n=normNome(r.nome);
+      return `<label class="sh-item sh-sel"><input type="checkbox" class="sh-cb" data-sel="${esc(r.nome)}" ${shSelecionados.has(n)?'checked':''}><span class="sh-item-txt"><span class="sh-nome">${esc(r.nome)}</span>${r.email?`<span class="sh-meta">${esc(r.email)}</span>`:''}</span></label>`;
+    }).join(''):`<div class="sh-vazio">${termo?'Nenhum resultado':'Nenhum contato'}</div>`;
+    return colHTML('sh-contato','Fazer contato',cont,corpo);
   };
 
-  const coluna=(grupo,classe,rotulo)=>{
-    const todos=grupos[grupo];
-    const vis=todos.filter(passa);
-    const cont = termo ? (vis.length+' de '+todos.length) : String(todos.length);
-    const corpo = vis.length ? vis.map(r=>card(r,grupo)).join('')
-      : `<div class="sh-vazio">${termo?'Nenhum resultado':'Nenhum contato'}</div>`;
-    return `<div class="sh-col ${classe}">
-      <div class="sh-head"><span class="sh-dot"></span>${rotulo}<span class="sh-count">${cont}</span></div>
-      <div class="sh-body">${corpo}</div>
-    </div>`;
+  // coluna 2 — CONTATO REALIZADO (agrupado por atendente + filtro por atendente)
+  const colRealizado=()=>{
+    const todos=grupos.realizado, vis=todos.filter(passa);
+    const visF = shFiltroAtendente ? vis.filter(r=>(cart[normNome(r.nome)]||'')===shFiltroAtendente) : vis;
+    const cont = (termo||shFiltroAtendente) ? (visF.length+' de '+todos.length) : String(todos.length);
+    const porAt={};
+    visF.forEach(r=>{ const at=cart[normNome(r.nome)]||'(sem atendente)'; (porAt[at]=porAt[at]||[]).push(r); });
+    const ats=Object.keys(porAt).sort((a,b)=>a.localeCompare(b,'pt-BR'));
+    const corpo = ats.length ? ats.map(at=>{
+      const itens=porAt[at].map(r=>{
+        const m=metaTrat(r)||r.email||'';
+        return `<div class="sh-item"><div class="sh-nome">${esc(r.nome)}</div>${m?`<div class="sh-meta">${esc(m)}</div>`:''}<button class="sh-act sh-undo" data-acao="devolver" data-nome="${esc(r.nome)}" title="Devolver para Fazer contato">↩ Devolver</button></div>`;
+      }).join('');
+      return `<div class="sh-grupo"><div class="sh-grupo-tit">👤 ${esc(at)} <span class="sh-grupo-n">(${porAt[at].length})</span></div>${itens}</div>`;
+    }).join('') : `<div class="sh-vazio">${(termo||shFiltroAtendente)?'Nenhum resultado':'Nenhum contato puxado ainda'}</div>`;
+    const filtro=`<select class="sh-filtro" id="shFiltroAt"><option value="">Todos os atendentes</option>${ATENDENTES.map(a=>`<option ${shFiltroAtendente===a?'selected':''}>${esc(a)}</option>`).join('')}</select>`;
+    return colHTML('sh-realizado','Contato Realizado',cont,corpo,filtro);
+  };
+
+  // colunas 3 e 4 — EM TRATATIVA e FECHADO (somente leitura)
+  const colSimples=(grupo,classe,rotulo,metaFn)=>{
+    const todos=grupos[grupo], vis=todos.filter(passa);
+    const cont=termo?(vis.length+' de '+todos.length):String(todos.length);
+    const corpo=vis.length?vis.map(r=>{ const m=metaFn(r); return `<div class="sh-item"><div class="sh-nome">${esc(r.nome)}</div>${m?`<div class="sh-meta">${esc(m)}</div>`:''}</div>`; }).join(''):`<div class="sh-vazio">${termo?'Nenhum resultado':'Nenhum contato'}</div>`;
+    return colHTML(classe,rotulo,cont,corpo);
   };
 
   wrap.innerHTML =
-    coluna('fechado','sh-fechado','Fechado (vendido)') +
-    coluna('tratativa','sh-tratativa','Em tratativa') +
-    coluna('contato','sh-contato','Fazer contato');
+    colContato() +
+    colRealizado() +
+    colSimples('tratativa','sh-tratativa','Em tratativa', metaTrat) +
+    colSimples('fechado','sh-fechado','Fechado (vendido)', metaFech);
 
-  // ações dos botões (delegação via onclick — não empilha entre re-renders)
-  wrap.onclick=(e)=>{
-    const btn=e.target.closest('[data-acao]'); if(!btn) return;
-    const nome=btn.getAttribute('data-nome');
-    if(btn.getAttribute('data-acao')==='feito') marcarContatoFeito(nome);
-    else if(btn.getAttribute('data-acao')==='desfazer') desfazerContatoFeito(nome);
+  // cliques (botão devolver) e mudanças (checkbox + filtro) — via propriedade, não empilha
+  wrap.onclick=(e)=>{ const btn=e.target.closest('[data-acao]'); if(btn && btn.getAttribute('data-acao')==='devolver') devolverContato(btn.getAttribute('data-nome')); };
+  wrap.onchange=(e)=>{
+    const cb=e.target.closest('input[data-sel]'); if(cb){ toggleSelecao(cb.getAttribute('data-sel')); return; }
+    const f=e.target.closest('#shFiltroAt'); if(f){ shFiltroAtendente=f.value; renderStatusColunas(); }
   };
+  atualizarBotaoTrazer();
 
   const info=document.getElementById('shInfo');
   if(info){
@@ -1612,6 +1684,12 @@ function renderDisponibilidade(){
               <button class="est-import" id="btnImportarStatus">Importar / Atualizar CSV</button>
               <span class="sh-info" id="shInfo"></span>
             </div>
+            <div class="sh-acaobar">
+              <span class="sh-acao-lbl">👤 Sou:</span>
+              <select id="shAtendente" class="sh-atendente"><option value="">Selecione seu nome</option></select>
+              <button id="shTrazer" class="sh-trazer" type="button" disabled>Trazer pra minha carteira</button>
+              <span class="sh-acao-dica">Marque os contatos em “Fazer contato” e traga para a sua carteira.</span>
+            </div>
             <div class="sh-cols" id="shCols"></div>
             <input id="inputStatusHotel" type="file" accept=".csv,text/csv" style="display:none" />
           </div>
@@ -1630,6 +1708,13 @@ function renderDisponibilidade(){
   const bis=$('#btnImportarStatus'); if(bis) bis.onclick=()=>$('#inputStatusHotel').click();
   const inS=$('#inputStatusHotel'); if(inS) inS.onchange=e=>{ const f=e.target.files&&e.target.files[0]; if(f) importarStatusHotel(f); e.target.value=''; };
   const shB=$('#shBusca'); if(shB){ shB.value=shBusca||''; shB.oninput=()=>{ shBusca=shB.value; renderStatusColunas(); }; }
+  const shAt=$('#shAtendente');
+  if(shAt){
+    shAt.innerHTML='<option value="">Selecione seu nome</option>'+ATENDENTES.map(a=>`<option>${esc(a)}</option>`).join('');
+    const ult=localStorage.getItem('uv_atendente')||''; if(ult) shAt.value=ult;
+    shAt.onchange=()=>{ if(shAt.value) localStorage.setItem('uv_atendente', shAt.value); };
+  }
+  const shTz=$('#shTrazer'); if(shTz) shTz.onclick=()=>trazerParaCarteira();
   // navegação do carrossel (3 visões): seta avança em ciclo + dots indicam/saltam
   const track=$('#estTrack'), seta=$('#btnSeta');
   function aplicarSeta(){
