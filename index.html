@@ -393,6 +393,21 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .conc-opcoes{display:flex;flex-direction:column;gap:5px;margin:6px 0 4px;padding-left:10px;border-left:2px solid rgba(63,138,224,.4)}
 .conc-opcao{text-align:left;background:rgba(63,138,224,.10);color:#CFE0F7;border:1px solid rgba(63,138,224,.3);border-radius:6px;padding:7px 10px;font-size:12px;font-weight:600;cursor:pointer;transition:all .14s}
 .conc-opcao:hover{background:#3F8AE0;color:#fff;border-color:#3F8AE0}
+/* integrador: vincular nome solto a um voucher */
+.conc-integrar{margin:6px 0 4px;padding:9px;background:rgba(63,138,224,.07);border:1px solid rgba(63,138,224,.28);border-radius:8px}
+.conc-busca-vch{width:100%;background:#0F1A3A;border:1px solid #2C3B66;color:#E7EDF7;border-radius:7px;padding:7px 10px;font-size:12px;outline:none;margin-bottom:8px}
+.conc-busca-vch:focus{border-color:#3F8AE0}
+.conc-vch-lista{display:flex;flex-direction:column;gap:6px;max-height:240px;overflow-y:auto}
+.conc-vch{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:7px;padding:7px 10px}
+.conc-vch-info{font-size:12px;color:#E7EDF7;min-width:0}
+.conc-vch-info b{color:#7FB2F5;margin-right:5px}
+.conc-vch-sub{display:block;font-size:10.5px;color:#8595AD;margin-top:1px}
+.conc-vch-acoes{display:flex;gap:6px;flex:0 0 auto}
+.conc-acao-mesma,.conc-acao-novo{border:none;border-radius:6px;padding:6px 10px;font-size:11px;font-weight:800;cursor:pointer;transition:all .14s;white-space:nowrap}
+.conc-acao-mesma{background:rgba(53,208,127,.16);color:#5BE0A8;border:1px solid rgba(53,208,127,.4)}
+.conc-acao-mesma:hover{background:#35D07F;color:#0B1530}
+.conc-acao-novo{background:rgba(63,138,224,.16);color:#9FC2F0;border:1px solid rgba(63,138,224,.4)}
+.conc-acao-novo:hover{background:#3F8AE0;color:#fff}
 /* barra de ação: seletor de atendente + trazer pra carteira */
 .sh-acaobar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:13px;padding:9px 11px;background:rgba(63,138,224,.08);border:1px solid rgba(63,138,224,.28);border-radius:10px}
 .sh-acao-lbl{font-size:12.5px;font-weight:700;color:#9FC2F0}
@@ -1451,7 +1466,13 @@ function conciliacaoWecann(){
   const faltaFechado=[];   // nomes em voucher WeCann sem registro no Fechado
   const ambiguos=[];       // {nome, candidatos:[nomesOriginais]} aguardando desempate
 
+  // conjunto de pessoas (do voucher) que já foram vinculadas manualmente a algum nome do Fechado
+  const alvosVinculados=new Set(Object.values(vinc));
+
   fechados.forEach(r=>{
+    const nN=normNome(r.nome);
+    // vínculo manual tem prioridade máxima: se você já disse "é fulano", resolve em qualquer caso
+    if(vinc[nN] && wecMap.has(vinc[nN])) return;                     // já vinculado ✅
     const tk=tokensNome(r.nome);
     // nome solto (uma palavra) com possibilidade de ambiguidade
     if(tk.length===1){
@@ -1459,7 +1480,7 @@ function conciliacaoWecann(){
       if(candidatos.length===0){ faltaVoucher.push(r.nome); return; }   // ninguém: divergência real
       if(candidatos.length===1) return;                                  // único: unifica automático ✅
       // 2+ candidatos: só resolve se houver vínculo manual salvo
-      const escolhido=vinc[normNome(r.nome)];
+      const escolhido=vinc[nN];
       if(escolhido && candidatos.some(o=>normNome(o)===escolhido)) return; // já resolvido ✅
       ambiguos.push({ nome:r.nome, candidatos });                        // aguarda você decidir
       return;
@@ -1468,8 +1489,11 @@ function conciliacaoWecann(){
     if(!nomeBateVoucher(r.nome, wecSet)) faltaVoucher.push(r.nome);
   });
 
-  // sentido 2: voucher WeCann sem registro no Fechado
-  wecMap.forEach((orig)=>{ if(!nomeBateVoucher(orig, fechSet)) faltaFechado.push(orig); });
+  // sentido 2: voucher WeCann sem registro no Fechado (ignora quem já foi vinculado manualmente)
+  wecMap.forEach((orig,norm)=>{
+    if(alvosVinculados.has(norm)) return;                              // já vinculado a alguém do Fechado ✅
+    if(!nomeBateVoucher(orig, fechSet)) faltaFechado.push(orig);
+  });
 
   const dedupSort=a=>[...new Set(a)].sort((x,y)=>x.localeCompare(y,'pt-BR'));
   return {
@@ -1480,6 +1504,67 @@ function conciliacaoWecann(){
     ambiguos: ambiguos.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR')),
     ok: faltaVoucher.length===0 && faltaFechado.length===0 && ambiguos.length===0
   };
+}
+
+/* ===== INTEGRAR NOME SOLTO A UM VOUCHER ===== */
+let shIntegrarNome='';   // nome solto em processo de integração ('' = nenhum)
+let shIntegrarBusca='';  // texto de busca de voucher no integrador
+
+// lista os vouchers WeCann (hospedagem em um dos 3 hotéis) para o seletor de integração
+function vouchersWecannLista(){
+  return (savedCache||[]).filter(v=>(v.services||[]).some(sv=>sv.type==='hotel' && HOTEIS_OCUPACAO.some(h=>h.match(sv.data&&sv.data.hotel))))
+    .map(v=>{
+      const serv=(v.services||[]).filter(sv=>sv.type==='hotel' && HOTEIS_OCUPACAO.some(h=>h.match(sv.data&&sv.data.hotel)));
+      const hosp=[]; serv.forEach(sv=>{ const h=sv.data&&sv.data.hospedes; if(Array.isArray(h)) h.forEach(x=>x&&hosp.push(x)); });
+      return { num:v.num, cliente:v.cliente||'', hospedes:hosp, hotel:(serv[0]&&serv[0].data&&serv[0].data.hotel)||'' };
+    })
+    .sort((a,b)=>(parseInt(b.num)||0)-(parseInt(a.num)||0));
+}
+
+// salva (atualiza) um voucher já existente na nuvem, sem duplicar e sem perder os demais
+async function salvarVoucherEditado(v){
+  // atualiza o voucher dentro do savedCache em memória (fonte da verdade da tela)
+  const i=(savedCache||[]).findIndex(x=> (x.id&&v.id&&x.id===v.id) || x.num===v.num );
+  if(i>=0) savedCache[i]=v; else savedCache.unshift(v);
+  try{ localStorage.setItem('uv_vouchers', JSON.stringify(savedCache)); }catch(e){}
+  try{ await api('/api/vouchers',{method:'POST',body:JSON.stringify(v)}); }
+  catch(e){ toast('Salvo no aparelho, mas falhou enviar à nuvem','err'); }
+}
+
+// AÇÃO 1 — é a mesma pessoa: vincula o nome solto ao hóspede que já existe no voucher (não duplica)
+function integrarMesmaPessoa(nomeSolto, numVoucher){
+  const v=(savedCache||[]).find(x=>x.num===numVoucher);
+  if(!v){ toast('Voucher não encontrado','err'); return; }
+  // pega o primeiro hóspede do serviço WeCann como "pessoa oficial" para o vínculo
+  let alvo='';
+  (v.services||[]).forEach(sv=>{ if(!alvo && sv.type==='hotel' && HOTEIS_OCUPACAO.some(h=>h.match(sv.data&&sv.data.hotel))){ const h=sv.data&&sv.data.hospedes; if(Array.isArray(h)&&h.length) alvo=h[0]; } });
+  if(!alvo) alvo=v.cliente||'';
+  if(!alvo){ toast('Esse voucher não tem hóspede para vincular','err'); return; }
+  if(!appConfig.vinculos || typeof appConfig.vinculos!=='object') appConfig.vinculos={};
+  appConfig.vinculos[normNome(nomeSolto)]=normNome(alvo);
+  shIntegrarNome=''; shResolverAberto='';
+  salvarConfig();
+  renderConciliacao();
+  toast('Vinculado: '+nomeSolto+' = '+alvo+' (mesma pessoa) ✅','ok');
+}
+
+// AÇÃO 2 — adicionar como NOVO hóspede: grava o nome dentro do voucher de verdade
+async function integrarNovoHospede(nomeSolto, numVoucher){
+  const v=(savedCache||[]).find(x=>x.num===numVoucher);
+  if(!v){ toast('Voucher não encontrado','err'); return; }
+  // acha o serviço de hotel WeCann do voucher
+  let sv=(v.services||[]).find(s=>s.type==='hotel' && HOTEIS_OCUPACAO.some(h=>h.match(s.data&&s.data.hotel)));
+  if(!sv) sv=(v.services||[]).find(s=>s.type==='hotel');
+  if(!sv){ toast('Esse voucher não tem hospedagem para adicionar hóspede','err'); return; }
+  if(!sv.data) sv.data={};
+  if(!Array.isArray(sv.data.hospedes)) sv.data.hospedes = sv.data.hospedes ? [sv.data.hospedes] : [];
+  // evita duplicar se já existir igualzinho
+  if(!sv.data.hospedes.some(h=>normNome(h)===normNome(nomeSolto))) sv.data.hospedes.push(nomeSolto.trim());
+  shIntegrarNome='';
+  await salvarVoucherEditado(v);
+  renderConciliacao();
+  renderStatusColunas();
+  toast(nomeSolto+' adicionado como hóspede no voucher #'+numVoucher+' ✅','ok');
 }
 
 // vínculos manuais de desempate: { norm(nomeSolto): norm(pessoaEscolhida) } — salvo na nuvem
@@ -1525,6 +1610,39 @@ function renderConciliacao(){
       <ul class="conc-lista">${arr.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>
     </div>` : '';
 
+  // lista do lado VERMELHO (no Fechado sem voucher) com botão "Vincular a voucher"
+  const listaFaltaVoucher = c.faltaVoucher.length ? `<div class="conc-grupo conc-falta-voucher">
+      <div class="conc-grupo-tit">🔴 No Fechado mas SEM voucher do WeCann <b>(${c.faltaVoucher.length})</b></div>
+      <ul class="conc-lista">${c.faltaVoucher.map(n=>{
+        const aberto = shIntegrarNome===normNome(n);
+        let painel='';
+        if(aberto){
+          const termo=_normE(shIntegrarBusca||'').trim();
+          const vlist=vouchersWecannLista().filter(v=>{
+            if(!termo) return true;
+            return _normE([v.num,v.cliente,v.hospedes.join(' '),v.hotel].join(' ')).indexOf(termo)>=0;
+          }).slice(0,8);
+          const itens = vlist.length ? vlist.map(v=>`<div class="conc-vch">
+              <div class="conc-vch-info"><b>#${esc(v.num)}</b> ${esc(v.cliente||(v.hospedes[0]||'—'))}<span class="conc-vch-sub">${esc(v.hotel)}${v.hospedes.length?(' · '+v.hospedes.length+' hósp.'):''}</span></div>
+              <div class="conc-vch-acoes">
+                <button class="conc-acao-mesma" data-mesma-nome="${esc(n)}" data-mesma-num="${esc(v.num)}" title="É a mesma pessoa que já está no voucher">É a mesma pessoa</button>
+                <button class="conc-acao-novo" data-novo-nome="${esc(n)}" data-novo-num="${esc(v.num)}" title="Adicionar como novo hóspede no voucher">+ Adicionar hóspede</button>
+              </div>
+            </div>`).join('') : `<div class="conc-vazio">Nenhum voucher encontrado</div>`;
+          painel=`<div class="conc-integrar">
+              <input type="text" class="conc-busca-vch" id="concBuscaVch" placeholder="🔎 Buscar voucher (nº, cliente, hotel)..." value="${esc(shIntegrarBusca||'')}">
+              <div class="conc-vch-lista">${itens}</div>
+            </div>`;
+        }
+        return `<li class="conc-amb-item">
+          <div class="conc-amb-linha">
+            <span>${esc(n)}</span>
+            <button class="conc-resolver" data-integrar="${esc(n)}">${aberto?'Fechar':'Vincular a voucher'}</button>
+          </div>${painel}
+        </li>`;
+      }).join('')}</ul>
+    </div>` : '';
+
   // bloco de nomes soltos ambíguos (precisam de desempate manual)
   const blocoAmbiguos = nAmb ? `<div class="conc-grupo conc-ambiguo">
       <div class="conc-grupo-tit">🔵 Nomes que precisam que você escolha a pessoa certa <b>(${nAmb})</b></div>
@@ -1555,7 +1673,7 @@ function renderConciliacao(){
     </div>
     ${shConcAberto?`<div class="conc-detalhe">
       ${blocoAmbiguos}
-      ${lista('🔴 No Fechado mas SEM voucher do WeCann','conc-falta-voucher',c.faltaVoucher)}
+      ${listaFaltaVoucher}
       ${lista('🟡 Hóspede de voucher WeCann mas SEM registro no Fechado','conc-falta-fechado',c.faltaFechado)}
     </div>`:''}`;
 
@@ -1565,8 +1683,20 @@ function renderConciliacao(){
     if(r){ const nm=r.getAttribute('data-resolver'); shResolverAberto = (shResolverAberto===normNome(nm))?'':normNome(nm); renderConciliacao(); return; }
     const o=e.target.closest('[data-vinc-pessoa]');
     if(o){ resolverVinculo(o.getAttribute('data-vinc-nome'), o.getAttribute('data-vinc-pessoa')); return; }
+    // abrir/fechar o integrador de um nome solto
+    const ig=e.target.closest('[data-integrar]');
+    if(ig){ const nm=ig.getAttribute('data-integrar'); const novo=normNome(nm); shIntegrarNome=(shIntegrarNome===novo)?'':novo; shIntegrarBusca=''; renderConciliacao(); return; }
+    // ação 1 — é a mesma pessoa
+    const am=e.target.closest('[data-mesma-num]');
+    if(am){ integrarMesmaPessoa(am.getAttribute('data-mesma-nome'), am.getAttribute('data-mesma-num')); return; }
+    // ação 2 — adicionar como novo hóspede
+    const an=e.target.closest('[data-novo-num]');
+    if(an){ integrarNovoHospede(an.getAttribute('data-novo-nome'), an.getAttribute('data-novo-num')); return; }
     if(e.target.closest('#btnConc')){ toggleConciliacao(); return; }
   };
+  // busca de voucher dentro do integrador (mantém o foco, atualiza só a lista)
+  const bv=document.getElementById('concBuscaVch');
+  if(bv){ bv.oninput=()=>{ shIntegrarBusca=bv.value; renderConciliacao(); const el2=document.getElementById('concBuscaVch'); if(el2){ el2.focus(); el2.setSelectionRange(el2.value.length,el2.value.length); } }; }
 }
 let shSelecionados=new Set();   // normNomes marcados (checkbox) na coluna "Fazer contato"
 let shFiltroAtendente='';       // filtro por atendente na coluna "Contato Realizado"
@@ -1604,7 +1734,6 @@ function trazerParaCarteira(){
   if(!appConfig.carteira || typeof appConfig.carteira!=='object') appConfig.carteira={};
   let n=0; shSelecionados.forEach(nm=>{ appConfig.carteira[nm]=atendente; n++; });
   shSelecionados.clear();
-  localStorage.setItem('uv_atendente', atendente); // lembra o último atendente neste aparelho
   salvarConfig();
   renderStatusColunas();
   toast(n+' contato(s) na carteira de '+atendente+' ✅','ok');
@@ -1914,8 +2043,7 @@ function renderDisponibilidade(){
   const shAt=$('#shAtendente');
   if(shAt){
     shAt.innerHTML='<option value="">Selecione seu nome</option>'+ATENDENTES.map(a=>`<option>${esc(a)}</option>`).join('');
-    const ult=localStorage.getItem('uv_atendente')||''; if(ult) shAt.value=ult;
-    shAt.onchange=()=>{ if(shAt.value) localStorage.setItem('uv_atendente', shAt.value); };
+    shAt.value=''; // sempre começa vazio: cada atendente escolhe o próprio nome (mais seguro)
   }
   const shTz=$('#shTrazer'); if(shTz) shTz.onclick=()=>trazerParaCarteira();
   // navegação do carrossel (3 visões): cíclica — avança/volta e "dá a volta" nas pontas
