@@ -397,6 +397,10 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .conc-falta-voucher .conc-grupo-tit{color:#FF8A85}
 .conc-falta-fechado .conc-grupo-tit{color:#F2C829}
 .conc-promo .conc-grupo-tit{color:#F2B873}
+.conc-row{display:flex;gap:12px;flex-wrap:wrap}
+.conc-row > .conc-grupo{flex:1 1 280px;min-width:0;margin:0}
+.conc-semfechado .conc-grupo-tit{color:#5FD0C0}
+.conc-semfechado{border-color:rgba(95,208,192,.3) !important}
 .conc-via .conc-grupo-tit{color:#7FB2F5}
 .conc-lista{list-style:none;margin:0;padding:0;max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:4px}
 .conc-lista li{font-size:12px;color:#E7EDF7;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:6px;padding:5px 9px}
@@ -491,25 +495,26 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .arq-at{font-weight:400;color:#7C8AA5;font-size:12px}
 .arq-restaurar{flex:0 0 auto;font-size:11px;font-weight:700;border-radius:7px;padding:5px 10px;cursor:pointer;background:rgba(127,178,245,.12);color:#7FB2F5;border:1px solid rgba(127,178,245,.35);transition:all .14s;line-height:1}
 .arq-restaurar:hover{background:#7FB2F5;color:#0A1929;border-color:#7FB2F5}
-/* ===== Diagnóstico de contagem ===== */
-#shDiag:empty{display:none}
-.diag-painel{margin-top:12px;border:1px solid rgba(127,178,245,.22);border-radius:var(--raio-sm);overflow:hidden;background:rgba(255,255,255,.02)}
-.diag-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:transparent;border:none;color:#9FB0CE;font-size:13.5px;font-weight:700;padding:11px 15px;cursor:pointer;font-family:inherit}
-.diag-toggle:hover{background:rgba(255,255,255,.03);color:#C9D6EC}
-.diag-chev{font-size:10px;opacity:.7}
-.diag-corpo{padding:4px 14px 14px}
-.diag-resumo{display:flex;flex-wrap:wrap;gap:8px 18px;padding:10px 0 14px;font-size:13px;color:#9FB0CE;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:12px}
-.diag-resumo b{color:#C9D6EC}
-.diag-dif b{color:#F59E0B}
-.diag-bloco{margin-bottom:14px}
-.diag-tit{font-size:13px;font-weight:700;color:#C9D6EC;margin-bottom:7px}
-.diag-tit b{color:#7FB2F5}
-.diag-bloco-alerta .diag-tit b{color:#F59E0B}
-.diag-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 11px;border-radius:7px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.05);margin-bottom:5px}
-.diag-bloco-alerta .diag-item{background:rgba(245,158,11,.07);border-color:rgba(245,158,11,.22)}
-.diag-nome{font-size:13px;font-weight:600;min-width:0;word-break:break-word}
-.diag-tag{flex:0 0 auto;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:#7C8AA5;background:rgba(255,255,255,.05);padding:2px 7px;border-radius:5px}
-.diag-vazio{font-size:12.5px;color:#7C8AA5;padding:6px 2px;font-style:italic}
+/* ===== Pasta Recusados / Cancelados ===== */
+#shRecusados:empty{display:none}
+.rec-painel{margin-top:14px;border:1px solid rgba(240,70,63,.3);border-radius:var(--raio-sm);overflow:hidden;background:rgba(240,70,63,.04)}
+.rec-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:transparent;border:none;color:#FF8A85;font-size:13.5px;font-weight:700;padding:11px 15px;cursor:pointer;font-family:inherit}
+.rec-toggle:hover{background:rgba(240,70,63,.06)}
+.rec-toggle b{color:#FF8A85}
+.rec-chev{font-size:10px;opacity:.7}
+.rec-lista{padding:6px 12px 12px;display:flex;flex-direction:column;gap:6px;max-height:320px;overflow-y:auto}
+.rec-item{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:8px 11px;border-radius:8px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.05)}
+.rec-nome{font-size:13px;font-weight:600;min-width:0;word-break:break-word}
+.rec-acoes{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.rec-tag{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;padding:2px 7px;border-radius:5px}
+.rec-tag-out{color:#7C8AA5;background:rgba(255,255,255,.05)}
+.rec-tag-ask{color:#F2B873;background:rgba(242,184,115,.12)}
+.rec-tag-keep{color:#5BE0A8;background:rgba(53,208,127,.12)}
+.rec-btn{font-size:11px;font-weight:700;border-radius:7px;padding:4px 9px;cursor:pointer;border:1px solid transparent;transition:all .14s;line-height:1}
+.rec-btn-out{background:rgba(240,70,63,.16);color:#FF8A85;border-color:rgba(240,70,63,.4)}
+.rec-btn-out:hover{background:#F0463F;color:#fff;border-color:#F0463F}
+.rec-btn-keep{background:rgba(53,208,127,.14);color:#35D07F;border-color:rgba(53,208,127,.4)}
+.rec-btn-keep:hover{background:#35D07F;color:#0A1929;border-color:#35D07F}
 .sh-contato .sh-head{color:#FF8A85} .sh-contato .sh-dot{background:#F0463F;box-shadow:0 0 6px rgba(240,70,63,.6)} .sh-contato .sh-count{color:#FF8A85}
 .sh-realizado .sh-head{color:#FF2D9B} .sh-realizado .sh-dot{background:#FF2D9B;box-shadow:0 0 6px rgba(255,45,155,.65)} .sh-realizado .sh-count{color:#FF2D9B}
 .sh-tratativa .sh-head{color:#F2C829} .sh-tratativa .sh-dot{background:#F2C829;box-shadow:0 0 6px rgba(242,200,41,.6)} .sh-tratativa .sh-count{color:#F2C829}
@@ -1502,6 +1507,7 @@ function extrairAcompanhantes(obs){
 function normStatusHotel(raw){
   const s=_normE(raw||'').trim();
   if(!s) return 'contato';
+  if(s.indexOf('recusado')>=0 || s.indexOf('cancelado')>=0) return 'recusado'; // recusado/cancelado: sai de tudo
   if(s.indexOf('fechado')>=0) return 'fechado';
   if(s.indexOf('tratativa')>=0) return 'tratativa';
   return 'tratativa'; // qualquer outro status preenchido = em andamento
@@ -1762,6 +1768,17 @@ function conciliacaoWecann(){
     if(normStatusHotel(r.statusRaw)==='tratativa' && nomeBateVoucherEstrito(r.nome, wecGuestsSet)) promovidos.push(nomeCompletoPromovido(r.nome, wecMap));
   });
 
+  // VOUCHER SEM "FECHADO" NO CSV: pessoas dos vouchers (hóspedes+passageiros) que ainda
+  // NÃO estão marcadas como "Fechado" no CSV — exceto as que estão em "tratativa" (essas
+  // já aparecem em PROMOVIDOS). Ou seja: status em branco no CSV, ou nem estão no CSV.
+  const voucherSemFechado=[];
+  [...nomesDosVouchersWecann().values()].forEach(nome=>{
+    const row=(rows||[]).find(r=>umNomeBateEstrito(nome, r.nome));
+    const st=row ? normStatusHotel(row.statusRaw) : 'ausente';
+    if(st==='fechado' || st==='tratativa' || st==='recusado') return; // fechado=ok · tratativa=PROMOVIDOS · recusado=pasta Recusados
+    voucherSemFechado.push(nome);
+  });
+
   // VIA VOUCHER: hóspedes de voucher WeCann que não existem em nenhuma linha do CSV (entram no Fechado)
   const nomesCSV=new Set();
   (rows||[]).forEach(r=>{ nomesCSV.add(normNome(r.nome)); (r.acompanhantes||[]).forEach(a=>nomesCSV.add(normNome(a))); });
@@ -1786,8 +1803,9 @@ function conciliacaoWecann(){
     faltaFechado: dedupSort(faltaFechado),
     ambiguos: ambiguos.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR')),
     promovidos: dedupSort(promovidos),
+    voucherSemFechado: dedupSort(voucherSemFechado),
     viaVoucher: dedupSort(viaVoucherVisivel),
-    ok: ambiguos.length===0 && promovidos.length===0
+    ok: ambiguos.length===0 && promovidos.length===0 && voucherSemFechado.length===0
   };
 }
 
@@ -1925,7 +1943,8 @@ function renderConciliacao(){
 
   const resumo = [
     nAmb?`${nAmb} aguardando sua escolha`:'',
-    c.promovidos.length?`${c.promovidos.length} p/ atualizar no WeCann`:''
+    c.promovidos.length?`${c.promovidos.length} p/ atualizar no WeCann`:'',
+    c.voucherSemFechado.length?`${c.voucherSemFechado.length} voucher(s) sem Fechado no CSV`:''
   ].filter(Boolean).join(' · ');
 
   // registra no log central (só os promovidos novos desta sessão, pra não repetir)
@@ -1942,6 +1961,10 @@ function renderConciliacao(){
       <div class="conc-grupo-tit">🟠 Em "tratativa" no CSV mas COM voucher — atualize o status no WeCann <b>(${c.promovidos.length})</b></div>
       <ul class="conc-lista">${c.promovidos.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>
     </div>` : '';
+  const blocoSemFechado = c.voucherSemFechado.length ? `<div class="conc-grupo conc-semfechado">
+      <div class="conc-grupo-tit">📄 No voucher mas SEM "Fechado" no CSV — atualize o status no WeCann <b>(${c.voucherSemFechado.length})</b></div>
+      <ul class="conc-lista">${c.voucherSemFechado.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>
+    </div>` : '';
 
   box.innerHTML=`<div class="conc-banner conc-warn">
       <span class="conc-ico">⚠️</span>
@@ -1950,7 +1973,7 @@ function renderConciliacao(){
     </div>
     ${shConcAberto?`<div class="conc-detalhe">
       ${blocoAmbiguos}
-      ${blocoPromo}
+      <div class="conc-row">${blocoPromo}${blocoSemFechado}</div>
     </div>`:''}`;
 
   // toda a interação por delegação no container (evita clique duplo no "Ver detalhes")
@@ -2083,21 +2106,6 @@ function purgarArquivadosPorStatus(){
 
 function toggleArquivados(){ shArquivAberto=!shArquivAberto; renderArquivados(); }
 
-/* ===== DIAGNÓSTICO DE CONTAGEM (Fechado × Vouchers) ===== */
-let shDiagAberto=false;
-let fechadoAtual=[]; // último grupo Fechado renderizado (preenchido em renderStatusColunas)
-function toggleDiag(){ shDiagAberto=!shDiagAberto; renderDiagnostico(); }
-
-// lista de PESSOAS contadas no Fechado: titulares + acompanhantes (sem vendedores)
-function pessoasDoFechado(){
-  const out=[];
-  (fechadoAtual||[]).forEach(r=>{
-    if(ehVendedor(r.nome)) return;
-    out.push({ nome:r.nome, tipo: r._viaVoucher?'via voucher':(r._promovido?'titular (p/ voucher)':'titular'), num:r.voucherNum||'' });
-    (r.acompanhantes||[]).forEach(a=>{ if(a && !ehVendedor(a)) out.push({ nome:a, tipo:'acompanhante' }); });
-  });
-  return out;
-}
 // mapa chave(primeiro+último) → nome, dos nomes nos vouchers WeCann (hóspedes+passageiros, sem vendedores)
 function nomesDosVouchersWecann(){
   const map=new Map();
@@ -2113,10 +2121,6 @@ function nomesDosVouchersWecann(){
   });
   return map;
 }
-// qtde de vouchers WeCann (documentos)
-function qtdVouchersWecann(){
-  return (savedCache||[]).filter(v=>(v.services||[]).some(sv=>sv.type==='hotel' && HOTEIS_OCUPACAO.some(h=>h.match(sv.data&&sv.data.hotel)))).length;
-}
 // monta os CARDS do Fechado a partir dos vouchers WeCann (Via 2 pura):
 // 1 card por voucher (titular = 1º hóspede/cliente; acompanhantes = demais hóspedes + passageiros).
 // Dedup GLOBAL por primeiro+último: ninguém aparece duas vezes; vendedores nunca entram.
@@ -2131,6 +2135,8 @@ function vouchersFechadoWecann(){
       if(!nm||!String(nm).trim()) return;
       if(ehVendedor(nm)) return;                                   // vendedor nunca entra
       const k=chaveNome(nm); if(!k || (vendKey&&k===vendKey) || globalVistos.has(k)) return;
+      const rec=recusadoMatch(nm);                                 // recusado/cancelado no CSV?
+      if(rec && decisaoRecusado(rec.nome)==='excluir') return;     // confirmado excluir → fora do Fechado
       globalVistos.add(k); pessoas.push(String(nm).trim());
     };
     wecannServ.forEach(sv=>{ const h=sv.data&&sv.data.hospedes; if(Array.isArray(h)) h.forEach(add); else if(h) add(h); });
@@ -2141,56 +2147,58 @@ function vouchersFechadoWecann(){
   });
   return cards;
 }
-function diagnosticoContagem(){
-  const fech=pessoasDoFechado();
-  const vouMap=nomesDosVouchersWecann();
-  const vouSet=new Set(vouMap.values());   // nomes dos vouchers (match por primeiro+último OU sobrenome em comum)
-  const fechSet=new Set(fech.map(p=>p.nome));
-  // No Fechado mas SEM voucher (usa a MESMA regra de nome do resto do sistema)
-  const semVoucher=[]; const vistosF=new Set();
-  fech.forEach(p=>{ const k=chaveNome(p.nome); if(!k||vistosF.has(k)) return;
-    if(nomeBateVoucherEstrito(p.nome, vouSet)) return; // tem voucher correspondente
-    vistosF.add(k); semVoucher.push(p); });
-  // Em voucher mas SEM Fechado
-  const semFechado=[];
-  vouMap.forEach((nome)=>{ if(!nomeBateVoucherEstrito(nome, fechSet)) semFechado.push(nome); });
-  return {
-    totalFech: contarPessoasGrupo(fechadoAtual),  // = número que aparece no topo da coluna
-    totalVou: vouMap.size,                         // nomes únicos nos vouchers
-    qtdVouchers: qtdVouchersWecann(),              // nº de vouchers (documentos)
-    semVoucher, semFechado
+
+/* ===== RECUSADOS / CANCELADOS ===== */
+let shRecusadosAberto=true; // pasta aberta por padrão (precisa de atenção)
+// linhas do CSV com status "Recusado" ou "Cancelado"
+function recusadosCSV(){
+  const rows=(statusHotelData&&statusHotelData.rows)||[];
+  return rows.filter(r=>normStatusHotel(r.statusRaw)==='recusado');
+}
+// dada uma pessoa (de voucher), retorna a linha recusada do CSV que casa, ou null
+function recusadoMatch(nome){ return recusadosCSV().find(r=>umNomeBateEstrito(nome, r.nome)) || null; }
+// decisão do usuário para um recusado que está em voucher: 'excluir' | 'manter' | undefined
+function decisaoRecusado(csvNome){ return (appConfig.recusadosDecisao||{})[normNome(csvNome)]; }
+function decidirRecusado(csvNome, decisao){
+  if(!appConfig.recusadosDecisao || typeof appConfig.recusadosDecisao!=='object') appConfig.recusadosDecisao={};
+  appConfig.recusadosDecisao[normNome(csvNome)]=decisao;
+  salvarConfig();
+  renderStatusColunas();
+}
+// esse nome (recusado no CSV) está dentro de algum voucher WeCann?
+function recusadoEmVoucher(csvNome){
+  const vou=[...nomesDosVouchersWecann().values()];
+  return vou.some(v=>umNomeBateEstrito(csvNome, v));
+}
+function toggleRecusados(){ shRecusadosAberto=!shRecusadosAberto; renderRecusados(); }
+function renderRecusados(){
+  const box=document.getElementById('shRecusados'); if(!box) return;
+  const recs=recusadosCSV();
+  if(!recs.length){ box.innerHTML=''; return; }
+  const itens = shRecusadosAberto ? `<div class="rec-lista">${
+    recs.slice().sort((a,b)=>(a.nome||'').localeCompare(b.nome||'','pt-BR')).map(r=>{
+      const emVch=recusadoEmVoucher(r.nome);
+      const dec=decisaoRecusado(r.nome);
+      let acao;
+      if(!emVch){ acao=`<span class="rec-tag rec-tag-out">excluído</span>`; }
+      else if(dec==='excluir'){ acao=`<span class="rec-tag rec-tag-out">excluído do Fechado</span>`; }
+      else if(dec==='manter'){ acao=`<span class="rec-tag rec-tag-keep">mantido no Fechado</span><button class="rec-btn rec-btn-out" data-rec-excluir="${esc(r.nome)}">Excluir</button>`; }
+      else { acao=`<span class="rec-tag rec-tag-ask">⚠️ em voucher</span><button class="rec-btn rec-btn-out" data-rec-excluir="${esc(r.nome)}">Excluir do Fechado</button><button class="rec-btn rec-btn-keep" data-rec-manter="${esc(r.nome)}">Manter</button>`; }
+      return `<div class="rec-item"><span class="rec-nome">${esc(r.nome)}</span><span class="rec-acoes">${acao}</span></div>`;
+    }).join('')
+  }</div>` : '';
+  box.innerHTML=`<div class="rec-painel">
+    <button class="rec-toggle" id="btnRecusados" type="button">
+      <span>🚫 Recusados / Cancelados <b>(${recs.length})</b></span>
+      <span class="rec-chev">${shRecusadosAberto?'▲':'▼'}</span>
+    </button>${itens}
+  </div>`;
+  box.onclick=(e)=>{
+    const ex=e.target.closest('[data-rec-excluir]'); if(ex){ decidirRecusado(ex.getAttribute('data-rec-excluir'),'excluir'); return; }
+    const mt=e.target.closest('[data-rec-manter]'); if(mt){ decidirRecusado(mt.getAttribute('data-rec-manter'),'manter'); return; }
+    if(e.target.closest('#btnRecusados')){ toggleRecusados(); return; }
   };
 }
-function renderDiagnostico(){
-  const box=document.getElementById('shDiag'); if(!box) return;
-  const temDados=(fechadoAtual&&fechadoAtual.length) || (savedCache&&savedCache.length);
-  if(!temDados){ box.innerHTML=''; return; }
-  const d=diagnosticoContagem();
-  const linhaNome=(nm,extra)=>`<div class="diag-item"><span class="diag-nome">${esc(nm)}</span>${extra?`<span class="diag-tag">${esc(extra)}</span>`:''}</div>`;
-  const corpo = shDiagAberto ? `<div class="diag-corpo">
-      <div class="diag-resumo">
-        <span><b>${d.totalFech}</b> pessoas no Fechado</span>
-        <span><b>${d.totalVou}</b> nomes em ${d.qtdVouchers} vouchers</span>
-        <span class="diag-dif">diferença: <b>${d.totalFech-d.totalVou>=0?'+':''}${d.totalFech-d.totalVou}</b></span>
-      </div>
-      <div class="diag-bloco diag-bloco-alerta">
-        <div class="diag-tit">⚠️ No Fechado mas SEM voucher <b>(${d.semVoucher.length})</b></div>
-        ${d.semVoucher.length ? d.semVoucher.map(p=>linhaNome(p.nome,p.tipo)).join('') : '<div class="diag-vazio">nenhum — todos os nomes do Fechado têm voucher</div>'}
-      </div>
-      <div class="diag-bloco">
-        <div class="diag-tit">📄 Em voucher mas SEM registro no Fechado <b>(${d.semFechado.length})</b></div>
-        ${d.semFechado.length ? d.semFechado.map(n=>linhaNome(n,'')).join('') : '<div class="diag-vazio">nenhum</div>'}
-      </div>
-    </div>` : '';
-  box.innerHTML=`<div class="diag-painel">
-    <button class="diag-toggle" id="btnDiag" type="button">
-      <span>🔎 Conferir contagem — Fechado × Vouchers</span>
-      <span class="diag-chev">${shDiagAberto?'▲':'▼'}</span>
-    </button>${corpo}
-  </div>`;
-  box.onclick=(e)=>{ if(e.target.closest('#btnDiag')){ toggleDiag(); } };
-}
-
 function renderArquivados(){
   const box=document.getElementById('shArquiv'); if(!box) return;
   const itens=Object.values(arquivadosMap());
@@ -2239,6 +2247,7 @@ function renderStatusColunas(){
   const wecGuests=new Set([...wecannGuestMap().values()]);
 
   rows.forEach(r=>{
+    if(normStatusHotel(r.statusRaw)==='recusado') return;      // Recusado/Cancelado: sai de todas as colunas (vai pra pasta)
     const ef=statusEfetivo(r,vSet,cart);                       // contato / realizado / tratativa
     if(nomeBateVoucherEstrito(r.nome, wecGuests)) return;       // tem voucher → já aparece no Fechado (não duplica)
     if(ef==='fechado') return;                                 // "fechado" no CSV sem voucher: não exibe (só conta no número do CSV)
@@ -2247,7 +2256,6 @@ function renderStatusColunas(){
 
   // Fechado = cards montados a partir dos vouchers WeCann (hóspedes + passageiros)
   grupos.fechado = vouchersFechadoWecann();
-  fechadoAtual = grupos.fechado.slice(); // p/ o diagnóstico
   // quantidade de "fechados" que o CSV marca (SÓ o número, sem nomes)
   const csvFechados = rows.filter(r=>normStatusHotel(r.statusRaw)==='fechado').length;
 
@@ -2330,8 +2338,8 @@ function renderStatusColunas(){
   };
   atualizarBotaoTrazer();
   renderConciliacao();
+  renderRecusados();
   renderArquivados();
-  renderDiagnostico();
 
   const info=document.getElementById('shInfo');
   if(info){
@@ -2528,8 +2536,8 @@ function renderDisponibilidade(){
             </div>
             <div id="shConc"></div>
             <div class="sh-cols" id="shCols"></div>
+            <div id="shRecusados"></div>
             <div id="shArquiv"></div>
-            <div id="shDiag"></div>
             <input id="inputStatusHotel" type="file" accept=".csv,text/csv" style="display:none" />
           </div>
         </div>
