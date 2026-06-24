@@ -523,7 +523,7 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .sh-fechado .sh-head{color:#5BE0A8} .sh-fechado .sh-dot{background:#35D07F;box-shadow:0 0 6px rgba(53,208,127,.6)} .sh-fechado .sh-count{color:#5BE0A8}
 @media(max-width:1000px){.est-grid{flex-direction:column;gap:14px}.est-hotel{padding:0}.est-hotel + .est-hotel{border-left:none;border-top:1px solid #2C3B66;padding-top:16px}.est-carousel{flex:none;width:100%}.est-face-disp,.est-ocup-hoteis,.sh-cols{flex-direction:column;gap:14px}.sh-col{flex:1 1 auto;min-width:0}.est-seta-col{flex-direction:row;padding:6px 0}.est-dots{flex-direction:row}.est-ocup-total{margin-top:14px}.sh-body{max-height:260px}}
 .est-linha{display:flex;align-items:center;gap:8px;padding:7px 13px;margin-bottom:8px;border:1px solid rgba(255,255,255,.09);border-radius:10px;font-weight:500;font-size:clamp(9px,3cqi,11.5px);line-height:1.3;color:#A9B6CC}
-.est-txt{white-space:nowrap}
+.est-txt{min-width:0;overflow-wrap:anywhere}
 .est-linha:last-child{margin-bottom:0}
 .est-led{width:10px;height:10px;border-radius:50%;flex:0 0 auto;background:var(--led);box-shadow:0 0 5px 1px var(--led);animation:ledBlink 2.6s ease-in-out infinite}
 .est-x{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;color:#F0463F;font-weight:900;font-size:1.25em;line-height:1;text-shadow:0 0 7px rgba(240,70,63,.9),0 0 3px rgba(240,70,63,.95);animation:soldBlink 1.05s steps(1,end) infinite}
@@ -2640,7 +2640,9 @@ function ajustarFonteEstoque(){
     const gap=parseFloat(cs.columnGap||cs.gap||8)||8;
     const ledW=led?led.getBoundingClientRect().width:0;
     const disponivel=l.clientWidth - padX - ledW - gap; // espaço útil p/ o texto
+    txt.style.whiteSpace='nowrap';                       // mede a largura natural em UMA linha
     const necessario=txt.scrollWidth;                   // largura do texto no tamanho base
+    txt.style.whiteSpace='';                             // volta ao normal (deixa quebrar se faltar espaço)
     if(necessario>0 && disponivel>0) menorEscala=Math.min(menorEscala, disponivel/necessario);
   });
   if(!isFinite(menorEscala)) return;
