@@ -2160,6 +2160,30 @@ function nomesDosVouchersWecann(){
 function qtdVouchersWecann(){
   return (savedCache||[]).filter(v=>(v.services||[]).some(sv=>sv.type==='hotel' && HOTEIS_OCUPACAO.some(h=>h.match(sv.data&&sv.data.hotel)))).length;
 }
+// monta os CARDS do Fechado a partir dos vouchers WeCann (Via 2 pura):
+// 1 card por voucher (titular = 1º hóspede/cliente; acompanhantes = demais hóspedes + passageiros).
+// Dedup GLOBAL por primeiro+último: ninguém aparece duas vezes; vendedores nunca entram.
+function vouchersFechadoWecann(){
+  const cards=[]; const globalVistos=new Set();
+  (savedCache||[]).forEach(v=>{
+    const wecannServ=(v.services||[]).filter(sv=>sv.type==='hotel' && HOTEIS_OCUPACAO.some(h=>h.match(sv.data&&sv.data.hotel)));
+    if(!wecannServ.length) return;
+    const vendKey=chaveNome(v.vendedor);
+    const pessoas=[];
+    const add=nm=>{
+      if(!nm||!String(nm).trim()) return;
+      if(ehVendedor(nm)) return;                                   // vendedor nunca entra
+      const k=chaveNome(nm); if(!k || (vendKey&&k===vendKey) || globalVistos.has(k)) return;
+      globalVistos.add(k); pessoas.push(String(nm).trim());
+    };
+    wecannServ.forEach(sv=>{ const h=sv.data&&sv.data.hospedes; if(Array.isArray(h)) h.forEach(add); else if(h) add(h); });
+    (v.passageiros||[]).forEach(add);
+    if(!pessoas.length) add(v.cliente);
+    if(!pessoas.length) return; // todos já apareceram em voucher anterior → não cria card vazio
+    cards.push({ nome:pessoas[0], acompanhantes:pessoas.slice(1), hotel:(wecannServ[0].data&&wecannServ[0].data.hotel)||'', voucherNum:v.num||'' });
+  });
+  return cards;
+}
 function diagnosticoContagem(){
   const fech=pessoasDoFechado();
   const vouMap=nomesDosVouchersWecann();
@@ -2254,64 +2278,40 @@ function renderStatusColunas(){
   const vSet=nomesDeVouchers();
   const cart=carteiraMap();
   const grupos={contato:[],realizado:[],tratativa:[],fechado:[]};
-  // hóspedes de vouchers WeCann (match seguro = primeiro nome + último sobrenome)
+  // VIA 2 (única regra do Fechado): a coluna Fechado vem 100% dos vouchers WeCann.
   const wecGuests=new Set([...wecannGuestMap().values()]);
 
   rows.forEach(r=>{
-    let ef=statusEfetivo(r,vSet,cart);          // VIA 1: coluna pelo status do CSV (+ carteira p/ Contato Realizado)
-    // VIA 2: se a pessoa já tem voucher WeCann, a venda está concluída → vai para Fechado,
-    // mesmo que o status do CSV diga "Em tratativa" ou esteja em branco.
-    const temVoucher = nomeBateVoucherEstrito(r.nome, wecGuests);
-    if(temVoucher){
-      ef='fechado';
-      r._promovido = (normStatusHotel(r.statusRaw)!=='fechado'); // veio pelo voucher e o CSV está desatualizado
-    } else {
-      r._promovido = false;
-    }
+    const ef=statusEfetivo(r,vSet,cart);                       // contato / realizado / tratativa
+    if(nomeBateVoucherEstrito(r.nome, wecGuests)) return;       // tem voucher → já aparece no Fechado (não duplica)
+    if(ef==='fechado') return;                                 // "fechado" no CSV sem voucher: não exibe (só conta no número do CSV)
     grupos[ef].push(r);
   });
 
-  // VIA 2 (parte B): hóspedes de voucher WeCann que NÃO existem em NENHUMA linha do CSV
-  // também entram no Fechado (venda concluída fora do relatório). Match seguro evita duplicar.
-  const nomesCSV=new Set();
-  rows.forEach(r=>{ nomesCSV.add(normNome(r.nome)); (r.acompanhantes||[]).forEach(a=>nomesCSV.add(normNome(a))); });
-  const orfaosVistos=new Set();
-  wecannGuestDetalhe().forEach(g=>{
-    const n=normNome(g.nome);
-    if(!n || orfaosVistos.has(n)) return;
-    if(nomeBateVoucherEstrito(g.nome, nomesCSV)) return;   // já existe no CSV (primeiro+último) → não duplica
-    orfaosVistos.add(n);
-    grupos.fechado.push({ nome:g.nome, statusRaw:'Fechado', hotel:g.hotel, voucherNum:g.num, _viaVoucher:true });
-  });
-  fechadoAtual = grupos.fechado.slice(); // guarda p/ o diagnóstico de contagem
+  // Fechado = cards montados a partir dos vouchers WeCann (hóspedes + passageiros)
+  grupos.fechado = vouchersFechadoWecann();
+  fechadoAtual = grupos.fechado.slice(); // p/ o diagnóstico
+  // quantidade de "fechados" que o CSV marca (SÓ o número, sem nomes)
+  const csvFechados = rows.filter(r=>normStatusHotel(r.statusRaw)==='fechado').length;
 
-  const passa=r=> !termo || _normE([r.nome,r.email,r.agente,r.hotel].join(' ')).indexOf(termo)>=0;
+  const passa=r=> !termo || _normE([r.nome,r.email,r.agente,r.hotel,(r.acompanhantes||[]).join(' ')].join(' ')).indexOf(termo)>=0;
 
   // remove da seleção quem não está mais em "Fazer contato"
   const contatoNomes=new Set(grupos.contato.map(r=>normNome(r.nome)));
   [...shSelecionados].forEach(n=>{ if(!contatoNomes.has(n)) shSelecionados.delete(n); });
 
   const metaTrat=r=>[r.agente?('Ag.: '+r.agente):'', shPeriodo(r)].filter(Boolean).join(' · ');
-  const metaFech=r=>{
-    if(r._viaVoucher){
-      const info=[r.hotel, r.voucherNum?('#'+r.voucherNum):''].filter(Boolean).join(' · ');
-      return { selo:'<span class="sh-selo sh-selo-vch">via voucher</span>', texto:info };
-    }
-    const base=[r.hotel, r.agente?('Ag.: '+r.agente):'', shPeriodo(r)].filter(Boolean).join(' · ');
-    const ac=(r.acompanhantes||[]).length ? ('👥 + Acte: '+r.acompanhantes.join(' // ')) : '';
-    const selo = r._promovido ? '<span class="sh-selo sh-selo-promo">atualizar status wecann</span>' : '';
-    return { selo, texto:[base, ac].filter(Boolean).join('  •  ') };
-  };
-  // coluna Fechado: renderiza o selo como HTML e o resto do texto escapado (seguro)
+  // coluna Fechado: vem 100% dos vouchers WeCann (titular + acompanhantes do voucher)
   const colFechado=()=>{
     const todos=grupos.fechado, vis=todos.filter(passa);
     const cont=termo?(contarPessoasGrupo(vis)+' de '+contarPessoasGrupo(todos)):String(contarPessoasGrupo(todos));
     const corpo=vis.length?vis.map(r=>{
-      const m=metaFech(r);
-      const metaHTML=(m.selo||'')+(m.texto?esc(m.texto):'');
-      return `<div class="sh-item"><div class="sh-nome">${esc(r.nome)}</div>${metaHTML?`<div class="sh-meta">${metaHTML}</div>`:''}</div>`;
-    }).join(''):`<div class="sh-vazio">${termo?'Nenhum resultado':'Nenhum contato'}</div>`;
-    return colHTML('sh-fechado','Fechado (Vendido)',cont,corpo);
+      const ac=(r.acompanhantes||[]).length ? ('👥 + '+r.acompanhantes.join(' // ')) : '';
+      const meta=[r.hotel, r.voucherNum?('Voucher #'+r.voucherNum):'', ac].filter(Boolean).join('  •  ');
+      return `<div class="sh-item"><div class="sh-nome">${esc(r.nome)}</div>${meta?`<div class="sh-meta">${esc(meta)}</div>`:''}</div>`;
+    }).join(''):`<div class="sh-vazio">${termo?'Nenhum resultado':'Nenhum voucher WeCann'}</div>`;
+    const sub=`📋 CSV marca <b>${csvFechados}</b> como fechado`;
+    return colHTML('sh-fechado','Fechado (Vendido)',cont,corpo,sub);
   };
 
   // molde de coluna (header colorido + sub-header opcional + corpo rolável)
