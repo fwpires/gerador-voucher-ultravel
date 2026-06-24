@@ -346,8 +346,8 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .est-hotel{flex:1;padding:2px 14px;min-width:0;container-type:inline-size}
 .est-hotel + .est-hotel{border-left:1px solid #2C3B66}
 /* Carrossel das TRÊS visões (Disponibilidade ↔ Ocupação ↔ Status Hotel) — envolve tudo */
-.est-carousel{flex:1;min-width:0;position:relative;overflow:hidden}
-.est-track{display:flex;width:300%;transition:transform .42s cubic-bezier(.4,0,.2,1)}
+.est-carousel{flex:1;min-width:0;position:relative;overflow:hidden;transition:height .42s cubic-bezier(.4,0,.2,1)}
+.est-track{display:flex;width:300%;align-items:flex-start;transition:transform .42s cubic-bezier(.4,0,.2,1)}
 .est-track[data-view="1"]{transform:translateX(-33.3333%)}
 .est-track[data-view="2"]{transform:translateX(-66.6667%)}
 .est-face{flex:0 0 33.3333%;width:33.3333%;min-width:0}
@@ -2363,6 +2363,7 @@ function renderStatusColunas(){
       ? ('Última atualização: '+new Date(statusHotelData.importadoEm).toLocaleString('pt-BR')+' · '+rows.length+' contatos')
       : 'Nenhum relatório importado ainda — clique em “Importar / Atualizar CSV”.';
   }
+  requestAnimationFrame(ajustarAlturaCarrossel); // a aba de contatos mudou de altura → reajusta o carrossel
 }
 function corDisponibilidade(disp,total){
   const pct = total>0 ? (disp/total)*100 : 0;
@@ -2589,7 +2590,7 @@ function renderDisponibilidade(){
   }
   function irParaVisao(v){
     estView=((v % EST_TOTAL) + EST_TOTAL) % EST_TOTAL; // mantém entre 0..2 dando a volta
-    aplicarSeta(); requestAnimationFrame(ajustarFonteEstoque);
+    aplicarSeta(); requestAnimationFrame(()=>{ ajustarFonteEstoque(); ajustarAlturaCarrossel(); });
   }
   if(setaPrev) setaPrev.onclick=()=>irParaVisao(estView-1);
   if(setaNext) setaNext.onclick=()=>irParaVisao(estView+1);
@@ -2598,12 +2599,22 @@ function renderDisponibilidade(){
   renderStatusColunas();
   el.style.display='block';
   // após o layout assentar, ajusta a fonte para preencher exatamente cada coluna
-  requestAnimationFrame(ajustarFonteEstoque);
+  requestAnimationFrame(()=>{ ajustarFonteEstoque(); ajustarAlturaCarrossel(); });
 }
 
 /* Auto-ajuste: calcula UM ÚNICO tamanho de fonte que cabe em todas as linhas
    (de ambas as telas) e o aplica a todas — assim a 2ª tela fica com a mesma
    fonte da 1ª. O limite é a linha mais larga (normalmente a de Disponibilidade). */
+// ajusta a altura do carrossel à aba ATIVA (cada visão fica do tamanho do próprio conteúdo, sem sobras)
+function ajustarAlturaCarrossel(){
+  const car=document.querySelector('.est-carousel');
+  const track=document.getElementById('estTrack');
+  if(!car||!track) return;
+  const faces=track.querySelectorAll('.est-face');
+  const face=faces[estView];
+  if(!face) return;
+  car.style.height=face.offsetHeight+'px';
+}
 function ajustarFonteEstoque(){
   const card=$('#estoqueCard'); if(!card || card.style.display==='none') return;
   const BASE=13, MIN=10, MAX=18, SEGURANCA=0.97; // margem p/ não encostar na borda
@@ -2647,7 +2658,7 @@ function ajustarTitulosEstoque(){
 let _tmrFonteEstoque=null;
 window.addEventListener('resize',()=>{
   clearTimeout(_tmrFonteEstoque);
-  _tmrFonteEstoque=setTimeout(ajustarFonteEstoque,150);
+  _tmrFonteEstoque=setTimeout(()=>{ ajustarFonteEstoque(); ajustarAlturaCarrossel(); },150);
 });
 
 function ordenarVouchers(arr){
