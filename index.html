@@ -484,10 +484,10 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .sh-feito:hover{background:#35D07F;color:#0A1929;border-color:#35D07F;transform:translateY(-1px)}
 /* ===== Pasta Arquivados ===== */
 #shArquiv:empty{display:none}
-.arq-painel{margin-top:14px;border:1px solid rgba(159,176,206,.18);border-radius:var(--raio-sm);overflow:hidden;background:rgba(255,255,255,.02)}
-.arq-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:transparent;border:none;color:#9FB0CE;font-size:13.5px;font-weight:700;padding:11px 15px;cursor:pointer;font-family:inherit}
-.arq-toggle:hover{background:rgba(255,255,255,.03);color:#C9D6EC}
-.arq-toggle b{color:#7FB2F5}
+.arq-painel{margin-top:14px;border:1px solid rgba(53,208,127,.3);border-radius:var(--raio-sm);overflow:hidden;background:rgba(53,208,127,.04)}
+.arq-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:transparent;border:none;color:#5BE0A8;font-size:13.5px;font-weight:700;padding:11px 15px;cursor:pointer;font-family:inherit}
+.arq-toggle:hover{background:rgba(53,208,127,.06);color:#7DEBC0}
+.arq-toggle b{color:#5BE0A8}
 .arq-chev{font-size:10px;opacity:.7}
 .arq-lista{padding:6px 12px 12px;display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto}
 .arq-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 11px;border-radius:8px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.05)}
@@ -1901,7 +1901,7 @@ function marcarViaVoucherVisto(nome){
 }
 
 // alterna o painel de detalhes da conciliação
-function toggleConciliacao(){ shConcAberto=!shConcAberto; renderConciliacao(); }
+function toggleConciliacao(){ shConcAberto=!shConcAberto; renderConciliacao(); requestAnimationFrame(ajustarAlturaCarrossel); }
 
 // renderiza o banner de conciliação + (opcional) o detalhe com os nomes
 function renderConciliacao(){
@@ -2107,7 +2107,7 @@ function purgarArquivadosPorStatus(){
   return mudou;
 }
 
-function toggleArquivados(){ shArquivAberto=!shArquivAberto; renderArquivados(); }
+function toggleArquivados(){ shArquivAberto=!shArquivAberto; renderArquivados(); requestAnimationFrame(ajustarAlturaCarrossel); }
 
 // mapa chave(primeiro+último) → nome, dos nomes nos vouchers WeCann (hóspedes+passageiros, sem vendedores)
 function nomesDosVouchersWecann(){
@@ -2173,7 +2173,7 @@ function recusadoEmVoucher(csvNome){
   const vou=[...nomesDosVouchersWecann().values()];
   return vou.some(v=>umNomeBateEstrito(csvNome, v));
 }
-function toggleRecusados(){ shRecusadosAberto=!shRecusadosAberto; renderRecusados(); }
+function toggleRecusados(){ shRecusadosAberto=!shRecusadosAberto; renderRecusados(); requestAnimationFrame(ajustarAlturaCarrossel); }
 function renderRecusados(){
   const box=document.getElementById('shRecusados'); if(!box) return;
   const recs=recusadosCSV();
@@ -2215,7 +2215,7 @@ function renderArquivados(){
   }</div>` : '';
   box.innerHTML=`<div class="arq-painel">
     <button class="arq-toggle" id="btnArquiv" type="button">
-      <span>🗄️ Arquivados <b>(${itens.length})</b></span>
+      <span>✅ Contato Feito <b>(${itens.length})</b></span>
       <span class="arq-chev">${shArquivAberto?'▲':'▼'}</span>
     </button>${lista}
   </div>`;
