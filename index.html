@@ -1603,9 +1603,16 @@ function nomeBateVoucher(nome, setNomes){
 function umNomeBateEstrito(a,b){
   const ta=tokensNome(a), tb=tokensNome(b);
   if(!ta.length||!tb.length) return false;
-  if(ta.length>=2 && tb.length>=2) return ta[0]===tb[0] && ta[ta.length-1]===tb[tb.length-1];
-  if(ta.length===1 && tb.length===1) return ta[0]===tb[0];
-  return false; // solto × completo = NÃO casa (evita o falso positivo do "Ana")
+  if(ta.length===1 && tb.length===1) return ta[0]===tb[0];     // dois nomes únicos: têm que ser idênticos
+  if(ta.length===1 || tb.length===1) return false;             // único × completo: NÃO casa (protege a "Ana")
+  // ambos com nome completo: o PRIMEIRO nome precisa bater...
+  if(ta[0]!==tb[0]) return false;
+  // ...e o último sobrenome igual JÁ casa; senão, basta compartilharem pelo menos UM sobrenome.
+  // Isso casa "Raquel Goldstein Costa Cruz" com "Raquel Raimunda Goldstein Costa"
+  // (compartilham Goldstein e Costa), sem voltar a casar nome solto como "Ana".
+  if(ta[ta.length-1]===tb[tb.length-1]) return true;
+  const surA=new Set(ta.slice(1));
+  return tb.slice(1).some(t=>surA.has(t));
 }
 function nomeBateVoucherEstrito(nome, setNomes){
   if(!setNomes || !setNomes.size) return false;
@@ -2156,14 +2163,16 @@ function qtdVouchersWecann(){
 function diagnosticoContagem(){
   const fech=pessoasDoFechado();
   const vouMap=nomesDosVouchersWecann();
-  const vouKeys=new Set(vouMap.keys());
-  const fechKeys=new Set(fech.map(p=>chaveNome(p.nome)).filter(Boolean));
-  // No Fechado mas SEM voucher (dedup por chave)
+  const vouSet=new Set(vouMap.values());   // nomes dos vouchers (match por primeiro+último OU sobrenome em comum)
+  const fechSet=new Set(fech.map(p=>p.nome));
+  // No Fechado mas SEM voucher (usa a MESMA regra de nome do resto do sistema)
   const semVoucher=[]; const vistosF=new Set();
-  fech.forEach(p=>{ const k=chaveNome(p.nome); if(!k||vouKeys.has(k)||vistosF.has(k)) return; vistosF.add(k); semVoucher.push(p); });
+  fech.forEach(p=>{ const k=chaveNome(p.nome); if(!k||vistosF.has(k)) return;
+    if(nomeBateVoucherEstrito(p.nome, vouSet)) return; // tem voucher correspondente
+    vistosF.add(k); semVoucher.push(p); });
   // Em voucher mas SEM Fechado
   const semFechado=[];
-  vouMap.forEach((nome,k)=>{ if(!fechKeys.has(k)) semFechado.push(nome); });
+  vouMap.forEach((nome)=>{ if(!nomeBateVoucherEstrito(nome, fechSet)) semFechado.push(nome); });
   return {
     totalFech: contarPessoasGrupo(fechadoAtual),  // = número que aparece no topo da coluna
     totalVou: vouMap.size,                         // nomes únicos nos vouchers
