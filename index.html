@@ -1538,9 +1538,11 @@ function shPeriodo(r){
 function nomesDeVouchers(){
   const s=new Set();
   (savedCache||[]).forEach(v=>{
-    if(v.cliente) s.add(normNome(v.cliente));
-    (v.passageiros||[]).forEach(p=> p && s.add(normNome(p)));
-    (v.services||[]).forEach(sv=>{ const h=sv.data&&sv.data.hospedes; if(Array.isArray(h)) h.forEach(x=> x && s.add(normNome(x))); });
+    const vendKey=chaveNome(v.vendedor);
+    const add=nm=>{ if(!nm) return; if(ehVendedor(nm)) return; if(vendKey && chaveNome(nm)===vendKey) return; const n=normNome(nm); if(n) s.add(n); };
+    if(v.cliente) add(v.cliente);
+    (v.passageiros||[]).forEach(add);
+    (v.services||[]).forEach(sv=>{ const h=sv.data&&sv.data.hospedes; if(Array.isArray(h)) h.forEach(add); });
   });
   s.delete('');
   return s;
@@ -1593,6 +1595,10 @@ function nomeBateVoucherEstrito(nome, setNomes){
 }
 // lista fixa de atendentes (espelha o select de cadastro de voucher)
 const ATENDENTES=['Eduardo Vinícius','Ghabriella Bressan','Letícia Rosa','Diego Oliveira','Liliane Gaspar','Israel Hespanhol','Maria Eduarda','Fernando Pires','Ana Maria','Hynaê Teston'];
+// Chaves (primeiro nome + último sobrenome) dos VENDEDORES/ATENDENTES.
+// REGRA DE OURO: o nome de um vendedor NUNCA é contabilizado como hóspede/passageiro/pessoa.
+const _vendedorKeys=new Set(ATENDENTES.map(chaveNome).filter(Boolean));
+function ehVendedor(nome){ const k=chaveNome(nome); return !!k && _vendedorKeys.has(k); }
 
 // ===== CONCILIAÇÃO: Fechado (Vendido) x Vouchers do WeCann =====
 let shConcAberto=false; // detalhe da conciliação aberto/fechado
@@ -1608,7 +1614,14 @@ function totalHospedesWecann(){
   (savedCache||[]).forEach(v=>{
     const wecannServ=(v.services||[]).filter(sv=>sv.type==='hotel' && HOTEIS_OCUPACAO.some(h=>h.match(sv.data&&sv.data.hotel)));
     if(!wecannServ.length) return; // só vouchers WeCann (hospedagem em um dos 3 hotéis)
-    const add=nm=>{ if(!nm||!String(nm).trim()) return; const k=chaveNome(nm); if(k) chaves.add(k); };
+    const vendKey=chaveNome(v.vendedor); // chave do vendedor DESTE voucher
+    const add=nm=>{
+      if(!nm||!String(nm).trim()) return;
+      const k=chaveNome(nm); if(!k) return;
+      if(ehVendedor(nm)) return;            // nome de vendedor/atendente: NUNCA conta
+      if(vendKey && k===vendKey) return;    // é o vendedor deste voucher: NUNCA conta
+      chaves.add(k);
+    };
     let temHospede=false;
     wecannServ.forEach(sv=>{ const h=sv.data&&sv.data.hospedes; if(Array.isArray(h)&&h.length){ temHospede=true; h.forEach(add); } else if(h){ temHospede=true; add(h); } });
     if(!temHospede) add(v.cliente);            // fallback: usa o cliente se não houver hóspedes listados
@@ -1623,7 +1636,8 @@ function wecannGuestMap(){
   (savedCache||[]).forEach(v=>{
     const wecannServ=(v.services||[]).filter(sv=>sv.type==='hotel' && HOTEIS_OCUPACAO.some(h=>h.match(sv.data&&sv.data.hotel)));
     if(!wecannServ.length) return;
-    const add=nm=>{ if(!nm) return; const n=normNome(nm); if(n && !map.has(n)) map.set(n, String(nm).trim()); };
+    const vendKey=chaveNome(v.vendedor);
+    const add=nm=>{ if(!nm) return; if(ehVendedor(nm)) return; if(vendKey && chaveNome(nm)===vendKey) return; const n=normNome(nm); if(n && !map.has(n)) map.set(n, String(nm).trim()); };
     let temHospede=false;
     wecannServ.forEach(sv=>{ const h=sv.data&&sv.data.hospedes; if(Array.isArray(h)&&h.length){ temHospede=true; h.forEach(add); } });
     if(!temHospede) add(v.cliente); // fallback: usa o cliente se o voucher não listar hóspedes
@@ -1639,11 +1653,12 @@ function wecannGuestDetalhe(){
     const wecannServ=(v.services||[]).filter(sv=>sv.type==='hotel' && HOTEIS_OCUPACAO.some(h=>h.match(sv.data&&sv.data.hotel)));
     if(!wecannServ.length) return;
     const hotel=(wecannServ[0].data&&wecannServ[0].data.hotel)||'';
+    const vendKey=chaveNome(v.vendedor);
     const nomes=[];
     let temHospede=false;
     wecannServ.forEach(sv=>{ const h=sv.data&&sv.data.hospedes; if(Array.isArray(h)) h.forEach(x=>{ if(x&&String(x).trim()){ nomes.push(String(x).trim()); temHospede=true; } }); });
     if(!temHospede && v.cliente) nomes.push(String(v.cliente).trim());
-    nomes.forEach(nm=> lista.push({ nome:nm, hotel, num:v.num||'' }));
+    nomes.forEach(nm=>{ if(ehVendedor(nm)) return; if(vendKey && chaveNome(nm)===vendKey) return; lista.push({ nome:nm, hotel, num:v.num||'' }); });
   });
   return lista;
 }
@@ -2111,7 +2126,11 @@ function renderArquivados(){
 // conta PESSOAS de um grupo de cards: cada titular conta 1 + seus acompanhantes (Acte:)
 // (ex.: um card "Jonas + Acte: Rafaela" conta como 2 pessoas)
 function contarPessoasGrupo(arr){
-  return (arr||[]).reduce((s,r)=> s + 1 + ((r.acompanhantes||[]).length), 0);
+  return (arr||[]).reduce((s,r)=>{
+    if(ehVendedor(r.nome)) return s;                                   // titular vendedor: não conta
+    const ac=(r.acompanhantes||[]).filter(a=>a && !ehVendedor(a)).length; // acompanhantes vendedores: não contam
+    return s + 1 + ac;
+  }, 0);
 }
 
 // renderiza as 4 colunas: Fazer contato → Contato Realizado → Em tratativa → Fechado
