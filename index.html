@@ -1601,17 +1601,20 @@ let shResolverAberto=''; // nome solto cujo seletor de desempate está aberto ('
 // conta o TOTAL de hóspedes registrados em todos os vouchers do WeCann
 // (conta cada pessoa, inclusive nomes repetidos em vouchers diferentes)
 function totalHospedesWecann(){
-  let total=0;
+  // conta PESSOAS únicas dos vouchers WeCann: hóspedes + passageiros, deduplicados
+  // pela regra de primeiro nome + último sobrenome (chaveNome). Assim, um mesmo nome
+  // que aparece no campo "hóspede" E no campo "passageiros" conta uma única vez.
+  const chaves=new Set();
   (savedCache||[]).forEach(v=>{
-    (v.services||[]).forEach(sv=>{
-      if(sv.type==='hotel' && HOTEIS_OCUPACAO.some(h=>h.match(sv.data&&sv.data.hotel))){
-        const h=sv.data&&sv.data.hospedes;
-        if(Array.isArray(h)) total += h.filter(x=>x && String(x).trim()).length;
-        else if(h && String(h).trim()) total += 1;
-      }
-    });
+    const wecannServ=(v.services||[]).filter(sv=>sv.type==='hotel' && HOTEIS_OCUPACAO.some(h=>h.match(sv.data&&sv.data.hotel)));
+    if(!wecannServ.length) return; // só vouchers WeCann (hospedagem em um dos 3 hotéis)
+    const add=nm=>{ if(!nm||!String(nm).trim()) return; const k=chaveNome(nm); if(k) chaves.add(k); };
+    let temHospede=false;
+    wecannServ.forEach(sv=>{ const h=sv.data&&sv.data.hospedes; if(Array.isArray(h)&&h.length){ temHospede=true; h.forEach(add); } else if(h){ temHospede=true; add(h); } });
+    if(!temHospede) add(v.cliente);            // fallback: usa o cliente se não houver hóspedes listados
+    (v.passageiros||[]).forEach(add);          // soma os passageiros (nomes repetidos do hóspede não contam de novo)
   });
-  return total;
+  return chaves.size;
 }
 
 // hóspedes dos vouchers do WeCann (hospedagem em um dos 3 hotéis) -> Map normNome -> nomeOriginal
