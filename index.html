@@ -489,6 +489,25 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .arq-at{font-weight:400;color:#7C8AA5;font-size:12px}
 .arq-restaurar{flex:0 0 auto;font-size:11px;font-weight:700;border-radius:7px;padding:5px 10px;cursor:pointer;background:rgba(127,178,245,.12);color:#7FB2F5;border:1px solid rgba(127,178,245,.35);transition:all .14s;line-height:1}
 .arq-restaurar:hover{background:#7FB2F5;color:#0A1929;border-color:#7FB2F5}
+/* ===== Diagnóstico de contagem ===== */
+#shDiag:empty{display:none}
+.diag-painel{margin-top:12px;border:1px solid rgba(127,178,245,.22);border-radius:var(--raio-sm);overflow:hidden;background:rgba(255,255,255,.02)}
+.diag-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:transparent;border:none;color:#9FB0CE;font-size:13.5px;font-weight:700;padding:11px 15px;cursor:pointer;font-family:inherit}
+.diag-toggle:hover{background:rgba(255,255,255,.03);color:#C9D6EC}
+.diag-chev{font-size:10px;opacity:.7}
+.diag-corpo{padding:4px 14px 14px}
+.diag-resumo{display:flex;flex-wrap:wrap;gap:8px 18px;padding:10px 0 14px;font-size:13px;color:#9FB0CE;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:12px}
+.diag-resumo b{color:#C9D6EC}
+.diag-dif b{color:#F59E0B}
+.diag-bloco{margin-bottom:14px}
+.diag-tit{font-size:13px;font-weight:700;color:#C9D6EC;margin-bottom:7px}
+.diag-tit b{color:#7FB2F5}
+.diag-bloco-alerta .diag-tit b{color:#F59E0B}
+.diag-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 11px;border-radius:7px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.05);margin-bottom:5px}
+.diag-bloco-alerta .diag-item{background:rgba(245,158,11,.07);border-color:rgba(245,158,11,.22)}
+.diag-nome{font-size:13px;font-weight:600;min-width:0;word-break:break-word}
+.diag-tag{flex:0 0 auto;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:#7C8AA5;background:rgba(255,255,255,.05);padding:2px 7px;border-radius:5px}
+.diag-vazio{font-size:12.5px;color:#7C8AA5;padding:6px 2px;font-style:italic}
 .sh-contato .sh-head{color:#FF8A85} .sh-contato .sh-dot{background:#F0463F;box-shadow:0 0 6px rgba(240,70,63,.6)} .sh-contato .sh-count{color:#FF8A85}
 .sh-realizado .sh-head{color:#FF2D9B} .sh-realizado .sh-dot{background:#FF2D9B;box-shadow:0 0 6px rgba(255,45,155,.65)} .sh-realizado .sh-count{color:#FF2D9B}
 .sh-tratativa .sh-head{color:#F2C829} .sh-tratativa .sh-dot{background:#F2C829;box-shadow:0 0 6px rgba(242,200,41,.6)} .sh-tratativa .sh-count{color:#F2C829}
@@ -1723,9 +1742,9 @@ function conciliacaoWecann(){
     if(!nomeBateVoucher(orig, fechSetComAcomp)) faltaFechado.push(orig);
   });
 
-  // total de PESSOAS no Fechado = titulares + acompanhantes (Acte:)
+  // total de PESSOAS no Fechado = titulares + acompanhantes (Acte:) — vendedores nunca contam
   let totalPessoasFechado=0;
-  fechados.forEach(r=>{ totalPessoasFechado += 1 + ((r.acompanhantes||[]).length); });
+  fechados.forEach(r=>{ if(ehVendedor(r.nome)) return; totalPessoasFechado += 1 + ((r.acompanhantes||[]).filter(a=>a && !ehVendedor(a)).length); });
 
   // PROMOVIDOS: estavam em tratativa no CSV mas têm voucher WeCann (você precisa atualizar o status no WeCann)
   const wecGuestsSet=new Set([...wecMap.values()]);
@@ -2100,6 +2119,88 @@ function purgarArquivadosPorStatus(){
 
 function toggleArquivados(){ shArquivAberto=!shArquivAberto; renderArquivados(); }
 
+/* ===== DIAGNÓSTICO DE CONTAGEM (Fechado × Vouchers) ===== */
+let shDiagAberto=false;
+let fechadoAtual=[]; // último grupo Fechado renderizado (preenchido em renderStatusColunas)
+function toggleDiag(){ shDiagAberto=!shDiagAberto; renderDiagnostico(); }
+
+// lista de PESSOAS contadas no Fechado: titulares + acompanhantes (sem vendedores)
+function pessoasDoFechado(){
+  const out=[];
+  (fechadoAtual||[]).forEach(r=>{
+    if(ehVendedor(r.nome)) return;
+    out.push({ nome:r.nome, tipo: r._viaVoucher?'via voucher':(r._promovido?'titular (p/ voucher)':'titular'), num:r.voucherNum||'' });
+    (r.acompanhantes||[]).forEach(a=>{ if(a && !ehVendedor(a)) out.push({ nome:a, tipo:'acompanhante' }); });
+  });
+  return out;
+}
+// mapa chave(primeiro+último) → nome, dos nomes nos vouchers WeCann (hóspedes+passageiros, sem vendedores)
+function nomesDosVouchersWecann(){
+  const map=new Map();
+  (savedCache||[]).forEach(v=>{
+    const wecannServ=(v.services||[]).filter(sv=>sv.type==='hotel' && HOTEIS_OCUPACAO.some(h=>h.match(sv.data&&sv.data.hotel)));
+    if(!wecannServ.length) return;
+    const vendKey=chaveNome(v.vendedor);
+    const add=nm=>{ if(!nm||!String(nm).trim()) return; if(ehVendedor(nm)) return; const k=chaveNome(nm); if(!k||(vendKey&&k===vendKey)) return; if(!map.has(k)) map.set(k, String(nm).trim()); };
+    let temH=false;
+    wecannServ.forEach(sv=>{ const h=sv.data&&sv.data.hospedes; if(Array.isArray(h)&&h.length){ temH=true; h.forEach(add); } else if(h){ temH=true; add(h);} });
+    if(!temH) add(v.cliente);
+    (v.passageiros||[]).forEach(add);
+  });
+  return map;
+}
+// qtde de vouchers WeCann (documentos)
+function qtdVouchersWecann(){
+  return (savedCache||[]).filter(v=>(v.services||[]).some(sv=>sv.type==='hotel' && HOTEIS_OCUPACAO.some(h=>h.match(sv.data&&sv.data.hotel)))).length;
+}
+function diagnosticoContagem(){
+  const fech=pessoasDoFechado();
+  const vouMap=nomesDosVouchersWecann();
+  const vouKeys=new Set(vouMap.keys());
+  const fechKeys=new Set(fech.map(p=>chaveNome(p.nome)).filter(Boolean));
+  // No Fechado mas SEM voucher (dedup por chave)
+  const semVoucher=[]; const vistosF=new Set();
+  fech.forEach(p=>{ const k=chaveNome(p.nome); if(!k||vouKeys.has(k)||vistosF.has(k)) return; vistosF.add(k); semVoucher.push(p); });
+  // Em voucher mas SEM Fechado
+  const semFechado=[];
+  vouMap.forEach((nome,k)=>{ if(!fechKeys.has(k)) semFechado.push(nome); });
+  return {
+    totalFech: contarPessoasGrupo(fechadoAtual),  // = número que aparece no topo da coluna
+    totalVou: vouMap.size,                         // nomes únicos nos vouchers
+    qtdVouchers: qtdVouchersWecann(),              // nº de vouchers (documentos)
+    semVoucher, semFechado
+  };
+}
+function renderDiagnostico(){
+  const box=document.getElementById('shDiag'); if(!box) return;
+  const temDados=(fechadoAtual&&fechadoAtual.length) || (savedCache&&savedCache.length);
+  if(!temDados){ box.innerHTML=''; return; }
+  const d=diagnosticoContagem();
+  const linhaNome=(nm,extra)=>`<div class="diag-item"><span class="diag-nome">${esc(nm)}</span>${extra?`<span class="diag-tag">${esc(extra)}</span>`:''}</div>`;
+  const corpo = shDiagAberto ? `<div class="diag-corpo">
+      <div class="diag-resumo">
+        <span><b>${d.totalFech}</b> pessoas no Fechado</span>
+        <span><b>${d.totalVou}</b> nomes em ${d.qtdVouchers} vouchers</span>
+        <span class="diag-dif">diferença: <b>${d.totalFech-d.totalVou>=0?'+':''}${d.totalFech-d.totalVou}</b></span>
+      </div>
+      <div class="diag-bloco diag-bloco-alerta">
+        <div class="diag-tit">⚠️ No Fechado mas SEM voucher <b>(${d.semVoucher.length})</b></div>
+        ${d.semVoucher.length ? d.semVoucher.map(p=>linhaNome(p.nome,p.tipo)).join('') : '<div class="diag-vazio">nenhum — todos os nomes do Fechado têm voucher</div>'}
+      </div>
+      <div class="diag-bloco">
+        <div class="diag-tit">📄 Em voucher mas SEM registro no Fechado <b>(${d.semFechado.length})</b></div>
+        ${d.semFechado.length ? d.semFechado.map(n=>linhaNome(n,'')).join('') : '<div class="diag-vazio">nenhum</div>'}
+      </div>
+    </div>` : '';
+  box.innerHTML=`<div class="diag-painel">
+    <button class="diag-toggle" id="btnDiag" type="button">
+      <span>🔎 Conferir contagem — Fechado × Vouchers</span>
+      <span class="diag-chev">${shDiagAberto?'▲':'▼'}</span>
+    </button>${corpo}
+  </div>`;
+  box.onclick=(e)=>{ if(e.target.closest('#btnDiag')){ toggleDiag(); } };
+}
+
 function renderArquivados(){
   const box=document.getElementById('shArquiv'); if(!box) return;
   const itens=Object.values(arquivadosMap());
@@ -2173,6 +2274,7 @@ function renderStatusColunas(){
     orfaosVistos.add(n);
     grupos.fechado.push({ nome:g.nome, statusRaw:'Fechado', hotel:g.hotel, voucherNum:g.num, _viaVoucher:true });
   });
+  fechadoAtual = grupos.fechado.slice(); // guarda p/ o diagnóstico de contagem
 
   const passa=r=> !termo || _normE([r.nome,r.email,r.agente,r.hotel].join(' ')).indexOf(termo)>=0;
 
@@ -2263,6 +2365,7 @@ function renderStatusColunas(){
   atualizarBotaoTrazer();
   renderConciliacao();
   renderArquivados();
+  renderDiagnostico();
 
   const info=document.getElementById('shInfo');
   if(info){
@@ -2460,6 +2563,7 @@ function renderDisponibilidade(){
             <div id="shConc"></div>
             <div class="sh-cols" id="shCols"></div>
             <div id="shArquiv"></div>
+            <div id="shDiag"></div>
             <input id="inputStatusHotel" type="file" accept=".csv,text/csv" style="display:none" />
           </div>
         </div>
