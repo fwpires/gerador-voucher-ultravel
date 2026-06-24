@@ -347,10 +347,12 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .est-hotel + .est-hotel{border-left:1px solid #2C3B66}
 /* Carrossel das TRÊS visões (Disponibilidade ↔ Ocupação ↔ Status Hotel) — envolve tudo */
 .est-carousel{flex:1;min-width:0;position:relative;overflow:hidden;transition:height .42s cubic-bezier(.4,0,.2,1)}
-.est-track{display:flex;width:300%;align-items:flex-start;transition:transform .42s cubic-bezier(.4,0,.2,1)}
-.est-track[data-view="1"]{transform:translateX(-33.3333%)}
-.est-track[data-view="2"]{transform:translateX(-66.6667%)}
-.est-face{flex:0 0 33.3333%;width:33.3333%;min-width:0}
+.est-track{display:flex;width:400%;align-items:flex-start;transition:transform .42s cubic-bezier(.4,0,.2,1)}
+.est-track[data-view="1"]{transform:translateX(-25%)}
+.est-track[data-view="2"]{transform:translateX(-50%)}
+.est-track[data-view="3"]{transform:translateX(-75%)}
+.est-face{flex:0 0 25%;width:25%;min-width:0}
+.est-face-painel{padding:0 6px}
 .est-face-disp{display:flex;align-items:stretch}
 .est-face-ocup{display:flex;flex-direction:column}
 .est-ocup-hoteis{display:flex;align-items:stretch}
@@ -2551,11 +2553,14 @@ function renderDisponibilidade(){
               <button id="shTrazer" class="sh-trazer" type="button" disabled>Trazer pra minha carteira</button>
               <span class="sh-acao-dica">Marque os contatos em “Fazer contato” e traga para a sua carteira.</span>
             </div>
-            <div id="shConc"></div>
             <div class="sh-cols" id="shCols"></div>
+            <input id="inputStatusHotel" type="file" accept=".csv,text/csv" style="display:none" />
+          </div>
+          <div class="est-face est-face-painel">
+            <div class="sh-topo"><span class="sh-titulo">Conciliação &amp; Pastas</span></div>
+            <div id="shConc"></div>
             <div id="shRecusados"></div>
             <div id="shArquiv"></div>
-            <input id="inputStatusHotel" type="file" accept=".csv,text/csv" style="display:none" />
           </div>
         </div>
       </div>
@@ -2564,6 +2569,7 @@ function renderDisponibilidade(){
           <span class="est-dot" data-v="0" title="Disponibilidade"></span>
           <span class="est-dot" data-v="1" title="Ocupação"></span>
           <span class="est-dot" data-v="2" title="Controle de Contatos Ativos"></span>
+          <span class="est-dot" data-v="3" title="Conciliação & Pastas"></span>
         </div>
         <div class="est-setas">
           <button class="est-seta" id="btnSetaPrev" type="button" title="Visão anterior">‹</button>
@@ -2583,7 +2589,7 @@ function renderDisponibilidade(){
   const shTz=$('#shTrazer'); if(shTz) shTz.onclick=()=>trazerParaCarteira();
   // navegação do carrossel (3 visões): cíclica — avança/volta e "dá a volta" nas pontas
   const track=$('#estTrack'), setaPrev=$('#btnSetaPrev'), setaNext=$('#btnSetaNext');
-  const EST_TOTAL=3; // total de visões (0,1,2)
+  const EST_TOTAL=4; // total de visões (0,1,2,3)
   function aplicarSeta(){
     if(track) track.setAttribute('data-view', String(estView));
     el.querySelectorAll('.est-dot').forEach(d=>d.classList.toggle('on', +d.dataset.v===estView));
