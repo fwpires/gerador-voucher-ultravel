@@ -2250,9 +2250,12 @@ function renderStatusColunas(){
   const grupos={contato:[],realizado:[],tratativa:[],fechado:[]};
   // VIA 2 (única regra do Fechado): a coluna Fechado vem 100% dos vouchers WeCann.
   const wecGuests=new Set([...wecannGuestMap().values()]);
+  // quem está na pasta "Contato Feito" (arquivados) NÃO pode voltar pras colunas
+  const arqNomes=new Set(Object.values(arquivadosMap()).map(it=>(it&&it.nome)||'').filter(Boolean));
 
   rows.forEach(r=>{
     if(normStatusHotel(r.statusRaw)==='recusado') return;      // Recusado/Cancelado: sai de todas as colunas (vai pra pasta)
+    if(arqNomes.size && nomeBateVoucherEstrito(r.nome, arqNomes)) return; // arquivado (Contato Feito) → fora das colunas
     const ef=statusEfetivo(r,vSet,cart);                       // contato / realizado / tratativa
     if(nomeBateVoucherEstrito(r.nome, wecGuests)) return;       // tem voucher → já aparece no Fechado (não duplica)
     if(ef==='fechado') return;                                 // "fechado" no CSV sem voucher: não exibe (só conta no número do CSV)
