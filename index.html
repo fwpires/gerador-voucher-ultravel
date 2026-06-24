@@ -148,6 +148,20 @@ main{max-width:1080px;margin:0 auto;padding:26px 22px 80px}
 .section-eyebrow h2{font-size:18px;font-weight:700}
 .section-eyebrow .hint{font-size:13px;color:var(--texto-suave);margin-left:auto}
 #savedCount.filtrando{color:#35D07F;font-weight:700}
+/* ===== Aviso de buracos na numeração ===== */
+#avisoBuracos{
+  display:none;align-items:center;gap:11px;
+  margin:0 0 14px;padding:11px 15px;
+  background:rgba(245,158,11,.10);
+  border:1px solid rgba(245,158,11,.38);
+  border-radius:var(--raio-sm);
+  color:#B45309;
+}
+body.dark #avisoBuracos{color:#FBBF24;background:rgba(245,158,11,.09);border-color:rgba(245,158,11,.30)}
+#avisoBuracos .ab-ico{width:20px;height:20px;flex-shrink:0}
+#avisoBuracos .ab-txt{display:flex;flex-direction:column;gap:1px;line-height:1.3;min-width:0}
+#avisoBuracos .ab-txt b{font-size:13.5px;font-weight:700}
+#avisoBuracos .ab-txt span{font-size:12.5px;font-family:'JetBrains Mono',monospace;opacity:.92;word-break:break-word}
 .paginacao{margin-top:18px;display:flex;flex-direction:column;align-items:center;gap:12px}
 .paginacao:empty{display:none}
 .pg-info{font-size:13px;color:var(--texto-suave)}
@@ -759,6 +773,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
       Atualizar da nuvem
     </button>
   </div>
+  <div id="avisoBuracos"></div>
   <div id="savedList"></div>
   <div id="paginacao" class="paginacao"></div>
 </main>
@@ -2319,6 +2334,57 @@ function ordenarVouchers(arr){
   else a.sort((x,y)=>((y.criadoEm||'').localeCompare(x.criadoEm||''))); // cadastro (mais recente)
   return a;
 }
+
+/* ===== DETECTOR DE BURACOS NA NUMERAÇÃO ===== */
+// Varre os vouchers salvos e descobre quais números estão FALTANDO entre o
+// menor e o maior já usados. Bom para flagrar vouchers que sumiram/foram
+// excluídos sem reaproveitar o número. Retorna também o último nº emitido.
+function detectarBuracosNumeracao(list){
+  const nums=(list||[])
+    .map(v=>parseInt(v.num,10))
+    .filter(n=>!isNaN(n)&&n>0)
+    .sort((a,b)=>a-b);
+  if(!nums.length) return { buracos:[], menor:null, maior:null, total:0, ultimo:null };
+  const menor=nums[0], maior=nums[nums.length-1];
+  const existentes=new Set(nums);
+  const buracos=[];
+  for(let n=menor;n<=maior;n++){ if(!existentes.has(n)) buracos.push(n); }
+  return { buracos, menor, maior, total:nums.length, ultimo:maior };
+}
+// formata com 5 dígitos, igual ao worker (#00031)
+function fmtNumVoucher(n){ return '#'+String(n).padStart(5,'0'); }
+// agrupa consecutivos em faixas: [32,33,34,40] -> ["#00032–#00034","#00040"]
+function agruparFaixas(nums){
+  if(!nums.length) return [];
+  const faixas=[]; let ini=nums[0], fim=nums[0];
+  for(let i=1;i<nums.length;i++){
+    if(nums[i]===fim+1){ fim=nums[i]; }
+    else { faixas.push([ini,fim]); ini=fim=nums[i]; }
+  }
+  faixas.push([ini,fim]);
+  return faixas.map(([a,b])=> a===b ? fmtNumVoucher(a) : fmtNumVoucher(a)+'–'+fmtNumVoucher(b));
+}
+let _buracosUltimaAssinatura=''; // evita registrar o mesmo aviso várias vezes no log
+function renderAvisoBuracos(list){
+  const el=$('#avisoBuracos'); if(!el) return;
+  const { buracos }=detectarBuracosNumeracao(list);
+  if(!buracos.length){ el.innerHTML=''; el.style.display='none'; _buracosUltimaAssinatura=''; return; }
+  const faixas=agruparFaixas(buracos), qtd=buracos.length;
+  el.style.display='flex';
+  el.innerHTML=`
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ab-ico"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 9v4M12 17h.01" stroke-linecap="round"/></svg>
+    <div class="ab-txt">
+      <b>${qtd} ${qtd===1?'número faltando':'números faltando'} na sequência</b>
+      <span>${faixas.join(' · ')}</span>
+    </div>`;
+  // registra no log só quando a lista de buracos muda (não floda a cada render)
+  const assinatura=buracos.join(',');
+  if(assinatura!==_buracosUltimaAssinatura){
+    _buracosUltimaAssinatura=assinatura;
+    logRemoto('buracos_detectados', qtd+' número(s) faltando na numeração', { buracos, faixas });
+  }
+}
+
 function renderSaved(list){
   const q=_normE(($('#searchInput').value||'').trim());
   const termos=q.split(/\s+/).filter(Boolean); // cada palavra é buscada separadamente (parcial + multi-termo)
@@ -2344,9 +2410,12 @@ function renderSaved(list){
     sc.textContent=filt.length+(filt.length!==1?' resultados':' resultado')+' de '+list.length;
     sc.classList.add('filtrando');
   } else {
-    sc.textContent=list.length+' voucher'+(list.length!==1?'s':'')+sufHosp;
+    const info=detectarBuracosNumeracao(list);
+    const ultimoTxt = info.ultimo ? (' · último '+fmtNumVoucher(info.ultimo)) : '';
+    sc.textContent=list.length+' voucher'+(list.length!==1?'s':'')+ultimoTxt+sufHosp;
     sc.classList.remove('filtrando');
   }
+  renderAvisoBuracos(list);
   renderDisponibilidade();
   if(!filt.length){
     $('#savedList').innerHTML=`<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 7h16M4 7l1 13a1 1 0 001 1h12a1 1 0 001-1l1-13M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2" stroke-linecap="round" stroke-linejoin="round"/></svg><p>${q?'Nenhum voucher encontrado':'Nenhum voucher salvo ainda'}</p></div>`;
