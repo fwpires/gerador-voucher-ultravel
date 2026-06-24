@@ -2254,6 +2254,19 @@ function renderStatusColunas(){
     grupos[ef].push(r);
   });
 
+  // REGRA ANTI-DUPLICAÇÃO: quem JÁ está em "Contato Realizado" nunca aparece também em
+  // "Fazer contato". Mesmo relendo o CSV (ou com o nome escrito um pouco diferente / repetido),
+  // confere por primeiro+último nome e mantém a pessoa só na coluna "Contato Realizado".
+  // 1) primeiro tira duplicata exata DENTRO de cada coluna (linha repetida no CSV)
+  const dedupExato=arr=>{ const vis=new Set(); return arr.filter(r=>{ const k=normNome(r.nome); if(!k||vis.has(k)) return false; vis.add(k); return true; }); };
+  grupos.realizado=dedupExato(grupos.realizado);
+  grupos.contato=dedupExato(grupos.contato);
+  // 2) depois remove de "Fazer contato" quem já está em "Contato Realizado" (match primeiro+último)
+  if(grupos.realizado.length){
+    const realizadoSet=new Set(grupos.realizado.map(r=>r.nome));
+    grupos.contato=grupos.contato.filter(r=> !nomeBateVoucherEstrito(r.nome, realizadoSet));
+  }
+
   // Fechado = cards montados a partir dos vouchers WeCann (hóspedes + passageiros)
   grupos.fechado = vouchersFechadoWecann();
   // quantidade de "fechados" que o CSV marca (SÓ o número, sem nomes)
