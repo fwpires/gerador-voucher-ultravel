@@ -1692,10 +1692,11 @@ function conciliacaoWecann(){
   let totalPessoasFechado=0;
   fechados.forEach(r=>{ totalPessoasFechado += 1 + ((r.acompanhantes||[]).length); });
 
-  // PROMOVIDOS: estavam em tratativa no CSV mas têm voucher (você precisa atualizar o status no WeCann)
+  // PROMOVIDOS: estavam em tratativa no CSV mas têm voucher WeCann (você precisa atualizar o status no WeCann)
+  const wecGuestsSet=new Set([...wecMap.values()]);
   const promovidos=[];
   (rows||[]).forEach(r=>{
-    if(normStatusHotel(r.statusRaw)==='tratativa' && nomeBateVoucherEstrito(r.nome, vSet)) promovidos.push(nomeCompletoPromovido(r.nome, wecMap));
+    if(normStatusHotel(r.statusRaw)==='tratativa' && nomeBateVoucherEstrito(r.nome, wecGuestsSet)) promovidos.push(nomeCompletoPromovido(r.nome, wecMap));
   });
 
   // VIA VOUCHER: hóspedes de voucher WeCann que não existem em nenhuma linha do CSV (entram no Fechado)
@@ -2024,15 +2025,35 @@ function renderStatusColunas(){
   const vSet=nomesDeVouchers();
   const cart=carteiraMap();
   const grupos={contato:[],realizado:[],tratativa:[],fechado:[]};
+  // hóspedes de vouchers WeCann (match seguro = primeiro nome + último sobrenome)
+  const wecGuests=new Set([...wecannGuestMap().values()]);
+
   rows.forEach(r=>{
-    const ef=statusEfetivo(r,vSet,cart);   // coluna = SÓ o status do CSV (+ carteira p/ Contato Realizado)
-    r._promovido=false;                     // a coluna NÃO promove mais por voucher (cruzamento fica só na Conciliação)
+    let ef=statusEfetivo(r,vSet,cart);          // VIA 1: coluna pelo status do CSV (+ carteira p/ Contato Realizado)
+    // VIA 2: se a pessoa já tem voucher WeCann, a venda está concluída → vai para Fechado,
+    // mesmo que o status do CSV diga "Em tratativa" ou esteja em branco.
+    const temVoucher = nomeBateVoucherEstrito(r.nome, wecGuests);
+    if(temVoucher){
+      ef='fechado';
+      r._promovido = (normStatusHotel(r.statusRaw)!=='fechado'); // veio pelo voucher e o CSV está desatualizado
+    } else {
+      r._promovido = false;
+    }
     grupos[ef].push(r);
   });
 
-  // REGRA: só entra na coluna Fechado quem tem status "fechado" no CSV.
-  // Hóspedes de voucher que NÃO estão no CSV não são mais injetados aqui —
-  // eles continuam aparecendo no painel de Conciliação (grupo "via voucher").
+  // VIA 2 (parte B): hóspedes de voucher WeCann que NÃO existem em NENHUMA linha do CSV
+  // também entram no Fechado (venda concluída fora do relatório). Match seguro evita duplicar.
+  const nomesCSV=new Set();
+  rows.forEach(r=>{ nomesCSV.add(normNome(r.nome)); (r.acompanhantes||[]).forEach(a=>nomesCSV.add(normNome(a))); });
+  const orfaosVistos=new Set();
+  wecannGuestDetalhe().forEach(g=>{
+    const n=normNome(g.nome);
+    if(!n || orfaosVistos.has(n)) return;
+    if(nomeBateVoucherEstrito(g.nome, nomesCSV)) return;   // já existe no CSV (primeiro+último) → não duplica
+    orfaosVistos.add(n);
+    grupos.fechado.push({ nome:g.nome, statusRaw:'Fechado', hotel:g.hotel, voucherNum:g.num, _viaVoucher:true });
+  });
 
   const passa=r=> !termo || _normE([r.nome,r.email,r.agente,r.hotel].join(' ')).indexOf(termo)>=0;
 
