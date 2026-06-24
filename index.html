@@ -2045,6 +2045,9 @@ function trazerParaCarteira(){
 }
 // devolve um contato da carteira de volta para "Fazer contato"
 function devolverContato(nome){
+  const atual=(appConfig.carteira||{})[normNome(nome)]||'';
+  const msg='Devolver "'+nome+'" para a coluna "Fazer contato"?'+(atual?('\n\nIsso vai tirar este contato da carteira de '+atual+'.'):'');
+  if(!confirm(msg)) return; // pergunta de segurança — só devolve se confirmar
   const n=normNome(nome);
   if(appConfig.carteira) delete appConfig.carteira[n];
   salvarConfig();
@@ -2149,7 +2152,7 @@ function vouchersFechadoWecann(){
 }
 
 /* ===== RECUSADOS / CANCELADOS ===== */
-let shRecusadosAberto=true; // pasta aberta por padrão (precisa de atenção)
+let shRecusadosAberto=false; // pasta começa fechada (usuário abre quando quiser)
 // linhas do CSV com status "Recusado" ou "Cancelado"
 function recusadosCSV(){
   const rows=(statusHotelData&&statusHotelData.rows)||[];
