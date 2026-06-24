@@ -2063,8 +2063,15 @@ function purgarArquivadosPorStatus(){
   const rows=(statusHotelData&&statusHotelData.rows)||[];
   let mudou=false;
   Object.keys(appConfig.arquivados).forEach(norm=>{
-    const row=rows.find(r=>normNome(r.nome)===norm);
-    if(row && normStatusHotel(row.statusRaw)!=='contato'){ // status deixou de ser "em branco"
+    const it=appConfig.arquivados[norm];
+    const nomeArq=(it&&it.nome)||norm;
+    // acha no CSV uma linha dessa pessoa cujo status JÁ NÃO é "em branco"
+    // (reconhece por nome exato OU por primeiro nome + último sobrenome — match seguro)
+    const row=rows.find(r=>{
+      if(normStatusHotel(r.statusRaw)==='contato') return false; // ainda em branco → não purga
+      return normNome(r.nome)===norm || umNomeBateEstrito(nomeArq, r.nome);
+    });
+    if(row){ // status virou "Em tratativa" ou "Fechado" → remove em definitivo
       delete appConfig.arquivados[norm];
       if(appConfig.carteira) delete appConfig.carteira[norm];
       mudou=true;
