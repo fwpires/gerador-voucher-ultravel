@@ -472,6 +472,23 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .sh-act{margin-top:7px;font-size:11px;font-weight:700;border-radius:7px;padding:5px 10px;cursor:pointer;border:1px solid transparent;transition:all .14s;line-height:1}
 .sh-undo{background:rgba(255,255,255,.05);color:#9FB0CE;border-color:rgba(255,255,255,.12)}
 .sh-undo:hover{background:rgba(240,70,63,.16);color:#FF8A85;border-color:rgba(240,70,63,.45)}
+.sh-acoes{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
+.sh-acoes .sh-act{margin-top:0}
+.sh-feito{background:rgba(53,208,127,.14);color:#35D07F;border-color:rgba(53,208,127,.4)}
+.sh-feito:hover{background:#35D07F;color:#0A1929;border-color:#35D07F;transform:translateY(-1px)}
+/* ===== Pasta Arquivados ===== */
+#shArquiv:empty{display:none}
+.arq-painel{margin-top:14px;border:1px solid rgba(159,176,206,.18);border-radius:var(--raio-sm);overflow:hidden;background:rgba(255,255,255,.02)}
+.arq-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:transparent;border:none;color:#9FB0CE;font-size:13.5px;font-weight:700;padding:11px 15px;cursor:pointer;font-family:inherit}
+.arq-toggle:hover{background:rgba(255,255,255,.03);color:#C9D6EC}
+.arq-toggle b{color:#7FB2F5}
+.arq-chev{font-size:10px;opacity:.7}
+.arq-lista{padding:6px 12px 12px;display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto}
+.arq-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 11px;border-radius:8px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.05)}
+.arq-nome{font-size:13px;font-weight:600;min-width:0;word-break:break-word}
+.arq-at{font-weight:400;color:#7C8AA5;font-size:12px}
+.arq-restaurar{flex:0 0 auto;font-size:11px;font-weight:700;border-radius:7px;padding:5px 10px;cursor:pointer;background:rgba(127,178,245,.12);color:#7FB2F5;border:1px solid rgba(127,178,245,.35);transition:all .14s;line-height:1}
+.arq-restaurar:hover{background:#7FB2F5;color:#0A1929;border-color:#7FB2F5}
 .sh-contato .sh-head{color:#FF8A85} .sh-contato .sh-dot{background:#F0463F;box-shadow:0 0 6px rgba(240,70,63,.6)} .sh-contato .sh-count{color:#FF8A85}
 .sh-realizado .sh-head{color:#FF2D9B} .sh-realizado .sh-dot{background:#FF2D9B;box-shadow:0 0 6px rgba(255,45,155,.65)} .sh-realizado .sh-count{color:#FF2D9B}
 .sh-tratativa .sh-head{color:#F2C829} .sh-tratativa .sh-dot{background:#F2C829;box-shadow:0 0 6px rgba(242,200,41,.6)} .sh-tratativa .sh-count{color:#F2C829}
@@ -2011,6 +2028,76 @@ function devolverContato(nome){
   toast('Contato devolvido para "Fazer contato"','info');
 }
 
+/* ===== PASTA "ARQUIVADOS" (Contato Feito) ===== */
+let shArquivAberto=false; // pasta de arquivados aberta/fechada
+function arquivadosMap(){ return (appConfig.arquivados && typeof appConfig.arquivados==='object') ? appConfig.arquivados : {}; }
+
+// "Contato Feito": tira o nome de "Contato Realizado" e guarda nos Arquivados (na nuvem)
+function arquivarContato(nome){
+  const n=normNome(nome); if(!n) return;
+  if(!appConfig.arquivados || typeof appConfig.arquivados!=='object') appConfig.arquivados={};
+  const at=(appConfig.carteira||{})[n]||'';
+  appConfig.arquivados[n]={ nome, atendente:at, ts:new Date().toISOString() };
+  if(appConfig.carteira) delete appConfig.carteira[n]; // sai da coluna "Contato Realizado"
+  salvarConfig();
+  renderStatusColunas();
+  toast('“'+nome+'” arquivado (Contato Feito) 🗄️','ok');
+}
+
+// tira dos Arquivados e devolve para "Contato Realizado" (mesmo atendente)
+function restaurarArquivado(nome){
+  const n=normNome(nome); if(!n) return;
+  const arq=arquivadosMap(); const it=arq[n]; if(!it) return;
+  if(!appConfig.carteira || typeof appConfig.carteira!=='object') appConfig.carteira={};
+  if(it.atendente) appConfig.carteira[n]=it.atendente;
+  delete appConfig.arquivados[n];
+  salvarConfig();
+  renderStatusColunas();
+  toast('“'+nome+'” restaurado para Contato Realizado','info');
+}
+
+// EXCLUSÃO DEFINITIVA: quem está arquivado mas, no CSV atual, já não está mais "em branco"
+// (virou "Em tratativa" ou "Fechado") é removido dos Arquivados de vez. Retorna true se mudou.
+function purgarArquivadosPorStatus(){
+  if(!appConfig.arquivados || typeof appConfig.arquivados!=='object') return false;
+  const rows=(statusHotelData&&statusHotelData.rows)||[];
+  let mudou=false;
+  Object.keys(appConfig.arquivados).forEach(norm=>{
+    const row=rows.find(r=>normNome(r.nome)===norm);
+    if(row && normStatusHotel(row.statusRaw)!=='contato'){ // status deixou de ser "em branco"
+      delete appConfig.arquivados[norm];
+      if(appConfig.carteira) delete appConfig.carteira[norm];
+      mudou=true;
+    }
+  });
+  return mudou;
+}
+
+function toggleArquivados(){ shArquivAberto=!shArquivAberto; renderArquivados(); }
+
+function renderArquivados(){
+  const box=document.getElementById('shArquiv'); if(!box) return;
+  const itens=Object.values(arquivadosMap());
+  if(!itens.length){ box.innerHTML=''; return; }
+  const lista = shArquivAberto ? `<div class="arq-lista">${
+    itens.slice().sort((a,b)=>(a.nome||'').localeCompare(b.nome||'','pt-BR')).map(it=>`
+      <div class="arq-item">
+        <span class="arq-nome">${esc(it.nome)}${it.atendente?` <span class="arq-at">· ${esc(it.atendente)}</span>`:''}</span>
+        <button class="arq-restaurar" data-restaurar="${esc(it.nome)}" title="Tirar dos Arquivados e voltar para Contato Realizado">↩ Restaurar</button>
+      </div>`).join('')
+  }</div>` : '';
+  box.innerHTML=`<div class="arq-painel">
+    <button class="arq-toggle" id="btnArquiv" type="button">
+      <span>🗄️ Arquivados <b>(${itens.length})</b></span>
+      <span class="arq-chev">${shArquivAberto?'▲':'▼'}</span>
+    </button>${lista}
+  </div>`;
+  box.onclick=(e)=>{
+    const r=e.target.closest('[data-restaurar]'); if(r){ restaurarArquivado(r.getAttribute('data-restaurar')); return; }
+    if(e.target.closest('#btnArquiv')){ toggleArquivados(); return; }
+  };
+}
+
 // conta PESSOAS de um grupo de cards: cada titular conta 1 + seus acompanhantes (Acte:)
 // (ex.: um card "Jonas + Acte: Rafaela" conta como 2 pessoas)
 function contarPessoasGrupo(arr){
@@ -2021,6 +2108,9 @@ function contarPessoasGrupo(arr){
 function renderStatusColunas(){
   const wrap=document.getElementById('shCols'); if(!wrap) return;
   const rows=(statusHotelData&&statusHotelData.rows)||[];
+  // AUTO-EXCLUSÃO dos Arquivados: quem foi arquivado mas agora tem status preenchido
+  // no CSV (saiu de "em branco" → virou "Em tratativa"/"Fechado") é apagado em definitivo.
+  if(purgarArquivadosPorStatus()) salvarConfig();
   const termo=_normE(shBusca||'').trim();
   const vSet=nomesDeVouchers();
   const cart=carteiraMap();
@@ -2113,7 +2203,7 @@ function renderStatusColunas(){
     const corpo = ats.length ? ats.map(at=>{
       const itens=porAt[at].map(r=>{
         const m=metaTrat(r)||r.email||'';
-        return `<div class="sh-item"><div class="sh-nome">${esc(r.nome)}</div>${m?`<div class="sh-meta">${esc(m)}</div>`:''}<button class="sh-act sh-undo" data-acao="devolver" data-nome="${esc(r.nome)}" title="Devolver para Fazer contato">↩ Devolver</button></div>`;
+        return `<div class="sh-item"><div class="sh-nome">${esc(r.nome)}</div>${m?`<div class="sh-meta">${esc(m)}</div>`:''}<div class="sh-acoes"><button class="sh-act sh-feito" data-acao="feito" data-nome="${esc(r.nome)}" title="Contato concluído — arquivar este nome">✓ Contato Feito</button><button class="sh-act sh-undo" data-acao="devolver" data-nome="${esc(r.nome)}" title="Devolver para Fazer contato">↩ Devolver</button></div></div>`;
       }).join('');
       return `<div class="sh-grupo"><div class="sh-grupo-tit">👤 ${esc(at)} <span class="sh-grupo-n">(${porAt[at].length})</span></div>${itens}</div>`;
     }).join('') : `<div class="sh-vazio">${(termo||shFiltroAtendente)?'Nenhum resultado':'Nenhum contato puxado ainda'}</div>`;
@@ -2136,13 +2226,14 @@ function renderStatusColunas(){
     colFechado();
 
   // cliques (botão devolver) e mudanças (checkbox + filtro) — via propriedade, não empilha
-  wrap.onclick=(e)=>{ const btn=e.target.closest('[data-acao]'); if(btn && btn.getAttribute('data-acao')==='devolver') devolverContato(btn.getAttribute('data-nome')); };
+  wrap.onclick=(e)=>{ const btn=e.target.closest('[data-acao]'); if(!btn) return; const acao=btn.getAttribute('data-acao'), nome=btn.getAttribute('data-nome'); if(acao==='devolver') devolverContato(nome); else if(acao==='feito') arquivarContato(nome); };
   wrap.onchange=(e)=>{
     const cb=e.target.closest('input[data-sel]'); if(cb){ toggleSelecao(cb.getAttribute('data-sel')); return; }
     const f=e.target.closest('#shFiltroAt'); if(f){ shFiltroAtendente=f.value; renderStatusColunas(); }
   };
   atualizarBotaoTrazer();
   renderConciliacao();
+  renderArquivados();
 
   const info=document.getElementById('shInfo');
   if(info){
@@ -2339,6 +2430,7 @@ function renderDisponibilidade(){
             </div>
             <div id="shConc"></div>
             <div class="sh-cols" id="shCols"></div>
+            <div id="shArquiv"></div>
             <input id="inputStatusHotel" type="file" accept=".csv,text/csv" style="display:none" />
           </div>
         </div>
