@@ -512,16 +512,18 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .arq-at{font-weight:400;color:#7C8AA5;font-size:12px}
 .arq-restaurar{flex:0 0 auto;font-size:11px;font-weight:700;border-radius:7px;padding:5px 10px;cursor:pointer;background:rgba(127,178,245,.12);color:#7FB2F5;border:1px solid rgba(127,178,245,.35);transition:all .14s;line-height:1}
 .arq-restaurar:hover{background:#7FB2F5;color:#0A1929;border-color:#7FB2F5}
-/* ===== Pasta Erro de comunicação (status CSV) — laranja ===== */
-#shErro:empty{display:none}
+/* ===== Pasta Erro de comunicação (status CSV) — laranja (sempre fixa) ===== */
 .err-painel{margin-top:14px;border:1px solid rgba(255,159,67,.34);border-radius:var(--raio-sm);overflow:hidden;background:rgba(255,159,67,.05)}
 .err-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:transparent;border:none;color:#FFA94D;font-size:13.5px;font-weight:700;padding:11px 15px;cursor:pointer;font-family:inherit}
 .err-toggle:hover{background:rgba(255,159,67,.09);color:#FFC078}
 .err-toggle b{color:#FFA94D}
 .err-chev{font-size:10px;opacity:.7}
 .err-lista{padding:6px 12px 12px;display:flex;flex-direction:column;gap:6px;max-height:320px;overflow-y:auto}
-.err-item{display:flex;align-items:center;padding:8px 11px;border-radius:8px;background:rgba(255,159,67,.06);border:1px solid rgba(255,159,67,.16)}
+.err-item{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 11px;border-radius:8px;background:rgba(255,159,67,.06);border:1px solid rgba(255,159,67,.16)}
 .err-nome{font-size:13px;font-weight:600;word-break:break-word}
+.err-reverter{flex-shrink:0;background:transparent;border:1px solid rgba(255,159,67,.5);color:#FFA94D;font-size:11.5px;font-weight:700;padding:5px 11px;border-radius:7px;cursor:pointer;font-family:inherit;white-space:nowrap}
+.err-reverter:hover{background:#FFA94D;color:#1A1206;border-color:#FFA94D}
+.err-vazio{font-size:12.5px;color:#8A99B5;font-style:italic;padding:4px 2px}
 /* ===== Pasta Contato Feito (status CSV) — azul ===== */
 #shContatoFeito:empty{display:none}
 .cf-painel{margin-top:14px;border:1px solid rgba(127,178,245,.32);border-radius:var(--raio-sm);overflow:hidden;background:rgba(127,178,245,.05)}
@@ -842,7 +844,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <div class="tail"></div>
     <h2>Vouchers salvos</h2>
     <span class="hint" id="savedCount">0 vouchers</span>
-    <span class="build-stamp" id="buildStamp" title="Versão publicada. Confira se é a mesma que está no ar no Cloudflare após o deploy.">v 2026-06-25·e</span>
+    <span class="build-stamp" id="buildStamp" title="Versão publicada. Confira se é a mesma que está no ar no Cloudflare após o deploy.">v 2026-06-25·h</span>
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -1348,6 +1350,7 @@ async function carregarConfig(){
       // pessoa". Une o que está salvo localmente + na nuvem, pra que NUNCA voltem ao reimportar o CSV.
       appConfig.voucherResolvido={...(local.voucherResolvido||{}), ...(c.voucherResolvido||{})};
       appConfig.naoMesmaPessoa ={...(local.naoMesmaPessoa ||{}), ...(c.naoMesmaPessoa ||{})};
+      appConfig.erroRevertido  ={...(local.erroRevertido  ||{}), ...(c.erroRevertido  ||{})};
       // lista "Atualizar Cadastro Wecann": também une local+nuvem (nunca volta pra lista anterior).
       // Depois tira quem já foi marcado "Nome cadastrado" (está em voucherResolvido) pra não ressuscitar.
       appConfig.semCadastroWecann={...(local.semCadastroWecann||{}), ...(c.semCadastroWecann||{})};
@@ -1366,6 +1369,7 @@ async function salvarConfig(){
     try{ cloud=await api('/api/config')||{}; }catch(e){ cloud={}; }
     appConfig.voucherResolvido ={...(cloud.voucherResolvido ||{}), ...(appConfig.voucherResolvido ||{})};
     appConfig.naoMesmaPessoa   ={...(cloud.naoMesmaPessoa   ||{}), ...(appConfig.naoMesmaPessoa   ||{})};
+    appConfig.erroRevertido    ={...(cloud.erroRevertido    ||{}), ...(appConfig.erroRevertido    ||{})};
     appConfig.semCadastroWecann={...(cloud.semCadastroWecann||{}), ...(appConfig.semCadastroWecann||{})};
     // quem já virou "Nome cadastrado" (está em voucherResolvido) não fica no vermelho
     Object.keys(appConfig.voucherResolvido).forEach(k=>{ if(appConfig.semCadastroWecann[k]) delete appConfig.semCadastroWecann[k]; });
@@ -2101,7 +2105,9 @@ function carteiraMap(){ return (appConfig.carteira && typeof appConfig.carteira=
 function statusEfetivo(row, vSet, cart){
   cart = cart || (typeof carteiraMap==='function' ? carteiraMap() : {});
   const ordem={contato:0,realizado:1,tratativa:2,fechado:3};
-  let nivel=ordem[normStatusHotel(row.statusRaw)];          // base: SÓ o status do CSV
+  let st=normStatusHotel(row.statusRaw);                     // base: SÓ o status do CSV
+  if(st==='erro' && ehErroRevertido(row.nome)) st='contato'; // revertido manualmente → volta a ser contato normal
+  let nivel=ordem[st];
   if(nivel===0 && cart[normNome(row.nome)]) nivel=1;        // só quem está em branco e foi puxado → Contato Realizado
   return ['contato','realizado','tratativa','fechado'][nivel];
 }
@@ -2313,25 +2319,39 @@ function toggleRecusados(){ shRecusadosAberto=!shRecusadosAberto; renderRecusado
 
 /* ===== PASTA "ERRO DE COMUNICAÇÃO" (status do CSV) — laranja ===== */
 let shErroAberto=false;
+function ehErroRevertido(nome){ return !!(appConfig.erroRevertido||{})[normNome(nome)]; }
+function marcarErroRevertido(nome){
+  if(!appConfig.erroRevertido) appConfig.erroRevertido={};
+  appConfig.erroRevertido[normNome(nome)]=true;       // decisão permanente: não volta pra pasta ao reimportar CSV
+  salvarConfig();
+  renderStatusColunas();
+  toast('“'+nome+'” revertido — voltou para a lista de contatos ↩','ok');
+}
 function erroComunicacaoCSV(){
   const rows=(statusHotelData&&statusHotelData.rows)||[];
-  return rows.filter(r=>normStatusHotel(r.statusRaw)==='erro');
+  return rows.filter(r=>normStatusHotel(r.statusRaw)==='erro' && !ehErroRevertido(r.nome)); // revertidos saem da pasta
 }
 function toggleErro(){ shErroAberto=!shErroAberto; renderErro(); requestAnimationFrame(ajustarAlturaCarrossel); }
 function renderErro(){
   const box=document.getElementById('shErro'); if(!box) return;
   const lst=erroComunicacaoCSV();
-  if(!lst.length){ box.innerHTML=''; return; }
-  const itens = shErroAberto ? `<div class="err-lista">${
-    lst.slice().sort((a,b)=>(a.nome||'').localeCompare(b.nome||'','pt-BR')).map(r=>`<div class="err-item"><span class="err-nome">${esc(r.nome)}</span></div>`).join('')
-  }</div>` : '';
+  const vazio = !lst.length;
+  const itens = shErroAberto ? (vazio
+    ? `<div class="err-lista"><div class="err-vazio">Nenhum nome com status “Erro de comunicação” no momento.</div></div>`
+    : `<div class="err-lista">${
+        lst.slice().sort((a,b)=>(a.nome||'').localeCompare(b.nome||'','pt-BR')).map(r=>`<div class="err-item"><span class="err-nome">${esc(r.nome)}</span><button class="err-reverter" data-reverter="${esc(r.nome)}" type="button" title="Reverter — devolver este nome para a lista de contatos">↩ Reverter</button></div>`).join('')
+      }</div>`) : '';
   box.innerHTML=`<div class="err-painel">
     <button class="err-toggle" id="btnErro" type="button">
       <span>📡 Erro de comunicação <b>(${lst.length})</b></span>
       <span class="err-chev">${shErroAberto?'▲':'▼'}</span>
     </button>${itens}
   </div>`;
-  box.onclick=(e)=>{ if(e.target.closest('#btnErro')){ toggleErro(); } };
+  box.onclick=(e)=>{
+    const rev=e.target.closest('.err-reverter');
+    if(rev){ e.stopPropagation(); const nm=rev.getAttribute('data-reverter'); if(confirm('Reverter “'+nm+'”?\n\nO nome volta para a lista de contatos e não retorna para esta pasta mesmo que você reimporte o CSV.')) marcarErroRevertido(nm); return; }
+    if(e.target.closest('#btnErro')){ toggleErro(); }
+  };
 }
 
 /* ===== PASTA "CONTATO FEITO" (status do CSV) — azul ===== */
@@ -2435,7 +2455,7 @@ function renderStatusColunas(){
 
   rows.forEach(r=>{
     if(normStatusHotel(r.statusRaw)==='recusado') return;      // Recusado/Cancelado: sai de todas as colunas (vai pra pasta)
-    if(normStatusHotel(r.statusRaw)==='erro') return;          // "Erro de comunicação": sai das colunas (vai pra pasta laranja)
+    if(normStatusHotel(r.statusRaw)==='erro' && !ehErroRevertido(r.nome)) return; // "Erro de comunicação" (não revertido): sai das colunas (vai pra pasta laranja)
     if(normStatusHotel(r.statusRaw)==='contatofeito') return;  // "Contato Feito" no CSV: sai das colunas (vai pra pasta azul)
     if(arqNomes.size && nomeBateVoucherEstrito(r.nome, arqNomes)) return; // arquivado (Contato Feito) → fora das colunas
     const ef=statusEfetivo(r,vSet,cart);                       // contato / realizado / tratativa
