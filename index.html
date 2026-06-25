@@ -147,6 +147,7 @@ main{max-width:1080px;margin:0 auto;padding:26px 22px 80px}
 }
 .section-eyebrow h2{font-size:18px;font-weight:700}
 .section-eyebrow .hint{font-size:13px;color:var(--texto-suave);margin-left:auto}
+.build-stamp{margin-left:10px;font-size:10.5px;color:#5A6B8C;font-weight:700;letter-spacing:.4px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;padding:3px 8px;border:1px solid #2C3B66;border-radius:6px;white-space:nowrap}
 #savedCount.filtrando{color:#35D07F;font-weight:700}
 /* ===== Aviso de buracos na numeração ===== */
 #avisoBuracos{
@@ -831,6 +832,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <div class="tail"></div>
     <h2>Vouchers salvos</h2>
     <span class="hint" id="savedCount">0 vouchers</span>
+    <span class="build-stamp" id="buildStamp" title="Versão publicada. Confira se é a mesma que está no ar no Cloudflare após o deploy.">v 2026-06-25·e</span>
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -1347,7 +1349,19 @@ async function carregarConfig(){
 }
 async function salvarConfig(){
   localStorage.setItem('uv_config',JSON.stringify(appConfig));
-  try{ await api('/api/config',{method:'POST',body:JSON.stringify(appConfig)}); }catch(e){}
+  try{
+    // Antes de gravar na nuvem, une as decisões PERMANENTES com o que já existe lá.
+    // Assim, um aparelho com versão/estado antigo NUNCA apaga decisões salvas por outro.
+    let cloud={};
+    try{ cloud=await api('/api/config')||{}; }catch(e){ cloud={}; }
+    appConfig.voucherResolvido ={...(cloud.voucherResolvido ||{}), ...(appConfig.voucherResolvido ||{})};
+    appConfig.naoMesmaPessoa   ={...(cloud.naoMesmaPessoa   ||{}), ...(appConfig.naoMesmaPessoa   ||{})};
+    appConfig.semCadastroWecann={...(cloud.semCadastroWecann||{}), ...(appConfig.semCadastroWecann||{})};
+    // quem já virou "Nome cadastrado" (está em voucherResolvido) não fica no vermelho
+    Object.keys(appConfig.voucherResolvido).forEach(k=>{ if(appConfig.semCadastroWecann[k]) delete appConfig.semCadastroWecann[k]; });
+    localStorage.setItem('uv_config',JSON.stringify(appConfig));
+    await api('/api/config',{method:'POST',body:JSON.stringify(appConfig)});
+  }catch(e){}
 }
 function aplicarVisibilidadeEstoque(){
   const btn=$('#btnEstoque');
