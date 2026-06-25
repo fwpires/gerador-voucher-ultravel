@@ -1793,10 +1793,13 @@ function conciliacaoWecann(){
   [...nomesDosVouchersWecann().values()].forEach(nome=>{
     if(ehVoucherResolvido(nome)) return;                        // "nome já cadastrado" → fora do aviso
     if(ehSemCadastroWecann(nome)) return;                       // movido p/ "Atualizar Cadastro Wecann"
-    const row=(rows||[]).find(r=>umNomeBateEstrito(nome, r.nome));
-    const st=row ? normStatusHotel(row.statusRaw) : 'ausente';
-    if(st==='fechado' || st==='tratativa' || st==='recusado') return; // fechado=ok · tratativa=PROMOVIDOS · recusado=pasta Recusados
-    voucherSemFechado.push(nome);
+    // olha TODAS as linhas do CSV que casam com esse nome (não só a primeira)
+    const casam=(rows||[]).filter(r=>umNomeBateEstrito(nome, r.nome));
+    const sts=casam.map(r=>normStatusHotel(r.statusRaw));
+    if(sts.includes('fechado')) return;                         // status "Fechado" no CSV → sai imediatamente desta lista
+    if(sts.includes('tratativa')) return;                       // tratativa → aparece em PROMOVIDOS
+    if(sts.includes('recusado')) return;                        // recusado → pasta Recusados
+    voucherSemFechado.push(nome);                               // continua em branco/ausente no CSV
   });
 
   // VIA VOUCHER: hóspedes de voucher WeCann que não existem em nenhuma linha do CSV (entram no Fechado)
