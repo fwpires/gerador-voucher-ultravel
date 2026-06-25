@@ -2837,6 +2837,8 @@ function renderSaved(list){
   const filt=ordenarVouchers(list.filter(v=>{
     if(!termos.length) return true;
     const campos=[v.num, v.cliente, v.vendedor, v.evento, v.contato];
+    // inclui os PASSAGEIROS na busca (antes só procurava titular/hóspedes)
+    if(Array.isArray(v.passageiros)) campos.push(v.passageiros.map(p=>(p&&typeof p==='object')?Object.values(p).join(' '):p).join(' '));
     (v.services||[]).forEach(s=>{
       if(s&&s.data){
         Object.values(s.data).forEach(val=>{
