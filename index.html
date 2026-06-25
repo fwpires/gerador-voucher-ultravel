@@ -403,6 +403,16 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .conc-promo-nome{min-width:0;word-break:break-word}
 .conc-naomesma{flex:0 0 auto;font-size:11px;font-weight:700;border-radius:7px;padding:4px 10px;cursor:pointer;background:rgba(127,178,245,.14);color:#9FC2F5;border:1px solid rgba(127,178,245,.4);transition:all .14s;line-height:1}
 .conc-naomesma:hover{background:#7FB2F5;color:#0A1929;border-color:#7FB2F5}
+.conc-jacadastrado{flex:0 0 auto;font-size:11px;font-weight:700;border-radius:7px;padding:4px 10px;cursor:pointer;background:rgba(95,208,192,.14);color:#5FD0C0;border:1px solid rgba(95,208,192,.4);transition:all .14s;line-height:1}
+.conc-jacadastrado:hover{background:#5FD0C0;color:#0A1929;border-color:#5FD0C0}
+.conc-promo-acoes{display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex:0 0 auto}
+.conc-semcadastro{flex:0 0 auto;font-size:11px;font-weight:700;border-radius:7px;padding:4px 10px;cursor:pointer;background:rgba(240,70,63,.14);color:#FF8A85;border:1px solid rgba(240,70,63,.4);transition:all .14s;line-height:1}
+.conc-semcadastro:hover{background:#F0463F;color:#fff;border-color:#F0463F}
+.conc-atualizar{border:1px solid rgba(240,70,63,.32) !important;background:rgba(240,70,63,.05) !important;border-radius:var(--raio-sm);padding:2px 0}
+.conc-atualizar .conc-grupo-tit{color:#FF8A85}
+.conc-atualizar .conc-grupo-tit b{color:#FF8A85}
+.conc-remcad{flex:0 0 auto;font-size:11px;font-weight:700;border-radius:7px;padding:4px 10px;cursor:pointer;background:rgba(53,208,127,.14);color:#35D07F;border:1px solid rgba(53,208,127,.4);transition:all .14s;line-height:1}
+.conc-remcad:hover{background:#35D07F;color:#0A1929;border-color:#35D07F}
 .conc-row{display:flex;gap:12px;flex-wrap:wrap}
 .conc-row > .conc-grupo{flex:1 1 280px;min-width:0;margin:0}
 .conc-semfechado .conc-grupo-tit{color:#5FD0C0}
@@ -1781,6 +1791,8 @@ function conciliacaoWecann(){
   // já aparecem em PROMOVIDOS). Ou seja: status em branco no CSV, ou nem estão no CSV.
   const voucherSemFechado=[];
   [...nomesDosVouchersWecann().values()].forEach(nome=>{
+    if(ehVoucherResolvido(nome)) return;                        // "nome já cadastrado" → fora do aviso
+    if(ehSemCadastroWecann(nome)) return;                       // movido p/ "Atualizar Cadastro Wecann"
     const row=(rows||[]).find(r=>umNomeBateEstrito(nome, r.nome));
     const st=row ? normStatusHotel(row.statusRaw) : 'ausente';
     if(st==='fechado' || st==='tratativa' || st==='recusado') return; // fechado=ok · tratativa=PROMOVIDOS · recusado=pasta Recusados
@@ -1812,8 +1824,9 @@ function conciliacaoWecann(){
     ambiguos: ambiguos.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR')),
     promovidos: (()=>{ const out=[],v=new Set(); promovidos.forEach(p=>{ const k=normNome(p.csv); if(!k||v.has(k))return; v.add(k); out.push(p); }); return out.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR')); })(),
     voucherSemFechado: dedupSort(voucherSemFechado),
+    semCadastro: Object.values(appConfig.semCadastroWecann||{}).filter(Boolean).sort((a,b)=>a.localeCompare(b,'pt-BR')),
     viaVoucher: dedupSort(viaVoucherVisivel),
-    ok: ambiguos.length===0 && promovidos.length===0 && voucherSemFechado.length===0
+    ok: ambiguos.length===0 && promovidos.length===0 && voucherSemFechado.length===0 && Object.keys(appConfig.semCadastroWecann||{}).length===0
   };
 }
 
@@ -1952,7 +1965,8 @@ function renderConciliacao(){
   const resumo = [
     nAmb?`${nAmb} aguardando sua escolha`:'',
     c.promovidos.length?`${c.promovidos.length} p/ atualizar no WeCann`:'',
-    c.voucherSemFechado.length?`${c.voucherSemFechado.length} voucher(s) sem Fechado no CSV`:''
+    c.voucherSemFechado.length?`${c.voucherSemFechado.length} voucher(s) sem Fechado no CSV`:'',
+    c.semCadastro.length?`${c.semCadastro.length} p/ atualizar cadastro no WeCann`:''
   ].filter(Boolean).join(' · ');
 
   // registra no log central (só os promovidos novos desta sessão, pra não repetir)
@@ -1971,7 +1985,11 @@ function renderConciliacao(){
     </div>` : '';
   const blocoSemFechado = c.voucherSemFechado.length ? `<div class="conc-grupo conc-semfechado">
       <div class="conc-grupo-tit">📄 No voucher mas SEM "Fechado" no CSV — atualize o status no WeCann <b>(${c.voucherSemFechado.length})</b></div>
-      <ul class="conc-lista">${c.voucherSemFechado.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>
+      <ul class="conc-lista">${c.voucherSemFechado.map(n=>`<li class="conc-promo-item"><span class="conc-promo-nome">${esc(n)}</span><span class="conc-promo-acoes"><button class="conc-jacadastrado" data-jacadastrado="${esc(n)}" title="Já é a mesma pessoa do CSV (grafia diferente) — tira do aviso">Nome já cadastrado</button><button class="conc-semcadastro" data-semcadastro="${esc(n)}" title="Não tem cadastro no WeCann — manda para a lista de atualização">Sem cadastro no Wecann</button></span></li>`).join('')}</ul>
+    </div>` : '';
+  const blocoSemCadastro = c.semCadastro.length ? `<div class="conc-grupo conc-atualizar">
+      <div class="conc-grupo-tit">🔴 Atualizar Cadastro Wecann <b>(${c.semCadastro.length})</b></div>
+      <ul class="conc-lista">${c.semCadastro.map(n=>`<li class="conc-promo-item"><span class="conc-promo-nome">${esc(n)}</span><button class="conc-remcad" data-nomecadastrado="${esc(n)}" title="Já cadastrei no WeCann — remover desta lista">Nome cadastrado</button></li>`).join('')}</ul>
     </div>` : '';
 
   box.innerHTML=`<div class="conc-banner conc-warn">
@@ -1982,12 +2000,19 @@ function renderConciliacao(){
     ${shConcAberto?`<div class="conc-detalhe">
       ${blocoAmbiguos}
       <div class="conc-row">${blocoPromo}${blocoSemFechado}</div>
+      ${blocoSemCadastro}
     </div>`:''}`;
 
   // toda a interação por delegação no container (evita clique duplo no "Ver detalhes")
   box.onclick=(e)=>{
     const nm=e.target.closest('[data-naomesma]');
     if(nm){ marcarNaoMesmaPessoa(nm.getAttribute('data-naomesma')); return; }
+    const jc=e.target.closest('[data-jacadastrado]');
+    if(jc){ marcarVoucherResolvido(jc.getAttribute('data-jacadastrado')); return; }
+    const sc=e.target.closest('[data-semcadastro]');
+    if(sc){ marcarSemCadastroWecann(sc.getAttribute('data-semcadastro')); return; }
+    const rc=e.target.closest('[data-nomecadastrado]');
+    if(rc){ nomeCadastradoWecann(rc.getAttribute('data-nomecadastrado')); return; }
     const r=e.target.closest('[data-resolver]');
     if(r){ const nm=r.getAttribute('data-resolver'); shResolverAberto = (shResolverAberto===normNome(nm))?'':normNome(nm); renderConciliacao(); return; }
     const o=e.target.closest('[data-vinc-pessoa]');
@@ -2188,6 +2213,44 @@ function marcarNaoMesmaPessoa(csvNome){
   salvarConfig();
   renderStatusColunas();
   toast('Pronto — "'+csvNome+'" voltou para o status do CSV.','info');
+}
+// "Nome já cadastrado": o nome do voucher é a MESMA pessoa do CSV, mas uma diferença de
+// grafia impede o reconhecimento automático. Marca como resolvido → some do aviso.
+function ehVoucherResolvido(nome){ return !!(appConfig.voucherResolvido||{})[normNome(nome)]; }
+function marcarVoucherResolvido(nome){
+  if(!confirm('Marcar "'+nome+'" como já cadastrado?\n\nO nome sai do aviso "No voucher mas SEM Fechado no CSV".')) return;
+  if(!appConfig.voucherResolvido || typeof appConfig.voucherResolvido!=='object') appConfig.voucherResolvido={};
+  appConfig.voucherResolvido[normNome(nome)]=true;
+  salvarConfig();
+  renderStatusColunas();
+  toast('Pronto — "'+nome+'" saiu do aviso.','info');
+}
+// "Sem cadastro no Wecann": o nome do voucher não existe no cadastro do WeCann.
+// Sai do aviso e vai para a lista vermelha "Atualizar Cadastro Wecann".
+function ehSemCadastroWecann(nome){ return !!(appConfig.semCadastroWecann||{})[normNome(nome)]; }
+function marcarSemCadastroWecann(nome){
+  if(!confirm('Mover "'+nome+'" para a lista "Atualizar Cadastro Wecann"?\n\n(Use para nomes que ainda não têm cadastro no WeCann.)')) return;
+  if(!appConfig.semCadastroWecann || typeof appConfig.semCadastroWecann!=='object') appConfig.semCadastroWecann={};
+  appConfig.semCadastroWecann[normNome(nome)]=nome; // guarda o nome completo p/ exibir na lista vermelha
+  salvarConfig();
+  renderStatusColunas();
+  toast('"'+nome+'" movido para "Atualizar Cadastro Wecann".','info');
+}
+function removerSemCadastroWecann(nome){
+  if(appConfig.semCadastroWecann) delete appConfig.semCadastroWecann[normNome(nome)];
+  salvarConfig();
+  renderStatusColunas();
+  toast('"'+nome+'" removido da lista de atualização.','info');
+}
+// "Nome cadastrado": o cadastro foi feito no WeCann → sai da lista vermelha na hora e
+// não volta pro aviso "sem Fechado" (fica marcado como resolvido).
+function nomeCadastradoWecann(nome){
+  if(appConfig.semCadastroWecann) delete appConfig.semCadastroWecann[normNome(nome)];
+  if(!appConfig.voucherResolvido || typeof appConfig.voucherResolvido!=='object') appConfig.voucherResolvido={};
+  appConfig.voucherResolvido[normNome(nome)]=true;
+  salvarConfig();
+  renderStatusColunas();
+  toast('"'+nome+'" cadastrado — saiu da lista.','info');
 }
 // esse nome (recusado no CSV) está dentro de algum voucher WeCann?
 function recusadoEmVoucher(csvNome){
