@@ -399,6 +399,10 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .conc-falta-voucher .conc-grupo-tit{color:#FF8A85}
 .conc-falta-fechado .conc-grupo-tit{color:#F2C829}
 .conc-promo .conc-grupo-tit{color:#F2B873}
+.conc-promo-item{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.conc-promo-nome{min-width:0;word-break:break-word}
+.conc-naomesma{flex:0 0 auto;font-size:11px;font-weight:700;border-radius:7px;padding:4px 10px;cursor:pointer;background:rgba(127,178,245,.14);color:#9FC2F5;border:1px solid rgba(127,178,245,.4);transition:all .14s;line-height:1}
+.conc-naomesma:hover{background:#7FB2F5;color:#0A1929;border-color:#7FB2F5}
 .conc-row{display:flex;gap:12px;flex-wrap:wrap}
 .conc-row > .conc-grupo{flex:1 1 280px;min-width:0;margin:0}
 .conc-semfechado .conc-grupo-tit{color:#5FD0C0}
@@ -1767,7 +1771,9 @@ function conciliacaoWecann(){
   const wecGuestsSet=new Set([...wecMap.values()]);
   const promovidos=[];
   (rows||[]).forEach(r=>{
-    if(normStatusHotel(r.statusRaw)==='tratativa' && nomeBateVoucherEstrito(r.nome, wecGuestsSet)) promovidos.push(nomeCompletoPromovido(r.nome, wecMap));
+    if(normStatusHotel(r.statusRaw)==='tratativa' && nomeBateVoucherEstrito(r.nome, wecGuestsSet) && !ehNaoMesmaPessoa(r.nome)){
+      promovidos.push({ nome: nomeCompletoPromovido(r.nome, wecMap), csv: r.nome });
+    }
   });
 
   // VOUCHER SEM "FECHADO" NO CSV: pessoas dos vouchers (hóspedes+passageiros) que ainda
@@ -1804,7 +1810,7 @@ function conciliacaoWecann(){
     faltaVoucher: dedupSort(faltaVoucher),
     faltaFechado: dedupSort(faltaFechado),
     ambiguos: ambiguos.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR')),
-    promovidos: dedupSort(promovidos),
+    promovidos: (()=>{ const out=[],v=new Set(); promovidos.forEach(p=>{ const k=normNome(p.csv); if(!k||v.has(k))return; v.add(k); out.push(p); }); return out.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR')); })(),
     voucherSemFechado: dedupSort(voucherSemFechado),
     viaVoucher: dedupSort(viaVoucherVisivel),
     ok: ambiguos.length===0 && promovidos.length===0 && voucherSemFechado.length===0
@@ -1952,16 +1958,16 @@ function renderConciliacao(){
   // registra no log central (só os promovidos novos desta sessão, pra não repetir)
   if(c.promovidos.length){
     window._promovLogados = window._promovLogados || new Set();
-    const novos=c.promovidos.filter(n=>!window._promovLogados.has(normNome(n)));
+    const novos=c.promovidos.filter(p=>!window._promovLogados.has(normNome(p.csv)));
     if(novos.length){
-      novos.forEach(n=>window._promovLogados.add(normNome(n)));
-      logRemoto('conflito','Status WeCann desatualizado: '+novos.length+' contato(s) em "tratativa" no CSV mas com voucher emitido', { nomes:novos.join(', ') });
+      novos.forEach(p=>window._promovLogados.add(normNome(p.csv)));
+      logRemoto('conflito','Status WeCann desatualizado: '+novos.length+' contato(s) em "tratativa" no CSV mas com voucher emitido', { nomes:novos.map(p=>p.nome).join(', ') });
     }
   }
 
   const blocoPromo = c.promovidos.length ? `<div class="conc-grupo conc-promo">
       <div class="conc-grupo-tit">🟠 Em "tratativa" no CSV mas COM voucher — atualize o status no WeCann <b>(${c.promovidos.length})</b></div>
-      <ul class="conc-lista">${c.promovidos.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>
+      <ul class="conc-lista">${c.promovidos.map(p=>`<li class="conc-promo-item"><span class="conc-promo-nome">${esc(p.nome)}</span><button class="conc-naomesma" data-naomesma="${esc(p.csv)}" title="Marcar que NÃO é a mesma pessoa do voucher — volta para o status do CSV">Não é a mesma pessoa</button></li>`).join('')}</ul>
     </div>` : '';
   const blocoSemFechado = c.voucherSemFechado.length ? `<div class="conc-grupo conc-semfechado">
       <div class="conc-grupo-tit">📄 No voucher mas SEM "Fechado" no CSV — atualize o status no WeCann <b>(${c.voucherSemFechado.length})</b></div>
@@ -1980,6 +1986,8 @@ function renderConciliacao(){
 
   // toda a interação por delegação no container (evita clique duplo no "Ver detalhes")
   box.onclick=(e)=>{
+    const nm=e.target.closest('[data-naomesma]');
+    if(nm){ marcarNaoMesmaPessoa(nm.getAttribute('data-naomesma')); return; }
     const r=e.target.closest('[data-resolver]');
     if(r){ const nm=r.getAttribute('data-resolver'); shResolverAberto = (shResolverAberto===normNome(nm))?'':normNome(nm); renderConciliacao(); return; }
     const o=e.target.closest('[data-vinc-pessoa]');
@@ -2170,6 +2178,17 @@ function decidirRecusado(csvNome, decisao){
   salvarConfig();
   renderStatusColunas();
 }
+// "Não é a mesma pessoa": o nome do CSV foi casado com um voucher por engano (homônimo).
+// Marca pra ignorar esse casamento → o nome volta a obedecer o status do CSV.
+function ehNaoMesmaPessoa(nome){ return !!(appConfig.naoMesmaPessoa||{})[normNome(nome)]; }
+function marcarNaoMesmaPessoa(csvNome){
+  if(!confirm('Confirmar que "'+csvNome+'" NÃO é a mesma pessoa do voucher?\n\nO nome sai deste aviso e volta para o status que tem no CSV (ex.: "Em tratativa").')) return;
+  if(!appConfig.naoMesmaPessoa || typeof appConfig.naoMesmaPessoa!=='object') appConfig.naoMesmaPessoa={};
+  appConfig.naoMesmaPessoa[normNome(csvNome)]=true;
+  salvarConfig();
+  renderStatusColunas();
+  toast('Pronto — "'+csvNome+'" voltou para o status do CSV.','info');
+}
 // esse nome (recusado no CSV) está dentro de algum voucher WeCann?
 function recusadoEmVoucher(csvNome){
   const vou=[...nomesDosVouchersWecann().values()];
@@ -2257,7 +2276,7 @@ function renderStatusColunas(){
     if(normStatusHotel(r.statusRaw)==='recusado') return;      // Recusado/Cancelado: sai de todas as colunas (vai pra pasta)
     if(arqNomes.size && nomeBateVoucherEstrito(r.nome, arqNomes)) return; // arquivado (Contato Feito) → fora das colunas
     const ef=statusEfetivo(r,vSet,cart);                       // contato / realizado / tratativa
-    if(nomeBateVoucherEstrito(r.nome, wecGuests)) return;       // tem voucher → já aparece no Fechado (não duplica)
+    if(nomeBateVoucherEstrito(r.nome, wecGuests) && !ehNaoMesmaPessoa(r.nome)) return; // tem voucher → já aparece no Fechado (não duplica) — exceto se você marcou "não é a mesma pessoa"
     if(ef==='fechado') return;                                 // "fechado" no CSV sem voucher: não exibe (só conta no número do CSV)
     grupos[ef].push(r);
   });
