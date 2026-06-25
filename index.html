@@ -512,6 +512,16 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .arq-at{font-weight:400;color:#7C8AA5;font-size:12px}
 .arq-restaurar{flex:0 0 auto;font-size:11px;font-weight:700;border-radius:7px;padding:5px 10px;cursor:pointer;background:rgba(127,178,245,.12);color:#7FB2F5;border:1px solid rgba(127,178,245,.35);transition:all .14s;line-height:1}
 .arq-restaurar:hover{background:#7FB2F5;color:#0A1929;border-color:#7FB2F5}
+/* ===== Pasta Erro de comunicação (status CSV) — laranja ===== */
+#shErro:empty{display:none}
+.err-painel{margin-top:14px;border:1px solid rgba(255,159,67,.34);border-radius:var(--raio-sm);overflow:hidden;background:rgba(255,159,67,.05)}
+.err-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:transparent;border:none;color:#FFA94D;font-size:13.5px;font-weight:700;padding:11px 15px;cursor:pointer;font-family:inherit}
+.err-toggle:hover{background:rgba(255,159,67,.09);color:#FFC078}
+.err-toggle b{color:#FFA94D}
+.err-chev{font-size:10px;opacity:.7}
+.err-lista{padding:6px 12px 12px;display:flex;flex-direction:column;gap:6px;max-height:320px;overflow-y:auto}
+.err-item{display:flex;align-items:center;padding:8px 11px;border-radius:8px;background:rgba(255,159,67,.06);border:1px solid rgba(255,159,67,.16)}
+.err-nome{font-size:13px;font-weight:600;word-break:break-word}
 /* ===== Pasta Contato Feito (status CSV) — azul ===== */
 #shContatoFeito:empty{display:none}
 .cf-painel{margin-top:14px;border:1px solid rgba(127,178,245,.32);border-radius:var(--raio-sm);overflow:hidden;background:rgba(127,178,245,.05)}
@@ -1560,6 +1570,7 @@ function extrairAcompanhantes(obs){
 function normStatusHotel(raw){
   const s=_normE(raw||'').trim();
   if(!s) return 'contato';
+  if(s.indexOf('erro')>=0 && s.indexOf('comunic')>=0) return 'erro'; // "Erro de comunicação" → pasta laranja
   if(s.indexOf('feito')>=0) return 'contatofeito'; // "Contato Feito" no CSV → pasta azul
   if(s.indexOf('recusado')>=0 || s.indexOf('cancelado')>=0) return 'recusado'; // recusado/cancelado: sai de tudo
   if(s.indexOf('fechado')>=0) return 'fechado';
@@ -2300,6 +2311,29 @@ function recusadoEmVoucher(csvNome){
 }
 function toggleRecusados(){ shRecusadosAberto=!shRecusadosAberto; renderRecusados(); requestAnimationFrame(ajustarAlturaCarrossel); }
 
+/* ===== PASTA "ERRO DE COMUNICAÇÃO" (status do CSV) — laranja ===== */
+let shErroAberto=false;
+function erroComunicacaoCSV(){
+  const rows=(statusHotelData&&statusHotelData.rows)||[];
+  return rows.filter(r=>normStatusHotel(r.statusRaw)==='erro');
+}
+function toggleErro(){ shErroAberto=!shErroAberto; renderErro(); requestAnimationFrame(ajustarAlturaCarrossel); }
+function renderErro(){
+  const box=document.getElementById('shErro'); if(!box) return;
+  const lst=erroComunicacaoCSV();
+  if(!lst.length){ box.innerHTML=''; return; }
+  const itens = shErroAberto ? `<div class="err-lista">${
+    lst.slice().sort((a,b)=>(a.nome||'').localeCompare(b.nome||'','pt-BR')).map(r=>`<div class="err-item"><span class="err-nome">${esc(r.nome)}</span></div>`).join('')
+  }</div>` : '';
+  box.innerHTML=`<div class="err-painel">
+    <button class="err-toggle" id="btnErro" type="button">
+      <span>📡 Erro de comunicação <b>(${lst.length})</b></span>
+      <span class="err-chev">${shErroAberto?'▲':'▼'}</span>
+    </button>${itens}
+  </div>`;
+  box.onclick=(e)=>{ if(e.target.closest('#btnErro')){ toggleErro(); } };
+}
+
 /* ===== PASTA "CONTATO FEITO" (status do CSV) — azul ===== */
 let shContatoFeitoAberto=false;
 function contatoFeitoCSV(){
@@ -2401,6 +2435,7 @@ function renderStatusColunas(){
 
   rows.forEach(r=>{
     if(normStatusHotel(r.statusRaw)==='recusado') return;      // Recusado/Cancelado: sai de todas as colunas (vai pra pasta)
+    if(normStatusHotel(r.statusRaw)==='erro') return;          // "Erro de comunicação": sai das colunas (vai pra pasta laranja)
     if(normStatusHotel(r.statusRaw)==='contatofeito') return;  // "Contato Feito" no CSV: sai das colunas (vai pra pasta azul)
     if(arqNomes.size && nomeBateVoucherEstrito(r.nome, arqNomes)) return; // arquivado (Contato Feito) → fora das colunas
     const ef=statusEfetivo(r,vSet,cart);                       // contato / realizado / tratativa
@@ -2507,6 +2542,7 @@ function renderStatusColunas(){
   atualizarBotaoTrazer();
   renderConciliacao();
   renderRecusados();
+  renderErro();
   renderContatoFeito();
   renderArquivados();
 
@@ -2714,6 +2750,7 @@ function renderDisponibilidade(){
             <div class="sh-topo"><span class="sh-titulo">Conciliação &amp; Pastas</span></div>
             <div id="shConc"></div>
             <div id="shRecusados"></div>
+            <div id="shErro"></div>
             <div id="shContatoFeito"></div>
             <div id="shArquiv"></div>
           </div>
