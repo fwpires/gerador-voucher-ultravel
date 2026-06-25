@@ -511,6 +511,16 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .arq-at{font-weight:400;color:#7C8AA5;font-size:12px}
 .arq-restaurar{flex:0 0 auto;font-size:11px;font-weight:700;border-radius:7px;padding:5px 10px;cursor:pointer;background:rgba(127,178,245,.12);color:#7FB2F5;border:1px solid rgba(127,178,245,.35);transition:all .14s;line-height:1}
 .arq-restaurar:hover{background:#7FB2F5;color:#0A1929;border-color:#7FB2F5}
+/* ===== Pasta Contato Feito (status CSV) — azul ===== */
+#shContatoFeito:empty{display:none}
+.cf-painel{margin-top:14px;border:1px solid rgba(127,178,245,.32);border-radius:var(--raio-sm);overflow:hidden;background:rgba(127,178,245,.05)}
+.cf-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:transparent;border:none;color:#9FC2F5;font-size:13.5px;font-weight:700;padding:11px 15px;cursor:pointer;font-family:inherit}
+.cf-toggle:hover{background:rgba(127,178,245,.09);color:#C4D8FA}
+.cf-toggle b{color:#9FC2F5}
+.cf-chev{font-size:10px;opacity:.7}
+.cf-lista{padding:6px 12px 12px;display:flex;flex-direction:column;gap:6px;max-height:320px;overflow-y:auto}
+.cf-item{display:flex;align-items:center;padding:8px 11px;border-radius:8px;background:rgba(127,178,245,.06);border:1px solid rgba(127,178,245,.14)}
+.cf-nome{font-size:13px;font-weight:600;word-break:break-word}
 /* ===== Pasta Recusados / Cancelados ===== */
 #shRecusados:empty{display:none}
 .rec-painel{margin-top:14px;border:1px solid rgba(240,70,63,.3);border-radius:var(--raio-sm);overflow:hidden;background:rgba(240,70,63,.04)}
@@ -555,6 +565,8 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .est-rodape{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid #2C3B66}
 .est-rodape-info{color:#A9B6CC;font-size:11.5px}
 .est-rodape-info b{color:#3DD6C0;font-weight:700}
+.est-rodape-soma{color:#A9B6CC;font-size:12.5px;font-weight:600}
+.est-rodape-soma b{color:#3DD6C0;font-weight:800;font-size:14px}
 .est-import{background:rgba(53,208,127,.12);color:#35D07F;border:1px solid rgba(53,208,127,.35);border-radius:9px;padding:7px 14px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif}
 .est-import:hover{background:rgba(53,208,127,.2)}
 @media(max-width:560px){.est-card{padding:15px 16px}.est-linha{font-size:11px;gap:8px}.est-led{width:9px;height:9px}}
@@ -1534,6 +1546,7 @@ function extrairAcompanhantes(obs){
 function normStatusHotel(raw){
   const s=_normE(raw||'').trim();
   if(!s) return 'contato';
+  if(s.indexOf('feito')>=0) return 'contatofeito'; // "Contato Feito" no CSV → pasta azul
   if(s.indexOf('recusado')>=0 || s.indexOf('cancelado')>=0) return 'recusado'; // recusado/cancelado: sai de tudo
   if(s.indexOf('fechado')>=0) return 'fechado';
   if(s.indexOf('tratativa')>=0) return 'tratativa';
@@ -2117,7 +2130,7 @@ function arquivarContato(nome){
   if(appConfig.carteira) delete appConfig.carteira[n]; // sai da coluna "Contato Realizado"
   salvarConfig();
   renderStatusColunas();
-  toast('“'+nome+'” arquivado (Contato Feito) 🗄️','ok');
+  toast('“'+nome+'” movido para Template Enviado ✅','ok');
 }
 
 // tira dos Arquivados e devolve para "Contato Realizado" (mesmo atendente)
@@ -2272,6 +2285,29 @@ function recusadoEmVoucher(csvNome){
   return vou.some(v=>umNomeBateEstrito(csvNome, v));
 }
 function toggleRecusados(){ shRecusadosAberto=!shRecusadosAberto; renderRecusados(); requestAnimationFrame(ajustarAlturaCarrossel); }
+
+/* ===== PASTA "CONTATO FEITO" (status do CSV) — azul ===== */
+let shContatoFeitoAberto=false;
+function contatoFeitoCSV(){
+  const rows=(statusHotelData&&statusHotelData.rows)||[];
+  return rows.filter(r=>normStatusHotel(r.statusRaw)==='contatofeito');
+}
+function toggleContatoFeito(){ shContatoFeitoAberto=!shContatoFeitoAberto; renderContatoFeito(); requestAnimationFrame(ajustarAlturaCarrossel); }
+function renderContatoFeito(){
+  const box=document.getElementById('shContatoFeito'); if(!box) return;
+  const lst=contatoFeitoCSV();
+  if(!lst.length){ box.innerHTML=''; return; }
+  const itens = shContatoFeitoAberto ? `<div class="cf-lista">${
+    lst.slice().sort((a,b)=>(a.nome||'').localeCompare(b.nome||'','pt-BR')).map(r=>`<div class="cf-item"><span class="cf-nome">${esc(r.nome)}</span></div>`).join('')
+  }</div>` : '';
+  box.innerHTML=`<div class="cf-painel">
+    <button class="cf-toggle" id="btnContatoFeito" type="button">
+      <span>📞 Contato Feito <b>(${lst.length})</b></span>
+      <span class="cf-chev">${shContatoFeitoAberto?'▲':'▼'}</span>
+    </button>${itens}
+  </div>`;
+  box.onclick=(e)=>{ if(e.target.closest('#btnContatoFeito')){ toggleContatoFeito(); } };
+}
 function renderRecusados(){
   const box=document.getElementById('shRecusados'); if(!box) return;
   const recs=recusadosCSV();
@@ -2313,7 +2349,7 @@ function renderArquivados(){
   }</div>` : '';
   box.innerHTML=`<div class="arq-painel">
     <button class="arq-toggle" id="btnArquiv" type="button">
-      <span>✅ Contato Feito <b>(${itens.length})</b></span>
+      <span>✅ Template Enviado <b>(${itens.length})</b></span>
       <span class="arq-chev">${shArquivAberto?'▲':'▼'}</span>
     </button>${lista}
   </div>`;
@@ -2351,6 +2387,7 @@ function renderStatusColunas(){
 
   rows.forEach(r=>{
     if(normStatusHotel(r.statusRaw)==='recusado') return;      // Recusado/Cancelado: sai de todas as colunas (vai pra pasta)
+    if(normStatusHotel(r.statusRaw)==='contatofeito') return;  // "Contato Feito" no CSV: sai das colunas (vai pra pasta azul)
     if(arqNomes.size && nomeBateVoucherEstrito(r.nome, arqNomes)) return; // arquivado (Contato Feito) → fora das colunas
     const ef=statusEfetivo(r,vSet,cart);                       // contato / realizado / tratativa
     if(nomeBateVoucherEstrito(r.nome, wecGuests) && !ehNaoMesmaPessoa(r.nome)) return; // tem voucher → já aparece no Fechado (não duplica) — exceto se você marcou "não é a mesma pessoa"
@@ -2393,7 +2430,7 @@ function renderStatusColunas(){
       return `<div class="sh-item"><div class="sh-nome">${esc(r.nome)}</div>${meta?`<div class="sh-meta">${esc(meta)}</div>`:''}</div>`;
     }).join(''):`<div class="sh-vazio">${termo?'Nenhum resultado':'Nenhum voucher WeCann'}</div>`;
     const sub=`<span class="sh-csv-info">📋 CSV marca <b>${csvFechados}</b> como fechado</span>`;
-    return colHTML('sh-fechado','Fechado (Vendido)',cont,corpo,sub);
+    return colHTML('sh-fechado','Fechado (Hóspedes)',cont,corpo,sub);
   };
 
   // molde de coluna (header colorido + sub-header opcional + corpo rolável)
@@ -2425,7 +2462,7 @@ function renderStatusColunas(){
     const corpo = ats.length ? ats.map(at=>{
       const itens=porAt[at].map(r=>{
         const m=metaTrat(r)||r.email||'';
-        return `<div class="sh-item"><div class="sh-nome">${esc(r.nome)}</div>${m?`<div class="sh-meta">${esc(m)}</div>`:''}<div class="sh-acoes"><button class="sh-act sh-feito" data-acao="feito" data-nome="${esc(r.nome)}" title="Contato concluído — arquivar este nome">✓ Contato Feito</button><button class="sh-act sh-undo" data-acao="devolver" data-nome="${esc(r.nome)}" title="Devolver para Fazer contato">↩ Devolver</button></div></div>`;
+        return `<div class="sh-item"><div class="sh-nome">${esc(r.nome)}</div>${m?`<div class="sh-meta">${esc(m)}</div>`:''}<div class="sh-acoes"><button class="sh-act sh-feito" data-acao="feito" data-nome="${esc(r.nome)}" title="Template enviado — arquivar este nome">✓ Template Enviado</button><button class="sh-act sh-undo" data-acao="devolver" data-nome="${esc(r.nome)}" title="Devolver para Fazer contato">↩ Devolver</button></div></div>`;
       }).join('');
       return `<div class="sh-grupo"><div class="sh-grupo-tit">👤 ${esc(at)} <span class="sh-grupo-n">(${porAt[at].length})</span></div>${itens}</div>`;
     }).join('') : `<div class="sh-vazio">${(termo||shFiltroAtendente)?'Nenhum resultado':'Nenhum contato puxado ainda'}</div>`;
@@ -2456,6 +2493,7 @@ function renderStatusColunas(){
   atualizarBotaoTrazer();
   renderConciliacao();
   renderRecusados();
+  renderContatoFeito();
   renderArquivados();
 
   const info=document.getElementById('shInfo');
@@ -2601,8 +2639,10 @@ function renderDisponibilidade(){
   }).join('');
 
   // 2ª visão: contador de diárias (ocupação) por período entrada→saída — 3 hotéis
+  let somaOcupacao=0;
   const colsDiarias=HOTEIS_OCUPACAO.map(cfg=>{
     const d=calcDiariasHotel(cfg);
+    somaOcupacao += (d.total||0);
     let corpo;
     if(!d.periodos.length && !d.semDatas){
       corpo=`<div class="est-vazio-diaria">Nenhuma diária registrada ainda</div>`;
@@ -2636,6 +2676,7 @@ function renderDisponibilidade(){
             <div class="est-ocup-hoteis">${colsDiarias}</div>
             <div class="est-ocup-rodape">
               <span class="est-rodape-info">📋 Lista WeCann: <b>${participantesWecann.size}</b> participante(s)</span>
+              <span class="est-rodape-soma">🛏️ Ocupação Total (3 hotéis): <b>${somaOcupacao}</b></span>
               <button class="est-import" id="btnImportarParticipantes">Importar / Atualizar lista (CSV)</button>
             </div>
           </div>
@@ -2659,6 +2700,7 @@ function renderDisponibilidade(){
             <div class="sh-topo"><span class="sh-titulo">Conciliação &amp; Pastas</span></div>
             <div id="shConc"></div>
             <div id="shRecusados"></div>
+            <div id="shContatoFeito"></div>
             <div id="shArquiv"></div>
           </div>
         </div>
