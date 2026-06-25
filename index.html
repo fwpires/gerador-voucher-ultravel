@@ -1318,7 +1318,18 @@ async function carregarConfig(){
   appConfig={...appConfig, ...local};
   try{
     const c=await api('/api/config');
-    if(c && typeof c==='object'){ appConfig={...appConfig, ...c}; localStorage.setItem('uv_config',JSON.stringify(appConfig)); }
+    if(c && typeof c==='object'){
+      appConfig={...appConfig, ...c};
+      // decisões PERMANENTES (só adicionam, nunca removem): "Nome já cadastrado" e "Não é a mesma
+      // pessoa". Une o que está salvo localmente + na nuvem, pra que NUNCA voltem ao reimportar o CSV.
+      appConfig.voucherResolvido={...(local.voucherResolvido||{}), ...(c.voucherResolvido||{})};
+      appConfig.naoMesmaPessoa ={...(local.naoMesmaPessoa ||{}), ...(c.naoMesmaPessoa ||{})};
+      // lista "Atualizar Cadastro Wecann": também une local+nuvem (nunca volta pra lista anterior).
+      // Depois tira quem já foi marcado "Nome cadastrado" (está em voucherResolvido) pra não ressuscitar.
+      appConfig.semCadastroWecann={...(local.semCadastroWecann||{}), ...(c.semCadastroWecann||{})};
+      Object.keys(appConfig.voucherResolvido).forEach(k=>{ if(appConfig.semCadastroWecann[k]) delete appConfig.semCadastroWecann[k]; });
+      localStorage.setItem('uv_config',JSON.stringify(appConfig));
+    }
   }catch(e){}
   aplicarVisibilidadeEstoque();
 }
