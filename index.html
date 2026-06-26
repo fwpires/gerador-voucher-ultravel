@@ -844,7 +844,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <div class="tail"></div>
     <h2>Vouchers salvos</h2>
     <span class="hint" id="savedCount">0 vouchers</span>
-    <span class="build-stamp" id="buildStamp" title="Versão publicada. Confira se é a mesma que está no ar no Cloudflare após o deploy.">v 2026-06-25·h</span>
+    <span class="build-stamp" id="buildStamp" title="Versão publicada. Confira se é a mesma que está no ar no Cloudflare após o deploy.">v 2026-06-25·i</span>
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -1350,7 +1350,6 @@ async function carregarConfig(){
       // pessoa". Une o que está salvo localmente + na nuvem, pra que NUNCA voltem ao reimportar o CSV.
       appConfig.voucherResolvido={...(local.voucherResolvido||{}), ...(c.voucherResolvido||{})};
       appConfig.naoMesmaPessoa ={...(local.naoMesmaPessoa ||{}), ...(c.naoMesmaPessoa ||{})};
-      appConfig.erroRevertido  ={...(local.erroRevertido  ||{}), ...(c.erroRevertido  ||{})};
       // lista "Atualizar Cadastro Wecann": também une local+nuvem (nunca volta pra lista anterior).
       // Depois tira quem já foi marcado "Nome cadastrado" (está em voucherResolvido) pra não ressuscitar.
       appConfig.semCadastroWecann={...(local.semCadastroWecann||{}), ...(c.semCadastroWecann||{})};
@@ -1369,7 +1368,6 @@ async function salvarConfig(){
     try{ cloud=await api('/api/config')||{}; }catch(e){ cloud={}; }
     appConfig.voucherResolvido ={...(cloud.voucherResolvido ||{}), ...(appConfig.voucherResolvido ||{})};
     appConfig.naoMesmaPessoa   ={...(cloud.naoMesmaPessoa   ||{}), ...(appConfig.naoMesmaPessoa   ||{})};
-    appConfig.erroRevertido    ={...(cloud.erroRevertido    ||{}), ...(appConfig.erroRevertido    ||{})};
     appConfig.semCadastroWecann={...(cloud.semCadastroWecann||{}), ...(appConfig.semCadastroWecann||{})};
     // quem já virou "Nome cadastrado" (está em voucherResolvido) não fica no vermelho
     Object.keys(appConfig.voucherResolvido).forEach(k=>{ if(appConfig.semCadastroWecann[k]) delete appConfig.semCadastroWecann[k]; });
@@ -1594,6 +1592,13 @@ async function importarStatusHotel(file){
   if(!rows.length){ toast('CSV vazio ou em formato inesperado','err'); return; }
   statusHotelData={ rows, importadoEm:new Date().toISOString() };
   localStorage.setItem('uv_statushotel', JSON.stringify(statusHotelData));
+  // Cada novo CSV reavalia do zero: quem voltar com "Erro de comunicação" entra na pasta de novo.
+  // Assim o "Reverter" é momentâneo e o processo fica REPETÍVEL (não trava após reverter uma vez).
+  if(appConfig.erroRevertido && Object.keys(appConfig.erroRevertido).length){
+    appConfig.erroRevertido={};
+    try{ localStorage.setItem('uv_config',JSON.stringify(appConfig)); }catch(e){}
+    salvarConfig();
+  }
   renderStatusColunas();
   // resumo da classificação na hora (transparência: você confere se bateu com o esperado)
   const cF=rows.filter(r=>normStatusHotel(r.statusRaw)==='fechado').length;
@@ -2325,7 +2330,7 @@ function marcarErroRevertido(nome){
   appConfig.erroRevertido[normNome(nome)]=true;       // decisão permanente: não volta pra pasta ao reimportar CSV
   salvarConfig();
   renderStatusColunas();
-  toast('“'+nome+'” revertido — voltou para a lista de contatos ↩','ok');
+  toast('“'+nome+'” revertido — voltou para a lista de contatos ↩ (volta para a pasta se reimportar com erro)','ok');
 }
 function erroComunicacaoCSV(){
   const rows=(statusHotelData&&statusHotelData.rows)||[];
@@ -2349,7 +2354,7 @@ function renderErro(){
   </div>`;
   box.onclick=(e)=>{
     const rev=e.target.closest('.err-reverter');
-    if(rev){ e.stopPropagation(); const nm=rev.getAttribute('data-reverter'); if(confirm('Reverter “'+nm+'”?\n\nO nome volta para a lista de contatos e não retorna para esta pasta mesmo que você reimporte o CSV.')) marcarErroRevertido(nm); return; }
+    if(rev){ e.stopPropagation(); const nm=rev.getAttribute('data-reverter'); if(confirm('Reverter “'+nm+'”?\n\nO nome volta agora para a lista de contatos. Se você reimportar o CSV e o status ainda for “Erro de comunicação”, ele retorna para esta pasta.')) marcarErroRevertido(nm); return; }
     if(e.target.closest('#btnErro')){ toggleErro(); }
   };
 }
