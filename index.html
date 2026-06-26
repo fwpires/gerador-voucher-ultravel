@@ -534,8 +534,7 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .err-reverter{flex-shrink:0;background:transparent;border:1px solid rgba(255,159,67,.5);color:#FFA94D;font-size:11.5px;font-weight:700;padding:5px 11px;border-radius:7px;cursor:pointer;font-family:inherit;white-space:nowrap}
 .err-reverter:hover{background:#FFA94D;color:#1A1206;border-color:#FFA94D}
 .err-vazio{font-size:12.5px;color:#8A99B5;font-style:italic;padding:4px 2px}
-/* ===== Pasta Sem Retorno (status CSV) — roxa ===== */
-#shSemRetorno:empty{display:none}
+/* ===== Pasta Sem Retorno (status CSV) — roxa (sempre fixa) ===== */
 .sr-painel{margin-top:14px;border:1px solid rgba(167,139,250,.34);border-radius:var(--raio-sm);overflow:hidden;background:rgba(167,139,250,.05)}
 .sr-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:transparent;border:none;color:#B79DF6;font-size:13.5px;font-weight:700;padding:11px 15px;cursor:pointer;font-family:inherit}
 .sr-toggle:hover{background:rgba(167,139,250,.09);color:#CDBBFA}
@@ -544,6 +543,7 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .sr-lista{padding:6px 12px 12px;display:flex;flex-direction:column;gap:6px;max-height:320px;overflow-y:auto}
 .sr-item{display:flex;align-items:center;padding:8px 11px;border-radius:8px;background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.16)}
 .sr-nome{font-size:13px;font-weight:600;word-break:break-word}
+.sr-vazio{font-size:12.5px;color:#8A99B5;font-style:italic;padding:4px 2px}
 /* ===== Pasta Contato Feito (status CSV) — azul ===== */
 #shContatoFeito:empty{display:none}
 .cf-painel{margin-top:14px;border:1px solid rgba(127,178,245,.32);border-radius:var(--raio-sm);overflow:hidden;background:rgba(127,178,245,.05)}
@@ -865,7 +865,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <h2>Vouchers salvos</h2>
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
-    <!-- build: 2026-06-25·v (selo interno — não visível ao usuário) -->
+    <!-- build: 2026-06-25·w (selo interno — não visível ao usuário) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -2410,10 +2410,12 @@ function toggleSemRetorno(){ shSemRetornoAberto=!shSemRetornoAberto; renderSemRe
 function renderSemRetorno(){
   const box=document.getElementById('shSemRetorno'); if(!box) return;
   const lst=semRetornoCSV();
-  if(!lst.length){ box.innerHTML=''; return; }
-  const itens = shSemRetornoAberto ? `<div class="sr-lista">${
-    lst.slice().sort((a,b)=>(a.nome||'').localeCompare(b.nome||'','pt-BR')).map(r=>`<div class="sr-item"><span class="sr-nome">${esc(r.nome)}</span></div>`).join('')
-  }</div>` : '';
+  const vazio = !lst.length;
+  const itens = shSemRetornoAberto ? (vazio
+    ? `<div class="sr-lista"><div class="sr-vazio">Nenhum nome com status “Sem Retorno” no momento.</div></div>`
+    : `<div class="sr-lista">${
+        lst.slice().sort((a,b)=>(a.nome||'').localeCompare(b.nome||'','pt-BR')).map(r=>`<div class="sr-item"><span class="sr-nome">${esc(r.nome)}</span></div>`).join('')
+      }</div>`) : '';
   box.innerHTML=`<div class="sr-painel">
     <button class="sr-toggle" id="btnSemRetorno" type="button">
       <span>🔇 Sem Retorno <b>(${lst.length})</b></span>
