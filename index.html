@@ -147,22 +147,15 @@ main{max-width:1080px;margin:0 auto;padding:26px 22px 80px}
 }
 .section-eyebrow h2{font-size:18px;font-weight:700}
 .section-eyebrow .hint{font-size:13px;color:var(--texto-suave);margin-left:auto}
-.build-stamp{margin-left:10px;font-size:10.5px;color:#5A6B8C;font-weight:700;letter-spacing:.4px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;padding:3px 8px;border:1px solid #2C3B66;border-radius:6px;white-space:nowrap}
 #savedCount.filtrando{color:#35D07F;font-weight:700}
-/* ===== Aviso de buracos na numeração ===== */
-#avisoBuracos{
-  display:none;align-items:center;gap:11px;
-  margin:0 0 14px;padding:11px 15px;
-  background:rgba(245,158,11,.10);
-  border:1px solid rgba(245,158,11,.38);
-  border-radius:var(--raio-sm);
-  color:#B45309;
-}
-body.dark #avisoBuracos{color:#FBBF24;background:rgba(245,158,11,.09);border-color:rgba(245,158,11,.30)}
-#avisoBuracos .ab-ico{width:20px;height:20px;flex-shrink:0}
-#avisoBuracos .ab-txt{display:flex;flex-direction:column;gap:1px;line-height:1.3;min-width:0}
-#avisoBuracos .ab-txt b{font-size:13.5px;font-weight:700}
-#avisoBuracos .ab-txt span{font-size:12.5px;font-family:'JetBrains Mono',monospace;opacity:.92;word-break:break-word}
+/* ===== Aviso de buracos na numeração — ícone discreto + popover ===== */
+#avisoBuracos{display:none;position:relative;align-items:center}
+#avisoBuracos .ab-btn{background:transparent;border:none;cursor:pointer;color:#FBBF24;padding:4px;display:flex;border-radius:6px;line-height:0}
+#avisoBuracos .ab-btn:hover{background:rgba(245,158,11,.14)}
+#avisoBuracos .ab-btn svg{width:17px;height:17px}
+#avisoBuracos .ab-pop{position:absolute;top:calc(100% + 7px);right:0;background:#16213D;border:1px solid rgba(245,158,11,.40);border-radius:9px;padding:10px 13px;display:flex;flex-direction:column;gap:2px;white-space:nowrap;z-index:60;box-shadow:0 10px 30px rgba(0,0,0,.45)}
+#avisoBuracos .ab-pop b{font-size:12.5px;font-weight:700;color:#FBBF24}
+#avisoBuracos .ab-pop span{font-size:12px;font-family:'JetBrains Mono',monospace;color:#CBD5E1}
 .paginacao{margin-top:18px;display:flex;flex-direction:column;align-items:center;gap:12px}
 .paginacao:empty{display:none}
 .pg-info{font-size:13px;color:var(--texto-suave)}
@@ -506,6 +499,11 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .arq-toggle:hover{background:rgba(53,208,127,.06);color:#7DEBC0}
 .arq-toggle b{color:#5BE0A8}
 .arq-chev{font-size:10px;opacity:.7}
+/* Etiquetas no canto das pastas */
+.folder-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.folder-tag{font-size:9.5px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.tag-wecann{background:rgba(127,178,245,.14);color:#9FC2F5;border:1px solid rgba(127,178,245,.28)}
+.tag-interno{background:rgba(91,224,168,.14);color:#5BE0A8;border:1px solid rgba(91,224,168,.28)}
 .arq-lista{padding:6px 12px 12px;display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto}
 .arq-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 11px;border-radius:8px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.05)}
 .arq-nome{font-size:13px;font-weight:600;min-width:0;word-break:break-word}
@@ -844,7 +842,8 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <div class="tail"></div>
     <h2>Vouchers salvos</h2>
     <span class="hint" id="savedCount">0 vouchers</span>
-    <span class="build-stamp" id="buildStamp" title="Versão publicada. Confira se é a mesma que está no ar no Cloudflare após o deploy.">v 2026-06-25·k</span>
+    <span id="avisoBuracos"></span>
+    <!-- build: 2026-06-25·o (selo interno — não visível ao usuário) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -863,7 +862,6 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
       Atualizar da nuvem
     </button>
   </div>
-  <div id="avisoBuracos"></div>
   <div id="savedList"></div>
   <div id="paginacao" class="paginacao"></div>
 </main>
@@ -2356,7 +2354,7 @@ function renderErro(){
   box.innerHTML=`<div class="err-painel">
     <button class="err-toggle" id="btnErro" type="button">
       <span>📡 Erro de comunicação <b>(${lst.length})</b></span>
-      <span class="err-chev">${shErroAberto?'▲':'▼'}</span>
+      <span class="folder-right"><span class="folder-tag tag-wecann">Status WeCann</span><span class="err-chev">${shErroAberto?'▲':'▼'}</span></span>
     </button>${itens}
   </div>`;
   box.onclick=(e)=>{
@@ -2383,7 +2381,7 @@ function renderContatoFeito(){
   box.innerHTML=`<div class="cf-painel">
     <button class="cf-toggle" id="btnContatoFeito" type="button">
       <span>📞 Contato Feito <b>(${lst.length})</b></span>
-      <span class="cf-chev">${shContatoFeitoAberto?'▲':'▼'}</span>
+      <span class="folder-right"><span class="folder-tag tag-wecann">Status WeCann</span><span class="cf-chev">${shContatoFeitoAberto?'▲':'▼'}</span></span>
     </button>${itens}
   </div>`;
   box.onclick=(e)=>{ if(e.target.closest('#btnContatoFeito')){ toggleContatoFeito(); } };
@@ -2407,7 +2405,7 @@ function renderRecusados(){
   box.innerHTML=`<div class="rec-painel">
     <button class="rec-toggle" id="btnRecusados" type="button">
       <span>🚫 Recusados / Cancelados <b>(${recs.length})</b></span>
-      <span class="rec-chev">${shRecusadosAberto?'▲':'▼'}</span>
+      <span class="folder-right"><span class="folder-tag tag-wecann">Status WeCann</span><span class="rec-chev">${shRecusadosAberto?'▲':'▼'}</span></span>
     </button>${itens}
   </div>`;
   box.onclick=(e)=>{
@@ -2430,7 +2428,7 @@ function renderArquivados(){
   box.innerHTML=`<div class="arq-painel">
     <button class="arq-toggle" id="btnArquiv" type="button">
       <span>✅ Template Enviado <b>(${itens.length})</b></span>
-      <span class="arq-chev">${shArquivAberto?'▲':'▼'}</span>
+      <span class="folder-right"><span class="folder-tag tag-interno">Controle Interno</span><span class="arq-chev">${shArquivAberto?'▲':'▼'}</span></span>
     </button>${lista}
   </div>`;
   box.onclick=(e)=>{
@@ -2941,13 +2939,16 @@ function renderAvisoBuracos(list){
   const { buracos }=detectarBuracosNumeracao(list);
   if(!buracos.length){ el.innerHTML=''; el.style.display='none'; _buracosUltimaAssinatura=''; return; }
   const faixas=agruparFaixas(buracos), qtd=buracos.length;
-  el.style.display='flex';
+  el.style.display='inline-flex';
   el.innerHTML=`
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ab-ico"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 9v4M12 17h.01" stroke-linecap="round"/></svg>
-    <div class="ab-txt">
+    <button type="button" class="ab-btn" id="abBtn" title="Buracos na numeração — clique para ver">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 9v4M12 17h.01" stroke-linecap="round"/></svg>
+    </button>
+    <div class="ab-pop" id="abPop" hidden>
       <b>${qtd} ${qtd===1?'número faltando':'números faltando'} na sequência</b>
       <span>${faixas.join(' · ')}</span>
     </div>`;
+  el.onclick=(e)=>{ if(e.target.closest('#abBtn')){ const p=el.querySelector('#abPop'); if(p) p.hidden=!p.hidden; } };
   // registra no log só quando a lista de buracos muda (não floda a cada render)
   const assinatura=buracos.join(',');
   if(assinatura!==_buracosUltimaAssinatura){
@@ -2983,9 +2984,7 @@ function renderSaved(list){
     sc.textContent=filt.length+(filt.length!==1?' resultados':' resultado')+' de '+list.length;
     sc.classList.add('filtrando');
   } else {
-    const info=detectarBuracosNumeracao(list);
-    const ultimoTxt = info.ultimo ? (' · último '+fmtNumVoucher(info.ultimo)) : '';
-    sc.textContent=list.length+' voucher'+(list.length!==1?'s':'')+ultimoTxt+sufHosp;
+    sc.textContent=list.length+' voucher'+(list.length!==1?'s':'')+sufHosp;
     sc.classList.remove('filtrando');
   }
   renderAvisoBuracos(list);
