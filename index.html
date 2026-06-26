@@ -844,7 +844,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <h2>Vouchers salvos</h2>
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
-    <!-- build: 2026-06-25·p (selo interno — não visível ao usuário) -->
+    <!-- build: 2026-06-25·q (selo interno — não visível ao usuário) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -1578,6 +1578,17 @@ function normStatusHotel(raw){
   if(s.indexOf('tratativa')>=0) return 'tratativa';
   return 'tratativa'; // qualquer outro status preenchido = em andamento
 }
+// TRUE se o status do CSV é um dos previstos (em branco, Contato Feito, Em Tratativa, Fechado,
+// Cancelado, Recusado, Erro de Comunicação). Usado pra avisar SÓ sobre status realmente inesperados.
+function statusHotelReconhecido(raw){
+  const s=_normE(raw||'').trim();
+  if(!s) return true; // em branco = "a contatar" (válido)
+  return (s.indexOf('erro')>=0 && s.indexOf('comunic')>=0)
+      || s.indexOf('feito')>=0
+      || s.indexOf('recusado')>=0 || s.indexOf('cancelado')>=0
+      || s.indexOf('fechado')>=0
+      || s.indexOf('tratativa')>=0;
+}
 
 // importa um arquivo CSV, salva localmente e envia para a nuvem (todos os dispositivos)
 async function importarStatusHotel(file){
@@ -1600,12 +1611,11 @@ async function importarStatusHotel(file){
   }
   renderStatusColunas();
   // resumo da classificação na hora (transparência: você confere se bateu com o esperado)
-  const cF=rows.filter(r=>normStatusHotel(r.statusRaw)==='fechado').length;
-  const cT=rows.filter(r=>normStatusHotel(r.statusRaw)==='tratativa').length;
-  const cC=rows.filter(r=>normStatusHotel(r.statusRaw)==='contato').length;
-  toast('Lido: '+cF+' fechado · '+cT+' em tratativa · '+cC+' a contatar. Enviando à nuvem...','info');
-  // alerta sobre status fora do padrão (caem em "Em tratativa") — ajuda a achar divergência no CSV
-  const desconhecidos=[...new Set(rows.map(r=>(r.statusRaw||'').trim()).filter(s=> s && !/fechado|tratativa/.test(_normE(s))))];
+  const cnt={fechado:0,tratativa:0,contato:0,contatofeito:0,erro:0,recusado:0};
+  rows.forEach(r=>{ const k=normStatusHotel(r.statusRaw); if(cnt[k]!=null) cnt[k]++; });
+  toast('Lido: '+rows.length+' contatos · '+cnt.fechado+' fechado · '+cnt.tratativa+' tratativa · '+cnt.contato+' a contatar · '+cnt.contatofeito+' contato feito · '+cnt.erro+' erro · '+cnt.recusado+' recusado/cancelado. Enviando à nuvem...','info');
+  // alerta SÓ sobre status realmente inesperados (os 7 previstos nunca disparam)
+  const desconhecidos=[...new Set(rows.map(r=>(r.statusRaw||'').trim()).filter(s=> s && !statusHotelReconhecido(s)))];
   if(desconhecidos.length){ toast('⚠️ Status fora do padrão (foram p/ "Em tratativa"): '+desconhecidos.slice(0,6).join(' · '),'err'); }
   try{
     const res=await api('/api/statushotel',{method:'POST',body:JSON.stringify({rows})});
