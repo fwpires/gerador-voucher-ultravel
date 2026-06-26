@@ -844,7 +844,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <div class="tail"></div>
     <h2>Vouchers salvos</h2>
     <span class="hint" id="savedCount">0 vouchers</span>
-    <span class="build-stamp" id="buildStamp" title="Versão publicada. Confira se é a mesma que está no ar no Cloudflare após o deploy.">v 2026-06-25·i</span>
+    <span class="build-stamp" id="buildStamp" title="Versão publicada. Confira se é a mesma que está no ar no Cloudflare após o deploy.">v 2026-06-25·j</span>
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -2193,7 +2193,8 @@ function purgarArquivadosPorStatus(){
     // acha no CSV uma linha dessa pessoa cujo status JÁ NÃO é "em branco"
     // (reconhece por nome exato OU por primeiro nome + último sobrenome — match seguro)
     const row=rows.find(r=>{
-      if(normStatusHotel(r.statusRaw)==='contato') return false; // ainda em branco → não purga
+      const st=normStatusHotel(r.statusRaw);
+      if(st!=='tratativa' && st!=='fechado') return false; // só purga se REALMENTE progrediu (tratativa/fechado). erro/contatofeito/recusado/branco NÃO purgam.
       return normNome(r.nome)===norm || umNomeBateEstrito(nomeArq, r.nome);
     });
     if(row){ // status virou "Em tratativa" ou "Fechado" → remove em definitivo
