@@ -844,7 +844,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <div class="tail"></div>
     <h2>Vouchers salvos</h2>
     <span class="hint" id="savedCount">0 vouchers</span>
-    <span class="build-stamp" id="buildStamp" title="Versão publicada. Confira se é a mesma que está no ar no Cloudflare após o deploy.">v 2026-06-25·j</span>
+    <span class="build-stamp" id="buildStamp" title="Versão publicada. Confira se é a mesma que está no ar no Cloudflare após o deploy.">v 2026-06-25·k</span>
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -2190,16 +2190,22 @@ function purgarArquivadosPorStatus(){
   Object.keys(appConfig.arquivados).forEach(norm=>{
     const it=appConfig.arquivados[norm];
     const nomeArq=(it&&it.nome)||norm;
-    // acha no CSV uma linha dessa pessoa cujo status JÁ NÃO é "em branco"
-    // (reconhece por nome exato OU por primeiro nome + último sobrenome — match seguro)
-    const row=rows.find(r=>{
+    // descobre o MOTIVO de sair do "Template Enviado":
+    //  • 'progrediu' = status virou "Em tratativa"/"Fechado" → tira do Template Enviado E da carteira
+    //  • 'erro'      = status virou "Erro de comunicação" (não revertido) → só tira do Template Enviado
+    //                  (mantém a carteira; o nome aparece na pasta laranja "Erro de comunicação")
+    let motivo=null;
+    rows.forEach(r=>{
+      if(motivo) return;
+      const bate = normNome(r.nome)===norm || umNomeBateEstrito(nomeArq, r.nome);
+      if(!bate) return;
       const st=normStatusHotel(r.statusRaw);
-      if(st!=='tratativa' && st!=='fechado') return false; // só purga se REALMENTE progrediu (tratativa/fechado). erro/contatofeito/recusado/branco NÃO purgam.
-      return normNome(r.nome)===norm || umNomeBateEstrito(nomeArq, r.nome);
+      if(st==='tratativa' || st==='fechado') motivo='progrediu';
+      else if(st==='erro' && !ehErroRevertido(r.nome)) motivo='erro';
     });
-    if(row){ // status virou "Em tratativa" ou "Fechado" → remove em definitivo
+    if(motivo){
       delete appConfig.arquivados[norm];
-      if(appConfig.carteira) delete appConfig.carteira[norm];
+      if(motivo==='progrediu' && appConfig.carteira) delete appConfig.carteira[norm]; // só a progressão tira da carteira
       mudou=true;
     }
   });
