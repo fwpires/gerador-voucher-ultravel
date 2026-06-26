@@ -365,6 +365,16 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .est-setas{display:flex;gap:7px}
 .est-seta:disabled{opacity:.32;cursor:default;box-shadow:none}
 .est-rk{flex:1}
+.rk-linha{cursor:pointer;border-radius:8px;transition:background .12s}
+.rk-linha:hover{background:rgba(255,255,255,.05)}
+.rk-chev{font-size:9px;opacity:.55;margin-left:6px}
+.rk-aberto{background:rgba(127,178,245,.08)}
+.rk-vouchers{display:flex;flex-direction:column;gap:5px;margin:2px 0 10px 38px;padding-left:10px;border-left:2px solid rgba(127,178,245,.25)}
+.rk-vch{display:flex;align-items:center;gap:10px;padding:7px 11px;border-radius:8px;background:rgba(127,178,245,.06);border:1px solid rgba(127,178,245,.16);cursor:pointer;transition:background .12s,border-color .12s}
+.rk-vch:hover{background:rgba(127,178,245,.14);border-color:rgba(127,178,245,.4)}
+.rk-vch-num{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:#9FC2F5;flex-shrink:0}
+.rk-vch-cli{font-size:12.5px;color:#D6E2F2;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rk-vch-vazio{font-size:12px;color:#8A99B5;font-style:italic;padding:4px 2px}
 .est-cnt{color:#3DD6C0;font-weight:800;font-size:1.05em}
 .est-vazio-diaria{color:#8595AD;font-size:11.5px;text-align:center;padding:10px 0}
 .est-aviso{background:rgba(240,70,63,.12);border:1px solid rgba(240,70,63,.45);color:#FFD9D7;border-radius:11px;padding:10px 14px;margin-bottom:16px;font-size:12.5px;font-weight:600;line-height:1.4}
@@ -473,6 +483,7 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .sh-item:last-child{margin-bottom:0}
 .sh-nome{font-size:12.5px;font-weight:700;color:#E7EDF7;line-height:1.25}
 .sh-meta{font-size:11px;color:#9FB0CE;line-height:1.3;margin-top:2px;word-break:break-word}
+.sh-tel{user-select:text;-webkit-user-select:text;cursor:text;font-variant-numeric:tabular-nums;color:#B8C6E0;font-weight:600;display:inline-block}
 .sh-vazio{color:#8595AD;font-size:11.5px;text-align:center;padding:14px 6px}
 .sh-selo{display:inline-block;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;padding:2px 7px;border-radius:5px;margin-right:6px;vertical-align:middle}
 .sh-selo-vch{background:rgba(63,138,224,.20);color:#7FB2F5;border:1px solid rgba(63,138,224,.4)}
@@ -523,6 +534,16 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .err-reverter{flex-shrink:0;background:transparent;border:1px solid rgba(255,159,67,.5);color:#FFA94D;font-size:11.5px;font-weight:700;padding:5px 11px;border-radius:7px;cursor:pointer;font-family:inherit;white-space:nowrap}
 .err-reverter:hover{background:#FFA94D;color:#1A1206;border-color:#FFA94D}
 .err-vazio{font-size:12.5px;color:#8A99B5;font-style:italic;padding:4px 2px}
+/* ===== Pasta Sem Retorno (status CSV) — roxa ===== */
+#shSemRetorno:empty{display:none}
+.sr-painel{margin-top:14px;border:1px solid rgba(167,139,250,.34);border-radius:var(--raio-sm);overflow:hidden;background:rgba(167,139,250,.05)}
+.sr-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:transparent;border:none;color:#B79DF6;font-size:13.5px;font-weight:700;padding:11px 15px;cursor:pointer;font-family:inherit}
+.sr-toggle:hover{background:rgba(167,139,250,.09);color:#CDBBFA}
+.sr-toggle b{color:#B79DF6}
+.sr-chev{font-size:10px;opacity:.7}
+.sr-lista{padding:6px 12px 12px;display:flex;flex-direction:column;gap:6px;max-height:320px;overflow-y:auto}
+.sr-item{display:flex;align-items:center;padding:8px 11px;border-radius:8px;background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.16)}
+.sr-nome{font-size:13px;font-weight:600;word-break:break-word}
 /* ===== Pasta Contato Feito (status CSV) — azul ===== */
 #shContatoFeito:empty{display:none}
 .cf-painel{margin-top:14px;border:1px solid rgba(127,178,245,.32);border-radius:var(--raio-sm);overflow:hidden;background:rgba(127,178,245,.05)}
@@ -844,7 +865,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <h2>Vouchers salvos</h2>
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
-    <!-- build: 2026-06-25·q (selo interno — não visível ao usuário) -->
+    <!-- build: 2026-06-25·v (selo interno — não visível ao usuário) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -1527,6 +1548,7 @@ function parseCSVStatusHotel(text){
   const I={
     nome:    idxAlias('Nome','Nome Completo','Hospede','Hóspede','Passageiro','Cliente'),
     email:   idxAlias('Email','E-mail'),
+    telefone:idxAlias('Telefone','Celular','WhatsApp','Whatsapp','Fone','Tel','Telefone / contato','Telefone/contato'),
     status:  idxAlias('Status Hotel','StatusHotel','Status do Hotel','Status'),
     agente:  idxAlias('Agente','Atendente','Vendedor','Consultor'),
     hotel:   idxAlias('Hotel'),
@@ -1544,7 +1566,7 @@ function parseCSVStatusHotel(text){
     const get=i=> (i>=0 && i<c.length) ? (c[i]||'').trim() : '';
     const nome=get(I.nome); if(!nome) continue;
     const obs=get(I.obs);
-    out.push({ nome, email:get(I.email), statusRaw:get(I.status), agente:get(I.agente),
+    out.push({ nome, email:get(I.email), telefone:get(I.telefone), statusRaw:get(I.status), agente:get(I.agente),
       hotel:get(I.hotel), checkin:get(I.cin), checkout:get(I.cout), diarias:get(I.dia),
       tipo:get(I.tipo), valor:get(I.valor), voucher:get(I.voucher),
       obs, acompanhantes: extrairAcompanhantes(obs) });
@@ -1572,6 +1594,7 @@ function normStatusHotel(raw){
   const s=_normE(raw||'').trim();
   if(!s) return 'contato';
   if(s.indexOf('erro')>=0 && s.indexOf('comunic')>=0) return 'erro'; // "Erro de comunicação" → pasta laranja
+  if(s.indexOf('retorno')>=0) return 'semretorno'; // "Sem Retorno" → pasta roxa
   if(s.indexOf('feito')>=0) return 'contatofeito'; // "Contato Feito" no CSV → pasta azul
   if(s.indexOf('recusado')>=0 || s.indexOf('cancelado')>=0) return 'recusado'; // recusado/cancelado: sai de tudo
   if(s.indexOf('fechado')>=0) return 'fechado';
@@ -1579,11 +1602,12 @@ function normStatusHotel(raw){
   return 'tratativa'; // qualquer outro status preenchido = em andamento
 }
 // TRUE se o status do CSV é um dos previstos (em branco, Contato Feito, Em Tratativa, Fechado,
-// Cancelado, Recusado, Erro de Comunicação). Usado pra avisar SÓ sobre status realmente inesperados.
+// Cancelado, Recusado, Erro de Comunicação, Sem Retorno). Usado pra avisar SÓ sobre status inesperados.
 function statusHotelReconhecido(raw){
   const s=_normE(raw||'').trim();
   if(!s) return true; // em branco = "a contatar" (válido)
   return (s.indexOf('erro')>=0 && s.indexOf('comunic')>=0)
+      || s.indexOf('retorno')>=0
       || s.indexOf('feito')>=0
       || s.indexOf('recusado')>=0 || s.indexOf('cancelado')>=0
       || s.indexOf('fechado')>=0
@@ -2082,7 +2106,7 @@ function renderConciliacao(){
     const sc=e.target.closest('[data-semcadastro]');
     if(sc){ marcarSemCadastroWecann(sc.getAttribute('data-semcadastro')); return; }
     const rc=e.target.closest('[data-nomecadastrado]');
-    if(rc){ nomeCadastradoWecann(rc.getAttribute('data-nomecadastrado')); return; }
+    if(rc){ const nm=rc.getAttribute('data-nomecadastrado'); if(confirm('Confirmar que “'+nm+'” já está cadastrado no WeCann?\n\nO nome sai da lista “Atualizar Cadastro WeCann” e não volta mais.')) nomeCadastradoWecann(nm); return; }
     const r=e.target.closest('[data-resolver]');
     if(r){ const nm=r.getAttribute('data-resolver'); shResolverAberto = (shResolverAberto===normNome(nm))?'':normNome(nm); renderConciliacao(); return; }
     const o=e.target.closest('[data-vinc-pessoa]');
@@ -2211,6 +2235,7 @@ function purgarArquivadosPorStatus(){
       const st=normStatusHotel(r.statusRaw);
       if(st==='tratativa' || st==='fechado') motivo='progrediu';
       else if(st==='erro' && !ehErroRevertido(r.nome)) motivo='erro';
+      else if(st==='semretorno') motivo='semretorno'; // "Sem Retorno" → tira do Template Enviado (mantém carteira)
     });
     if(motivo){
       delete appConfig.arquivados[norm];
@@ -2375,6 +2400,29 @@ function renderErro(){
   };
 }
 
+/* ===== PASTA "SEM RETORNO" (status do CSV) — roxa ===== */
+let shSemRetornoAberto=false;
+function semRetornoCSV(){
+  const rows=(statusHotelData&&statusHotelData.rows)||[];
+  return rows.filter(r=>normStatusHotel(r.statusRaw)==='semretorno');
+}
+function toggleSemRetorno(){ shSemRetornoAberto=!shSemRetornoAberto; renderSemRetorno(); requestAnimationFrame(ajustarAlturaCarrossel); }
+function renderSemRetorno(){
+  const box=document.getElementById('shSemRetorno'); if(!box) return;
+  const lst=semRetornoCSV();
+  if(!lst.length){ box.innerHTML=''; return; }
+  const itens = shSemRetornoAberto ? `<div class="sr-lista">${
+    lst.slice().sort((a,b)=>(a.nome||'').localeCompare(b.nome||'','pt-BR')).map(r=>`<div class="sr-item"><span class="sr-nome">${esc(r.nome)}</span></div>`).join('')
+  }</div>` : '';
+  box.innerHTML=`<div class="sr-painel">
+    <button class="sr-toggle" id="btnSemRetorno" type="button">
+      <span>🔇 Sem Retorno <b>(${lst.length})</b></span>
+      <span class="folder-right"><span class="folder-tag tag-wecann">Status WeCann</span><span class="sr-chev">${shSemRetornoAberto?'▲':'▼'}</span></span>
+    </button>${itens}
+  </div>`;
+  box.onclick=(e)=>{ if(e.target.closest('#btnSemRetorno')){ toggleSemRetorno(); } };
+}
+
 /* ===== PASTA "CONTATO FEITO" (status do CSV) — azul ===== */
 let shContatoFeitoAberto=false;
 function contatoFeitoCSV(){
@@ -2477,6 +2525,7 @@ function renderStatusColunas(){
   rows.forEach(r=>{
     if(normStatusHotel(r.statusRaw)==='recusado') return;      // Recusado/Cancelado: sai de todas as colunas (vai pra pasta)
     if(normStatusHotel(r.statusRaw)==='erro' && !ehErroRevertido(r.nome)) return; // "Erro de comunicação" (não revertido): sai das colunas (vai pra pasta laranja)
+    if(normStatusHotel(r.statusRaw)==='semretorno') return;    // "Sem Retorno": sai das colunas (vai pra pasta roxa)
     if(normStatusHotel(r.statusRaw)==='contatofeito') return;  // "Contato Feito" no CSV: sai das colunas (vai pra pasta azul)
     if(arqNomes.size && nomeBateVoucherEstrito(r.nome, arqNomes)) return; // arquivado (Contato Feito) → fora das colunas
     const ef=statusEfetivo(r,vSet,cart);                       // contato / realizado / tratativa
@@ -2503,7 +2552,7 @@ function renderStatusColunas(){
   // quantidade de "fechados" que o CSV marca (SÓ o número, sem nomes)
   const csvFechados = rows.filter(r=>normStatusHotel(r.statusRaw)==='fechado').length;
 
-  const passa=r=> !termo || _normE([r.nome,r.email,r.agente,r.hotel,(r.acompanhantes||[]).join(' ')].join(' ')).indexOf(termo)>=0;
+  const passa=r=> !termo || _normE([r.nome,r.email,r.telefone,r.agente,r.hotel,(r.acompanhantes||[]).join(' ')].join(' ')).indexOf(termo)>=0;
 
   // remove da seleção quem não está mais em "Fazer contato"
   const contatoNomes=new Set(grupos.contato.map(r=>normNome(r.nome)));
@@ -2536,7 +2585,7 @@ function renderStatusColunas(){
     const cont=termo?(contarPessoasGrupo(vis)+' de '+contarPessoasGrupo(todos)):String(contarPessoasGrupo(todos));
     const corpo=vis.length?vis.map(r=>{
       const n=normNome(r.nome);
-      return `<label class="sh-item sh-sel"><input type="checkbox" class="sh-cb" data-sel="${esc(r.nome)}" ${shSelecionados.has(n)?'checked':''}><span class="sh-item-txt"><span class="sh-nome">${esc(r.nome)}</span>${r.email?`<span class="sh-meta">${esc(r.email)}</span>`:''}</span></label>`;
+      return `<label class="sh-item sh-sel"><input type="checkbox" class="sh-cb" data-sel="${esc(r.nome)}" ${shSelecionados.has(n)?'checked':''}><span class="sh-item-txt"><span class="sh-nome">${esc(r.nome)}</span>${r.telefone?`<span class="sh-meta sh-tel" onmousedown="event.stopPropagation()" onclick="event.preventDefault();event.stopPropagation();" title="Selecione para copiar">${esc(r.telefone)}</span>`:''}</span></label>`;
     }).join(''):`<div class="sh-vazio">${termo?'Nenhum resultado':'Nenhum contato'}</div>`;
     return colHTML('sh-contato','Fazer contato',cont,corpo);
   };
@@ -2551,8 +2600,8 @@ function renderStatusColunas(){
     const ats=Object.keys(porAt).sort((a,b)=>a.localeCompare(b,'pt-BR'));
     const corpo = ats.length ? ats.map(at=>{
       const itens=porAt[at].map(r=>{
-        const m=metaTrat(r)||r.email||'';
-        return `<div class="sh-item"><div class="sh-nome">${esc(r.nome)}</div>${m?`<div class="sh-meta">${esc(m)}</div>`:''}<div class="sh-acoes"><button class="sh-act sh-feito" data-acao="feito" data-nome="${esc(r.nome)}" title="Template enviado — arquivar este nome">✓ Template Enviado</button><button class="sh-act sh-undo" data-acao="devolver" data-nome="${esc(r.nome)}" title="Devolver para Fazer contato">↩ Devolver</button></div></div>`;
+        const m=metaTrat(r);
+        return `<div class="sh-item"><div class="sh-nome">${esc(r.nome)}</div>${m?`<div class="sh-meta">${esc(m)}</div>`:''}${r.telefone?`<div class="sh-meta sh-tel" title="Selecione para copiar">${esc(r.telefone)}</div>`:''}<div class="sh-acoes"><button class="sh-act sh-feito" data-acao="feito" data-nome="${esc(r.nome)}" title="Template enviado — arquivar este nome">✓ Template Enviado</button><button class="sh-act sh-undo" data-acao="devolver" data-nome="${esc(r.nome)}" title="Devolver para Fazer contato">↩ Devolver</button></div></div>`;
       }).join('');
       return `<div class="sh-grupo"><div class="sh-grupo-tit">👤 ${esc(at)} <span class="sh-grupo-n">(${porAt[at].length})</span></div>${itens}</div>`;
     }).join('') : `<div class="sh-vazio">${(termo||shFiltroAtendente)?'Nenhum resultado':'Nenhum contato puxado ainda'}</div>`;
@@ -2584,6 +2633,7 @@ function renderStatusColunas(){
   renderConciliacao();
   renderRecusados();
   renderErro();
+  renderSemRetorno();
   renderContatoFeito();
   renderArquivados();
 
@@ -2626,6 +2676,14 @@ function iconePorNivel(nivel,totalNiveis){
 const ICONE_SETA_VERMELHA = '<svg class="rk-up" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#E5141A"/><path d="M12 16.6V8M8.5 11.5 12 8l3.5 3.5" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 // boneco subindo escada (cabeça laranja, corpo azul, escada amarela — fundo transparente)
 const ICONE_ESCADA = '<svg class="rk-up" viewBox="3 2 21 21" aria-hidden="true"><path d="M11 23 L11 20 L15 20 L15 17 L19 17 L19 14 L23 14 L23 23 Z" fill="#F2B33D"/><circle cx="6.6" cy="4.6" r="2.5" fill="#F5A623"/><g fill="none" stroke="#3F8AE0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7 L9.4 12"/><path d="M9.4 12 L5.6 17.6"/><path d="M9.4 12 L12.8 14 L13.4 17"/><path d="M7.9 8.7 L12.4 8.2"/><path d="M7.9 8.7 L4.4 11"/></g></svg>';
+let rkExpandido=''; // vendedor cujo ranking está expandido (mostrando os vouchers)
+// vouchers WeCann de um vendedor (mesma regra de contagem do ranking)
+function vouchersDoVendedor(nome){
+  return (savedCache||[]).filter(v=>{
+    if((v.vendedor||'').trim()!==nome) return false;
+    return (v.services||[]).some(s=>s.type==='hotel' && HOTEIS_OCUPACAO.some(h=>h.match(s.data&&s.data.hotel)));
+  });
+}
 function renderRankingCol(){
   const rk=calcRanking();
   let corpo;
@@ -2637,14 +2695,41 @@ function renderRankingCol(){
     const k=qtds.length;
     corpo=rk.map(r=>{
       const nivel=qtds.indexOf(r.qtd);
-      return `<div class="rk-linha">
+      const aberto = rkExpandido===r.nome;
+      let sub='';
+      if(aberto){
+        const vs=vouchersDoVendedor(r.nome);
+        sub=`<div class="rk-vouchers">${
+          vs.length ? vs.map(v=>{
+            const cli=(v.cliente||'').trim() || ((v.services||[]).map(s=>s.data&&s.data.hospedes&&s.data.hospedes[0]).find(Boolean)) || '—';
+            return `<div class="rk-vch" data-rkvoucher="${esc(String(v.id||v.num||''))}" title="Abrir pré-visualização"><span class="rk-vch-num">#${esc(v.num||'—')}</span><span class="rk-vch-cli">${esc(cli)}</span></div>`;
+          }).join('') : `<div class="rk-vch-vazio">Nenhum voucher encontrado</div>`
+        }</div>`;
+      }
+      return `<div class="rk-linha${aberto?' rk-aberto':''}" data-rkvend="${esc(r.nome)}" title="Ver vouchers de ${esc(r.nome)}">
         <span class="rk-icon">${iconePorNivel(nivel,k)}</span>
         <span class="rk-nome">${esc(r.nome)}</span>
         <span class="rk-vendas">(${r.qtd} ${r.qtd===1?'Venda':'Vendas'})</span>
-      </div>`;
+        <span class="rk-chev">${aberto?'▲':'▼'}</span>
+      </div>${sub}`;
     }).join('');
   }
-  return `<div class="est-hotel est-rk"><div class="est-titulo">Ranking de Vendedores</div>${corpo}</div>`;
+  return `<div class="est-hotel est-rk" id="rkCol"><div class="est-titulo">Ranking de Vendedores</div>${corpo}</div>`;
+}
+// re-renderiza só a coluna do ranking e religa o clique
+function atualizarRankingCol(){
+  const cur=document.getElementById('rkCol'); if(!cur) return;
+  const tmp=document.createElement('div'); tmp.innerHTML=renderRankingCol();
+  const novo=tmp.firstElementChild; if(novo){ cur.replaceWith(novo); ligarRankingCol(); requestAnimationFrame(ajustarAlturaCarrossel); }
+}
+function ligarRankingCol(){
+  const rkc=document.getElementById('rkCol'); if(!rkc) return;
+  rkc.onclick=(e)=>{
+    const vch=e.target.closest('[data-rkvoucher]');
+    if(vch){ const key=vch.getAttribute('data-rkvoucher'); const v=(savedCache||[]).find(x=>String(x.id||'')===key || String(x.num||'')===key); if(v) previewVoucher(v); return; }
+    const vend=e.target.closest('[data-rkvend]');
+    if(vend){ const nm=vend.getAttribute('data-rkvend'); rkExpandido=(rkExpandido===nm)?'':nm; atualizarRankingCol(); }
+  };
 }
 /* ===== PARTICIPANTES WECANN (lista CSV) ===== */
 let participantesWecann = new Set();
@@ -2792,6 +2877,7 @@ function renderDisponibilidade(){
             <div id="shConc"></div>
             <div id="shRecusados"></div>
             <div id="shErro"></div>
+            <div id="shSemRetorno"></div>
             <div id="shContatoFeito"></div>
             <div id="shArquiv"></div>
           </div>
@@ -2811,6 +2897,7 @@ function renderDisponibilidade(){
       </div>
     </div>`;
   const bi=$('#btnImportarParticipantes'); if(bi) bi.onclick=()=>$('#inputParticipantes').click();
+  ligarRankingCol();
   const bis=$('#btnImportarStatus'); if(bis) bis.onclick=()=>$('#inputStatusHotel').click();
   const inS=$('#inputStatusHotel'); if(inS) inS.onchange=e=>{ const f=e.target.files&&e.target.files[0]; if(f) importarStatusHotel(f); e.target.value=''; };
   const shB=$('#shBusca'); if(shB){ shB.value=shBusca||''; shB.oninput=()=>{ shBusca=shB.value; renderStatusColunas(); }; }
@@ -3296,6 +3383,9 @@ function montarVoucherHTML(vv){
     return `<div class="pv-svc"><div class="pv-svc-h"><span class="pv-svc-ic">${ic(s.type)}</span><span class="pv-svc-t">${esc(def.label)}</span><span class="pv-svc-n">${String(i+1).padStart(2,'0')}</span></div><div class="pv-svc-b">${linhas}</div></div>`;
   }).join('');
   const pax=(vv.passageiros||[]).filter(Boolean);
+  // se o voucher tem serviço de Hospedagem/Hotel, os nomes são "Hóspedes"; senão, "Passageiros"
+  const temHospedagem=(vv.services||[]).some(s=>s && s.type==='hotel');
+  const paxLabel=temHospedagem?'Hóspedes':'Passageiros';
   const metas=[['Cliente',vv.cliente],['Data de emissão',fmtDate(vv.data)],['Evento / Referência',vv.evento],['Contato',vv.contato]].filter(([k,val])=>val&&String(val).trim());
   const metaHtml=metas.map(([k,val],idx)=>{
     const full=(metas.length%2===1&&idx===metas.length-1)?' pv-meta-full':'';
@@ -3313,7 +3403,7 @@ function montarVoucherHTML(vv){
         <div class="pv-meta">
           ${metaHtml}
         </div>
-        ${pax.length?`<div class="pv-pax"><div class="pv-pax-lbl">Passageiros</div><div class="pv-pax-tags">${pax.map(p=>`<span class="pv-tag">${esc(p)}</span>`).join('')}</div></div>`:''}
+        ${pax.length?`<div class="pv-pax"><div class="pv-pax-lbl">${paxLabel}</div><div class="pv-pax-tags">${pax.map(p=>`<span class="pv-tag">${esc(p)}</span>`).join('')}</div></div>`:''}
         ${svcCards||'<p style="color:#6B83A0;text-align:center;padding:24px">Nenhum serviço adicionado.</p>'}
         ${vv.obs?`<div class="pv-obs"><div class="k">Observações</div><div class="t">${esc(vv.obs)}</div></div>`:''}
         ${vv.mensagem?`<div class="pv-welcome"><div class="wm">${esc(vv.mensagem)}</div></div>`:''}
