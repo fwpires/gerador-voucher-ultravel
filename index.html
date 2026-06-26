@@ -689,29 +689,30 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
         <svg viewBox="0 0 134 46" height="40" fill="none" xmlns="http://www.w3.org/2000/svg" role="img">
           <defs>
             <linearGradient id="hubBadge" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stop-color="#0E86D6"/>
-              <stop offset="1" stop-color="#10B7C4"/>
+              <stop offset="0" stop-color="#0086CC"/>
+              <stop offset="1" stop-color="#005A98"/>
             </linearGradient>
-            <linearGradient id="hubWord" x1="0" y1="0" x2="1" y2="0.4">
-              <stop offset="0" stop-color="#1B95E2"/>
-              <stop offset="1" stop-color="#13B8C6"/>
+            <linearGradient id="hubWord" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#9CC00C"/>
+              <stop offset="0.55" stop-color="#1C9AD0"/>
+              <stop offset="1" stop-color="#0078C0"/>
             </linearGradient>
           </defs>
-          <!-- emblema (badge) -->
+          <!-- emblema (badge azul Ultravel) -->
           <rect x="2" y="3" width="40" height="40" rx="12" fill="url(#hubBadge)"/>
-          <rect x="2" y="3" width="40" height="40" rx="12" fill="#FFFFFF" opacity="0.07"/>
+          <rect x="2" y="3" width="40" height="40" rx="12" fill="#FFFFFF" opacity="0.06"/>
           <!-- conexões do hub -->
-          <g stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" opacity="0.85">
+          <g stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" opacity="0.9">
             <line x1="22" y1="23.5" x2="22" y2="12.6"/>
             <line x1="22" y1="23.5" x2="13.3" y2="31.7"/>
             <line x1="22" y1="23.5" x2="30.7" y2="31.7"/>
           </g>
-          <!-- nós -->
+          <!-- nós: verde + vermelho (paleta Ultravel) + branco -->
           <circle cx="22" cy="23.5" r="4.3" fill="#FFFFFF"/>
-          <circle cx="22" cy="11.5" r="3" fill="#C6E86A"/>
-          <circle cx="12.5" cy="32.6" r="3" fill="#FFFFFF"/>
-          <circle cx="31.5" cy="32.6" r="3" fill="#FFFFFF"/>
-          <!-- tipografia -->
+          <circle cx="22" cy="11.5" r="3.1" fill="#9CC00C"/>
+          <circle cx="12.5" cy="32.6" r="3.1" fill="#D8000C"/>
+          <circle cx="31.5" cy="32.6" r="3.1" fill="#FFFFFF"/>
+          <!-- tipografia: "Hub" em degradê verde→azul (como a palavra ultravel) -->
           <text x="53" y="27.5" font-family="Sora, sans-serif" font-weight="800" font-size="23" letter-spacing="-0.6" fill="url(#hubWord)">Hub</text>
           <text x="54" y="39.5" font-family="Inter, sans-serif" font-weight="600" font-size="9.3" letter-spacing="3.3" fill="currentColor" opacity="0.7">ULTRAVEL</text>
         </svg>
@@ -897,7 +898,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <h2>Vouchers salvos</h2>
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
-    <!-- build: 2026-06-25·z (selo interno — não visível ao usuário) -->
+    <!-- build: 2026-06-25·aa (selo interno — não visível ao usuário) -->
   </div>
   <div class="saved-tools">
     <div class="search">
