@@ -153,7 +153,8 @@ main{max-width:1080px;margin:0 auto;padding:26px 22px 80px}
 #avisoBuracos .ab-btn{background:transparent;border:none;cursor:pointer;color:#FBBF24;padding:4px;display:flex;border-radius:6px;line-height:0}
 #avisoBuracos .ab-btn:hover{background:rgba(245,158,11,.14)}
 #avisoBuracos .ab-btn svg{width:17px;height:17px}
-#avisoBuracos .ab-pop{position:absolute;top:calc(100% + 7px);right:0;background:#16213D;border:1px solid rgba(245,158,11,.40);border-radius:9px;padding:10px 13px;display:flex;flex-direction:column;gap:2px;white-space:nowrap;z-index:60;box-shadow:0 10px 30px rgba(0,0,0,.45)}
+#avisoBuracos .ab-pop{position:absolute;top:calc(100% + 7px);right:0;background:#16213D;border:1px solid rgba(245,158,11,.40);border-radius:9px;padding:10px 13px;display:none;flex-direction:column;gap:2px;white-space:nowrap;z-index:60;box-shadow:0 10px 30px rgba(0,0,0,.45)}
+#avisoBuracos .ab-pop.show{display:flex}
 #avisoBuracos .ab-pop b{font-size:12.5px;font-weight:700;color:#FBBF24}
 #avisoBuracos .ab-pop span{font-size:12px;font-family:'JetBrains Mono',monospace;color:#CBD5E1}
 .paginacao{margin-top:18px;display:flex;flex-direction:column;align-items:center;gap:12px}
@@ -843,7 +844,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <h2>Vouchers salvos</h2>
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
-    <!-- build: 2026-06-25·o (selo interno — não visível ao usuário) -->
+    <!-- build: 2026-06-25·p (selo interno — não visível ao usuário) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -2944,11 +2945,11 @@ function renderAvisoBuracos(list){
     <button type="button" class="ab-btn" id="abBtn" title="Buracos na numeração — clique para ver">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 9v4M12 17h.01" stroke-linecap="round"/></svg>
     </button>
-    <div class="ab-pop" id="abPop" hidden>
+    <div class="ab-pop" id="abPop">
       <b>${qtd} ${qtd===1?'número faltando':'números faltando'} na sequência</b>
       <span>${faixas.join(' · ')}</span>
     </div>`;
-  el.onclick=(e)=>{ if(e.target.closest('#abBtn')){ const p=el.querySelector('#abPop'); if(p) p.hidden=!p.hidden; } };
+  el.onclick=(e)=>{ if(e.target.closest('#abBtn')){ const p=el.querySelector('#abPop'); if(p) p.classList.toggle('show'); } };
   // registra no log só quando a lista de buracos muda (não floda a cada render)
   const assinatura=buracos.join(',');
   if(assinatura!==_buracosUltimaAssinatura){
