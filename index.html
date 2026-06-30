@@ -1044,7 +1044,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <h2>Vouchers salvos</h2>
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
-    <!-- build: HUB-v2·26 (RASCUNHO — não está no ar) -->
+    <!-- build: HUB-v2·28 (RASCUNHO — não está no ar) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -1934,6 +1934,51 @@ function acharVoucherPorNome(nome){
     return false;
   });
   return achado;
+}
+
+// === CONFERÊNCIA (Diretório): compara os nomes do CSV com os nomes dos vouchers — NÃO altera nada ===
+async function conferirNomesCSV(file){
+  if(!file) return;
+  let text=''; try{ text=await file.text(); }catch(e){ toast('Não consegui ler o arquivo','err'); return; }
+  const parsed=parseCSVStatusHotel(text);
+  if(!parsed.nomeOk){ toast('❌ Não encontrei a coluna "Nome" no CSV. Confira o cabeçalho do arquivo.','err'); return; }
+  const csvNomes=[...new Set((parsed.rows||[]).map(r=>r.nome).filter(Boolean))];
+  // nomes originais que aparecem nos vouchers (cliente + passageiros + hóspedes), sem vendedores
+  const vouchNomes=[]; const seen=new Set();
+  const ehVoucherWecann = v => (v.services||[]).some(sv=> sv.type==='hotel' && HOTEIS_OCUPACAO.some(h=>h.match(sv.data&&sv.data.hotel)));
+  (savedCache||[]).filter(ehVoucherWecann).forEach(v=>{
+    const vendKey=chaveNome(v.vendedor);
+    const add=nm=>{ if(!nm) return; if(ehVendedor(nm)) return; if(vendKey && chaveNome(nm)===vendKey) return; const k=normNome(nm); if(k && !seen.has(k)){ seen.add(k); vouchNomes.push(nm); } };
+    if(v.cliente) add(v.cliente);
+    (v.passageiros||[]).forEach(add);
+    (v.services||[]).forEach(sv=>{ const h=sv.data&&sv.data.hospedes; if(Array.isArray(h)) h.forEach(add); });
+  });
+  const noCsvSemVoucher=csvNomes.filter(n=> !vouchNomes.some(v=> umNomeBate(n,v)) ).sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  const noVoucherForaCsv=vouchNomes.filter(v=> !csvNomes.some(n=> umNomeBate(n,v)) ).sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  abrirRelatorioConferencia(csvNomes.length, vouchNomes.length, noCsvSemVoucher, noVoucherForaCsv);
+}
+function abrirRelatorioConferencia(qtdCsv, qtdVouch, noCsvSemVoucher, noVoucherForaCsv){
+  const old=document.getElementById('confOverlay'); if(old) old.remove();
+  const ov=document.createElement('div');
+  ov.id='confOverlay';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(8,14,22,.72);z-index:99999;display:flex;align-items:center;justify-content:center;padding:18px';
+  const lista=(arr)=> arr.length
+    ? '<ul style="list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:4px;max-height:230px;overflow:auto">'+arr.map(n=>'<li style="font-size:12.5px;color:#E7EDF7;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:6px;padding:5px 9px">'+esc(n)+'</li>').join('')+'</ul>'
+    : '<div style="font-size:12.5px;color:#8BA4BF;margin-top:6px">— nenhum —</div>';
+  ov.innerHTML='<div style="background:#16212E;border:1px solid #2E4460;border-radius:14px;max-width:760px;width:100%;max-height:86vh;overflow:auto;padding:20px 22px;box-shadow:0 20px 60px rgba(0,0,0,.5)">'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px"><h3 style="margin:0;font-size:17px;color:#fff">🔍 Conferência de nomes (CSV × Vouchers)</h3><button id="confFechar" style="background:#243447;border:1px solid #2E4460;color:#E8EEF4;border-radius:8px;padding:6px 12px;cursor:pointer;font-weight:700">Fechar</button></div>'
+    +'<div style="font-size:12.5px;color:#8BA4BF;margin-bottom:14px">CSV: <b style="color:#E8EEF4">'+qtdCsv+'</b> nome(s) &middot; Vouchers WeCann: <b style="color:#E8EEF4">'+qtdVouch+'</b> nome(s) &middot; comparação tolerante a grafia (primeiro + último nome)</div>'
+    +((noCsvSemVoucher.length===0 && noVoucherForaCsv.length===0)
+        ? '<div style="background:rgba(148,193,30,.12);border:1px solid rgba(148,193,30,.4);border-radius:10px;padding:14px;color:#B7E36A;font-weight:700">✅ Tudo conferido! Todos os nomes do CSV têm voucher WeCann e vice-versa.</div>'
+        : '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">'
+          +'<div><div style="font-weight:800;font-size:13px;color:#F0A35E">📄 No CSV mas SEM voucher WeCann <span style="opacity:.8">('+noCsvSemVoucher.length+')</span></div>'+lista(noCsvSemVoucher)+'</div>'
+          +'<div><div style="font-weight:800;font-size:13px;color:#6FB7F2">🧾 Em voucher WeCann mas FORA do CSV <span style="opacity:.8">('+noVoucherForaCsv.length+')</span></div>'+lista(noVoucherForaCsv)+'</div>'
+          +'</div>')
+    +'</div>';
+  document.body.appendChild(ov);
+  const fechar=()=>ov.remove();
+  ov.addEventListener('click',e=>{ if(e.target===ov) fechar(); });
+  const bf=ov.querySelector('#confFechar'); if(bf) bf.onclick=fechar;
 }
 // ===== MATCH ESTRITO (anti-falso-positivo) =====
 // Usado para DECIDIR A COLUNA (Fechado) e para não duplicar hóspedes "via voucher".
@@ -3140,7 +3185,8 @@ function renderDisponibilidade(){
                     </div>
                   </div>
                   <div class="dir-csv">
-                    <button type="button" class="est-import" onclick="(document.getElementById('inputStatusHotel')||{click:function(){}}).click()">Importar / Atualizar CSV</button>
+                    <button type="button" class="est-import" onclick="(document.getElementById('inputConferenciaCSV')||{click:function(){}}).click()" title="Compara os nomes do CSV com os nomes dos vouchers — não altera nada">🔍 Conferir nomes (CSV × vouchers)</button>
+                    <input id="inputConferenciaCSV" type="file" accept=".csv,text/csv" style="display:none" />
                   </div>
                 </div>
               </div>
@@ -3165,6 +3211,7 @@ function renderDisponibilidade(){
   ligarRankingCol();
   const bis=$('#btnImportarStatus'); if(bis) bis.onclick=()=>$('#inputStatusHotel').click();
   const inS=$('#inputStatusHotel'); if(inS) inS.onchange=e=>{ const f=e.target.files&&e.target.files[0]; if(f) importarStatusHotel(f); e.target.value=''; };
+  const inC=$('#inputConferenciaCSV'); if(inC) inC.onchange=e=>{ const f=e.target.files&&e.target.files[0]; if(f) conferirNomesCSV(f); e.target.value=''; };
   const shB=$('#shBusca'); if(shB){ shB.value=shBusca||''; shB.oninput=()=>{ shBusca=shB.value; renderStatusColunas(); }; }
   const shAt=$('#shAtendente');
   if(shAt){
