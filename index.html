@@ -1044,7 +1044,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <h2>Vouchers salvos</h2>
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
-    <!-- build: HUB-v2·28 (RASCUNHO — não está no ar) -->
+    <!-- build: HUB-v2·29 (RASCUNHO — não está no ar) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -1957,28 +1957,73 @@ async function conferirNomesCSV(file){
   const noVoucherForaCsv=vouchNomes.filter(v=> !csvNomes.some(n=> umNomeBate(n,v)) ).sort((a,b)=>a.localeCompare(b,'pt-BR'));
   abrirRelatorioConferencia(csvNomes.length, vouchNomes.length, noCsvSemVoucher, noVoucherForaCsv);
 }
+// ===== Janela fixa de conferência (persiste na tela ao navegar pelo Hub) =====
+// Nomes marcados como "Conferido" ficam salvos no localStorage, então somem da
+// lista e continuam fora mesmo se a janela for reaberta depois (nova importação de CSV).
+function getConfConferidos(){ try{ return new Set(JSON.parse(localStorage.getItem('uv_conf_conferidos')||'[]')); }catch(e){ return new Set(); } }
+function setConfConferidos(set){ try{ localStorage.setItem('uv_conf_conferidos', JSON.stringify([...set])); }catch(e){} }
+let _confState=null; // { qtdCsv, qtdVouch, noCsv:[...], noVouch:[...] }
 function abrirRelatorioConferencia(qtdCsv, qtdVouch, noCsvSemVoucher, noVoucherForaCsv){
-  const old=document.getElementById('confOverlay'); if(old) old.remove();
-  const ov=document.createElement('div');
-  ov.id='confOverlay';
-  ov.style.cssText='position:fixed;inset:0;background:rgba(8,14,22,.72);z-index:99999;display:flex;align-items:center;justify-content:center;padding:18px';
-  const lista=(arr)=> arr.length
-    ? '<ul style="list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:4px;max-height:230px;overflow:auto">'+arr.map(n=>'<li style="font-size:12.5px;color:#E7EDF7;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:6px;padding:5px 9px">'+esc(n)+'</li>').join('')+'</ul>'
+  const conferidos=getConfConferidos();
+  _confState={
+    qtdCsv, qtdVouch,
+    noCsv: noCsvSemVoucher.filter(n=> !conferidos.has(normNome(n))),
+    noVouch: noVoucherForaCsv.filter(n=> !conferidos.has(normNome(n)))
+  };
+  renderRelatorioConferencia();
+}
+function renderRelatorioConferencia(){
+  if(!_confState) return;
+  let ov=document.getElementById('confOverlay');
+  if(!ov){
+    ov=document.createElement('div');
+    ov.id='confOverlay';
+    ov.style.cssText='position:fixed;right:18px;bottom:0;z-index:9999;width:min(720px,calc(100vw - 36px));max-height:62vh;display:flex;flex-direction:column;background:#16212E;border:1px solid #2E4460;border-bottom:none;border-radius:14px 14px 0 0;box-shadow:0 14px 44px rgba(0,0,0,.45);font-family:inherit';
+    document.body.appendChild(ov);
+  }
+  const { qtdCsv, qtdVouch, noCsv, noVouch } = _confState;
+  const pendentes=noCsv.length+noVouch.length;
+  const lista=(arr,tipo)=> arr.length
+    ? '<ul style="list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:4px;max-height:210px;overflow:auto">'+arr.map(n=>'<li data-key="'+esc(normNome(n))+'" style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12.5px;color:#E7EDF7;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:6px;padding:5px 6px 5px 9px"><span>'+esc(n)+'</span><button class="confBtnDone" data-tipo="'+tipo+'" data-nome="'+esc(n)+'" style="flex:none;background:rgba(148,193,30,.14);border:1px solid rgba(148,193,30,.5);color:#B7E36A;border-radius:6px;padding:3px 9px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">✓ Conferido</button></li>').join('')+'</ul>'
     : '<div style="font-size:12.5px;color:#8BA4BF;margin-top:6px">— nenhum —</div>';
-  ov.innerHTML='<div style="background:#16212E;border:1px solid #2E4460;border-radius:14px;max-width:760px;width:100%;max-height:86vh;overflow:auto;padding:20px 22px;box-shadow:0 20px 60px rgba(0,0,0,.5)">'
-    +'<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px"><h3 style="margin:0;font-size:17px;color:#fff">🔍 Conferência de nomes (CSV × Vouchers)</h3><button id="confFechar" style="background:#243447;border:1px solid #2E4460;color:#E8EEF4;border-radius:8px;padding:6px 12px;cursor:pointer;font-weight:700">Fechar</button></div>'
-    +'<div style="font-size:12.5px;color:#8BA4BF;margin-bottom:14px">CSV: <b style="color:#E8EEF4">'+qtdCsv+'</b> nome(s) &middot; Vouchers WeCann: <b style="color:#E8EEF4">'+qtdVouch+'</b> nome(s) &middot; comparação tolerante a grafia (primeiro + último nome)</div>'
-    +((noCsvSemVoucher.length===0 && noVoucherForaCsv.length===0)
-        ? '<div style="background:rgba(148,193,30,.12);border:1px solid rgba(148,193,30,.4);border-radius:10px;padding:14px;color:#B7E36A;font-weight:700">✅ Tudo conferido! Todos os nomes do CSV têm voucher WeCann e vice-versa.</div>'
-        : '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">'
-          +'<div><div style="font-weight:800;font-size:13px;color:#F0A35E">📄 No CSV mas SEM voucher WeCann <span style="opacity:.8">('+noCsvSemVoucher.length+')</span></div>'+lista(noCsvSemVoucher)+'</div>'
-          +'<div><div style="font-weight:800;font-size:13px;color:#6FB7F2">🧾 Em voucher WeCann mas FORA do CSV <span style="opacity:.8">('+noVoucherForaCsv.length+')</span></div>'+lista(noVoucherForaCsv)+'</div>'
-          +'</div>')
-    +'</div>';
-  document.body.appendChild(ov);
-  const fechar=()=>ov.remove();
-  ov.addEventListener('click',e=>{ if(e.target===ov) fechar(); });
-  const bf=ov.querySelector('#confFechar'); if(bf) bf.onclick=fechar;
+  const minimizado=ov.getAttribute('data-min')==='1';
+  ov.innerHTML='<div id="confHeader" style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 14px;cursor:pointer;background:#1B2937;border-radius:14px 14px 0 0;border-bottom:'+(minimizado?'none':'1px solid #2E4460')+'">'
+      +'<div style="display:flex;align-items:center;gap:8px;min-width:0"><span style="font-size:13px">🔍</span><h3 style="margin:0;font-size:13.5px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Conferência de nomes</h3>'
+        +(pendentes>0 ? '<span style="flex:none;background:rgba(240,163,94,.15);border:1px solid rgba(240,163,94,.4);color:#F0A35E;border-radius:20px;padding:1px 9px;font-size:11px;font-weight:700">'+pendentes+' pendente'+(pendentes===1?'':'s')+'</span>' : '<span style="flex:none;background:rgba(148,193,30,.15);border:1px solid rgba(148,193,30,.4);color:#B7E36A;border-radius:20px;padding:1px 9px;font-size:11px;font-weight:700">✅ tudo conferido</span>')
+      +'</div>'
+      +'<div style="display:flex;gap:6px;flex:none">'
+        +'<button id="confMin" title="'+(minimizado?'Expandir':'Minimizar')+'" style="background:#243447;border:1px solid #2E4460;color:#E8EEF4;border-radius:7px;width:26px;height:26px;cursor:pointer;font-weight:700">'+(minimizado?'▴':'▾')+'</button>'
+        +'<button id="confFechar" title="Fechar" style="background:#243447;border:1px solid #2E4460;color:#E8EEF4;border-radius:7px;width:26px;height:26px;cursor:pointer;font-weight:700">✕</button>'
+      +'</div>'
+    +'</div>'
+    +(minimizado ? '' : (
+      '<div id="confBody" style="overflow:auto;padding:14px 16px">'
+      +'<div style="font-size:12.5px;color:#8BA4BF;margin-bottom:14px">CSV: <b style="color:#E8EEF4">'+qtdCsv+'</b> nome(s) &middot; Vouchers WeCann: <b style="color:#E8EEF4">'+qtdVouch+'</b> nome(s) &middot; comparação tolerante a grafia (primeiro + último nome)</div>'
+      +(pendentes===0
+          ? '<div style="background:rgba(148,193,30,.12);border:1px solid rgba(148,193,30,.4);border-radius:10px;padding:14px;color:#B7E36A;font-weight:700">✅ Tudo conferido! Todos os nomes do CSV têm voucher WeCann e vice-versa.</div>'
+          : '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">'
+            +'<div><div style="font-weight:800;font-size:13px;color:#F0A35E">📄 No CSV mas SEM voucher WeCann <span style="opacity:.8">('+noCsv.length+')</span></div>'+lista(noCsv,'csv')+'</div>'
+            +'<div><div style="font-weight:800;font-size:13px;color:#6FB7F2">🧾 Em voucher WeCann mas FORA do CSV <span style="opacity:.8">('+noVouch.length+')</span></div>'+lista(noVouch,'vouch')+'</div>'
+            +'</div>')
+      +'</div>'
+    ));
+  const bf=ov.querySelector('#confFechar'); if(bf) bf.onclick=()=>{ ov.remove(); _confState=null; };
+  const bm=ov.querySelector('#confMin'); if(bm) bm.onclick=()=>{ ov.setAttribute('data-min', minimizado?'0':'1'); renderRelatorioConferencia(); };
+  const bh=ov.querySelector('#confHeader'); if(bh) bh.addEventListener('click', e=>{ if(e.target===bf||e.target===bm) return; ov.setAttribute('data-min', minimizado?'0':'1'); renderRelatorioConferencia(); });
+  if(!minimizado){
+    ov.querySelectorAll('.confBtnDone').forEach(btn=>{
+      btn.onclick=(e)=>{
+        e.stopPropagation();
+        const nome=btn.getAttribute('data-nome'), tipo=btn.getAttribute('data-tipo');
+        const conf=getConfConferidos(); conf.add(normNome(nome)); setConfConferidos(conf);
+        if(_confState){
+          if(tipo==='csv') _confState.noCsv=_confState.noCsv.filter(n=>n!==nome);
+          else _confState.noVouch=_confState.noVouch.filter(n=>n!==nome);
+        }
+        renderRelatorioConferencia();
+      };
+    });
+  }
 }
 // ===== MATCH ESTRITO (anti-falso-positivo) =====
 // Usado para DECIDIR A COLUNA (Fechado) e para não duplicar hóspedes "via voucher".
