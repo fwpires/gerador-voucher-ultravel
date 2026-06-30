@@ -1044,7 +1044,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <h2>Vouchers salvos</h2>
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
-    <!-- build: HUB-v2·29 (RASCUNHO — não está no ar) -->
+    <!-- build: HUB-v2·30 (RASCUNHO — não está no ar) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -2444,6 +2444,12 @@ function renderConciliacao(){
 }
 let shSelecionados=new Set();   // normNomes marcados (checkbox) na coluna "Fazer contato"
 let shFiltroAtendente='';       // filtro por atendente na coluna "Contato Realizado"
+let shFiltroHotel='';           // filtro por hotel na coluna "Fechado (Hóspedes)" ('' = todos)
+// dado o nome bruto do hotel de um card, retorna o nome PADRÃO do hotel WeCann (ou '' se não bater)
+function hotelCanonico(nomeHotel){
+  for(const h of HOTEIS_OCUPACAO){ if(h.match && h.match(nomeHotel||'')) return h.nome; }
+  return '';
+}
 
 // carteira: { normNome: "Atendente" } — quem puxou cada contato (salvo na nuvem via config)
 function carteiraMap(){ return (appConfig.carteira && typeof appConfig.carteira==='object') ? appConfig.carteira : {}; }
@@ -2879,14 +2885,22 @@ function renderStatusColunas(){
   const metaTrat=r=>[r.agente?('Ag.: '+r.agente):'', shPeriodo(r)].filter(Boolean).join(' · ');
   // coluna Fechado: vem 100% dos vouchers WeCann (titular + acompanhantes do voucher)
   const colFechado=()=>{
-    const todos=grupos.fechado, vis=todos.filter(passa);
-    const cont=termo?(contarPessoasGrupo(vis)+' de '+contarPessoasGrupo(todos)):String(contarPessoasGrupo(todos));
+    const todos=grupos.fechado;
+    // aplica filtro de busca (termo) e o filtro por hotel selecionado
+    const visBusca=todos.filter(passa);
+    const vis = shFiltroHotel ? visBusca.filter(r=>hotelCanonico(r.hotel)===shFiltroHotel) : visBusca;
+    const cont = (termo||shFiltroHotel) ? (contarPessoasGrupo(vis)+' de '+contarPessoasGrupo(todos)) : String(contarPessoasGrupo(todos));
     const corpo=vis.length?vis.map(r=>{
       const ac=(r.acompanhantes||[]).length ? ('👥 + '+r.acompanhantes.join(' // ')) : '';
       const meta=[r.hotel, r.voucherNum?('Voucher #'+r.voucherNum):'', ac].filter(Boolean).join('  •  ');
       return `<div class="sh-item"><div class="sh-nome">${esc(r.nome)}</div>${meta?`<div class="sh-meta">${esc(meta)}</div>`:''}</div>`;
-    }).join(''):`<div class="sh-vazio">${termo?'Nenhum resultado':'Nenhum voucher WeCann'}</div>`;
-    const sub=`<span class="sh-csv-info">📋 CSV marca <b>${csvFechados}</b> como fechado</span>`;
+    }).join(''):`<div class="sh-vazio">${(termo||shFiltroHotel)?'Nenhum resultado':'Nenhum voucher WeCann'}</div>`;
+    // total de PESSOAS por hotel (titular + acompanhantes), respeitando a busca por termo
+    const totalPorHotel={};
+    HOTEIS_OCUPACAO.forEach(h=>{ totalPorHotel[h.nome]=0; });
+    visBusca.forEach(r=>{ const hn=hotelCanonico(r.hotel); if(hn in totalPorHotel) totalPorHotel[hn]+=1+((r.acompanhantes||[]).length); });
+    const filtroHotel=`<select class="sh-filtro" id="shFiltroHotel"><option value="">Todos os hotéis (${contarPessoasGrupo(visBusca)})</option>${HOTEIS_OCUPACAO.map(h=>`<option value="${esc(h.nome)}" ${shFiltroHotel===h.nome?'selected':''}>${esc(h.nome)} (${totalPorHotel[h.nome]})</option>`).join('')}</select>`;
+    const sub=`${filtroHotel}<div style="margin-top:6px"><span class="sh-csv-info">📋 CSV marca <b>${csvFechados}</b> como fechado</span></div>`;
     return colHTML('sh-fechado','Fechado (Hóspedes)',cont,corpo,sub);
   };
 
@@ -2959,7 +2973,8 @@ function renderStatusColunas(){
   wrap.onclick=(e)=>{ const btn=e.target.closest('[data-acao]'); if(!btn) return; const acao=btn.getAttribute('data-acao'), nome=btn.getAttribute('data-nome'); if(acao==='devolver') devolverContato(nome); else if(acao==='feito') arquivarContato(nome); else if(acao==='reverter') marcarErroRevertido(nome); };
   wrap.onchange=(e)=>{
     const cb=e.target.closest('input[data-sel]'); if(cb){ toggleSelecao(cb.getAttribute('data-sel')); return; }
-    const f=e.target.closest('#shFiltroAt'); if(f){ shFiltroAtendente=f.value; renderStatusColunas(); }
+    const f=e.target.closest('#shFiltroAt'); if(f){ shFiltroAtendente=f.value; renderStatusColunas(); return; }
+    const fh=e.target.closest('#shFiltroHotel'); if(fh){ shFiltroHotel=fh.value; renderStatusColunas(); }
   };
   atualizarBotaoTrazer();
   renderConciliacao();
