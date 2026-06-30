@@ -507,6 +507,8 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .conc-promo .conc-grupo-tit{color:#F2B873}
 .conc-promo-item{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .conc-promo-nome{min-width:0;word-break:break-word}
+.conc-nome-link{cursor:pointer;transition:.12s}
+.conc-nome-link:hover{text-decoration:underline;color:#7FB8E8}
 .conc-naomesma{flex:0 0 auto;font-size:11px;font-weight:700;border-radius:7px;padding:4px 10px;cursor:pointer;background:rgba(127,178,245,.14);color:#9FC2F5;border:1px solid rgba(127,178,245,.4);transition:all .14s;line-height:1}
 .conc-naomesma:hover{background:#7FB2F5;color:#0A1929;border-color:#7FB2F5}
 .conc-jacadastrado{flex:0 0 auto;font-size:11px;font-weight:700;border-radius:7px;padding:4px 10px;cursor:pointer;background:rgba(95,208,192,.14);color:#5FD0C0;border:1px solid rgba(95,208,192,.4);transition:all .14s;line-height:1}
@@ -1042,7 +1044,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <h2>Vouchers salvos</h2>
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
-    <!-- build: HUB-v2·25 (RASCUNHO — não está no ar) -->
+    <!-- build: HUB-v2·26 (RASCUNHO — não está no ar) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -1918,6 +1920,21 @@ function nomeBateVoucher(nome, setNomes){
   for(const p of setNomes){ if(umNomeBate(nome, p)) return true; }
   return false;
 }
+// acha o voucher salvo que contém este nome (cliente, passageiro ou hóspede)
+function acharVoucherPorNome(nome){
+  if(!nome) return null;
+  const alvo=normNome(nome);
+  let achado=null;
+  (savedCache||[]).some(v=>{
+    const cands=[];
+    if(v.cliente) cands.push(v.cliente);
+    (v.passageiros||[]).forEach(p=>cands.push(p));
+    (v.services||[]).forEach(sv=>{ const h=sv.data&&sv.data.hospedes; if(Array.isArray(h)) h.forEach(x=>cands.push(x)); });
+    if(cands.some(c=> normNome(c)===alvo || umNomeBate(c,nome) )){ achado=v; return true; }
+    return false;
+  });
+  return achado;
+}
 // ===== MATCH ESTRITO (anti-falso-positivo) =====
 // Usado para DECIDIR A COLUNA (Fechado) e para não duplicar hóspedes "via voucher".
 // Diferença pro umNomeBate: um nome SOLTO (uma palavra só) NÃO casa com um nome
@@ -2288,11 +2305,11 @@ function renderConciliacao(){
     </div>` : '';
   const blocoSemFechado = c.voucherSemFechado.length ? `<div class="conc-grupo conc-semfechado">
       <div class="conc-grupo-tit">📄 No voucher mas SEM "Fechado" no CSV — atualize o status no WeCann <b>(${c.voucherSemFechado.length})</b></div>
-      <ul class="conc-lista">${c.voucherSemFechado.map(n=>`<li class="conc-promo-item"><span class="conc-promo-nome">${esc(n)}</span><span class="conc-promo-acoes"><button class="conc-jacadastrado" data-jacadastrado="${esc(n)}" title="Já é a mesma pessoa do CSV (grafia diferente) — tira do aviso">Nome já cadastrado</button><button class="conc-semcadastro" data-semcadastro="${esc(n)}" title="Não tem cadastro no WeCann — manda para a lista de atualização">Sem cadastro no Wecann</button></span></li>`).join('')}</ul>
+      <ul class="conc-lista">${c.voucherSemFechado.map(n=>`<li class="conc-promo-item"><span class="conc-promo-nome conc-nome-link" data-abrirvoucher="${esc(n)}" title="Abrir o voucher de ${esc(n)}">${esc(n)}</span><span class="conc-promo-acoes"><button class="conc-jacadastrado" data-jacadastrado="${esc(n)}" title="Já é a mesma pessoa do CSV (grafia diferente) — tira do aviso">Nome já cadastrado</button><button class="conc-semcadastro" data-semcadastro="${esc(n)}" title="Não tem cadastro no WeCann — manda para a lista de atualização">Sem cadastro no Wecann</button></span></li>`).join('')}</ul>
     </div>` : '';
   const blocoSemCadastro = c.semCadastro.length ? `<div class="conc-grupo conc-atualizar">
       <div class="conc-grupo-tit">🔴 Atualizar Cadastro Wecann <b>(${c.semCadastro.length})</b></div>
-      <ul class="conc-lista">${c.semCadastro.map(n=>`<li class="conc-promo-item"><span class="conc-promo-nome">${esc(n)}</span><button class="conc-remcad" data-nomecadastrado="${esc(n)}" title="Já cadastrei no WeCann — remover desta lista">Nome cadastrado</button></li>`).join('')}</ul>
+      <ul class="conc-lista">${c.semCadastro.map(n=>`<li class="conc-promo-item"><span class="conc-promo-nome conc-nome-link" data-abrirvoucher="${esc(n)}" title="Abrir o voucher de ${esc(n)}">${esc(n)}</span><button class="conc-remcad" data-nomecadastrado="${esc(n)}" title="Já cadastrei no WeCann — remover desta lista">Nome cadastrado</button></li>`).join('')}</ul>
     </div>` : '';
 
   box.innerHTML=`<div class="conc-banner conc-warn">
@@ -3767,6 +3784,15 @@ $('#btnDark').onclick = () => {
   aplicarDark(dark);
 };
 { const _be=$('#btnEstoque'); if(_be) _be.onclick = toggleEstoque; }
+// Conciliação & Pastas: clicar no nome abre a edição do voucher
+document.addEventListener('click', function(e){
+  const el=e.target.closest('[data-abrirvoucher]');
+  if(!el) return;
+  const nome=el.getAttribute('data-abrirvoucher');
+  const v=acharVoucherPorNome(nome);
+  if(v){ loadVoucher(v); }
+  else if(typeof toast==='function'){ toast('Não encontrei um voucher salvo para '+nome,'info'); }
+});
 
 /* ===== INIT ===== */
 async function init(){
