@@ -1088,7 +1088,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <h2>Vouchers salvos</h2>
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
-    <!-- build: HUB-v2·44 (RASCUNHO — não está no ar) -->
+    <!-- build: HUB-v2·46 (RASCUNHO — não está no ar) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -4661,6 +4661,71 @@ function excluirNotaUI(id){
     destroy('chEvol'); charts.chEvol=new Chart(document.getElementById('chEvol'),{type:'line',data:{labels:meses.map(mesLabel),datasets:[{label:'Acumulado',data:accData,borderColor:'#9CC00C',backgroundColor:'rgba(156,192,12,.15)',fill:true,tension:.3,pointRadius:3}]},options:Object.assign({},common,{plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:tc.grid},ticks:{precision:0}}}})});
     destroy('chRadar'); charts.chRadar=new Chart(document.getElementById('chRadar'),{type:'radar',data:{labels:['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'],datasets:[{label:'Emissões',data:porDia,borderColor:'#FF2D95',backgroundColor:'rgba(255,45,149,.2)',pointBackgroundColor:'#FF2D95'}]},options:Object.assign({},common,{plugins:{legend:{display:false}},scales:{r:{grid:{color:tc.grid},angleLines:{color:tc.grid},ticks:{backdropColor:'transparent',precision:0}}}})});
   };
+})();
+</script>
+<script>
+/* ===== AUTO-REFRESH INTELIGENTE (baseado em INATIVIDADE) =====
+   Em vez de recarregar em intervalo fixo (o que interromperia quem está usando),
+   o refresh só acontece em momentos COMPROVADAMENTE SEGUROS. Três camadas:
+
+   1) INATIVIDADE: cada movimento de mouse, tecla, rolagem, clique ou toque
+      reinicia o cronômetro. Só recarrega após 5 min de silêncio total.
+   2) ABA OCULTA: se você trocou de aba/janela, aproveita para recarregar no
+      fundo (você nem está olhando) — desde que não tenha algo em edição.
+   3) TRAVA DE DIGITAÇÃO: nunca recarrega enquanto há um campo em edição
+      (editor de notas, input, textarea, select ou popover de cor aberto),
+      protegendo qualquer texto ainda não salvo. */
+(function(){
+  var OCIOSO_LIMITE = 5 * 60 * 1000;   // 5 min de INATIVIDADE para liberar o refresh
+  var CHECAGEM      = 30 * 1000;       // verifica a cada 30 segundos
+  var ultimaAtividade = Date.now();
+
+  // qualquer um destes eventos conta como "usuário ativo" e zera o cronômetro.
+  // passive:true = não afeta a performance da rolagem; capture:true = pega
+  // eventos disparados também em elementos internos.
+  function registrarAtividade(){ ultimaAtividade = Date.now(); }
+  var EVENTOS = ['mousemove','mousedown','keydown','scroll','wheel','touchstart','click','input','focusin'];
+  for(var i=0;i<EVENTOS.length;i++){
+    window.addEventListener(EVENTOS[i], registrarAtividade, {passive:true, capture:true});
+  }
+
+  // detecta se há QUALQUER campo em edição no momento (trava de segurança)
+  function estaEditando(){
+    var a = document.activeElement;
+    if(a){
+      if(a.isContentEditable) return true;
+      var ce = a.getAttribute && a.getAttribute('contenteditable');
+      if(ce==='' || ce==='true') return true;
+      if(a.closest && a.closest('[contenteditable="true"],[contenteditable=""]')) return true;
+      var tag = (a.tagName||'').toLowerCase();
+      if(tag==='input' || tag==='textarea' || tag==='select') return true;
+    }
+    // popover de cor aberto = edição de formatação em andamento
+    var popCor = document.getElementById('ntbCorPop');
+    if(popCor && popCor.style.display!=='none' && popCor.offsetParent!==null) return true;
+    return false;
+  }
+
+  function recarregar(){
+    try{ location.reload(); }catch(e){ window.location.href = window.location.href; }
+  }
+
+  function verificar(){
+    // camada 3: se há edição em andamento, NUNCA recarrega — nem tenta.
+    if(estaEditando()) return;
+
+    var agora = Date.now();
+    var tempoParado = agora - ultimaAtividade;
+
+    // camada 1: usuário ficou 5 min totalmente inativo → seguro recarregar.
+    if(tempoParado >= OCIOSO_LIMITE){ recarregar(); return; }
+
+    // camada 2: a aba está oculta (usuário trocou de janela/aba) e já passou
+    // pelo menos 1 min desde a última ação → recarrega em segundo plano.
+    if(document.hidden && tempoParado >= 60 * 1000){ recarregar(); return; }
+  }
+
+  setInterval(verificar, CHECAGEM);
 })();
 </script>
 </body>
