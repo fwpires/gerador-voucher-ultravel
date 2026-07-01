@@ -469,14 +469,14 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .nota-salvar:hover{background:var(--verde-escuro)}
 .notas-lista{margin-top:6px;display:flex;flex-direction:column;gap:8px}
 .notas-vazio{color:var(--texto-fraco);font-size:12.5px;padding:8px 2px}
-.nota-item{background:var(--fundo);border:1px solid var(--borda);border-radius:10px;padding:0;overflow:hidden}
-.nota-cab{display:flex;align-items:center;gap:8px;padding:9px 12px;cursor:pointer;user-select:none}
+.nota-item{background:var(--fundo);border:1px solid var(--borda);border-radius:10px;padding:0;overflow:hidden;display:block}
+.nota-cab{display:flex;align-items:center;gap:8px;padding:9px 12px;cursor:pointer;user-select:none;min-height:38px;box-sizing:border-box}
 .nota-cab:hover{background:rgba(255,255,255,.03)}
 .nota-caret{flex:none;font-size:11px;color:var(--texto-fraco);transition:transform .15s;transform:rotate(90deg)}
 .nota-item.min .nota-caret{transform:rotate(0deg)}
-.nota-previa{flex:1;min-width:0;font-size:12.5px;color:var(--texto);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nota-previa{flex:1 1 auto;min-width:0;font-size:12.5px;color:var(--texto);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .nota-item:not(.min) .nota-previa{color:var(--texto-fraco);font-size:11px;text-transform:uppercase;letter-spacing:.03em}
-.nota-corpo{padding:0 12px 10px}
+.nota-corpo{padding:0 12px 10px;display:block}
 .nota-item.min .nota-corpo{display:none}
 .nota-txt{font-size:13px;color:var(--texto);line-height:1.45;white-space:pre-wrap;word-break:break-word}
 .nota-txt b,.nota-txt strong{font-weight:700}.nota-txt i,.nota-txt em{font-style:italic}
@@ -1088,7 +1088,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <h2>Vouchers salvos</h2>
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
-    <!-- build: HUB-v2·36 (RASCUNHO — não está no ar) -->
+    <!-- build: HUB-v2·39 (RASCUNHO — não está no ar) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -3301,15 +3301,37 @@ function renderDisponibilidade(){
                           <option value="Verdana, sans-serif">Verdana</option>
                           <option value="'Trebuchet MS', sans-serif">Trebuchet</option>
                         </select>
-                        <select id="ntbSize" title="Tamanho da fonte" onchange="notaCmd('fontSize', this.value)">
+                        <select id="ntbSize" title="Tamanho da fonte" onchange="notaAplicarTamanho(this.value)">
                           <option value="">Tam.</option>
-                          <option value="1">Muito pequeno</option>
-                          <option value="2">Pequeno</option>
-                          <option value="3">Normal</option>
-                          <option value="4">Médio</option>
-                          <option value="5">Grande</option>
-                          <option value="6">Muito grande</option>
-                          <option value="7">Enorme</option>
+                          <option value="1">1</option>
+                          <option value="2">2</option>
+                          <option value="3">3</option>
+                          <option value="4">4</option>
+                          <option value="5">5</option>
+                          <option value="6">6</option>
+                          <option value="7">7</option>
+                          <option value="8">8</option>
+                          <option value="9">9</option>
+                          <option value="10">10</option>
+                          <option value="11">11</option>
+                          <option value="12">12</option>
+                          <option value="14">14</option>
+                          <option value="16">16</option>
+                          <option value="18">18</option>
+                          <option value="20">20</option>
+                          <option value="22">22</option>
+                          <option value="24">24</option>
+                          <option value="26">26</option>
+                          <option value="28">28</option>
+                          <option value="32">32</option>
+                          <option value="36">36</option>
+                          <option value="40">40</option>
+                          <option value="44">44</option>
+                          <option value="48">48</option>
+                          <option value="54">54</option>
+                          <option value="60">60</option>
+                          <option value="66">66</option>
+                          <option value="72">72</option>
                         </select>
                         <span class="ntb-sep"></span>
                         <button type="button" title="Negrito" onclick="notaCmd('bold')" style="font-weight:800">B</button>
@@ -4094,7 +4116,7 @@ init();
       if(scr==='conc'){ try{ shConcAberto=true; }catch(e){} }
       if(typeof renderDisponibilidade==='function') renderDisponibilidade();
       if(scr==='conc' && typeof renderConciliacao==='function') renderConciliacao();
-      if(scr==='conc' && typeof renderNotas==='function') renderNotas();
+      if(scr==='conc' && typeof renderNotas==='function'){ if(typeof recolherTodasNotas==='function') recolherTodasNotas(); renderNotas(); }
       var sc=document.getElementById('scr-wecann'); if(sc) sc.setAttribute('data-wec',scr);
       if(typeof ajustarAlturaCarrossel==='function') requestAnimationFrame(ajustarAlturaCarrossel);
       if(scr==='kanban') requestAnimationFrame(setupKanbanScroll);
@@ -4208,6 +4230,28 @@ function notaCmd(cmd, valor){
   }catch(e){}
   if(cmd==='fontName'){ var f=document.getElementById('ntbFont'); if(f) f.value=''; }
   if(cmd==='fontSize'){ var s=document.getElementById('ntbSize'); if(s) s.value=''; }
+}
+// aplica um tamanho de fonte REAL (em pixels, de 1 a 72) ao texto selecionado.
+// O comando execCommand('fontSize') só aceita 1..7, por isso usamos uma técnica em
+// dois passos: marcamos a seleção com um tamanho temporário e trocamos por px exato.
+function notaAplicarTamanho(px){
+  var ed=document.getElementById('notaTexto'); if(!ed) return;
+  var n=parseInt(px,10);
+  var sel=document.getElementById('ntbSize');
+  if(!px || isNaN(n)){ if(sel) sel.value=''; return; }
+  n=Math.max(1, Math.min(72, n)); // trava de segurança entre 1 e 72
+  ed.focus();
+  try{
+    // 1) aplica um tamanho "âncora" (7) na seleção para envolvê-la em <font size="7">
+    document.execCommand('fontSize', false, '7');
+    // 2) troca esses <font size="7"> pelo tamanho real em px
+    var fonts=ed.querySelectorAll('font[size="7"]');
+    for(var i=0;i<fonts.length;i++){
+      fonts[i].removeAttribute('size');
+      fonts[i].style.fontSize=n+'px';
+    }
+  }catch(e){}
+  if(sel) sel.value=''; // reseta o select para o rótulo neutro "Tam."
 }
 
 /* ===== POPOVER DE COR COM BOTÕES OK / CANCELAR ===== */
@@ -4376,6 +4420,12 @@ function notaCorpoHTML(n){
 // estado de UI das notas (só na sessão): quais estão minimizadas e qual está em edição
 var _notasMin = {};        // { idDaNota: true } => minimizada
 var _notaEditandoId = null; // id da nota sendo editada no editor principal (ou null = nova)
+// marca TODAS as notas salvas como recolhidas (usado ao abrir a aba Conciliação)
+// para que as notas sempre apareçam fechadas por padrão, e não abertas.
+function recolherTodasNotas(){
+  var ns=getNotas();
+  for(var i=0;i<ns.length;i++){ if(ns[i] && ns[i].id) _notasMin[ns[i].id]=true; }
+}
 // gera uma prévia curta em texto puro para o cabeçalho da nota
 function notaPreviaTexto(n){
   var e=(typeof esc==='function')?esc:function(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
@@ -4403,11 +4453,12 @@ function renderNotas(){
   el.innerHTML=ns.slice().reverse().map(function(n){
     var min=!!_notasMin[n.id];
     var editando=(n.id===_notaEditandoId);
-    var previa = min ? notaPreviaTexto(n) : 'Nota';
+    var previa = notaPreviaTexto(n);
+    var rotulo = min ? previa : ('📝 '+previa);
     return '<div class="nota-item'+(min?' min':'')+(editando?' nota-editando':'')+'">'
-      +'<div class="nota-cab" onclick="toggleNotaMin(\''+n.id+'\')">'
+      +'<div class="nota-cab" onclick="toggleNotaMin(\''+n.id+'\')" title="Clique para '+(min?'expandir':'recolher')+' esta nota">'
         +'<span class="nota-caret">▶</span>'
-        +'<span class="nota-previa">'+previa+'</span>'
+        +'<span class="nota-previa">'+rotulo+'</span>'
         +'<span class="nota-data">'+e(n.data||'')+'</span>'
       +'</div>'
       +'<div class="nota-corpo">'
@@ -4423,9 +4474,31 @@ function renderNotas(){
   }).join('');
 }
 // minimiza/expande uma nota salva (guarda o estado na sessão)
+// Em vez de re-renderizar a lista toda (o que destruía o elemento clicado no
+// meio do evento e podia "sumir" com a nota), alterna só a classe do item.
 function toggleNotaMin(id){
-  _notasMin[id]=!_notasMin[id];
-  renderNotas();
+  var novo = !_notasMin[id];
+  _notasMin[id]=novo;
+  // acha o cabeçalho clicado e sobe até o .nota-item para alternar a classe
+  var el=document.getElementById('notasLista'); if(!el){ renderNotas(); return; }
+  var alvo=null;
+  var cabs=el.querySelectorAll('.nota-cab');
+  for(var i=0;i<cabs.length;i++){
+    var oc=cabs[i].getAttribute('onclick')||'';
+    if(oc.indexOf("'"+id+"'")>=0){ alvo=cabs[i].closest('.nota-item'); break; }
+  }
+  if(!alvo){ renderNotas(); return; }   // fallback seguro
+  alvo.classList.toggle('min', novo);
+  // atualiza a prévia e o title do cabeçalho conforme o novo estado
+  var ns=getNotas(); var n=null;
+  for(var j=0;j<ns.length;j++){ if(ns[j].id===id){ n=ns[j]; break; } }
+  if(n){
+    var previa=notaPreviaTexto(n);
+    var span=alvo.querySelector('.nota-previa');
+    if(span) span.innerHTML = novo ? previa : ('📝 '+previa);
+    var cab=alvo.querySelector('.nota-cab');
+    if(cab) cab.setAttribute('title','Clique para '+(novo?'expandir':'recolher')+' esta nota');
+  }
 }
 // carrega uma nota salva de volta no editor principal para edição
 function editarNotaUI(id){
