@@ -436,7 +436,17 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .dir-body{display:none;padding:0 14px 14px}
 .dir-folder.open > .dir-body{display:block}
 .dir-sub .dir-head{font-size:13px;padding:10px 12px}
-.nota-input{width:100%;min-height:74px;resize:vertical;background:var(--fundo);border:1px solid var(--borda);border-radius:10px;padding:10px 12px;color:var(--texto);font-family:inherit;font-size:13px;box-sizing:border-box}
+.nota-input{width:100%;min-height:180px;max-height:520px;overflow:auto;resize:vertical;background:var(--fundo);border:1px solid var(--borda);border-radius:0 0 10px 10px;border-top:none;padding:12px 14px;color:var(--texto);font-family:inherit;font-size:14px;line-height:1.5;box-sizing:border-box;outline:none}
+.nota-input:focus{border-color:var(--acento,#4E7BC7)}
+.nota-input:empty:before{content:attr(data-placeholder);color:var(--texto-fraco);pointer-events:none}
+.nota-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:5px;background:var(--cartao,#16212E);border:1px solid var(--borda);border-radius:10px 10px 0 0;padding:7px 9px}
+.nota-toolbar .ntb-sep{width:1px;align-self:stretch;background:var(--borda);margin:2px 3px}
+.nota-toolbar button{min-width:30px;height:30px;padding:0 8px;background:var(--fundo);border:1px solid var(--borda);border-radius:7px;color:var(--texto);font-size:13px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;justify-content:center}
+.nota-toolbar button:hover{background:var(--borda)}
+.nota-toolbar button:active{transform:translateY(1px)}
+.nota-toolbar select{height:30px;background:var(--fundo);border:1px solid var(--borda);border-radius:7px;color:var(--texto);font-family:inherit;font-size:12px;padding:0 6px;cursor:pointer}
+.nota-toolbar input[type=color]{width:30px;height:30px;padding:0;border:1px solid var(--borda);border-radius:7px;background:var(--fundo);cursor:pointer}
+.nota-toolbar .ntb-lbl{font-size:11px;color:var(--texto-fraco);margin-left:2px}
 .nota-acoes{margin:8px 0 4px}
 .nota-salvar{background:var(--verde);color:#1e2a05;border:none;border-radius:9px;padding:8px 14px;font-weight:700;font-size:12.5px;cursor:pointer;font-family:inherit}
 .nota-salvar:hover{background:var(--verde-escuro)}
@@ -444,6 +454,9 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .notas-vazio{color:var(--texto-fraco);font-size:12.5px;padding:8px 2px}
 .nota-item{background:var(--fundo);border:1px solid var(--borda);border-radius:10px;padding:10px 12px}
 .nota-txt{font-size:13px;color:var(--texto);line-height:1.45;white-space:pre-wrap;word-break:break-word}
+.nota-txt b,.nota-txt strong{font-weight:700}.nota-txt i,.nota-txt em{font-style:italic}
+.nota-txt u{text-decoration:underline}.nota-txt s,.nota-txt strike{text-decoration:line-through}
+.nota-txt ul,.nota-txt ol{margin:4px 0;padding-left:22px}
 .nota-rod{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
 .nota-data{font-size:11px;color:var(--texto-fraco)}
 .nota-del{background:transparent;border:1px solid var(--borda);color:#E5707A;border-radius:7px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:inherit}
@@ -1044,7 +1057,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <h2>Vouchers salvos</h2>
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
-    <!-- build: HUB-v2·32 (RASCUNHO — não está no ar) -->
+    <!-- build: HUB-v2·33 (RASCUNHO — não está no ar) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -3247,7 +3260,41 @@ function renderDisponibilidade(){
                   <div class="dir-folder dir-sub open">
                     <button class="dir-head" type="button" onclick="this.parentElement.classList.toggle('open')"><span class="dir-ic">📝</span><span class="dir-nome">Notas</span><span class="dir-caret">▾</span></button>
                     <div class="dir-body">
-                      <textarea id="notaTexto" class="nota-input" placeholder="Escreva uma nota e clique em Salvar..."></textarea>
+                      <div class="nota-toolbar" id="notaToolbar">
+                        <select id="ntbFont" title="Tipo de fonte" onchange="notaCmd('fontName', this.value)">
+                          <option value="">Fonte</option>
+                          <option value="Arial, sans-serif">Arial</option>
+                          <option value="Georgia, serif">Georgia</option>
+                          <option value="'Times New Roman', serif">Times</option>
+                          <option value="'Courier New', monospace">Courier</option>
+                          <option value="Verdana, sans-serif">Verdana</option>
+                          <option value="'Trebuchet MS', sans-serif">Trebuchet</option>
+                        </select>
+                        <select id="ntbSize" title="Tamanho da fonte" onchange="notaCmd('fontSize', this.value)">
+                          <option value="">Tam.</option>
+                          <option value="1">Muito pequeno</option>
+                          <option value="2">Pequeno</option>
+                          <option value="3">Normal</option>
+                          <option value="4">Médio</option>
+                          <option value="5">Grande</option>
+                          <option value="6">Muito grande</option>
+                          <option value="7">Enorme</option>
+                        </select>
+                        <span class="ntb-sep"></span>
+                        <button type="button" title="Negrito" onclick="notaCmd('bold')" style="font-weight:800">B</button>
+                        <button type="button" title="Itálico" onclick="notaCmd('italic')" style="font-style:italic">I</button>
+                        <button type="button" title="Sublinhado" onclick="notaCmd('underline')" style="text-decoration:underline">U</button>
+                        <button type="button" title="Riscado" onclick="notaCmd('strikeThrough')" style="text-decoration:line-through">S</button>
+                        <span class="ntb-sep"></span>
+                        <label title="Cor do texto" style="display:inline-flex;align-items:center;gap:3px"><span class="ntb-lbl">A</span><input type="color" id="ntbColor" value="#E8EEF4" oninput="notaCmd('foreColor', this.value)"></label>
+                        <label title="Cor de fundo (marca-texto)" style="display:inline-flex;align-items:center;gap:3px"><span class="ntb-lbl">🖍</span><input type="color" id="ntbBg" value="#FFEB3B" oninput="notaCmd('hiliteColor', this.value)"></label>
+                        <span class="ntb-sep"></span>
+                        <button type="button" title="Lista com marcadores" onclick="notaCmd('insertUnorderedList')">•⃝</button>
+                        <button type="button" title="Lista numerada" onclick="notaCmd('insertOrderedList')">1.</button>
+                        <span class="ntb-sep"></span>
+                        <button type="button" title="Limpar formatação" onclick="notaCmd('removeFormat')">✕ᶠ</button>
+                      </div>
+                      <div id="notaTexto" class="nota-input" contenteditable="true" data-placeholder="Escreva uma nota… selecione o texto e use a barra acima para formatar."></div>
                       <div class="nota-acoes"><button type="button" class="nota-salvar" onclick="salvarNotaUI()">＋ Salvar nota</button></div>
                       <div id="notasLista" class="notas-lista"></div>
                     </div>
@@ -4117,22 +4164,56 @@ init();
 /* ===== HUB v2 — Notas do Diretório (Conciliação) ===== */
 function getNotas(){ try{ return JSON.parse(localStorage.getItem('uv_notas')||'[]'); }catch(e){ return []; } }
 function setNotas(a){ try{ localStorage.setItem('uv_notas', JSON.stringify(a)); }catch(e){} }
+// aplica um comando de formatação no editor de notas (execCommand cobre todo o básico)
+function notaCmd(cmd, valor){
+  var ed=document.getElementById('notaTexto'); if(!ed) return;
+  ed.focus();
+  try{
+    if(cmd==='hiliteColor'){
+      if(!document.execCommand('hiliteColor', false, valor)) document.execCommand('backColor', false, valor);
+    } else {
+      document.execCommand(cmd, false, valor);
+    }
+  }catch(e){}
+  if(cmd==='fontName'){ var f=document.getElementById('ntbFont'); if(f) f.value=''; }
+  if(cmd==='fontSize'){ var s=document.getElementById('ntbSize'); if(s) s.value=''; }
+}
+// remove tags perigosas (script/style/on*) mas mantém a formatação visual básica
+function sanitizarNotaHTML(html){
+  var wrap=document.createElement('div'); wrap.innerHTML=String(html||'');
+  wrap.querySelectorAll('script,style,iframe,object,embed,link,meta').forEach(function(n){ n.remove(); });
+  wrap.querySelectorAll('*').forEach(function(el){
+    for(var i=el.attributes.length-1;i>=0;i--){
+      var nome=el.attributes[i].name, val=el.attributes[i].value||'';
+      if(/^on/i.test(nome)) el.removeAttribute(nome);
+      else if(nome==='href'||nome==='src'){ if(/^\s*javascript:/i.test(val)) el.removeAttribute(nome); }
+    }
+  });
+  return wrap.innerHTML;
+}
+// nota antiga (texto puro) x nota nova (html): detecta e exibe de forma segura
+function notaCorpoHTML(n){
+  if(n && typeof n.html==='string') return sanitizarNotaHTML(n.html);
+  var e=(typeof esc==='function')?esc:function(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
+  return e((n&&n.texto)||'').replace(/\n/g,'<br>');
+}
 function renderNotas(){
   var el=document.getElementById('notasLista'); if(!el) return;
   var ns=getNotas();
   if(!ns.length){ el.innerHTML='<div class="notas-vazio">Nenhuma nota salva ainda.</div>'; return; }
   var e=(typeof esc==='function')?esc:function(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
   el.innerHTML=ns.slice().reverse().map(function(n){
-    return '<div class="nota-item"><div class="nota-txt">'+e(n.texto)+'</div><div class="nota-rod"><span class="nota-data">'+e(n.data||'')+'</span><button type="button" class="nota-del" onclick="excluirNotaUI(\''+n.id+'\')">Excluir</button></div></div>';
+    return '<div class="nota-item"><div class="nota-txt">'+notaCorpoHTML(n)+'</div><div class="nota-rod"><span class="nota-data">'+e(n.data||'')+'</span><button type="button" class="nota-del" onclick="excluirNotaUI(\''+n.id+'\')">Excluir</button></div></div>';
   }).join('');
 }
 function salvarNotaUI(){
   var t=document.getElementById('notaTexto'); if(!t) return;
-  var v=(t.value||'').trim();
-  if(!v){ if(typeof toast==='function') toast('Escreva algo antes de salvar','info'); return; }
+  var html=sanitizarNotaHTML(t.innerHTML||'');
+  var textoPuro=(t.innerText||t.textContent||'').trim();
+  if(!textoPuro){ if(typeof toast==='function') toast('Escreva algo antes de salvar','info'); return; }
   var ns=getNotas(); var d=new Date();
-  ns.push({id:'n'+Date.now(), texto:v, data:d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})});
-  setNotas(ns); t.value=''; renderNotas();
+  ns.push({id:'n'+Date.now(), html:html, texto:textoPuro, data:d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})});
+  setNotas(ns); t.innerHTML=''; renderNotas();
   if(typeof toast==='function') toast('Nota salva','sucesso');
 }
 function excluirNotaUI(id){
