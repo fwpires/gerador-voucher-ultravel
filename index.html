@@ -452,15 +452,29 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .nota-salvar:hover{background:var(--verde-escuro)}
 .notas-lista{margin-top:6px;display:flex;flex-direction:column;gap:8px}
 .notas-vazio{color:var(--texto-fraco);font-size:12.5px;padding:8px 2px}
-.nota-item{background:var(--fundo);border:1px solid var(--borda);border-radius:10px;padding:10px 12px}
+.nota-item{background:var(--fundo);border:1px solid var(--borda);border-radius:10px;padding:0;overflow:hidden}
+.nota-cab{display:flex;align-items:center;gap:8px;padding:9px 12px;cursor:pointer;user-select:none}
+.nota-cab:hover{background:rgba(255,255,255,.03)}
+.nota-caret{flex:none;font-size:11px;color:var(--texto-fraco);transition:transform .15s;transform:rotate(90deg)}
+.nota-item.min .nota-caret{transform:rotate(0deg)}
+.nota-previa{flex:1;min-width:0;font-size:12.5px;color:var(--texto);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nota-item:not(.min) .nota-previa{color:var(--texto-fraco);font-size:11px;text-transform:uppercase;letter-spacing:.03em}
+.nota-corpo{padding:0 12px 10px}
+.nota-item.min .nota-corpo{display:none}
 .nota-txt{font-size:13px;color:var(--texto);line-height:1.45;white-space:pre-wrap;word-break:break-word}
 .nota-txt b,.nota-txt strong{font-weight:700}.nota-txt i,.nota-txt em{font-style:italic}
 .nota-txt u{text-decoration:underline}.nota-txt s,.nota-txt strike{text-decoration:line-through}
 .nota-txt ul,.nota-txt ol{margin:4px 0;padding-left:22px}
-.nota-rod{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+.nota-rod{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;flex-wrap:wrap}
 .nota-data{font-size:11px;color:var(--texto-fraco)}
+.nota-botoes{display:flex;gap:6px}
+.nota-edit{background:transparent;border:1px solid var(--borda);color:#6FB7F2;border-radius:7px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:inherit}
+.nota-edit:hover{background:rgba(111,183,242,.12)}
 .nota-del{background:transparent;border:1px solid var(--borda);color:#E5707A;border-radius:7px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:inherit}
 .nota-del:hover{background:rgba(229,112,122,.12)}
+.nota-editando{border-color:#6FB7F2;box-shadow:0 0 0 2px rgba(111,183,242,.18)}
+.nota-cancelar{background:transparent;border:1px solid var(--borda);color:var(--texto-fraco);border-radius:9px;padding:8px 14px;font-weight:700;font-size:12.5px;cursor:pointer;font-family:inherit;margin-left:8px}
+.nota-cancelar:hover{background:rgba(255,255,255,.05)}
 .dir-csv{margin-top:6px}
 .est-face-disp{display:flex;align-items:stretch}
 .est-face-ocup{display:flex;flex-direction:column}
@@ -1057,7 +1071,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <h2>Vouchers salvos</h2>
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
-    <!-- build: HUB-v2·33 (RASCUNHO — não está no ar) -->
+    <!-- build: HUB-v2·34 (RASCUNHO — não está no ar) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -3295,7 +3309,7 @@ function renderDisponibilidade(){
                         <button type="button" title="Limpar formatação" onclick="notaCmd('removeFormat')">✕ᶠ</button>
                       </div>
                       <div id="notaTexto" class="nota-input" contenteditable="true" data-placeholder="Escreva uma nota… selecione o texto e use a barra acima para formatar."></div>
-                      <div class="nota-acoes"><button type="button" class="nota-salvar" onclick="salvarNotaUI()">＋ Salvar nota</button></div>
+                      <div class="nota-acoes"><button type="button" class="nota-salvar" id="notaSalvarBtn" onclick="salvarNotaUI()">＋ Salvar nota</button><button type="button" class="nota-cancelar" id="notaCancelarBtn" onclick="cancelarEdicaoNota()" style="display:none">Cancelar edição</button></div>
                       <div id="notasLista" class="notas-lista"></div>
                     </div>
                   </div>
@@ -4197,14 +4211,71 @@ function notaCorpoHTML(n){
   var e=(typeof esc==='function')?esc:function(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
   return e((n&&n.texto)||'').replace(/\n/g,'<br>');
 }
+// estado de UI das notas (só na sessão): quais estão minimizadas e qual está em edição
+var _notasMin = {};        // { idDaNota: true } => minimizada
+var _notaEditandoId = null; // id da nota sendo editada no editor principal (ou null = nova)
+// gera uma prévia curta em texto puro para o cabeçalho da nota
+function notaPreviaTexto(n){
+  var e=(typeof esc==='function')?esc:function(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
+  var t=(n&&n.texto)||'';
+  if(!t){ var tmp=document.createElement('div'); tmp.innerHTML=(n&&n.html)||''; t=tmp.innerText||tmp.textContent||''; }
+  t=t.replace(/\s+/g,' ').trim();
+  if(t.length>60) t=t.slice(0,60)+'…';
+  return e(t||'(nota vazia)');
+}
 function renderNotas(){
   var el=document.getElementById('notasLista'); if(!el) return;
   var ns=getNotas();
   if(!ns.length){ el.innerHTML='<div class="notas-vazio">Nenhuma nota salva ainda.</div>'; return; }
   var e=(typeof esc==='function')?esc:function(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
   el.innerHTML=ns.slice().reverse().map(function(n){
-    return '<div class="nota-item"><div class="nota-txt">'+notaCorpoHTML(n)+'</div><div class="nota-rod"><span class="nota-data">'+e(n.data||'')+'</span><button type="button" class="nota-del" onclick="excluirNotaUI(\''+n.id+'\')">Excluir</button></div></div>';
+    var min=!!_notasMin[n.id];
+    var editando=(n.id===_notaEditandoId);
+    var previa = min ? notaPreviaTexto(n) : 'Nota';
+    return '<div class="nota-item'+(min?' min':'')+(editando?' nota-editando':'')+'">'
+      +'<div class="nota-cab" onclick="toggleNotaMin(\''+n.id+'\')">'
+        +'<span class="nota-caret">▶</span>'
+        +'<span class="nota-previa">'+previa+'</span>'
+        +'<span class="nota-data">'+e(n.data||'')+'</span>'
+      +'</div>'
+      +'<div class="nota-corpo">'
+        +'<div class="nota-txt">'+notaCorpoHTML(n)+'</div>'
+        +'<div class="nota-rod"><span class="nota-data">'+e(n.data||'')+(n.editadoEm?(' · editada '+e(n.editadoEm)):'')+'</span>'
+          +'<span class="nota-botoes">'
+            +'<button type="button" class="nota-edit" onclick="editarNotaUI(\''+n.id+'\')">✏️ Editar</button>'
+            +'<button type="button" class="nota-del" onclick="excluirNotaUI(\''+n.id+'\')">Excluir</button>'
+          +'</span>'
+        +'</div>'
+      +'</div>'
+    +'</div>';
   }).join('');
+}
+// minimiza/expande uma nota salva (guarda o estado na sessão)
+function toggleNotaMin(id){
+  _notasMin[id]=!_notasMin[id];
+  renderNotas();
+}
+// carrega uma nota salva de volta no editor principal para edição
+function editarNotaUI(id){
+  var ns=getNotas(); var n=null;
+  for(var i=0;i<ns.length;i++){ if(ns[i].id===id){ n=ns[i]; break; } }
+  if(!n) return;
+  var ed=document.getElementById('notaTexto'); if(!ed) return;
+  ed.innerHTML = (typeof n.html==='string') ? sanitizarNotaHTML(n.html) : (typeof esc==='function'?esc(n.texto||''):(n.texto||'')).replace(/\n/g,'<br>');
+  _notaEditandoId=id;
+  var bs=document.getElementById('notaSalvarBtn'); if(bs) bs.textContent='💾 Salvar alterações';
+  var bc=document.getElementById('notaCancelarBtn'); if(bc) bc.style.display='';
+  renderNotas();
+  ed.focus();
+  try{ ed.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){}
+}
+// sai do modo de edição sem salvar
+function cancelarEdicaoNota(){
+  _notaEditandoId=null;
+  var ed=document.getElementById('notaTexto'); if(ed) ed.innerHTML='';
+  var bs=document.getElementById('notaSalvarBtn'); if(bs) bs.textContent='＋ Salvar nota';
+  var bc=document.getElementById('notaCancelarBtn'); if(bc) bc.style.display='none';
+  renderNotas();
 }
 function salvarNotaUI(){
   var t=document.getElementById('notaTexto'); if(!t) return;
@@ -4212,13 +4283,29 @@ function salvarNotaUI(){
   var textoPuro=(t.innerText||t.textContent||'').trim();
   if(!textoPuro){ if(typeof toast==='function') toast('Escreva algo antes de salvar','info'); return; }
   var ns=getNotas(); var d=new Date();
-  ns.push({id:'n'+Date.now(), html:html, texto:textoPuro, data:d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})});
-  setNotas(ns); t.innerHTML=''; renderNotas();
-  if(typeof toast==='function') toast('Nota salva','sucesso');
+  var carimbo=d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  if(_notaEditandoId){
+    // EDIÇÃO: atualiza a nota existente, preservando o id e a data original de criação
+    var achou=false;
+    for(var i=0;i<ns.length;i++){
+      if(ns[i].id===_notaEditandoId){
+        ns[i].html=html; ns[i].texto=textoPuro; ns[i].editadoEm=carimbo; achou=true; break;
+      }
+    }
+    setNotas(ns);
+    cancelarEdicaoNota();
+    if(typeof toast==='function') toast(achou?'Nota atualizada':'Nota salva','sucesso');
+  } else {
+    // CRIAÇÃO
+    ns.push({id:'n'+Date.now(), html:html, texto:textoPuro, data:carimbo});
+    setNotas(ns); t.innerHTML=''; renderNotas();
+    if(typeof toast==='function') toast('Nota salva','sucesso');
+  }
 }
 function excluirNotaUI(id){
-  if(typeof UI!=='undefined' && UI.confirm){ UI.confirm('Excluir nota','Deseja excluir esta nota?',function(){ setNotas(getNotas().filter(function(n){return n.id!==id;})); renderNotas(); },'Excluir'); }
-  else { setNotas(getNotas().filter(function(n){return n.id!==id;})); renderNotas(); }
+  function faz(){ setNotas(getNotas().filter(function(n){return n.id!==id;})); if(_notaEditandoId===id) cancelarEdicaoNota(); else renderNotas(); }
+  if(typeof UI!=='undefined' && UI.confirm){ UI.confirm('Excluir nota','Deseja excluir esta nota?',faz,'Excluir'); }
+  else { faz(); }
 }
 </script>
 <script>
