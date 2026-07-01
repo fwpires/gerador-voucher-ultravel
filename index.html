@@ -467,14 +467,9 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .nota-acoes{margin:8px 0 4px}
 .nota-salvar{background:var(--verde);color:#1e2a05;border:none;border-radius:9px;padding:8px 14px;font-weight:700;font-size:12.5px;cursor:pointer;font-family:inherit}
 .nota-salvar:hover{background:var(--verde-escuro)}
-.notas-lista{margin-top:6px;display:flex;flex-direction:column;gap:8px;transform:translateZ(0)}
+.notas-lista{margin-top:6px;display:flex;flex-direction:column;gap:8px}
 .notas-vazio{color:var(--texto-fraco);font-size:12.5px;padding:8px 2px}
-/* transform:translateZ(0) força cada nota a ter sua PRÓPRIA camada de
-   renderização (compositing layer). Isso corrige o bug em que a nota "sumia"
-   ao rolar a página: o navegador deixava de repintar o elemento durante o
-   scroll (repaint/compositing bug) e só voltava ao atualizar a página.
-   backface-visibility:hidden reforça a estabilidade da camada. */
-.nota-item{background:var(--fundo);border:1px solid var(--borda);border-radius:10px;padding:0;overflow:hidden;display:block;transform:translateZ(0);backface-visibility:hidden}
+.nota-item{background:var(--fundo);border:1px solid var(--borda);border-radius:10px;padding:0;overflow:hidden;display:block}
 .nota-cab{display:flex;align-items:center;gap:8px;padding:9px 12px;cursor:pointer;user-select:none;min-height:38px;box-sizing:border-box}
 .nota-cab:hover{background:rgba(255,255,255,.03)}
 .nota-caret{flex:none;font-size:11px;color:var(--texto-fraco);transition:transform .15s;transform:rotate(90deg)}
@@ -1093,7 +1088,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <h2>Vouchers salvos</h2>
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
-    <!-- build: HUB-v2·43 (RASCUNHO — não está no ar) -->
+    <!-- build: HUB-v2·44 (RASCUNHO — não está no ar) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -4486,7 +4481,50 @@ function renderNotas(){
     +'</div>';
   }).join('');
 }
-// minimiza/expande uma nota salva (guarda o estado na sessão)
+/* ===== GUARDIÃO ANTI-SUMIÇO DAS NOTAS =====
+   Corrige de forma definitiva o bug em que a nota salva "sumia" da tela ao
+   rolar a página e só voltava ao dar refresh. Em vez de depender da causa
+   exata (repaint do navegador, estado perdido, etc.), este guardião verifica,
+   após cada rolagem, se a lista de notas DEVERIA ter conteúdo mas está vazia
+   ou invisível — e, nesse caso, força o redesenho. */
+function _notasParecemSumidas(){
+  var el=document.getElementById('notasLista');
+  if(!el) return false;
+  var temNotasSalvas=false;
+  try{ temNotasSalvas = getNotas().length>0; }catch(e){ temNotasSalvas=false; }
+  if(!temNotasSalvas) return false;              // não há nada que devesse aparecer
+  // (1) a lista ficou SEM os itens desenhados no HTML? Isso é o bug — restaura.
+  //     (a contagem de itens não depende do layout, então é confiável)
+  if(!el.querySelector('.nota-item')) return true;
+  // (2) itens existem no HTML. Só sinalizamos "sumido" se a pasta ESTÁ aberta
+  //     (visível) mas a lista colapsou para altura zero. Se a pasta foi fechada
+  //     de propósito pelo usuário (offsetParent null), não mexemos.
+  if(el.offsetParent===null) return false;
+  if(el.getBoundingClientRect().height===0) return true;
+  return false;
+}
+function _restaurarNotas(){
+  try{
+    if(_notasParecemSumidas()){
+      renderNotas();                             // redesenha os itens
+      var el=document.getElementById('notasLista');
+      if(el){ el.style.display='none'; void el.offsetHeight; el.style.display=''; } // empurrão de repaint
+    }
+  }catch(e){}
+}
+// dispara a verificação após rolagens (throttle via requestAnimationFrame),
+// tanto na janela quanto em qualquer container interno que role ('true' = captura).
+(function(){
+  var agendado=false;
+  function aoRolar(){
+    if(agendado) return;
+    agendado=true;
+    requestAnimationFrame(function(){ agendado=false; _restaurarNotas(); });
+  }
+  window.addEventListener('scroll', aoRolar, true);
+  window.addEventListener('resize', aoRolar);
+})();
+// minimiza/expande uma nota salva (guarda o estado, persistido no localStorage)
 // Em vez de re-renderizar a lista toda (o que destruía o elemento clicado no
 // meio do evento e podia "sumir" com a nota), alterna só a classe do item.
 function toggleNotaMin(id){
