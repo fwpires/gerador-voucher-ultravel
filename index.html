@@ -1088,7 +1088,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <h2>Vouchers salvos</h2>
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
-    <!-- build: HUB-v2·48 (RASCUNHO — não está no ar) -->
+    <!-- build: HUB-v2·49 (RASCUNHO — não está no ar) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -4729,32 +4729,20 @@ function excluirNotaUI(id){
 })();
 </script>
 <script>
-/* ===== AUTO-REFRESH INTELIGENTE (baseado em INATIVIDADE) =====
-   Em vez de recarregar em intervalo fixo (o que interromperia quem está usando),
-   o refresh só acontece em momentos COMPROVADAMENTE SEGUROS. Três camadas:
+/* ===== AUTO-REFRESH DE HORA EM HORA (em horas cheias do relógio) =====
+   O refresh acontece a cada HORA CHEIA (19:00, 20:00, 21:00, ...), alinhado
+   ao relógio — e não a cada X minutos.
 
-   1) INATIVIDADE: cada movimento de mouse, tecla, rolagem, clique ou toque
-      reinicia o cronômetro. Só recarrega após 5 min de silêncio total.
-   2) ABA OCULTA: se você trocou de aba/janela, aproveita para recarregar no
-      fundo (você nem está olhando) — desde que não tenha algo em edição.
-   3) TRAVA DE DIGITAÇÃO: nunca recarrega enquanto há um campo em edição
-      (editor de notas, input, textarea, select ou popover de cor aberto),
-      protegendo qualquer texto ainda não salvo. */
+   A LÓGICA DE PROTEÇÃO CONTINUA A MESMA: nunca recarrega enquanto há um campo
+   em edição (editor de notas, input, textarea, select ou popover de cor aberto).
+   Se bater a hora cheia bem no meio de uma edição sua, o refresh fica PENDENTE
+   e só acontece assim que for seguro — protegendo qualquer texto não salvo. */
 (function(){
-  var OCIOSO_LIMITE = 5 * 60 * 1000;   // 5 min de INATIVIDADE para liberar o refresh
-  var CHECAGEM      = 30 * 1000;       // verifica a cada 30 segundos
-  var ultimaAtividade = Date.now();
+  var CHECAGEM = 15 * 1000;                          // verifica a cada 15 segundos
+  var horaCheiaAtual = Math.floor(Date.now()/3600000); // índice da hora cheia atual
+  var pendente = false;                              // true quando bateu a hora e ainda não recarregou
 
-  // qualquer um destes eventos conta como "usuário ativo" e zera o cronômetro.
-  // passive:true = não afeta a performance da rolagem; capture:true = pega
-  // eventos disparados também em elementos internos.
-  function registrarAtividade(){ ultimaAtividade = Date.now(); }
-  var EVENTOS = ['mousemove','mousedown','keydown','scroll','wheel','touchstart','click','input','focusin'];
-  for(var i=0;i<EVENTOS.length;i++){
-    window.addEventListener(EVENTOS[i], registrarAtividade, {passive:true, capture:true});
-  }
-
-  // detecta se há QUALQUER campo em edição no momento (trava de segurança)
+  // detecta se há QUALQUER campo em edição no momento (trava de segurança — IGUAL a antes)
   function estaEditando(){
     var a = document.activeElement;
     if(a){
@@ -4776,18 +4764,18 @@ function excluirNotaUI(id){
   }
 
   function verificar(){
-    // camada 3: se há edição em andamento, NUNCA recarrega — nem tenta.
+    // cruzou uma hora cheia (o relógio passou de XX:59 para XX+1:00)?
+    var idxAgora = Math.floor(Date.now()/3600000);
+    if(idxAgora !== horaCheiaAtual){
+      horaCheiaAtual = idxAgora;
+      pendente = true;               // marca que chegou a hora de recarregar
+    }
+    if(!pendente) return;
+    // trava de segurança: se há edição em andamento, NÃO recarrega — mantém
+    // pendente e tenta de novo na próxima verificação, até ficar seguro.
     if(estaEditando()) return;
-
-    var agora = Date.now();
-    var tempoParado = agora - ultimaAtividade;
-
-    // camada 1: usuário ficou 5 min totalmente inativo → seguro recarregar.
-    if(tempoParado >= OCIOSO_LIMITE){ recarregar(); return; }
-
-    // camada 2: a aba está oculta (usuário trocou de janela/aba) e já passou
-    // pelo menos 1 min desde a última ação → recarrega em segundo plano.
-    if(document.hidden && tempoParado >= 60 * 1000){ recarregar(); return; }
+    pendente = false;
+    recarregar();                    // seguro → recarrega (a página reinicia)
   }
 
   setInterval(verificar, CHECAGEM);
