@@ -1088,7 +1088,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <h2>Vouchers salvos</h2>
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
-    <!-- build: HUB-v2·46 (RASCUNHO — não está no ar) -->
+    <!-- build: HUB-v2·47 (RASCUNHO — não está no ar) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -3347,7 +3347,7 @@ function renderDisponibilidade(){
                         <span class="ntb-sep"></span>
                         <button type="button" title="Limpar formatação" onclick="notaCmd('removeFormat')">✕ᶠ</button>
                       </div>
-                      <div id="notaTexto" class="nota-input" contenteditable="true" data-placeholder="Escreva uma nota… selecione o texto e use a barra acima para formatar."></div>
+                      <div id="notaTexto" class="nota-input" contenteditable="true" data-placeholder="Escreva uma nota… selecione o texto e use a barra acima para formatar." onclick="notaSincronizarSeletores()" onkeyup="notaSincronizarSeletores()" onfocus="notaSincronizarSeletores()"></div>
                       <div class="nota-acoes"><button type="button" class="nota-salvar" id="notaSalvarBtn" onclick="salvarNotaUI()">＋ Salvar nota</button><button type="button" class="nota-cancelar" id="notaCancelarBtn" onclick="cancelarEdicaoNota()" style="display:none">Cancelar edição</button></div>
                       <div id="notasLista" class="notas-lista"></div>
                     </div>
@@ -4253,6 +4253,55 @@ function notaAplicarTamanho(px){
   }catch(e){}
   // NÃO reseta o select: mantém visível o último tamanho selecionado
   if(sel) sel.value=String(n);
+}
+
+/* ===== SINCRONIZAÇÃO AUTOMÁTICA DOS SELETORES =====
+   Ao clicar (ou mover o cursor) sobre um trecho do editor, detecta o TAMANHO
+   e o TIPO de fonte reais naquele ponto e atualiza os seletores da barra —
+   assim o usuário sempre vê a formatação ativa onde o cursor está. */
+function notaSincronizarSeletores(){
+  try{
+    var ed=document.getElementById('notaTexto'); if(!ed) return;
+    var sel=window.getSelection && window.getSelection();
+    if(!sel || sel.rangeCount===0) return;
+    var node=sel.anchorNode; if(!node) return;
+    // se o cursor está num nó de texto, sobe para o elemento que o contém
+    var eln=(node.nodeType===3) ? node.parentElement : node;
+    if(!eln || !ed.contains(eln)) return;   // só age dentro do editor
+    var cs=window.getComputedStyle(eln);
+
+    /* ---- TAMANHO DA FONTE ---- */
+    var px=parseFloat(cs.fontSize)||0;
+    var n=Math.round(px);
+    var selSize=document.getElementById('ntbSize');
+    if(selSize && n>0){
+      var exato=null, maisProx=null, difMin=Infinity;
+      for(var i=0;i<selSize.options.length;i++){
+        var v=parseInt(selSize.options[i].value,10);
+        if(isNaN(v)) continue;
+        if(v===n){ exato=selSize.options[i].value; break; }
+        var d=Math.abs(v-n);
+        if(d<difMin){ difMin=d; maisProx=selSize.options[i].value; }
+      }
+      var alvo=(exato!=null)?exato:maisProx;
+      if(alvo!=null) selSize.value=alvo;
+    }
+
+    /* ---- TIPO (NOME) DA FONTE ---- */
+    var fam=(cs.fontFamily||'').toLowerCase();
+    var primeira=fam.split(',')[0].replace(/["']/g,'').trim();
+    var selFont=document.getElementById('ntbFont');
+    if(selFont && primeira){
+      var achou='';
+      for(var j=0;j<selFont.options.length;j++){
+        var ov=selFont.options[j].value; if(!ov) continue;
+        var of=ov.toLowerCase().split(',')[0].replace(/["']/g,'').trim();
+        if(of===primeira){ achou=ov; break; }
+      }
+      // só troca se reconheceu a fonte na lista; senão mantém o valor atual
+      if(achou) selFont.value=achou;
+    }
+  }catch(e){}
 }
 
 /* ===== POPOVER DE COR COM BOTÕES OK / CANCELAR ===== */
