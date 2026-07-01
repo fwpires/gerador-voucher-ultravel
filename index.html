@@ -445,7 +445,24 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .nota-toolbar button:hover{background:var(--borda)}
 .nota-toolbar button:active{transform:translateY(1px)}
 .nota-toolbar select{height:30px;background:var(--fundo);border:1px solid var(--borda);border-radius:7px;color:var(--texto);font-family:inherit;font-size:12px;padding:0 6px;cursor:pointer}
-.nota-toolbar input[type=color]{width:30px;height:30px;padding:0;border:1px solid var(--borda);border-radius:7px;background:var(--fundo);cursor:pointer}
+.nota-toolbar .ntb-cor-btn{position:relative;min-width:36px;height:30px;padding:0 6px;display:inline-flex;align-items:center;gap:4px;background:var(--fundo);border:1px solid var(--borda);border-radius:7px;color:var(--texto);font-size:13px;cursor:pointer;font-family:inherit}
+.nota-toolbar .ntb-cor-btn:hover{background:var(--borda)}
+.nota-toolbar .ntb-cor-amostra{width:14px;height:14px;border-radius:3px;border:1px solid rgba(255,255,255,.35);flex:none}
+.ntb-cor-pop{position:absolute;z-index:10000;background:var(--cartao,#16212E);border:1px solid var(--borda);border-radius:12px;box-shadow:0 14px 40px rgba(0,0,0,.5);padding:12px;width:212px}
+.ntb-cor-titulo{font-size:12px;font-weight:700;color:var(--texto);margin-bottom:9px}
+.ntb-cor-grade{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:11px}
+.ntb-cor-swatch{width:100%;aspect-ratio:1;border-radius:6px;border:1px solid rgba(255,255,255,.18);cursor:pointer;padding:0}
+.ntb-cor-swatch:hover{transform:scale(1.12);outline:2px solid var(--acento,#6FB7F2)}
+.ntb-cor-swatch.sel{outline:2px solid var(--acento,#6FB7F2);outline-offset:1px}
+.ntb-cor-livre{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.ntb-cor-livre label{font-size:11px;color:var(--texto-fraco)}
+.ntb-cor-livre input[type=color]{width:34px;height:28px;padding:0;border:1px solid var(--borda);border-radius:6px;background:var(--fundo);cursor:pointer}
+.ntb-cor-preview{flex:1;height:28px;border-radius:6px;border:1px solid var(--borda);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.ntb-cor-acoes{display:flex;gap:8px;justify-content:flex-end}
+.ntb-cor-ok{background:var(--verde,#94C11E);color:#1e2a05;border:none;border-radius:8px;padding:7px 16px;font-weight:700;font-size:12.5px;cursor:pointer;font-family:inherit}
+.ntb-cor-ok:hover{background:var(--verde-escuro,#7ea315)}
+.ntb-cor-cancel{background:transparent;border:1px solid var(--borda);color:var(--texto-fraco);border-radius:8px;padding:7px 14px;font-weight:700;font-size:12.5px;cursor:pointer;font-family:inherit}
+.ntb-cor-cancel:hover{background:rgba(255,255,255,.05)}
 .nota-toolbar .ntb-lbl{font-size:11px;color:var(--texto-fraco);margin-left:2px}
 .nota-acoes{margin:8px 0 4px}
 .nota-salvar{background:var(--verde);color:#1e2a05;border:none;border-radius:9px;padding:8px 14px;font-weight:700;font-size:12.5px;cursor:pointer;font-family:inherit}
@@ -1071,7 +1088,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <h2>Vouchers salvos</h2>
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
-    <!-- build: HUB-v2·34 (RASCUNHO — não está no ar) -->
+    <!-- build: HUB-v2·36 (RASCUNHO — não está no ar) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -3300,8 +3317,8 @@ function renderDisponibilidade(){
                         <button type="button" title="Sublinhado" onclick="notaCmd('underline')" style="text-decoration:underline">U</button>
                         <button type="button" title="Riscado" onclick="notaCmd('strikeThrough')" style="text-decoration:line-through">S</button>
                         <span class="ntb-sep"></span>
-                        <label title="Cor do texto" style="display:inline-flex;align-items:center;gap:3px"><span class="ntb-lbl">A</span><input type="color" id="ntbColor" value="#E8EEF4" oninput="notaCmd('foreColor', this.value)"></label>
-                        <label title="Cor de fundo (marca-texto)" style="display:inline-flex;align-items:center;gap:3px"><span class="ntb-lbl">🖍</span><input type="color" id="ntbBg" value="#FFEB3B" oninput="notaCmd('hiliteColor', this.value)"></label>
+                        <button type="button" class="ntb-cor-btn" id="ntbCorTexto" title="Cor do texto" onclick="abrirPopoverCor('texto', this)"><span class="ntb-lbl" style="font-weight:800">A</span><span class="ntb-cor-amostra" id="ntbCorAmostraTexto" style="background:#E8EEF4"></span></button>
+                        <button type="button" class="ntb-cor-btn" id="ntbCorFundo" title="Cor de fundo (marca-texto)" onclick="abrirPopoverCor('fundo', this)"><span class="ntb-lbl">🖍</span><span class="ntb-cor-amostra" id="ntbCorAmostraFundo" style="background:#FFEB3B"></span></button>
                         <span class="ntb-sep"></span>
                         <button type="button" title="Lista com marcadores" onclick="notaCmd('insertUnorderedList')">•⃝</button>
                         <button type="button" title="Lista numerada" onclick="notaCmd('insertOrderedList')">1.</button>
@@ -4192,6 +4209,151 @@ function notaCmd(cmd, valor){
   if(cmd==='fontName'){ var f=document.getElementById('ntbFont'); if(f) f.value=''; }
   if(cmd==='fontSize'){ var s=document.getElementById('ntbSize'); if(s) s.value=''; }
 }
+
+/* ===== POPOVER DE COR COM BOTÕES OK / CANCELAR ===== */
+// Paleta base oferecida na grade (7 colunas)
+var NTB_PALETA = [
+  '#E8EEF4','#B7C2CE','#8BA4BF','#5A6B7E','#2E3A48','#111820','#000000',
+  '#F0A35E','#F2C94C','#FFEB3B','#B7E36A','#94C11E','#4CAF7D','#2E9E6B',
+  '#6FB7F2','#4E7BC7','#3D5AAF','#9B7BF2','#C77BF2','#E5707A','#D64550'
+];
+var _ntbCorAlvo=null;      // 'texto' | 'fundo'
+var _ntbSelRange=null;     // range salvo da seleção no editor
+var _ntbCorEscolhida='';   // cor atualmente escolhida dentro do popover
+
+// salva a seleção atual do editor (para restaurar depois que o popover roubar o foco)
+function ntbSalvarSelecao(){
+  var sel=window.getSelection();
+  var ed=document.getElementById('notaTexto');
+  if(sel && sel.rangeCount>0 && ed){
+    var r=sel.getRangeAt(0);
+    // só guarda se a seleção está DENTRO do editor
+    if(ed.contains(r.commonAncestorContainer)) { _ntbSelRange=r.cloneRange(); return; }
+  }
+  _ntbSelRange=null;
+}
+// restaura a seleção salva
+function ntbRestaurarSelecao(){
+  if(!_ntbSelRange) return;
+  var ed=document.getElementById('notaTexto'); if(ed) ed.focus();
+  var sel=window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(_ntbSelRange);
+}
+function fecharPopoverCor(){
+  var p=document.getElementById('ntbCorPop'); if(p) p.remove();
+  document.removeEventListener('mousedown', ntbCliqueFora, true);
+  _ntbCorAlvo=null; _ntbSelRange=null; _ntbCorEscolhida='';
+}
+// fecha o popover se clicar fora dele (equivale a cancelar)
+function ntbCliqueFora(ev){
+  var p=document.getElementById('ntbCorPop');
+  if(p && !p.contains(ev.target) && !ev.target.closest('.ntb-cor-btn')) fecharPopoverCor();
+}
+// abre o seletor de cor customizado ancorado no botão clicado
+function abrirPopoverCor(alvo, btn){
+  var jaAberto=document.getElementById('ntbCorPop');
+  var eraMesmo=(_ntbCorAlvo===alvo);
+  fecharPopoverCor();
+  if(jaAberto && eraMesmo) return; // clicar de novo no mesmo botão fecha
+  // guarda a seleção ANTES de qualquer coisa roubar o foco
+  ntbSalvarSelecao();
+  _ntbCorAlvo=alvo;
+  var corAtual = alvo==='texto'
+    ? (document.getElementById('ntbCorAmostraTexto').style.background||'#E8EEF4')
+    : (document.getElementById('ntbCorAmostraFundo').style.background||'#FFEB3B');
+  _ntbCorEscolhida = ntbToHex(corAtual);
+
+  var pop=document.createElement('div');
+  pop.className='ntb-cor-pop';
+  pop.id='ntbCorPop';
+  var titulo = alvo==='texto' ? '🎨 Cor do texto' : '🖍 Cor de fundo (marca-texto)';
+  pop.innerHTML =
+    '<div class="ntb-cor-titulo">'+titulo+'</div>'
+    +'<div class="ntb-cor-grade" id="ntbCorGrade">'
+      + NTB_PALETA.map(function(c){ return '<button type="button" class="ntb-cor-swatch" data-cor="'+c+'" style="background:'+c+'" title="'+c+'"></button>'; }).join('')
+    +'</div>'
+    +'<div class="ntb-cor-livre">'
+      +'<label>Personalizada:</label>'
+      +'<input type="color" id="ntbCorLivre" value="'+_ntbCorEscolhida+'">'
+      +'<div class="ntb-cor-preview" id="ntbCorPreview" style="background:'+_ntbCorEscolhida+'">Aa</div>'
+    +'</div>'
+    +'<div class="ntb-cor-acoes">'
+      +'<button type="button" class="ntb-cor-cancel" id="ntbCorCancel">Cancelar</button>'
+      +'<button type="button" class="ntb-cor-ok" id="ntbCorOk">OK</button>'
+    +'</div>';
+  document.body.appendChild(pop);
+
+  // posiciona logo abaixo do botão
+  var r=btn.getBoundingClientRect();
+  var topo=r.bottom+window.scrollY+6;
+  var esq=r.left+window.scrollX;
+  // não deixa vazar pela direita da janela
+  var largura=212;
+  if(esq+largura > window.scrollX+document.documentElement.clientWidth-8){
+    esq = window.scrollX+document.documentElement.clientWidth-largura-8;
+  }
+  pop.style.top=topo+'px';
+  pop.style.left=Math.max(8,esq)+'px';
+
+  // atualiza a pré-visualização da cor escolhida
+  function marcarPreview(cor){
+    _ntbCorEscolhida=cor;
+    var pv=document.getElementById('ntbCorPreview');
+    if(pv){ pv.style.background=cor; pv.style.color=ntbContraste(cor); }
+    var liv=document.getElementById('ntbCorLivre'); if(liv && ntbToHex(liv.value)!==ntbToHex(cor)) liv.value=ntbToHex(cor);
+    pop.querySelectorAll('.ntb-cor-swatch').forEach(function(s){ s.classList.toggle('sel', ntbToHex(s.getAttribute('data-cor'))===ntbToHex(cor)); });
+  }
+  marcarPreview(_ntbCorEscolhida);
+
+  // cliques nas cores da grade
+  pop.querySelector('#ntbCorGrade').addEventListener('click', function(ev){
+    var b=ev.target.closest('.ntb-cor-swatch'); if(!b) return;
+    marcarPreview(b.getAttribute('data-cor'));
+  });
+  // cor personalizada
+  pop.querySelector('#ntbCorLivre').addEventListener('input', function(){ marcarPreview(this.value); });
+  // OK aplica a cor na seleção salva
+  pop.querySelector('#ntbCorOk').addEventListener('click', function(){
+    var cor=_ntbCorEscolhida, alvoAtual=_ntbCorAlvo;
+    ntbRestaurarSelecao();
+    if(alvoAtual==='texto'){
+      notaCmd('foreColor', cor);
+      var am=document.getElementById('ntbCorAmostraTexto'); if(am) am.style.background=cor;
+    } else {
+      notaCmd('hiliteColor', cor);
+      var am2=document.getElementById('ntbCorAmostraFundo'); if(am2) am2.style.background=cor;
+    }
+    fecharPopoverCor();
+  });
+  // Cancelar fecha sem aplicar
+  pop.querySelector('#ntbCorCancel').addEventListener('click', fecharPopoverCor);
+
+  // fecha ao clicar fora
+  setTimeout(function(){ document.addEventListener('mousedown', ntbCliqueFora, true); },0);
+}
+// normaliza qualquer cor (rgb(...) ou #hex) para #rrggbb minúsculo
+function ntbToHex(cor){
+  if(!cor) return '#000000';
+  cor=String(cor).trim();
+  if(cor[0]==='#'){
+    if(cor.length===4) return ('#'+cor[1]+cor[1]+cor[2]+cor[2]+cor[3]+cor[3]).toLowerCase();
+    return cor.toLowerCase();
+  }
+  var m=cor.match(/rgba?\(([^)]+)\)/i);
+  if(m){
+    var p=m[1].split(',').map(function(x){return parseInt(x,10);});
+    return '#'+[p[0],p[1],p[2]].map(function(v){var h=(v||0).toString(16);return h.length<2?'0'+h:h;}).join('').toLowerCase();
+  }
+  return '#000000';
+}
+// escolhe preto ou branco para contraste sobre uma cor de fundo
+function ntbContraste(cor){
+  var h=ntbToHex(cor).slice(1);
+  var r=parseInt(h.slice(0,2),16), g=parseInt(h.slice(2,4),16), b=parseInt(h.slice(4,6),16);
+  var lum=(0.299*r+0.587*g+0.114*b)/255;
+  return lum>0.6 ? '#1e2a05' : '#ffffff';
+}
 // remove tags perigosas (script/style/on*) mas mantém a formatação visual básica
 function sanitizarNotaHTML(html){
   var wrap=document.createElement('div'); wrap.innerHTML=String(html||'');
@@ -4217,11 +4379,21 @@ var _notaEditandoId = null; // id da nota sendo editada no editor principal (ou 
 // gera uma prévia curta em texto puro para o cabeçalho da nota
 function notaPreviaTexto(n){
   var e=(typeof esc==='function')?esc:function(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
-  var t=(n&&n.texto)||'';
-  if(!t){ var tmp=document.createElement('div'); tmp.innerHTML=(n&&n.html)||''; t=tmp.innerText||tmp.textContent||''; }
-  t=t.replace(/\s+/g,' ').trim();
-  if(t.length>60) t=t.slice(0,60)+'…';
-  return e(t||'(nota vazia)');
+  var bruto=(n&&n.texto)||'';
+  if(!bruto){ var tmp=document.createElement('div'); tmp.innerHTML=(n&&n.html)||''; bruto=tmp.innerText||tmp.textContent||''; }
+  bruto=String(bruto).trim();
+  if(!bruto) return e('(nota vazia)');
+  // primeira frase = até o primeiro . ? ! OU até a primeira quebra de linha
+  var quebraLinha=bruto.search(/[\r\n]/);
+  var pontuacao=bruto.search(/[.?!…]/);
+  var corte=-1;
+  if(quebraLinha>=0) corte=quebraLinha;
+  if(pontuacao>=0 && (corte<0 || pontuacao<corte)) corte=pontuacao+1; // inclui o sinal de pontuação
+  var frase = (corte>=0) ? bruto.slice(0, corte) : bruto;
+  frase=frase.replace(/\s+/g,' ').trim();
+  // trava de segurança: frase muito longa sem pontuação não pode estourar o cabeçalho
+  if(frase.length>120) frase=frase.slice(0,120)+'…';
+  return e(frase||'(nota vazia)');
 }
 function renderNotas(){
   var el=document.getElementById('notasLista'); if(!el) return;
