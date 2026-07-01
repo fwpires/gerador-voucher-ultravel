@@ -1088,7 +1088,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <h2>Vouchers salvos</h2>
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
-    <!-- build: HUB-v2·47 (RASCUNHO — não está no ar) -->
+    <!-- build: HUB-v2·48 (RASCUNHO — não está no ar) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -4288,18 +4288,34 @@ function notaSincronizarSeletores(){
     }
 
     /* ---- TIPO (NOME) DA FONTE ---- */
-    var fam=(cs.fontFamily||'').toLowerCase();
-    var primeira=fam.split(',')[0].replace(/["']/g,'').trim();
+    // Coleta "pistas" de fonte de várias fontes, porque o navegador normaliza o
+    // nome de formas imprevisíveis. Junta: (1) o font-family computado e
+    // (2) os atributos brutos face="" e style="font-family:" de todos os
+    // elementos ancestrais até o editor. Depois procura a palavra-chave
+    // distintiva de cada fonte (arial, georgia, times, courier, verdana,
+    // trebuchet) dentro dessas pistas — match por inclusão, tolerante.
+    var pistas=(cs.fontFamily||'').toLowerCase();
+    var p=eln, guard=0;
+    while(p && p!==ed && guard<8){
+      if(p.getAttribute){
+        var face=p.getAttribute('face'); if(face) pistas+=' '+face.toLowerCase();
+        var stl=p.getAttribute('style'); if(stl && stl.toLowerCase().indexOf('font-family')>=0) pistas+=' '+stl.toLowerCase();
+      }
+      p=p.parentElement; guard++;
+    }
     var selFont=document.getElementById('ntbFont');
-    if(selFont && primeira){
+    if(selFont){
       var achou='';
       for(var j=0;j<selFont.options.length;j++){
         var ov=selFont.options[j].value; if(!ov) continue;
-        var of=ov.toLowerCase().split(',')[0].replace(/["']/g,'').trim();
-        if(of===primeira){ achou=ov; break; }
+        // extrai a primeira palavra distintiva do value da option:
+        // "'Times New Roman', serif" -> "times" ; "Arial, sans-serif" -> "arial"
+        var kw=ov.toLowerCase().split(',')[0].replace(/["']/g,'').trim().split(' ')[0];
+        if(kw && pistas.indexOf(kw)>=0){ achou=ov; break; }
       }
-      // só troca se reconheceu a fonte na lista; senão mantém o valor atual
-      if(achou) selFont.value=achou;
+      // se reconheceu, seleciona; se NÃO reconheceu nenhuma fonte da lista,
+      // volta para o rótulo neutro "Fonte" (em vez de manter um valor errado)
+      selFont.value = achou;
     }
   }catch(e){}
 }
