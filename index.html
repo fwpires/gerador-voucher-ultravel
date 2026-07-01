@@ -467,9 +467,14 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .nota-acoes{margin:8px 0 4px}
 .nota-salvar{background:var(--verde);color:#1e2a05;border:none;border-radius:9px;padding:8px 14px;font-weight:700;font-size:12.5px;cursor:pointer;font-family:inherit}
 .nota-salvar:hover{background:var(--verde-escuro)}
-.notas-lista{margin-top:6px;display:flex;flex-direction:column;gap:8px}
+.notas-lista{margin-top:6px;display:flex;flex-direction:column;gap:8px;transform:translateZ(0)}
 .notas-vazio{color:var(--texto-fraco);font-size:12.5px;padding:8px 2px}
-.nota-item{background:var(--fundo);border:1px solid var(--borda);border-radius:10px;padding:0;overflow:hidden;display:block}
+/* transform:translateZ(0) força cada nota a ter sua PRÓPRIA camada de
+   renderização (compositing layer). Isso corrige o bug em que a nota "sumia"
+   ao rolar a página: o navegador deixava de repintar o elemento durante o
+   scroll (repaint/compositing bug) e só voltava ao atualizar a página.
+   backface-visibility:hidden reforça a estabilidade da camada. */
+.nota-item{background:var(--fundo);border:1px solid var(--borda);border-radius:10px;padding:0;overflow:hidden;display:block;transform:translateZ(0);backface-visibility:hidden}
 .nota-cab{display:flex;align-items:center;gap:8px;padding:9px 12px;cursor:pointer;user-select:none;min-height:38px;box-sizing:border-box}
 .nota-cab:hover{background:rgba(255,255,255,.03)}
 .nota-caret{flex:none;font-size:11px;color:var(--texto-fraco);transition:transform .15s;transform:rotate(90deg)}
@@ -1088,7 +1093,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <h2>Vouchers salvos</h2>
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
-    <!-- build: HUB-v2·42 (RASCUNHO — não está no ar) -->
+    <!-- build: HUB-v2·43 (RASCUNHO — não está no ar) -->
   </div>
   <div class="saved-tools">
     <div class="search">
