@@ -1088,7 +1088,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <h2>Vouchers salvos</h2>
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
-    <!-- build: HUB-v2·39 (RASCUNHO — não está no ar) -->
+    <!-- build: HUB-v2·42 (RASCUNHO — não está no ar) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -3302,7 +3302,7 @@ function renderDisponibilidade(){
                           <option value="'Trebuchet MS', sans-serif">Trebuchet</option>
                         </select>
                         <select id="ntbSize" title="Tamanho da fonte" onchange="notaAplicarTamanho(this.value)">
-                          <option value="">Tam.</option>
+                          <option value="" selected>Tam.</option>
                           <option value="1">1</option>
                           <option value="2">2</option>
                           <option value="3">3</option>
@@ -4238,7 +4238,7 @@ function notaAplicarTamanho(px){
   var ed=document.getElementById('notaTexto'); if(!ed) return;
   var n=parseInt(px,10);
   var sel=document.getElementById('ntbSize');
-  if(!px || isNaN(n)){ if(sel) sel.value=''; return; }
+  if(!px || isNaN(n)) return;   // opção vazia ("Tam.") não faz nada
   n=Math.max(1, Math.min(72, n)); // trava de segurança entre 1 e 72
   ed.focus();
   try{
@@ -4251,7 +4251,8 @@ function notaAplicarTamanho(px){
       fonts[i].style.fontSize=n+'px';
     }
   }catch(e){}
-  if(sel) sel.value=''; // reseta o select para o rótulo neutro "Tam."
+  // NÃO reseta o select: mantém visível o último tamanho selecionado
+  if(sel) sel.value=String(n);
 }
 
 /* ===== POPOVER DE COR COM BOTÕES OK / CANCELAR ===== */
@@ -4418,13 +4419,20 @@ function notaCorpoHTML(n){
   return e((n&&n.texto)||'').replace(/\n/g,'<br>');
 }
 // estado de UI das notas (só na sessão): quais estão minimizadas e qual está em edição
-var _notasMin = {};        // { idDaNota: true } => minimizada
+// estado de minimização das notas, PERSISTIDO no localStorage.
+// Guardar em disco garante que nenhuma re-renderização (scroll, resize, etc.)
+// possa fazer a nota "sumir" ou perder o estado aberto/fechado.
+function _lerNotasMin(){ try{ return JSON.parse(localStorage.getItem('uv_notas_min')||'{}')||{}; }catch(e){ return {}; } }
+function _gravarNotasMin(obj){ try{ localStorage.setItem('uv_notas_min', JSON.stringify(obj||{})); }catch(e){} }
+var _notasMin = _lerNotasMin();
 var _notaEditandoId = null; // id da nota sendo editada no editor principal (ou null = nova)
 // marca TODAS as notas salvas como recolhidas (usado ao abrir a aba Conciliação)
 // para que as notas sempre apareçam fechadas por padrão, e não abertas.
 function recolherTodasNotas(){
   var ns=getNotas();
+  _notasMin={};
   for(var i=0;i<ns.length;i++){ if(ns[i] && ns[i].id) _notasMin[ns[i].id]=true; }
+  _gravarNotasMin(_notasMin);
 }
 // gera uma prévia curta em texto puro para o cabeçalho da nota
 function notaPreviaTexto(n){
@@ -4479,6 +4487,7 @@ function renderNotas(){
 function toggleNotaMin(id){
   var novo = !_notasMin[id];
   _notasMin[id]=novo;
+  _gravarNotasMin(_notasMin);   // persiste o estado imediatamente
   // acha o cabeçalho clicado e sobe até o .nota-item para alternar a classe
   var el=document.getElementById('notasLista'); if(!el){ renderNotas(); return; }
   var alvo=null;
@@ -4508,6 +4517,8 @@ function editarNotaUI(id){
   var ed=document.getElementById('notaTexto'); if(!ed) return;
   ed.innerHTML = (typeof n.html==='string') ? sanitizarNotaHTML(n.html) : (typeof esc==='function'?esc(n.texto||''):(n.texto||'')).replace(/\n/g,'<br>');
   _notaEditandoId=id;
+  // recolhe a nota na lista para não mostrar o conteúdo duplicado embaixo do editor
+  _notasMin[id]=true; _gravarNotasMin(_notasMin);
   var bs=document.getElementById('notaSalvarBtn'); if(bs) bs.textContent='💾 Salvar alterações';
   var bc=document.getElementById('notaCancelarBtn'); if(bc) bc.style.display='';
   renderNotas();
