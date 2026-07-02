@@ -572,6 +572,16 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .conc-via .conc-grupo-tit{color:#7FB2F5}
 .conc-lista{list-style:none;margin:0;padding:0;max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:4px}
 .conc-lista li{font-size:12px;color:#E7EDF7;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:6px;padding:5px 9px}
+/* painel de conciliação por QUARTO (ID Reserva) */
+.conc-quartos-wrap{flex:1 1 100%;border:1px solid #2C3B66;border-radius:10px;padding:11px;background:rgba(80,120,200,.05);margin-bottom:4px}
+.conc-quartos-titulo{font-size:12.5px;font-weight:800;color:#9DC0FF;margin-bottom:9px}
+.conc-quarto-contagem{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:8px;font-size:12.5px;margin-bottom:10px}
+.conc-quarto-contagem.qc-ok{background:rgba(53,208,127,.10);border:1px solid rgba(53,208,127,.35);color:#7DE8B0}
+.conc-quarto-contagem.qc-erro{background:rgba(242,150,60,.10);border:1px solid rgba(242,150,60,.40);color:#F5B873}
+.conc-quarto-contagem .qc-ico{font-size:15px}
+.conc-quarto-item{display:flex !important;flex-direction:column;gap:3px}
+.conc-quarto-falta{font-size:11.5px;color:#C4D2E8}
+.conc-quarto-falta b{color:#FFD27D}
 .conc-vazio{color:#5BE0A8;font-size:12px}
 /* desempate de nomes ambíguos */
 .conc-ambiguo{flex:1 1 100%}
@@ -1088,7 +1098,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <h2>Vouchers salvos</h2>
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
-    <!-- build: HUB-v2·50 (RASCUNHO — não está no ar) -->
+    <!-- build: HUB-v2·51 (RASCUNHO — não está no ar) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -1801,6 +1811,7 @@ function parseCSVStatusHotel(text){
     return -1;
   };
   const I={
+    idReserva:idxAlias('ID Reserva','IdReserva','ID da Reserva','Id Reserva','ID_Reserva','IDReserva','Reserva','Nº Reserva','No Reserva','Numero Reserva','Número Reserva','Cod Reserva','Código Reserva','Codigo Reserva','Localizador Reserva'),
     nome:    idxAlias('Nome','Nome Completo','Hospede','Hóspede','Passageiro','Cliente'),
     email:   idxAlias('Email','E-mail'),
     telefone:idxAlias('Telefone','Celular','WhatsApp','Whatsapp','Fone','Tel','Telefone / contato','Telefone/contato'),
@@ -1823,10 +1834,10 @@ function parseCSVStatusHotel(text){
     const obs=get(I.obs);
     out.push({ nome, email:get(I.email), telefone:get(I.telefone), statusRaw:get(I.status), agente:get(I.agente),
       hotel:get(I.hotel), checkin:get(I.cin), checkout:get(I.cout), diarias:get(I.dia),
-      tipo:get(I.tipo), valor:get(I.valor), voucher:get(I.voucher),
+      tipo:get(I.tipo), valor:get(I.valor), voucher:get(I.voucher), idReserva:get(I.idReserva),
       obs, acompanhantes: extrairAcompanhantes(obs) });
   }
-  return { rows:out, nomeOk:I.nome>=0, statusOk:I.status>=0, sep, header };
+  return { rows:out, nomeOk:I.nome>=0, statusOk:I.status>=0, idReservaOk:I.idReserva>=0, sep, header };
 }
 
 // extrai nomes de acompanhantes da Observação, SOMENTE após os marcadores "Acte:" ou "Acompanhante:"
@@ -1879,8 +1890,10 @@ async function importarStatusHotel(file){
   if(!parsed.statusOk){ toast('❌ Não encontrei a coluna "Status Hotel" no CSV. Importação cancelada para não classificar todo mundo errado.','err'); return; }
   const rows=parsed.rows;
   if(!rows.length){ toast('CSV vazio ou em formato inesperado','err'); return; }
-  statusHotelData={ rows, importadoEm:new Date().toISOString() };
+  statusHotelData={ rows, importadoEm:new Date().toISOString(), __idReservaOk: !!parsed.idReservaOk };
   localStorage.setItem('uv_statushotel', JSON.stringify(statusHotelData));
+  // avisa se a coluna ID Reserva (conciliação por quarto) não foi encontrada
+  if(!parsed.idReservaOk){ toast('⚠️ Coluna "ID Reserva" não encontrada — a conciliação por quarto ficará indisponível neste CSV.','err'); }
   // Cada novo CSV reavalia do zero: quem voltar com "Erro de comunicação" entra na pasta de novo.
   // Assim o "Reverter" é momentâneo e o processo fica REPETÍVEL (não trava após reverter uma vez).
   if(appConfig.erroRevertido && Object.keys(appConfig.erroRevertido).length){
@@ -2284,8 +2297,120 @@ function conciliacaoWecann(){
   };
 }
 
-/* ===== INTEGRAR NOME SOLTO A UM VOUCHER ===== */
-let shIntegrarNome='';   // nome solto em processo de integração ('' = nenhum)
+/* ===== CONCILIAÇÃO POR QUARTO (via coluna "ID Reserva" do CSV) =====
+   Cada ID Reserva único do CSV = 1 QUARTO = 1 voucher no sistema, com N pessoas.
+   Ex.: TOWER-004 com "Maria" e "Aloysio" = 1 quarto, 2 pessoas.
+
+   O vínculo quarto↔voucher é feito PELOS NOMES dos hóspedes (os vouchers não
+   guardam o ID). O prefixo do ID (CONT/PLAZ/TOWER) ainda ajuda a identificar o
+   hotel, reforçando a precisão do casamento.
+
+   Detecta 4 tipos de divergência:
+   1) faltaPessoa   – o quarto tem mais gente no CSV do que no voucher (diz quem falta)
+   2) quartoSemVoucher – ID no CSV sem nenhum voucher correspondente no sistema
+   3) quartoDividido – pessoas do mesmo ID espalhadas em vouchers diferentes
+   4) sobraPessoa   – o voucher tem gente que não aparece naquele quarto do CSV */
+function _prefixoHotelId(id){
+  const p=_normE(id||'').split(/[-_ ]/)[0]||'';
+  if(p.indexOf('tower')>=0 || p.indexOf('tow')>=0) return 'tower';
+  if(p.indexOf('cont')>=0) return 'contemporaneo';
+  if(p.indexOf('plaz')>=0) return 'plaza';
+  return '';
+}
+function _hotelKeyDoNome(hotelNome){
+  const n=_normE(hotelNome||'');
+  if(n.indexOf('tower')>=0 || n.indexOf('anhanguera')>=0) return 'tower';
+  if(n.indexOf('contemporaneo')>=0) return 'contemporaneo';
+  if(n.indexOf('plaza')>=0) return 'plaza';
+  return '';
+}
+// agrupa as linhas do CSV por ID Reserva → um "quarto" por ID
+function quartosDoCSV(){
+  const rows=(statusHotelData&&statusHotelData.rows)||[];
+  const map=new Map();  // idReserva(orig) -> { id, pessoas:[nomes], hotelPrefixo }
+  rows.forEach(r=>{
+    const id=(r.idReserva||'').trim();
+    if(!id) return;                      // linha sem ID reserva: ignora nesta conciliação
+    const k=id.toUpperCase();
+    if(!map.has(k)) map.set(k,{ id, pessoas:[], hotelPrefixo:_prefixoHotelId(id) });
+    const nm=(r.nome||'').trim();
+    if(nm) map.get(k).pessoas.push(nm);
+  });
+  return [...map.values()];
+}
+function conciliacaoPorQuarto(){
+  const semColuna=!(statusHotelData && statusHotelData.__idReservaOk);
+  const quartos=quartosDoCSV();
+  const vouchers=vouchersWecannLista();   // [{num, cliente, hospedes:[], hotel}]
+
+  // pré-processa os vouchers: nomes normalizados + chave de hotel
+  const vInfo=vouchers.map(v=>{
+    const nomes=(v.hospedes&&v.hospedes.length)?v.hospedes.slice():[];
+    if(!nomes.length && v.cliente) nomes.push(v.cliente);
+    return { num:v.num, hotelKey:_hotelKeyDoNome(v.hotel), nomes:nomes.filter(Boolean), usado:false };
+  });
+
+  const faltaPessoa=[];      // {id, voucherNum, faltantes:[nomes], hotelPrefixo}
+  const quartoSemVoucher=[]; // {id, pessoas:[nomes], hotelPrefixo}
+  const quartoDividido=[];   // {id, detalhe:[{nome, voucherNum}]}
+  const sobraPessoa=[];      // {id, voucherNum, sobrando:[nomes]}
+
+  quartos.forEach(q=>{
+    // para cada pessoa do quarto, acha em qual voucher ela está (casando por nome + hotel)
+    const achadosPorPessoa=q.pessoas.map(nm=>{
+      const cands=vInfo.filter(vi=>{
+        // se ambos têm hotel conhecido e diferem, descarta (evita casar pessoa do hotel errado)
+        if(q.hotelPrefixo && vi.hotelKey && q.hotelPrefixo!==vi.hotelKey) return false;
+        return vi.nomes.some(vn=>umNomeBate(nm, vn));
+      });
+      return { nome:nm, vouchers:cands };
+    });
+
+    // conjunto de vouchers distintos onde caiu ALGUÉM deste quarto
+    const vouchersDoQuarto=new Set();
+    achadosPorPessoa.forEach(a=>a.vouchers.forEach(vi=>vouchersDoQuarto.add(vi.num)));
+
+    // CASO A: ninguém do quarto está em voucher nenhum → quarto sem voucher
+    if(vouchersDoQuarto.size===0){
+      quartoSemVoucher.push({ id:q.id, pessoas:q.pessoas.slice(), hotelPrefixo:q.hotelPrefixo });
+      return;
+    }
+
+    // CASO B: pessoas do mesmo quarto em vouchers DIFERENTES → quarto dividido (furo)
+    if(vouchersDoQuarto.size>1){
+      const detalhe=achadosPorPessoa.map(a=>({ nome:a.nome, voucherNum:(a.vouchers[0]?a.vouchers[0].num:'—') }));
+      quartoDividido.push({ id:q.id, detalhe });
+      return;
+    }
+
+    // CASO C: todos apontam para UM único voucher → compara as listas de nomes
+    const numV=[...vouchersDoQuarto][0];
+    const vi=vInfo.find(x=>x.num===numV);
+    if(vi) vi.usado=true;
+
+    // pessoas do CSV que NÃO estão no voucher → faltando no sistema
+    const faltantes=q.pessoas.filter(nm=> !vi.nomes.some(vn=>umNomeBate(nm,vn)) );
+    if(faltantes.length){
+      faltaPessoa.push({ id:q.id, voucherNum:numV, faltantes, hotelPrefixo:q.hotelPrefixo });
+    }
+    // pessoas do voucher que NÃO estão no quarto do CSV → sobrando no sistema
+    const sobrando=vi.nomes.filter(vn=> !q.pessoas.some(nm=>umNomeBate(nm,vn)) );
+    if(sobrando.length){
+      sobraPessoa.push({ id:q.id, voucherNum:numV, sobrando });
+    }
+  });
+
+  return {
+    semColuna,
+    totalQuartos: quartos.length,
+    totalVouchers: vouchers.length,
+    quartosBatem: quartos.length===vouchers.length,
+    faltaPessoa, quartoSemVoucher, quartoDividido, sobraPessoa,
+    ok: quartos.length>0 && quartos.length===vouchers.length && !faltaPessoa.length && !quartoSemVoucher.length && !quartoDividido.length
+  };
+}
+
+
 let shIntegrarBusca='';  // texto de busca de voucher no integrador
 
 // lista os vouchers WeCann (hospedagem em um dos 3 hotéis) para o seletor de integração
@@ -2378,15 +2503,76 @@ function marcarViaVoucherVisto(nome){
 // alterna o painel de detalhes da conciliação
 function toggleConciliacao(){ shConcAberto=!shConcAberto; renderConciliacao(); requestAnimationFrame(ajustarAlturaCarrossel); }
 
+// monta o HTML do painel de conciliação por QUARTO (ID Reserva)
+function montarBlocoQuartos(cq){
+  if(!cq || cq.semColuna) return '';   // CSV sem coluna ID Reserva: painel não aparece
+  const e=esc;
+  const prefLabel=p=> p==='tower'?'Tower Anhanguera':(p==='contemporaneo'?'Contemporâneo':(p==='plaza'?'Plaza':''));
+
+  // 1) contagem quartos × vouchers
+  const batem=cq.quartosBatem;
+  const contagem=`<div class="conc-quarto-contagem ${batem?'qc-ok':'qc-erro'}">
+      <span class="qc-ico">${batem?'✅':'⚠️'}</span>
+      <span class="qc-txt"><b>${cq.totalQuartos}</b> quarto(s) no CSV ${batem?'=':'≠'} <b>${cq.totalVouchers}</b> voucher(s) no sistema${batem?' — contagem confere':' — a contagem NÃO bate'}</span>
+    </div>`;
+
+  // 2) faltando pessoa no voucher (diz QUEM falta)
+  const bFalta = cq.faltaPessoa.length ? `<div class="conc-grupo conc-atualizar">
+      <div class="conc-grupo-tit">🧩 Falta adicionar pessoa no voucher <b>(${cq.faltaPessoa.length})</b></div>
+      <ul class="conc-lista">${cq.faltaPessoa.map(q=>`<li class="conc-quarto-item">
+        <div><b>${e(q.id)}</b> ${q.hotelPrefixo?`<span class="conc-amb-n">(${prefLabel(q.hotelPrefixo)})</span>`:''} → voucher <b>${e(q.voucherNum||'—')}</b></div>
+        <div class="conc-quarto-falta">Falta no sistema: <b>${q.faltantes.map(e).join(', ')}</b></div>
+      </li>`).join('')}</ul>
+    </div>` : '';
+
+  // 3) quarto sem voucher nenhum
+  const bSem = cq.quartoSemVoucher.length ? `<div class="conc-grupo conc-semfechado">
+      <div class="conc-grupo-tit">🔴 Quarto no CSV sem voucher no sistema <b>(${cq.quartoSemVoucher.length})</b></div>
+      <ul class="conc-lista">${cq.quartoSemVoucher.map(q=>`<li class="conc-quarto-item">
+        <div><b>${e(q.id)}</b> ${q.hotelPrefixo?`<span class="conc-amb-n">(${prefLabel(q.hotelPrefixo)})</span>`:''}</div>
+        <div class="conc-quarto-falta">Pessoas: ${q.pessoas.map(e).join(', ')}</div>
+      </li>`).join('')}</ul>
+    </div>` : '';
+
+  // 4) quarto dividido em vouchers diferentes
+  const bDiv = cq.quartoDividido.length ? `<div class="conc-grupo conc-promo">
+      <div class="conc-grupo-tit">🔀 Mesmo quarto dividido em vouchers diferentes <b>(${cq.quartoDividido.length})</b></div>
+      <ul class="conc-lista">${cq.quartoDividido.map(q=>`<li class="conc-quarto-item">
+        <div><b>${e(q.id)}</b></div>
+        <div class="conc-quarto-falta">${q.detalhe.map(d=>`${e(d.nome)} → voucher <b>${e(d.voucherNum)}</b>`).join(' · ')}</div>
+      </li>`).join('')}</ul>
+    </div>` : '';
+
+  // 5) pessoa sobrando no voucher (está no sistema mas não no quarto do CSV)
+  const bSobra = cq.sobraPessoa.length ? `<div class="conc-grupo conc-ambiguo">
+      <div class="conc-grupo-tit">➕ Pessoa no voucher que não está no quarto do CSV <b>(${cq.sobraPessoa.length})</b></div>
+      <ul class="conc-lista">${cq.sobraPessoa.map(q=>`<li class="conc-quarto-item">
+        <div><b>${e(q.id)}</b> → voucher <b>${e(q.voucherNum)}</b></div>
+        <div class="conc-quarto-falta">A mais no sistema: ${q.sobrando.map(e).join(', ')}</div>
+      </li>`).join('')}</ul>
+    </div>` : '';
+
+  return `<div class="conc-quartos-wrap">
+      <div class="conc-quartos-titulo">🛏️ Conciliação por quarto (ID Reserva)</div>
+      ${contagem}${bFalta}${bSem}${bDiv}${bSobra}
+    </div>`;
+}
+
 // renderiza o banner de conciliação + (opcional) o detalhe com os nomes
 function renderConciliacao(){
   const box=document.getElementById('shConc'); if(!box) return;
   const rows=(statusHotelData&&statusHotelData.rows)||[];
   if(!rows.length){ box.innerHTML=''; return; } // sem CSV, nada a conciliar
   const c=conciliacaoWecann();
+  const cq=conciliacaoPorQuarto();       // conciliação por quarto (ID Reserva)
   const nAmb=c.ambiguos.length;
 
-  if(c.ok){
+  // monta o painel de QUARTOS (só se o CSV tiver a coluna ID Reserva)
+  const blocoQuartos = montarBlocoQuartos(cq);
+
+  // "tudo certo" agora exige TAMBÉM que a conciliação por quarto esteja limpa
+  const tudoOk = c.ok && (cq.semColuna || cq.ok);
+  if(tudoOk){
     box.innerHTML=`<div class="conc-banner conc-ok">
       <span class="conc-ico">✅</span>
       <span class="conc-msg">Conciliação OK — nenhuma pendência entre o CSV e os vouchers WeCann.</span>
@@ -2417,6 +2603,8 @@ function renderConciliacao(){
     </div>` : '';
 
   const resumo = [
+    (!cq.semColuna && !cq.quartosBatem)?`🛏️ ${cq.totalQuartos} quarto(s) no CSV × ${cq.totalVouchers} voucher(s)`:'',
+    (!cq.semColuna && (cq.faltaPessoa.length||cq.quartoSemVoucher.length||cq.quartoDividido.length))?`${cq.faltaPessoa.length+cq.quartoSemVoucher.length+cq.quartoDividido.length} divergência(s) de quarto`:'',
     nAmb?`${nAmb} aguardando sua escolha`:'',
     c.promovidos.length?`${c.promovidos.length} p/ atualizar no WeCann`:'',
     c.voucherSemFechado.length?`${c.voucherSemFechado.length} voucher(s) sem Fechado no CSV`:'',
@@ -2452,6 +2640,7 @@ function renderConciliacao(){
       <button class="conc-btn" id="btnConc" type="button">${shConcAberto?'Ocultar detalhes':'Ver detalhes'}</button>
     </div>
     ${shConcAberto?`<div class="conc-detalhe">
+      ${blocoQuartos}
       ${blocoAmbiguos}
       <div class="conc-row">${blocoPromo}${blocoSemFechado}</div>
       ${blocoSemCadastro}
