@@ -1088,7 +1088,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <h2>Vouchers salvos</h2>
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
-    <!-- build: HUB-v2·49 (RASCUNHO — não está no ar) -->
+    <!-- build: HUB-v2·50 (RASCUNHO — não está no ar) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -4692,7 +4692,14 @@ function excluirNotaUI(id){
     var totalV=vs.length, totalHosp=0, totalServ=0;
     var porVend={}, porTipo={}, porHotel={}, porMes={}, porDia=[0,0,0,0,0,0,0];
     vs.forEach(function(v){
-      var vd=((v.vendedor||'')+'').trim()||'—'; porVend[vd]=(porVend[vd]||0)+1;
+      var vd=((v.vendedor||'')+'').trim();
+      // RANKING DE VENDEDORES: conta APENAS vendas WeCann (voucher com hospedagem
+      // em um dos 3 hotéis do evento) — MESMA regra da função calcRanking(), para
+      // que o gráfico e o "Vendedor Destaque" batam com a aba Ranking de Vendedores.
+      var ehWecann=(v.services||[]).some(function(s){
+        return s.type==='hotel' && (typeof HOTEIS_OCUPACAO!=='undefined'?HOTEIS_OCUPACAO:[]).some(function(h){ return h.match&&h.match(s.data&&s.data.hotel); });
+      });
+      if(vd && ehWecann) porVend[vd]=(porVend[vd]||0)+1;
       (v.services||[]).forEach(function(s){
         totalServ++; porTipo[s.type]=(porTipo[s.type]||0)+1;
         var h=s.data&&s.data.hospedes; if(Array.isArray(h)) totalHosp+=h.length;
