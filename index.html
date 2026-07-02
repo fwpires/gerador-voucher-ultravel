@@ -1103,7 +1103,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <h2>Vouchers salvos</h2>
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
-    <!-- build: HUB-v2·53 (RASCUNHO — não está no ar) -->
+    <!-- build: HUB-v2·54 (RASCUNHO — não está no ar) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -1915,7 +1915,7 @@ async function importarStatusHotel(file){
   const desconhecidos=[...new Set(rows.map(r=>(r.statusRaw||'').trim()).filter(s=> s && !statusHotelReconhecido(s)))];
   if(desconhecidos.length){ toast('⚠️ Status fora do padrão (foram p/ "Em tratativa"): '+desconhecidos.slice(0,6).join(' · '),'err'); }
   try{
-    const res=await api('/api/statushotel',{method:'POST',body:JSON.stringify({rows})});
+    const res=await api('/api/statushotel',{method:'POST',body:JSON.stringify({rows, __idReservaOk: !!parsed.idReservaOk})});
     if(res&&res.importadoEm) statusHotelData.importadoEm=res.importadoEm;
     localStorage.setItem('uv_statushotel', JSON.stringify(statusHotelData));
     toast('Relatório atualizado na nuvem: '+rows.length+' contatos ✅','ok');
@@ -2344,7 +2344,12 @@ function quartosDoCSV(){
   return [...map.values()];
 }
 function conciliacaoPorQuarto(){
-  const semColuna=!(statusHotelData && statusHotelData.__idReservaOk);
+  // detecta a coluna ID Reserva de forma ROBUSTA: além do flag salvo (__idReservaOk),
+  // confere se QUALQUER linha realmente tem idReserva preenchido. Isso é necessário
+  // porque o carregamento da nuvem traz só {rows} e perde o flag — então recalculamos.
+  const rowsAll=(statusHotelData&&statusHotelData.rows)||[];
+  const temIdNasLinhas=rowsAll.some(r=>r && (r.idReserva||'').trim());
+  const semColuna=!temIdNasLinhas && !(statusHotelData && statusHotelData.__idReservaOk);
   const quartos=quartosDoCSV();
   const vouchers=vouchersWecannLista();   // [{num, cliente, hospedes:[], hotel}]
 
