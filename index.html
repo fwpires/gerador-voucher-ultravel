@@ -582,6 +582,11 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .conc-quarto-item{display:flex !important;flex-direction:column;gap:3px}
 .conc-quarto-falta{font-size:11.5px;color:#C4D2E8}
 .conc-quarto-falta b{color:#FFD27D}
+/* item com corpo (texto) + botão de baixa lado a lado */
+.conc-quarto-item{flex-direction:row !important;align-items:center;justify-content:space-between;gap:10px}
+.conc-quarto-corpo{display:flex;flex-direction:column;gap:3px;min-width:0}
+.conc-baixa{flex:0 0 auto;background:rgba(53,208,127,.14);color:#5FE0A0;border:1px solid rgba(53,208,127,.4);border-radius:8px;padding:7px 12px;font-size:11.5px;font-weight:800;cursor:pointer;transition:all .14s;white-space:nowrap}
+.conc-baixa:hover{background:#35D07F;color:#0A1929;border-color:#35D07F;transform:translateY(-1px)}
 .conc-vazio{color:#5BE0A8;font-size:12px}
 /* desempate de nomes ambíguos */
 .conc-ambiguo{flex:1 1 100%}
@@ -1098,7 +1103,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <h2>Vouchers salvos</h2>
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
-    <!-- build: HUB-v2·51 (RASCUNHO — não está no ar) -->
+    <!-- build: HUB-v2·53 (RASCUNHO — não está no ar) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -2355,7 +2360,14 @@ function conciliacaoPorQuarto(){
   const quartoDividido=[];   // {id, detalhe:[{nome, voucherNum}]}
   const sobraPessoa=[];      // {id, voucherNum, sobrando:[nomes]}
 
+  const conferidos=_quartosConferidos();   // { 'TOWER-026': true, ... } (baixados manualmente)
+  let totalConferidos=0;
+
   quartos.forEach(q=>{
+    // quarto já conferido/baixado manualmente: não gera divergência (sai das listas).
+    // Usa a assinatura (ID + nomes) — se o ID reaparecer com pessoas diferentes,
+    // NÃO fica baixado (é tratado como quarto novo, para não esconder furos).
+    if(conferidos[_assinaturaQuarto(q.id, q.pessoas)]){ totalConferidos++; return; }
     // para cada pessoa do quarto, acha em qual voucher ela está (casando por nome + hotel)
     const achadosPorPessoa=q.pessoas.map(nm=>{
       const cands=vInfo.filter(vi=>{
@@ -2379,7 +2391,7 @@ function conciliacaoPorQuarto(){
     // CASO B: pessoas do mesmo quarto em vouchers DIFERENTES → quarto dividido (furo)
     if(vouchersDoQuarto.size>1){
       const detalhe=achadosPorPessoa.map(a=>({ nome:a.nome, voucherNum:(a.vouchers[0]?a.vouchers[0].num:'—') }));
-      quartoDividido.push({ id:q.id, detalhe });
+      quartoDividido.push({ id:q.id, detalhe, pessoasQuarto:q.pessoas.slice() });
       return;
     }
 
@@ -2391,12 +2403,12 @@ function conciliacaoPorQuarto(){
     // pessoas do CSV que NÃO estão no voucher → faltando no sistema
     const faltantes=q.pessoas.filter(nm=> !vi.nomes.some(vn=>umNomeBate(nm,vn)) );
     if(faltantes.length){
-      faltaPessoa.push({ id:q.id, voucherNum:numV, faltantes, hotelPrefixo:q.hotelPrefixo });
+      faltaPessoa.push({ id:q.id, voucherNum:numV, faltantes, hotelPrefixo:q.hotelPrefixo, pessoasQuarto:q.pessoas.slice() });
     }
     // pessoas do voucher que NÃO estão no quarto do CSV → sobrando no sistema
     const sobrando=vi.nomes.filter(vn=> !q.pessoas.some(nm=>umNomeBate(nm,vn)) );
     if(sobrando.length){
-      sobraPessoa.push({ id:q.id, voucherNum:numV, sobrando });
+      sobraPessoa.push({ id:q.id, voucherNum:numV, sobrando, pessoasQuarto:q.pessoas.slice() });
     }
   });
 
@@ -2404,6 +2416,7 @@ function conciliacaoPorQuarto(){
     semColuna,
     totalQuartos: quartos.length,
     totalVouchers: vouchers.length,
+    totalConferidos,
     quartosBatem: quartos.length===vouchers.length,
     faltaPessoa, quartoSemVoucher, quartoDividido, sobraPessoa,
     ok: quartos.length>0 && quartos.length===vouchers.length && !faltaPessoa.length && !quartoSemVoucher.length && !quartoDividido.length
@@ -2503,25 +2516,60 @@ function marcarViaVoucherVisto(nome){
 // alterna o painel de detalhes da conciliação
 function toggleConciliacao(){ shConcAberto=!shConcAberto; renderConciliacao(); requestAnimationFrame(ajustarAlturaCarrossel); }
 
+/* ===== BAIXA DE QUARTO CONFERIDO (conciliação por ID Reserva) =====
+   OPÇÃO C — "impressão digital" do quarto: a baixa é gravada combinando o
+   ID Reserva + os NOMES daquele quarto (normalizados e ordenados). Assim:
+   • a baixa é PERMANENTE entre CSVs enquanto o mesmo ID tiver as mesmas pessoas;
+   • se o hotel REAPROVEITAR o ID com pessoas diferentes, o sistema entende que
+     é um quarto NOVO e o traz de volta para conferência (não esconde furo real).
+   Guardado em appConfig.quartosConferidos e sincronizado na nuvem. Reversível. */
+function _quartosConferidos(){ return (appConfig.quartosConferidos && typeof appConfig.quartosConferidos==='object') ? appConfig.quartosConferidos : {}; }
+// gera a assinatura única do quarto: "IDRESERVA::nome1|nome2|nome3" (nomes normalizados e ordenados)
+function _assinaturaQuarto(id, pessoas){
+  const k=(id||'').trim().toUpperCase();
+  const nomes=(pessoas||[]).map(n=>normNome(n)).filter(Boolean).sort();
+  return k+'::'+nomes.join('|');
+}
+function darBaixaQuarto(id, pessoas){
+  const sig=_assinaturaQuarto(id, pessoas); if(!sig) return;
+  if(!appConfig.quartosConferidos || typeof appConfig.quartosConferidos!=='object') appConfig.quartosConferidos={};
+  appConfig.quartosConferidos[sig]=true;
+  salvarConfig();
+  renderConciliacao();
+  toast('Quarto “'+id+'” conferido e baixado ✅','ok');
+}
+function reverterBaixaQuarto(id, pessoas){
+  const sig=_assinaturaQuarto(id, pessoas); if(!sig) return;
+  if(appConfig.quartosConferidos) delete appConfig.quartosConferidos[sig];
+  salvarConfig();
+  renderConciliacao();
+  toast('Baixa do quarto “'+id+'” desfeita','info');
+}
+
 // monta o HTML do painel de conciliação por QUARTO (ID Reserva)
 function montarBlocoQuartos(cq){
   if(!cq || cq.semColuna) return '';   // CSV sem coluna ID Reserva: painel não aparece
   const e=esc;
   const prefLabel=p=> p==='tower'?'Tower Anhanguera':(p==='contemporaneo'?'Contemporâneo':(p==='plaza'?'Plaza':''));
+  // botão de baixa: carrega o ID E os nomes do quarto (para a assinatura da baixa)
+  const btnBaixa=(id,pessoas)=>`<button class="conc-baixa" data-baixaquarto="${e(id)}" data-baixapessoas="${e(encodeURIComponent(JSON.stringify(pessoas||[])))}" title="Conferido — dar baixa e remover da lista">✓ Dar baixa</button>`;
 
-  // 1) contagem quartos × vouchers
+  // 1) contagem quartos × vouchers (mostra também quantos já foram baixados)
   const batem=cq.quartosBatem;
+  const conf=(cq.totalConferidos||0)>0 ? ` · <b>${cq.totalConferidos}</b> já conferido(s)` : '';
   const contagem=`<div class="conc-quarto-contagem ${batem?'qc-ok':'qc-erro'}">
       <span class="qc-ico">${batem?'✅':'⚠️'}</span>
-      <span class="qc-txt"><b>${cq.totalQuartos}</b> quarto(s) no CSV ${batem?'=':'≠'} <b>${cq.totalVouchers}</b> voucher(s) no sistema${batem?' — contagem confere':' — a contagem NÃO bate'}</span>
+      <span class="qc-txt"><b>${cq.totalQuartos}</b> quarto(s) no CSV ${batem?'=':'≠'} <b>${cq.totalVouchers}</b> voucher(s) no sistema${batem?' — contagem confere':' — a contagem NÃO bate'}${conf}</span>
     </div>`;
 
   // 2) faltando pessoa no voucher (diz QUEM falta)
   const bFalta = cq.faltaPessoa.length ? `<div class="conc-grupo conc-atualizar">
       <div class="conc-grupo-tit">🧩 Falta adicionar pessoa no voucher <b>(${cq.faltaPessoa.length})</b></div>
       <ul class="conc-lista">${cq.faltaPessoa.map(q=>`<li class="conc-quarto-item">
-        <div><b>${e(q.id)}</b> ${q.hotelPrefixo?`<span class="conc-amb-n">(${prefLabel(q.hotelPrefixo)})</span>`:''} → voucher <b>${e(q.voucherNum||'—')}</b></div>
-        <div class="conc-quarto-falta">Falta no sistema: <b>${q.faltantes.map(e).join(', ')}</b></div>
+        <div class="conc-quarto-corpo">
+          <div><b>${e(q.id)}</b> ${q.hotelPrefixo?`<span class="conc-amb-n">(${prefLabel(q.hotelPrefixo)})</span>`:''} → voucher <b>${e(q.voucherNum||'—')}</b></div>
+          <div class="conc-quarto-falta">Falta no sistema: <b>${q.faltantes.map(e).join(', ')}</b></div>
+        </div>${btnBaixa(q.id, q.pessoasQuarto)}
       </li>`).join('')}</ul>
     </div>` : '';
 
@@ -2529,8 +2577,10 @@ function montarBlocoQuartos(cq){
   const bSem = cq.quartoSemVoucher.length ? `<div class="conc-grupo conc-semfechado">
       <div class="conc-grupo-tit">🔴 Quarto no CSV sem voucher no sistema <b>(${cq.quartoSemVoucher.length})</b></div>
       <ul class="conc-lista">${cq.quartoSemVoucher.map(q=>`<li class="conc-quarto-item">
-        <div><b>${e(q.id)}</b> ${q.hotelPrefixo?`<span class="conc-amb-n">(${prefLabel(q.hotelPrefixo)})</span>`:''}</div>
-        <div class="conc-quarto-falta">Pessoas: ${q.pessoas.map(e).join(', ')}</div>
+        <div class="conc-quarto-corpo">
+          <div><b>${e(q.id)}</b> ${q.hotelPrefixo?`<span class="conc-amb-n">(${prefLabel(q.hotelPrefixo)})</span>`:''}</div>
+          <div class="conc-quarto-falta">Pessoas: ${q.pessoas.map(e).join(', ')}</div>
+        </div>${btnBaixa(q.id, q.pessoas)}
       </li>`).join('')}</ul>
     </div>` : '';
 
@@ -2538,8 +2588,10 @@ function montarBlocoQuartos(cq){
   const bDiv = cq.quartoDividido.length ? `<div class="conc-grupo conc-promo">
       <div class="conc-grupo-tit">🔀 Mesmo quarto dividido em vouchers diferentes <b>(${cq.quartoDividido.length})</b></div>
       <ul class="conc-lista">${cq.quartoDividido.map(q=>`<li class="conc-quarto-item">
-        <div><b>${e(q.id)}</b></div>
-        <div class="conc-quarto-falta">${q.detalhe.map(d=>`${e(d.nome)} → voucher <b>${e(d.voucherNum)}</b>`).join(' · ')}</div>
+        <div class="conc-quarto-corpo">
+          <div><b>${e(q.id)}</b></div>
+          <div class="conc-quarto-falta">${q.detalhe.map(d=>`${e(d.nome)} → voucher <b>${e(d.voucherNum)}</b>`).join(' · ')}</div>
+        </div>${btnBaixa(q.id, q.pessoasQuarto)}
       </li>`).join('')}</ul>
     </div>` : '';
 
@@ -2547,8 +2599,10 @@ function montarBlocoQuartos(cq){
   const bSobra = cq.sobraPessoa.length ? `<div class="conc-grupo conc-ambiguo">
       <div class="conc-grupo-tit">➕ Pessoa no voucher que não está no quarto do CSV <b>(${cq.sobraPessoa.length})</b></div>
       <ul class="conc-lista">${cq.sobraPessoa.map(q=>`<li class="conc-quarto-item">
-        <div><b>${e(q.id)}</b> → voucher <b>${e(q.voucherNum)}</b></div>
-        <div class="conc-quarto-falta">A mais no sistema: ${q.sobrando.map(e).join(', ')}</div>
+        <div class="conc-quarto-corpo">
+          <div><b>${e(q.id)}</b> → voucher <b>${e(q.voucherNum)}</b></div>
+          <div class="conc-quarto-falta">A mais no sistema: ${q.sobrando.map(e).join(', ')}</div>
+        </div>${btnBaixa(q.id, q.pessoasQuarto)}
       </li>`).join('')}</ul>
     </div>` : '';
 
@@ -2648,6 +2702,12 @@ function renderConciliacao(){
 
   // toda a interação por delegação no container (evita clique duplo no "Ver detalhes")
   box.onclick=(e)=>{
+    const bq=e.target.closest('[data-baixaquarto]');
+    if(bq){
+      let pessoas=[];
+      try{ pessoas=JSON.parse(decodeURIComponent(bq.getAttribute('data-baixapessoas')||'%5B%5D')); }catch(_){ pessoas=[]; }
+      darBaixaQuarto(bq.getAttribute('data-baixaquarto'), pessoas); return;
+    }
     const nm=e.target.closest('[data-naomesma]');
     if(nm){ marcarNaoMesmaPessoa(nm.getAttribute('data-naomesma')); return; }
     const jc=e.target.closest('[data-jacadastrado]');
