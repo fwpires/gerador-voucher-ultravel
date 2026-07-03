@@ -1123,7 +1123,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v2·59 (RASCUNHO — não está no ar) -->
+    <!-- build: HUB-v2·60 (RASCUNHO — não está no ar) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -5042,7 +5042,9 @@ function excluirNotaUI(id){
         if(s.type==='hotel'){
           var nm=s.data&&s.data.hotel, achou=null;
           (typeof HOTEIS_OCUPACAO!=='undefined'?HOTEIS_OCUPACAO:[]).forEach(function(H){ if(!achou&&H.match&&H.match(nm)) achou=H.nome; });
-          var key=achou||'Outros'; porHotel[key]=(porHotel[key]||0)+1;
+          // gráfico "Vouchers por hotel (WeCann)": conta SÓ os 3 hotéis do evento.
+          // Hospedagens em outros hotéis (fora do WeCann) são ignoradas aqui.
+          if(achou) porHotel[achou]=(porHotel[achou]||0)+1;
         }
       });
       var d=v.criadoEm?new Date(v.criadoEm):null;
@@ -5061,8 +5063,8 @@ function excluirNotaUI(id){
     destroy('chTipo'); charts.chTipo=new Chart(document.getElementById('chTipo'),{type:'pie',data:{labels:tipos.map(tipoLabel),datasets:[{data:tipos.map(function(t){return porTipo[t];}),backgroundColor:PAL,borderWidth:0}]},options:common});
     var hk=Object.keys(porHotel);
     destroy('chHotel'); charts.chHotel=new Chart(document.getElementById('chHotel'),{type:'doughnut',data:{labels:hk,datasets:[{data:hk.map(function(h){return porHotel[h];}),backgroundColor:PAL,borderWidth:0}]},options:common});
-    // TOTAL dos 3 hotéis WeCann (soma tudo, menos "Outros") — exibido no canto do card
-    var totalHotelWec=0; Object.keys(porHotel).forEach(function(k){ if(k!=='Outros') totalHotelWec+=porHotel[k]; });
+    // TOTAL dos 3 hotéis WeCann — porHotel já contém SÓ os hotéis do evento
+    var totalHotelWec=0; Object.keys(porHotel).forEach(function(k){ totalHotelWec+=porHotel[k]; });
     var elTotHotel=document.getElementById('totalHotelWecann');
     if(elTotHotel) elTotHotel.textContent='Total: '+totalHotelWec;
     var ve=Object.entries(porVend).sort(function(a,b){return b[1]-a[1];}).slice(0,8);
