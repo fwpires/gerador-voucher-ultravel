@@ -196,7 +196,8 @@ body.dark .hub-sidebar .nav-add{color:var(--verde)}
 /* ===== Cards "Vendas de hoje" (velocímetro e termômetro separados) ===== */
 .dash-grid-hoje{margin-top:4px}
 .dash-hoje-card{display:flex;flex-direction:column}
-.gauge-box{flex:1;display:flex;justify-content:center;align-items:center;padding:10px 4px;min-height:230px}
+.gauge-box{flex:1;display:flex;justify-content:center;align-items:center;padding:6px 2px;min-height:250px;width:100%}
+.gauge-box svg{width:100%;height:auto}
 .termo-box{flex:1;display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end;justify-content:flex-start;padding:10px 4px;min-height:230px;overflow-x:auto}
 .termo-vazio{color:var(--texto-fraco);font-size:13px;padding:20px 4px}
 .termo-item{display:flex;flex-direction:column;align-items:center;gap:4px;width:104px;flex:0 0 auto}
@@ -984,7 +985,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
         </div>
         <div class="dash-grid dash-grid-hoje">
           <div class="dash-card dash-hoje-card">
-            <div class="dash-card-t">⚡ Velocímetro de vendas do dia</div>
+            <div class="dash-card-t">⚡ Velocímetro do dia</div>
             <div class="gauge-box"><div id="gaugeDia"></div></div>
           </div>
           <div class="dash-card dash-hoje-card">
@@ -1141,7 +1142,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v2·64 (RASCUNHO — não está no ar) -->
+    <!-- build: HUB-v2·65 (RASCUNHO — não está no ar) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -5059,7 +5060,7 @@ function excluirNotaUI(id){
     // converte um número de vendas (0..TETO) em ângulo 0..180
     function a(n){ return 180*Math.min(Math.max(n,0)/TETO,1); }
     // gera o arco SVG de um ângulo inicial a um final (raio R), no semicírculo superior
-    var cx=210, cy=205, R=185, r=120;
+    var cx=270, cy=258, R=240, r=145;
     function pol(cxx,cyy,rr,deg){ var rad=(180-deg)*Math.PI/180; return [cxx+rr*Math.cos(rad), cyy-rr*Math.sin(rad)]; }
     function arco(deg0,deg1,cor){
       var p0o=pol(cx,cy,R,deg0), p1o=pol(cx,cy,R,deg1), p1i=pol(cx,cy,r,deg1), p0i=pol(cx,cy,r,deg0);
@@ -5070,26 +5071,28 @@ function excluirNotaUI(id){
         ' A'+r+' '+r+' 0 '+large+' 0 '+p0i[0].toFixed(1)+' '+p0i[1].toFixed(1)+
         ' Z" fill="'+cor+'"/>';
     }
-    // desenha as 4 fatias
+    // desenha as 4 fatias — cores com LEVE TRANSPARÊNCIA (rgba com alpha 0.72)
     var seg='';
-    // limites de ângulo de cada faixa (com base no início de cada faixa e no início da próxima)
-    var limites=[{d0:a(0),d1:a(3),cor:faixas[0].cor},{d0:a(3),d1:a(6),cor:faixas[1].cor},{d0:a(6),d1:a(10),cor:faixas[2].cor},{d0:a(10),d1:180,cor:faixas[3].cor}];
-    // como a(10)=180, a faixa "Ótimo" vira um tracinho no fim; damos a ela um naco visível
-    limites=[{d0:0,d1:54,cor:faixas[0].cor},{d0:54,d1:108,cor:faixas[1].cor},{d0:108,d1:153,cor:faixas[2].cor},{d0:153,d1:180,cor:faixas[3].cor}];
+    var limites=[
+      {d0:0,   d1:54,  cor:'rgba(228,53,59,.72)'},    // Baixo (vermelho)
+      {d0:54,  d1:108, cor:'rgba(242,192,41,.72)'},   // Médio (amarelo)
+      {d0:108, d1:153, cor:'rgba(62,142,222,.72)'},   // Bom (azul)
+      {d0:153, d1:180, cor:'rgba(53,196,107,.72)'}    // Ótimo (verde)
+    ];
     limites.forEach(function(L){ seg+=arco(L.d0,L.d1,L.cor); });
     // rótulos das faixas (no meio de cada arco, raio médio)
     var rMid=(R+r)/2;
-    function txt(deg,label,cor){ var p=pol(cx,cy,rMid,deg); return '<text x="'+p[0].toFixed(1)+'" y="'+p[1].toFixed(1)+'" fill="'+cor+'" font-size="15" font-weight="800" text-anchor="middle" dominant-baseline="middle">'+label+'</text>'; }
+    function txt(deg,label,cor){ var p=pol(cx,cy,rMid,deg); return '<text x="'+p[0].toFixed(1)+'" y="'+p[1].toFixed(1)+'" fill="'+cor+'" font-size="19" font-weight="800" text-anchor="middle" dominant-baseline="middle">'+label+'</text>'; }
     var labels=txt(27,'Baixo','#4A0C0F')+txt(81,'Médio','#5E4708')+txt(130,'Bom','#0C3352')+txt(168,'Ótimo','#083E1D');
     // ponteiro robusto
-    var pa=pol(cx,cy,R-14,ang);
-    var ponteiro='<line x1="'+cx+'" y1="'+cy+'" x2="'+pa[0].toFixed(1)+'" y2="'+pa[1].toFixed(1)+'" stroke="#0F1830" stroke-width="8" stroke-linecap="round"/>'+
-      '<circle cx="'+cx+'" cy="'+cy+'" r="19" fill="#8A96A8" stroke="#0F1830" stroke-width="4"/>';
+    var pa=pol(cx,cy,R-18,ang);
+    var ponteiro='<line x1="'+cx+'" y1="'+cy+'" x2="'+pa[0].toFixed(1)+'" y2="'+pa[1].toFixed(1)+'" stroke="#0F1830" stroke-width="10" stroke-linecap="round"/>'+
+      '<circle cx="'+cx+'" cy="'+cy+'" r="24" fill="#8A96A8" stroke="#0F1830" stroke-width="5"/>';
     var corVal = val<=2?'#E4353B':(val<=5?'#F2C029':(val<=9?'#3E8EDE':'#35C46B'));
     var rotulo = val<=2?'Baixo':(val<=5?'Médio':(val<=9?'Bom':'Ótimo'));
-    el.innerHTML='<svg viewBox="0 0 420 260" width="100%" style="max-width:520px">'+
+    el.innerHTML='<svg viewBox="0 0 540 320" width="100%" style="max-width:100%">'+
       seg+labels+ponteiro+
-      '<text x="'+cx+'" y="'+(cy+46)+'" fill="'+corVal+'" font-size="22" font-weight="900" text-anchor="middle">'+rotulo+'</text>'+
+      '<text x="'+cx+'" y="'+(cy+56)+'" fill="'+corVal+'" font-size="28" font-weight="900" text-anchor="middle">'+rotulo+'</text>'+
       '</svg>';
   }
 
