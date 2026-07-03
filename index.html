@@ -197,12 +197,13 @@ body.dark .hub-sidebar .nav-add{color:var(--verde)}
 .dash-grid-hoje{margin-top:4px}
 .dash-hoje-card{display:flex;flex-direction:column}
 .gauge-box{flex:1;display:flex;justify-content:center;align-items:center;padding:8px 0;min-height:210px;width:100%}
-.gauge-box #gaugeDia{width:100%;max-width:400px;margin:0 auto}
+.gauge-box #gaugeDia{width:100%;max-width:350px;margin:0 auto}
 .gauge-box svg{width:100%;height:auto;display:block}
 .termo-box{flex:1;display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end;justify-content:flex-start;padding:10px 4px;min-height:230px;overflow-x:auto}
 .termo-vazio{color:var(--texto-fraco);font-size:13px;padding:20px 4px}
 .termo-item{display:flex;flex-direction:column;align-items:center;gap:4px;width:104px;flex:0 0 auto}
-.termo-nome{font-size:12px;color:var(--texto-fraco);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100px}
+.termo-item svg{display:block;margin:0 auto}
+.termo-nome{font-size:12px;color:var(--texto-fraco);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;max-width:104px}
 .dash-empty{color:var(--texto-fraco);font-size:13px;text-align:center;padding:80px 20px}
 @media(max-width:1100px){.dash-grid{grid-template-columns:1fr}}
 .scr-soon-hidden{display:none}
@@ -990,7 +991,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
             <div class="gauge-box"><div id="gaugeDia"></div></div>
           </div>
           <div class="dash-card dash-hoje-card">
-            <div class="dash-card-t">🌡️ Termômetro de vendas por vendedor (hoje)</div>
+            <div class="dash-card-t">🌡️ Termômetro do Dia</div>
             <div class="termo-box" id="termoDia"></div>
           </div>
         </div>
@@ -1143,7 +1144,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v2·67 (RASCUNHO — não está no ar) -->
+    <!-- build: HUB-v2·70 (RASCUNHO — não está no ar) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -5099,7 +5100,7 @@ function excluirNotaUI(id){
       '<feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>';
     el.innerHTML='<svg viewBox="0 0 '+vbW+' '+vbH+'" width="100%" style="max-width:100%;display:block">'+
       defs+seg+labels+ponteiro+
-      '<text x="'+cx+'" y="'+(cy+58)+'" fill="'+corVal+'" font-size="30" font-weight="900" text-anchor="middle" filter="url(#neonGlow)">'+rotulo+'</text>'+
+      '<text x="'+cx+'" y="'+(cy+54)+'" fill="'+corVal+'" font-size="22" font-weight="900" text-anchor="middle" filter="url(#neonGlow)">'+rotulo+'</text>'+
       '</svg>';
   }
 
@@ -5146,7 +5147,7 @@ function excluirNotaUI(id){
       // gradiente ÚNICO por item (id único para não conflitar)
       var gid='termoGrad'+i+'_'+Math.random().toString(36).slice(2,7);
       return '<div class="termo-item" title="'+safeEsc(x.nome)+': '+x.n+' venda(s) hoje">'+
-        '<svg viewBox="0 0 120 210" width="100%" style="max-width:108px">'+
+        '<svg viewBox="0 0 120 224" width="100%" style="max-width:108px">'+
           '<defs><linearGradient id="'+gid+'" x1="0" y1="1" x2="0" y2="0">'+
             '<stop offset="0%" stop-color="#E23B34"/>'+     /* base vermelho */
             '<stop offset="30%" stop-color="#F2913A"/>'+    /* laranja */
@@ -5166,8 +5167,9 @@ function excluirNotaUI(id){
             '<line x1="52" y1="90" x2="60" y2="90"/><line x1="52" y1="120" x2="60" y2="120"/>'+
           '</g>'+
           carinhasSVG+
+          // NOME do vendedor — centralizado EXATAMENTE sob o tubo (x=40 = centro do tubo/bulbo)
+          '<text x="40" y="216" fill="#98A6BC" font-size="13" font-weight="700" text-anchor="middle">'+safeEsc(primeiro)+'</text>'+
         '</svg>'+
-        '<div class="termo-nome">'+safeEsc(primeiro)+'</div>'+
       '</div>';
     }).join('');
   }
