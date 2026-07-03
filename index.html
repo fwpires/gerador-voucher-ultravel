@@ -193,17 +193,15 @@ body.dark .hub-sidebar .nav-add{color:var(--verde)}
 /* selo "Total: N" no canto inferior direito do gráfico de hotéis WeCann */
 .dash-total-hotel{position:absolute;right:8px;bottom:6px;background:rgba(80,120,200,.14);border:1px solid rgba(157,192,255,.35);color:#9DC0FF;font-size:12.5px;font-weight:800;padding:4px 10px;border-radius:8px;pointer-events:none;z-index:2}
 .dash-total-hotel:empty{display:none}
-/* ===== Card "Vendas de hoje" (velocímetro + termômetros) ===== */
-.dash-hoje-card{margin-top:16px}
-.dash-hoje-wrap{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
-.gauge-box{flex:0 0 auto;display:flex;justify-content:center;align-items:center;min-width:300px;flex:1 1 300px}
-.termo-box{flex:1 1 340px;display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;justify-content:flex-start;padding:8px 4px;min-height:150px}
+/* ===== Cards "Vendas de hoje" (velocímetro e termômetro separados) ===== */
+.dash-grid-hoje{margin-top:4px}
+.dash-hoje-card{display:flex;flex-direction:column}
+.gauge-box{flex:1;display:flex;justify-content:center;align-items:center;padding:10px 4px;min-height:230px}
+.termo-box{flex:1;display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end;justify-content:flex-start;padding:10px 4px;min-height:230px;overflow-x:auto}
 .termo-vazio{color:var(--texto-fraco);font-size:13px;padding:20px 4px}
-.termo-item{display:flex;flex-direction:column;align-items:center;gap:5px;width:52px}
-.termo-tubo{position:relative;width:18px;height:120px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:10px;overflow:hidden;display:flex;align-items:flex-end}
-.termo-fill{width:100%;border-radius:0 0 9px 9px;transition:height .5s ease, background .3s;min-height:4px}
-.termo-n{font-size:14px;font-weight:900;line-height:1}
-.termo-nome{font-size:11px;color:var(--texto-fraco);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:56px}
+.termo-item{display:flex;flex-direction:column;align-items:center;gap:4px;width:104px;flex:0 0 auto}
+.termo-n{font-size:18px;font-weight:900;line-height:1}
+.termo-nome{font-size:12px;color:var(--texto-fraco);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100px}
 .dash-empty{color:var(--texto-fraco);font-size:13px;text-align:center;padding:80px 20px}
 @media(max-width:1100px){.dash-grid{grid-template-columns:1fr}}
 .scr-soon-hidden{display:none}
@@ -985,12 +983,13 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
           <div class="dash-card"><div class="dash-card-t">📈 Evolução de emissões (acumulado)</div><div class="dash-canvas"><canvas id="chEvol"></canvas></div></div>
           <div class="dash-card"><div class="dash-card-t">🕸️ Emissões por dia da semana</div><div class="dash-canvas"><canvas id="chRadar"></canvas></div></div>
         </div>
-        <div class="dash-card dash-hoje-card">
-          <div class="dash-card-t">⚡ Vendas de hoje — ao vivo</div>
-          <div class="dash-hoje-wrap">
-            <div class="gauge-box">
-              <div id="gaugeDia"></div>
-            </div>
+        <div class="dash-grid dash-grid-hoje">
+          <div class="dash-card dash-hoje-card">
+            <div class="dash-card-t">⚡ Velocímetro de vendas do dia</div>
+            <div class="gauge-box"><div id="gaugeDia"></div></div>
+          </div>
+          <div class="dash-card dash-hoje-card">
+            <div class="dash-card-t">🌡️ Termômetro de vendas por vendedor (hoje)</div>
             <div class="termo-box" id="termoDia"></div>
           </div>
         </div>
@@ -1143,7 +1142,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v2·62 (RASCUNHO — não está no ar) -->
+    <!-- build: HUB-v2·63 (RASCUNHO — não está no ar) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -5061,7 +5060,7 @@ function excluirNotaUI(id){
     // converte um número de vendas (0..TETO) em ângulo 0..180
     function a(n){ return 180*Math.min(Math.max(n,0)/TETO,1); }
     // gera o arco SVG de um ângulo inicial a um final (raio R), no semicírculo superior
-    var cx=150, cy=150, R=118, r=74;
+    var cx=210, cy=205, R=185, r=120;
     function pol(cxx,cyy,rr,deg){ var rad=(180-deg)*Math.PI/180; return [cxx+rr*Math.cos(rad), cyy-rr*Math.sin(rad)]; }
     function arco(deg0,deg1,cor){
       var p0o=pol(cx,cy,R,deg0), p1o=pol(cx,cy,R,deg1), p1i=pol(cx,cy,r,deg1), p0i=pol(cx,cy,r,deg0);
@@ -5079,26 +5078,27 @@ function excluirNotaUI(id){
     // como a(10)=180, a faixa "Ótimo" vira um tracinho no fim; damos a ela um naco visível
     limites=[{d0:0,d1:54,cor:faixas[0].cor},{d0:54,d1:108,cor:faixas[1].cor},{d0:108,d1:153,cor:faixas[2].cor},{d0:153,d1:180,cor:faixas[3].cor}];
     limites.forEach(function(L){ seg+=arco(L.d0,L.d1,L.cor); });
-    // rótulos das faixas
-    function txt(deg,rr,label,cor){ var p=pol(cx,cy,rr,deg); return '<text x="'+p[0].toFixed(1)+'" y="'+p[1].toFixed(1)+'" fill="'+cor+'" font-size="12" font-weight="800" text-anchor="middle" dominant-baseline="middle">'+label+'</text>'; }
-    var labels=txt(27,96,'Baixo','#7A1418')+txt(81,96,'Médio','#7A5A0A')+txt(130,96,'Bom','#12436B')+txt(168,96,'Ótimo','#0C5A2A');
-    // ponteiro
-    var pa=pol(cx,cy,R-6,ang);
-    var ponteiro='<line x1="'+cx+'" y1="'+cy+'" x2="'+pa[0].toFixed(1)+'" y2="'+pa[1].toFixed(1)+'" stroke="#0F1830" stroke-width="5" stroke-linecap="round"/>'+
-      '<circle cx="'+cx+'" cy="'+cy+'" r="13" fill="#8A96A8" stroke="#0F1830" stroke-width="3"/>';
-    // cor do número conforme a faixa atual
+    // rótulos das faixas (no meio de cada arco, raio médio)
+    var rMid=(R+r)/2;
+    function txt(deg,label,cor){ var p=pol(cx,cy,rMid,deg); return '<text x="'+p[0].toFixed(1)+'" y="'+p[1].toFixed(1)+'" fill="'+cor+'" font-size="15" font-weight="800" text-anchor="middle" dominant-baseline="middle">'+label+'</text>'; }
+    var labels=txt(27,'Baixo','#4A0C0F')+txt(81,'Médio','#5E4708')+txt(130,'Bom','#0C3352')+txt(168,'Ótimo','#083E1D');
+    // ponteiro robusto
+    var pa=pol(cx,cy,R-14,ang);
+    var ponteiro='<line x1="'+cx+'" y1="'+cy+'" x2="'+pa[0].toFixed(1)+'" y2="'+pa[1].toFixed(1)+'" stroke="#0F1830" stroke-width="8" stroke-linecap="round"/>'+
+      '<circle cx="'+cx+'" cy="'+cy+'" r="19" fill="#8A96A8" stroke="#0F1830" stroke-width="4"/>';
     var corVal = val<=2?'#E4353B':(val<=5?'#F2C029':(val<=9?'#3E8EDE':'#35C46B'));
     var rotulo = val<=2?'Baixo':(val<=5?'Médio':(val<=9?'Bom':'Ótimo'));
-    el.innerHTML='<svg viewBox="0 0 300 200" width="100%" style="max-width:340px">'+
+    el.innerHTML='<svg viewBox="0 0 420 260" width="100%" style="max-width:520px">'+
       seg+labels+ponteiro+
-      '<text x="'+cx+'" y="188" fill="'+corVal+'" font-size="30" font-weight="900" text-anchor="middle">'+val+'</text>'+
-      '<text x="'+cx+'" y="'+(cy+34)+'" fill="'+corVal+'" font-size="13" font-weight="800" text-anchor="middle">'+rotulo+'</text>'+
+      '<text x="'+cx+'" y="248" fill="'+corVal+'" font-size="44" font-weight="900" text-anchor="middle">'+val+'</text>'+
+      '<text x="'+cx+'" y="'+(cy+42)+'" fill="'+corVal+'" font-size="17" font-weight="800" text-anchor="middle">'+rotulo+'</text>'+
       '</svg>';
   }
 
-  /* ===== TERMÔMETROS POR VENDEDOR (vendas de hoje) =====
-     Cada vendedor vira um termômetro. Escala até 10 (topo verde).
-     Cores por faixa: 🔴 vermelho → 🟠 laranja → 🟡 amarelo → 🔵 azul → 🟢 verde  */
+  /* ===== TERMÔMETROS POR VENDEDOR (vendas de hoje) — versão realista =====
+     Termômetro em SVG com bulbo na base (colorido vermelho→verde, fixo, igual à foto)
+     + carinha ao lado que SOBE/DESCE conforme as vendas (é ela que muda).
+     Escala até 10 (topo). Cores da coluna: 🔴→🟠→🟡→🔵→🟢  */
   function corTermometro(v){
     if(v<=1) return '#E4353B';   // 0–1 vermelho
     if(v<=3) return '#F2833B';   // 2–3 laranja
@@ -5106,10 +5106,17 @@ function excluirNotaUI(id){
     if(v<=8) return '#3E8EDE';   // 6–8 azul
     return '#35C46B';            // 9–10+ verde
   }
+  // carinha (emoji) conforme o nível de vendas — 5 níveis, igual à imagem
+  function carinhaNivel(v){
+    if(v<=1) return '😞';   // vermelho
+    if(v<=3) return '🙁';   // laranja
+    if(v<=5) return '😐';   // amarelo
+    if(v<=8) return '🙂';   // azul
+    return '😄';            // verde (topo)
+  }
   function desenhaTermometros(mapaHoje){
     var box=document.getElementById('termoDia'); if(!box) return;
     var TETO=10;
-    // usa a lista fixa de atendentes para ordem estável; mostra só quem tem 1+ venda hoje
     var lista=(typeof ATENDENTES!=='undefined'?ATENDENTES.slice():Object.keys(mapaHoje))
       .map(function(nome){ return { nome:nome, n:(mapaHoje[nome]||0) }; })
       .filter(function(x){ return x.n>0; })
@@ -5117,11 +5124,34 @@ function excluirNotaUI(id){
     if(!lista.length){ box.innerHTML='<div class="termo-vazio">Nenhuma venda registrada hoje ainda.</div>'; return; }
     box.innerHTML=lista.map(function(x){
       var frac=Math.min(x.n/TETO,1);
-      var altura=Math.round(frac*100);
+      // geometria do tubo (SVG): topo y=14, base do tubo y=150, bulbo centro y=178
+      var yTopo=14, yBase=150, alturaTubo=yBase-yTopo;   // 136
+      var yNivel=yBase - frac*alturaTubo;                // onde o líquido chega
       var cor=corTermometro(x.n);
+      var carinha=carinhaNivel(x.n);
+      // as 5 carinhas ao lado, distribuídas na escala; a ATIVA (nível atual) fica destacada
+      var faixaAtual = x.n<=1?0:(x.n<=3?1:(x.n<=5?2:(x.n<=8?3:4)));
+      var caras=['😞','🙁','😐','🙂','😄'];
+      var yCaras=[138,110,80,50,20];  // posição vertical de cada carinha (baixo→topo)
+      var carinhasSVG=caras.map(function(em,i){
+        var ativo=(i===faixaAtual);
+        return '<text x="86" y="'+(yCaras[i]+6)+'" font-size="'+(ativo?'26':'17')+'" text-anchor="middle" opacity="'+(ativo?'1':'0.35')+'">'+em+'</text>';
+      }).join('');
       var primeiro=(x.nome||'').split(' ')[0];
       return '<div class="termo-item" title="'+safeEsc(x.nome)+': '+x.n+' venda(s) hoje">'+
-        '<div class="termo-tubo"><div class="termo-fill" style="height:'+altura+'%;background:'+cor+'"></div></div>'+
+        '<svg viewBox="0 0 110 210" width="100%" style="max-width:104px">'+
+          // trilho do tubo (fundo)
+          '<rect x="30" y="'+yTopo+'" width="20" height="'+(alturaTubo+8)+'" rx="10" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.18)" stroke-width="1.5"/>'+
+          // líquido colorido (do nível até a base) + bulbo
+          '<rect x="33" y="'+yNivel.toFixed(1)+'" width="14" height="'+(yBase-yNivel+6).toFixed(1)+'" rx="7" fill="'+cor+'"/>'+
+          '<circle cx="40" cy="178" r="22" fill="'+cor+'" stroke="rgba(0,0,0,.15)" stroke-width="1.5"/>'+
+          // marquinhas da escala
+          '<g stroke="rgba(255,255,255,.30)" stroke-width="1.5">'+
+            '<line x1="52" y1="30" x2="60" y2="30"/><line x1="52" y1="60" x2="60" y2="60"/>'+
+            '<line x1="52" y1="90" x2="60" y2="90"/><line x1="52" y1="120" x2="60" y2="120"/>'+
+          '</g>'+
+          carinhasSVG+
+        '</svg>'+
         '<div class="termo-n" style="color:'+cor+'">'+x.n+'</div>'+
         '<div class="termo-nome">'+safeEsc(primeiro)+'</div>'+
       '</div>';
