@@ -193,6 +193,17 @@ body.dark .hub-sidebar .nav-add{color:var(--verde)}
 /* selo "Total: N" no canto inferior direito do gráfico de hotéis WeCann */
 .dash-total-hotel{position:absolute;right:8px;bottom:6px;background:rgba(80,120,200,.14);border:1px solid rgba(157,192,255,.35);color:#9DC0FF;font-size:12.5px;font-weight:800;padding:4px 10px;border-radius:8px;pointer-events:none;z-index:2}
 .dash-total-hotel:empty{display:none}
+/* ===== Card "Vendas de hoje" (velocímetro + termômetros) ===== */
+.dash-hoje-card{margin-top:16px}
+.dash-hoje-wrap{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.gauge-box{flex:0 0 auto;display:flex;justify-content:center;align-items:center;min-width:300px;flex:1 1 300px}
+.termo-box{flex:1 1 340px;display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;justify-content:flex-start;padding:8px 4px;min-height:150px}
+.termo-vazio{color:var(--texto-fraco);font-size:13px;padding:20px 4px}
+.termo-item{display:flex;flex-direction:column;align-items:center;gap:5px;width:52px}
+.termo-tubo{position:relative;width:18px;height:120px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:10px;overflow:hidden;display:flex;align-items:flex-end}
+.termo-fill{width:100%;border-radius:0 0 9px 9px;transition:height .5s ease, background .3s;min-height:4px}
+.termo-n{font-size:14px;font-weight:900;line-height:1}
+.termo-nome{font-size:11px;color:var(--texto-fraco);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:56px}
 .dash-empty{color:var(--texto-fraco);font-size:13px;text-align:center;padding:80px 20px}
 @media(max-width:1100px){.dash-grid{grid-template-columns:1fr}}
 .scr-soon-hidden{display:none}
@@ -974,6 +985,15 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
           <div class="dash-card"><div class="dash-card-t">📈 Evolução de emissões (acumulado)</div><div class="dash-canvas"><canvas id="chEvol"></canvas></div></div>
           <div class="dash-card"><div class="dash-card-t">🕸️ Emissões por dia da semana</div><div class="dash-canvas"><canvas id="chRadar"></canvas></div></div>
         </div>
+        <div class="dash-card dash-hoje-card">
+          <div class="dash-card-t">⚡ Vendas de hoje — ao vivo</div>
+          <div class="dash-hoje-wrap">
+            <div class="gauge-box">
+              <div id="gaugeDia"></div>
+            </div>
+            <div class="termo-box" id="termoDia"></div>
+          </div>
+        </div>
       </section>
 
       <section class="screen" id="scr-wecann">
@@ -1123,7 +1143,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v2·60 (RASCUNHO — não está no ar) -->
+    <!-- build: HUB-v2·62 (RASCUNHO — não está no ar) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -5022,6 +5042,92 @@ function excluirNotaUI(id){
   function mesLabel(ym){ var p=ym.split('-'); return p[1]+'/'+p[0].slice(2); }
   function safeEsc(s){ try{ return esc(s); }catch(e){ return String(s==null?'':s); } }
 
+  /* ===== VELOCÍMETRO DE VENDAS DO DIA (SVG) =====
+     4 faixas até o teto de 10 vendas (Ótimo):
+     🔴 Baixo 0–2 · 🟡 Médio 3–5 · 🔵 Bom 6–9 · 🟢 Ótimo 10+  */
+  function desenhaVelocimetro(vendas){
+    var el=document.getElementById('gaugeDia'); if(!el) return;
+    var TETO=10;                              // 10+ = ótimo (ponteiro no topo)
+    var val=Math.max(0, vendas||0);
+    var frac=Math.min(val/TETO, 1);           // 0..1
+    var ang=180*frac;                         // 0° (esquerda) .. 180° (direita)
+    // faixas (em graus, sobre o semicírculo de 180°): proporcionais às vendas
+    var faixas=[
+      {de:0,   ate:2,  cor:'#E4353B', label:'Baixo'},   // 0–2
+      {de:3,   ate:5,  cor:'#F2C029', label:'Médio'},   // 3–5
+      {de:6,   ate:9,  cor:'#3E8EDE', label:'Bom'},     // 6–9
+      {de:10,  ate:10, cor:'#35C46B', label:'Ótimo'}    // 10+
+    ];
+    // converte um número de vendas (0..TETO) em ângulo 0..180
+    function a(n){ return 180*Math.min(Math.max(n,0)/TETO,1); }
+    // gera o arco SVG de um ângulo inicial a um final (raio R), no semicírculo superior
+    var cx=150, cy=150, R=118, r=74;
+    function pol(cxx,cyy,rr,deg){ var rad=(180-deg)*Math.PI/180; return [cxx+rr*Math.cos(rad), cyy-rr*Math.sin(rad)]; }
+    function arco(deg0,deg1,cor){
+      var p0o=pol(cx,cy,R,deg0), p1o=pol(cx,cy,R,deg1), p1i=pol(cx,cy,r,deg1), p0i=pol(cx,cy,r,deg0);
+      var large=(deg1-deg0)>180?1:0;
+      return '<path d="M'+p0o[0].toFixed(1)+' '+p0o[1].toFixed(1)+
+        ' A'+R+' '+R+' 0 '+large+' 1 '+p1o[0].toFixed(1)+' '+p1o[1].toFixed(1)+
+        ' L'+p1i[0].toFixed(1)+' '+p1i[1].toFixed(1)+
+        ' A'+r+' '+r+' 0 '+large+' 0 '+p0i[0].toFixed(1)+' '+p0i[1].toFixed(1)+
+        ' Z" fill="'+cor+'"/>';
+    }
+    // desenha as 4 fatias
+    var seg='';
+    // limites de ângulo de cada faixa (com base no início de cada faixa e no início da próxima)
+    var limites=[{d0:a(0),d1:a(3),cor:faixas[0].cor},{d0:a(3),d1:a(6),cor:faixas[1].cor},{d0:a(6),d1:a(10),cor:faixas[2].cor},{d0:a(10),d1:180,cor:faixas[3].cor}];
+    // como a(10)=180, a faixa "Ótimo" vira um tracinho no fim; damos a ela um naco visível
+    limites=[{d0:0,d1:54,cor:faixas[0].cor},{d0:54,d1:108,cor:faixas[1].cor},{d0:108,d1:153,cor:faixas[2].cor},{d0:153,d1:180,cor:faixas[3].cor}];
+    limites.forEach(function(L){ seg+=arco(L.d0,L.d1,L.cor); });
+    // rótulos das faixas
+    function txt(deg,rr,label,cor){ var p=pol(cx,cy,rr,deg); return '<text x="'+p[0].toFixed(1)+'" y="'+p[1].toFixed(1)+'" fill="'+cor+'" font-size="12" font-weight="800" text-anchor="middle" dominant-baseline="middle">'+label+'</text>'; }
+    var labels=txt(27,96,'Baixo','#7A1418')+txt(81,96,'Médio','#7A5A0A')+txt(130,96,'Bom','#12436B')+txt(168,96,'Ótimo','#0C5A2A');
+    // ponteiro
+    var pa=pol(cx,cy,R-6,ang);
+    var ponteiro='<line x1="'+cx+'" y1="'+cy+'" x2="'+pa[0].toFixed(1)+'" y2="'+pa[1].toFixed(1)+'" stroke="#0F1830" stroke-width="5" stroke-linecap="round"/>'+
+      '<circle cx="'+cx+'" cy="'+cy+'" r="13" fill="#8A96A8" stroke="#0F1830" stroke-width="3"/>';
+    // cor do número conforme a faixa atual
+    var corVal = val<=2?'#E4353B':(val<=5?'#F2C029':(val<=9?'#3E8EDE':'#35C46B'));
+    var rotulo = val<=2?'Baixo':(val<=5?'Médio':(val<=9?'Bom':'Ótimo'));
+    el.innerHTML='<svg viewBox="0 0 300 200" width="100%" style="max-width:340px">'+
+      seg+labels+ponteiro+
+      '<text x="'+cx+'" y="188" fill="'+corVal+'" font-size="30" font-weight="900" text-anchor="middle">'+val+'</text>'+
+      '<text x="'+cx+'" y="'+(cy+34)+'" fill="'+corVal+'" font-size="13" font-weight="800" text-anchor="middle">'+rotulo+'</text>'+
+      '</svg>';
+  }
+
+  /* ===== TERMÔMETROS POR VENDEDOR (vendas de hoje) =====
+     Cada vendedor vira um termômetro. Escala até 10 (topo verde).
+     Cores por faixa: 🔴 vermelho → 🟠 laranja → 🟡 amarelo → 🔵 azul → 🟢 verde  */
+  function corTermometro(v){
+    if(v<=1) return '#E4353B';   // 0–1 vermelho
+    if(v<=3) return '#F2833B';   // 2–3 laranja
+    if(v<=5) return '#F2C029';   // 4–5 amarelo
+    if(v<=8) return '#3E8EDE';   // 6–8 azul
+    return '#35C46B';            // 9–10+ verde
+  }
+  function desenhaTermometros(mapaHoje){
+    var box=document.getElementById('termoDia'); if(!box) return;
+    var TETO=10;
+    // usa a lista fixa de atendentes para ordem estável; mostra só quem tem 1+ venda hoje
+    var lista=(typeof ATENDENTES!=='undefined'?ATENDENTES.slice():Object.keys(mapaHoje))
+      .map(function(nome){ return { nome:nome, n:(mapaHoje[nome]||0) }; })
+      .filter(function(x){ return x.n>0; })
+      .sort(function(a,b){ return b.n-a.n; });
+    if(!lista.length){ box.innerHTML='<div class="termo-vazio">Nenhuma venda registrada hoje ainda.</div>'; return; }
+    box.innerHTML=lista.map(function(x){
+      var frac=Math.min(x.n/TETO,1);
+      var altura=Math.round(frac*100);
+      var cor=corTermometro(x.n);
+      var primeiro=(x.nome||'').split(' ')[0];
+      return '<div class="termo-item" title="'+safeEsc(x.nome)+': '+x.n+' venda(s) hoje">'+
+        '<div class="termo-tubo"><div class="termo-fill" style="height:'+altura+'%;background:'+cor+'"></div></div>'+
+        '<div class="termo-n" style="color:'+cor+'">'+x.n+'</div>'+
+        '<div class="termo-nome">'+safeEsc(primeiro)+'</div>'+
+      '</div>';
+    }).join('');
+  }
+
   window.renderDashboard=function(){
     if(typeof Chart==='undefined') return;
     var vs=(typeof savedCache!=='undefined'&&savedCache)?savedCache:[];
@@ -5029,13 +5135,23 @@ function excluirNotaUI(id){
     Chart.defaults.color=tc.text; try{ Chart.defaults.font.family="'Inter',sans-serif"; }catch(e){}
 
     var totalV=vs.length, totalHosp=0, totalServ=0;
-    var porVend={}, porTipo={}, porHotel={}, porMes={}, porDia=[0,0,0,0,0,0,0];
+    var porVend={}, porTipo={}, porMes={}, porDia=[0,0,0,0,0,0,0];
+    var porHotel={};
+    // ===== VENDAS DE HOJE (para o velocímetro e os termômetros) =====
+    var hojeStr=new Date().toISOString().slice(0,10);   // 'AAAA-MM-DD' de hoje
+    var vendasHoje=0;              // total de vouchers criados hoje
+    var vendasHojePorVend={};      // vendas de hoje por vendedor
     vs.forEach(function(v){
       var vd=((v.vendedor||'')+'').trim();
       // RANKING DE VENDEDORES GERAL: conta TODOS os vouchers do vendedor, de
       // qualquer evento (WeCann ou não). É a visão geral de vendas do sistema.
       // (A aba Eventos > WeCann tem o ranking SÓ do WeCann, via calcRanking.)
       if(vd) porVend[vd]=(porVend[vd]||0)+1;
+      // é de hoje? (compara a parte da data do criadoEm com a data de hoje)
+      if((v.criadoEm||'').slice(0,10)===hojeStr){
+        vendasHoje++;
+        if(vd) vendasHojePorVend[vd]=(vendasHojePorVend[vd]||0)+1;
+      }
       (v.services||[]).forEach(function(s){
         totalServ++; porTipo[s.type]=(porTipo[s.type]||0)+1;
         var h=s.data&&s.data.hospedes; if(Array.isArray(h)) totalHosp+=h.length;
@@ -5055,6 +5171,9 @@ function excluirNotaUI(id){
     var cb=document.getElementById('dashCards'); if(cb) cb.innerHTML=cards.map(function(c){return '<div class="dash-kpi"><div class="k-label">'+c.l+'</div><div class="k-val">'+c.v+'</div></div>';}).join('');
 
     var sub=document.getElementById('dashSub');
+    // indicadores de HOJE: desenhados SEMPRE (mesmo sem vouchers → velocímetro no 0)
+    try{ desenhaVelocimetro(vendasHoje); }catch(e){}
+    try{ desenhaTermometros(vendasHojePorVend); }catch(e){}
     if(!totalV){ ['chTipo','chHotel','chVend','chMes','chEvol','chRadar'].forEach(destroy); if(sub) sub.textContent='Nenhum voucher salvo ainda — os gráficos aparecem quando houver dados.'; return; }
     if(sub) sub.textContent=totalV+' voucher(s) · '+totalServ+' serviço(s)';
 
