@@ -200,7 +200,6 @@ body.dark .hub-sidebar .nav-add{color:var(--verde)}
 .termo-box{flex:1;display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end;justify-content:flex-start;padding:10px 4px;min-height:230px;overflow-x:auto}
 .termo-vazio{color:var(--texto-fraco);font-size:13px;padding:20px 4px}
 .termo-item{display:flex;flex-direction:column;align-items:center;gap:4px;width:104px;flex:0 0 auto}
-.termo-n{font-size:18px;font-weight:900;line-height:1}
 .termo-nome{font-size:12px;color:var(--texto-fraco);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100px}
 .dash-empty{color:var(--texto-fraco);font-size:13px;text-align:center;padding:80px 20px}
 @media(max-width:1100px){.dash-grid{grid-template-columns:1fr}}
@@ -1142,7 +1141,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v2·63 (RASCUNHO — não está no ar) -->
+    <!-- build: HUB-v2·64 (RASCUNHO — não está no ar) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -5090,29 +5089,30 @@ function excluirNotaUI(id){
     var rotulo = val<=2?'Baixo':(val<=5?'Médio':(val<=9?'Bom':'Ótimo'));
     el.innerHTML='<svg viewBox="0 0 420 260" width="100%" style="max-width:520px">'+
       seg+labels+ponteiro+
-      '<text x="'+cx+'" y="248" fill="'+corVal+'" font-size="44" font-weight="900" text-anchor="middle">'+val+'</text>'+
-      '<text x="'+cx+'" y="'+(cy+42)+'" fill="'+corVal+'" font-size="17" font-weight="800" text-anchor="middle">'+rotulo+'</text>'+
+      '<text x="'+cx+'" y="'+(cy+46)+'" fill="'+corVal+'" font-size="22" font-weight="900" text-anchor="middle">'+rotulo+'</text>'+
       '</svg>';
   }
 
-  /* ===== TERMÔMETROS POR VENDEDOR (vendas de hoje) — versão realista =====
-     Termômetro em SVG com bulbo na base (colorido vermelho→verde, fixo, igual à foto)
-     + carinha ao lado que SOBE/DESCE conforme as vendas (é ela que muda).
-     Escala até 10 (topo). Cores da coluna: 🔴→🟠→🟡→🔵→🟢  */
-  function corTermometro(v){
-    if(v<=1) return '#E4353B';   // 0–1 vermelho
-    if(v<=3) return '#F2833B';   // 2–3 laranja
-    if(v<=5) return '#F2C029';   // 4–5 amarelo
-    if(v<=8) return '#3E8EDE';   // 6–8 azul
-    return '#35C46B';            // 9–10+ verde
-  }
-  // carinha (emoji) conforme o nível de vendas — 5 níveis, igual à imagem
-  function carinhaNivel(v){
-    if(v<=1) return '😞';   // vermelho
-    if(v<=3) return '🙁';   // laranja
-    if(v<=5) return '😐';   // amarelo
-    if(v<=8) return '🙂';   // azul
-    return '😄';            // verde (topo)
+  /* ===== TERMÔMETROS POR VENDEDOR (vendas de hoje) — cores FIXAS =====
+     Coluna com degradê FIXO (vermelho na base → verde no topo), igual à foto.
+     O que muda é o NÍVEL do preenchimento e qual das 5 carinhas coloridas fica
+     acesa ao lado. As carinhas são desenhadas em SVG com as cores exatas da imagem. */
+  // desenha uma carinha colorida (SVG) num dado x,y e raio, com expressão por nível
+  function carinhaSVG(x, y, raio, nivel, ativa){
+    // cores exatas inspiradas na imagem
+    var cores=['#E23B34','#F2913A','#F2C233','#9BD13F','#4CB53F']; // 0=verm 1=lar 2=amar 3=verdeClaro 4=verde
+    var cor=cores[nivel];
+    var op=ativa?1:0.30;
+    // boca por nível: 0 muito triste, 1 triste, 2 neutra, 3 sorriso, 4 muito feliz
+    var boca;
+    if(nivel===0)      boca='<path d="M'+(x-raio*0.42)+' '+(y+raio*0.55)+' Q'+x+' '+(y+raio*0.10)+' '+(x+raio*0.42)+' '+(y+raio*0.55)+'" stroke="#5a1210" stroke-width="'+(raio*0.16)+'" fill="none" stroke-linecap="round"/>';
+    else if(nivel===1) boca='<path d="M'+(x-raio*0.40)+' '+(y+raio*0.50)+' Q'+x+' '+(y+raio*0.22)+' '+(x+raio*0.40)+' '+(y+raio*0.50)+'" stroke="#6b3410" stroke-width="'+(raio*0.15)+'" fill="none" stroke-linecap="round"/>';
+    else if(nivel===2) boca='<line x1="'+(x-raio*0.40)+'" y1="'+(y+raio*0.42)+'" x2="'+(x+raio*0.40)+'" y2="'+(y+raio*0.42)+'" stroke="#6b5410" stroke-width="'+(raio*0.15)+'" stroke-linecap="round"/>';
+    else if(nivel===3) boca='<path d="M'+(x-raio*0.42)+' '+(y+raio*0.30)+' Q'+x+' '+(y+raio*0.66)+' '+(x+raio*0.42)+' '+(y+raio*0.30)+'" stroke="#3a5610" stroke-width="'+(raio*0.15)+'" fill="none" stroke-linecap="round"/>';
+    else               boca='<path d="M'+(x-raio*0.48)+' '+(y+raio*0.22)+' Q'+x+' '+(y+raio*0.78)+' '+(x+raio*0.48)+' '+(y+raio*0.22)+' Z" fill="#1f4510"/>';
+    var ro=raio*0.16, ry=y-raio*0.20;
+    var olhos='<circle cx="'+(x-raio*0.34)+'" cy="'+ry+'" r="'+ro+'" fill="#3a2010"/><circle cx="'+(x+raio*0.34)+'" cy="'+ry+'" r="'+ro+'" fill="#3a2010"/>';
+    return '<g opacity="'+op+'"><circle cx="'+x+'" cy="'+y+'" r="'+raio+'" fill="'+cor+'" stroke="rgba(0,0,0,.12)" stroke-width="1.5"/>'+olhos+boca+'</g>';
   }
   function desenhaTermometros(mapaHoje){
     var box=document.getElementById('termoDia'); if(!box) return;
@@ -5124,27 +5124,32 @@ function excluirNotaUI(id){
     if(!lista.length){ box.innerHTML='<div class="termo-vazio">Nenhuma venda registrada hoje ainda.</div>'; return; }
     box.innerHTML=lista.map(function(x){
       var frac=Math.min(x.n/TETO,1);
-      // geometria do tubo (SVG): topo y=14, base do tubo y=150, bulbo centro y=178
-      var yTopo=14, yBase=150, alturaTubo=yBase-yTopo;   // 136
-      var yNivel=yBase - frac*alturaTubo;                // onde o líquido chega
-      var cor=corTermometro(x.n);
-      var carinha=carinhaNivel(x.n);
-      // as 5 carinhas ao lado, distribuídas na escala; a ATIVA (nível atual) fica destacada
+      // geometria do tubo
+      var yTopo=14, yBase=150, alturaTubo=yBase-yTopo;
+      var yNivel=yBase - frac*alturaTubo;
+      // nível da carinha ativa (0=base vermelho .. 4=topo verde)
       var faixaAtual = x.n<=1?0:(x.n<=3?1:(x.n<=5?2:(x.n<=8?3:4)));
-      var caras=['😞','🙁','😐','🙂','😄'];
-      var yCaras=[138,110,80,50,20];  // posição vertical de cada carinha (baixo→topo)
-      var carinhasSVG=caras.map(function(em,i){
-        var ativo=(i===faixaAtual);
-        return '<text x="86" y="'+(yCaras[i]+6)+'" font-size="'+(ativo?'26':'17')+'" text-anchor="middle" opacity="'+(ativo?'1':'0.35')+'">'+em+'</text>';
-      }).join('');
+      var yCaras=[140,110,80,50,20];   // posição vertical de cada carinha (baixo→topo)
+      var carinhasSVG='';
+      for(var i=0;i<5;i++){ carinhasSVG+=carinhaSVG(90, yCaras[i], (i===faixaAtual?15:10), i, i===faixaAtual); }
       var primeiro=(x.nome||'').split(' ')[0];
+      // gradiente ÚNICO por item (id único para não conflitar)
+      var gid='termoGrad'+i+'_'+Math.random().toString(36).slice(2,7);
       return '<div class="termo-item" title="'+safeEsc(x.nome)+': '+x.n+' venda(s) hoje">'+
-        '<svg viewBox="0 0 110 210" width="100%" style="max-width:104px">'+
+        '<svg viewBox="0 0 120 210" width="100%" style="max-width:108px">'+
+          '<defs><linearGradient id="'+gid+'" x1="0" y1="1" x2="0" y2="0">'+
+            '<stop offset="0%" stop-color="#E23B34"/>'+     /* base vermelho */
+            '<stop offset="30%" stop-color="#F2913A"/>'+    /* laranja */
+            '<stop offset="52%" stop-color="#F2C233"/>'+    /* amarelo */
+            '<stop offset="75%" stop-color="#9BD13F"/>'+    /* verde claro */
+            '<stop offset="100%" stop-color="#4CB53F"/>'+   /* verde topo */
+          '</linearGradient></defs>'+
           // trilho do tubo (fundo)
           '<rect x="30" y="'+yTopo+'" width="20" height="'+(alturaTubo+8)+'" rx="10" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.18)" stroke-width="1.5"/>'+
-          // líquido colorido (do nível até a base) + bulbo
-          '<rect x="33" y="'+yNivel.toFixed(1)+'" width="14" height="'+(yBase-yNivel+6).toFixed(1)+'" rx="7" fill="'+cor+'"/>'+
-          '<circle cx="40" cy="178" r="22" fill="'+cor+'" stroke="rgba(0,0,0,.15)" stroke-width="1.5"/>'+
+          // líquido com o DEGRADÊ FIXO (recorta do nível até a base) + bulbo
+          '<clipPath id="clip'+gid+'"><rect x="30" y="'+yNivel.toFixed(1)+'" width="20" height="'+(yBase-yNivel+30).toFixed(1)+'" rx="10"/></clipPath>'+
+          '<rect x="33" y="'+yTopo+'" width="14" height="'+(alturaTubo)+'" rx="7" fill="url(#'+gid+')" clip-path="url(#clip'+gid+')"/>'+
+          '<circle cx="40" cy="178" r="22" fill="url(#'+gid+')"/>'+
           // marquinhas da escala
           '<g stroke="rgba(255,255,255,.30)" stroke-width="1.5">'+
             '<line x1="52" y1="30" x2="60" y2="30"/><line x1="52" y1="60" x2="60" y2="60"/>'+
@@ -5152,7 +5157,6 @@ function excluirNotaUI(id){
           '</g>'+
           carinhasSVG+
         '</svg>'+
-        '<div class="termo-n" style="color:'+cor+'">'+x.n+'</div>'+
         '<div class="termo-nome">'+safeEsc(primeiro)+'</div>'+
       '</div>';
     }).join('');
