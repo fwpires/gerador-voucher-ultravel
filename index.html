@@ -190,6 +190,9 @@ body.dark .hub-sidebar .nav-add{color:var(--verde)}
 .dash-card{background:var(--card);border:1px solid var(--borda);border-radius:16px;padding:16px 18px;box-shadow:var(--sombra)}
 .dash-card-t{font-size:14px;font-weight:700;margin-bottom:12px;color:var(--texto)}
 .dash-canvas{position:relative;height:268px}
+/* selo "Total: N" no canto inferior direito do gráfico de hotéis WeCann */
+.dash-total-hotel{position:absolute;right:8px;bottom:6px;background:rgba(80,120,200,.14);border:1px solid rgba(157,192,255,.35);color:#9DC0FF;font-size:12.5px;font-weight:800;padding:4px 10px;border-radius:8px;pointer-events:none;z-index:2}
+.dash-total-hotel:empty{display:none}
 .dash-empty{color:var(--texto-fraco);font-size:13px;text-align:center;padding:80px 20px}
 @media(max-width:1100px){.dash-grid{grid-template-columns:1fr}}
 .scr-soon-hidden{display:none}
@@ -234,6 +237,20 @@ body.dark .hub-sidebar .nav-add{color:var(--verde)}
 #avisoBuracos .ab-pop.show{display:flex}
 #avisoBuracos .ab-pop b{font-size:12.5px;font-weight:700;color:#FBBF24}
 #avisoBuracos .ab-pop span{font-size:12px;font-family:'JetBrains Mono',monospace;color:#CBD5E1}
+/* ===== Alerta de padronização WeCann (hotel WeCann sem a etiqueta) ===== */
+#avisoWecannEtiq{display:none;position:relative;align-items:center;margin-left:6px}
+#avisoWecannEtiq .wse-btn{position:relative;background:transparent;border:none;cursor:pointer;color:#F3B1FA;padding:4px;display:flex;border-radius:6px;line-height:0}
+#avisoWecannEtiq .wse-btn:hover{background:rgba(243,177,250,.16)}
+#avisoWecannEtiq .wse-btn svg{width:17px;height:17px}
+#avisoWecannEtiq .wse-badge{position:absolute;top:-4px;right:-5px;background:#F3B1FA;color:#1A1030;font-size:9.5px;font-weight:800;min-width:15px;height:15px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 3px;line-height:1}
+#avisoWecannEtiq .wse-pop{position:absolute;top:calc(100% + 7px);right:0;background:#16213D;border:1px solid rgba(243,177,250,.42);border-radius:9px;padding:11px 14px;display:none;flex-direction:column;gap:6px;z-index:60;box-shadow:0 10px 30px rgba(0,0,0,.45);max-width:340px}
+#avisoWecannEtiq .wse-pop.show{display:flex}
+#avisoWecannEtiq .wse-pop b{font-size:12.5px;font-weight:800;color:#F3B1FA}
+#avisoWecannEtiq .wse-dica{font-size:11.5px;color:#C4D2E8;white-space:normal}
+#avisoWecannEtiq .wse-lista{list-style:none;margin:4px 0 0;padding:0;display:flex;flex-direction:column;gap:4px;max-height:220px;overflow-y:auto}
+#avisoWecannEtiq .wse-lista li{font-size:12px;color:#E7EDF7;background:rgba(255,255,255,.03);border:1px solid rgba(243,177,250,.14);border-radius:6px;padding:5px 9px;white-space:normal}
+#avisoWecannEtiq .wse-lista b{color:#F3B1FA}
+#avisoWecannEtiq .wse-hotel{color:#9DB4D8;font-size:11px}
 .paginacao{margin-top:18px;display:flex;flex-direction:column;align-items:center;gap:12px}
 .paginacao:empty{display:none}
 .pg-info{font-size:13px;color:var(--texto-suave)}
@@ -951,7 +968,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
         <div class="dash-cards" id="dashCards"></div>
         <div class="dash-grid">
           <div class="dash-card"><div class="dash-card-t">🥧 Vouchers por tipo de serviço</div><div class="dash-canvas"><canvas id="chTipo"></canvas></div></div>
-          <div class="dash-card"><div class="dash-card-t">🍩 Vouchers por hotel (WeCann)</div><div class="dash-canvas"><canvas id="chHotel"></canvas></div></div>
+          <div class="dash-card"><div class="dash-card-t">🍩 Vouchers por hotel (WeCann)</div><div class="dash-canvas"><canvas id="chHotel"></canvas><span class="dash-total-hotel" id="totalHotelWecann"></span></div></div>
           <div class="dash-card"><div class="dash-card-t">📊 Ranking de vendedores</div><div class="dash-canvas"><canvas id="chVend"></canvas></div></div>
           <div class="dash-card"><div class="dash-card-t">📶 Vouchers por mês</div><div class="dash-canvas"><canvas id="chMes"></canvas></div></div>
           <div class="dash-card"><div class="dash-card-t">📈 Evolução de emissões (acumulado)</div><div class="dash-canvas"><canvas id="chEvol"></canvas></div></div>
@@ -1105,7 +1122,8 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <h2>Vouchers salvos</h2>
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
-    <!-- build: HUB-v2·56 (RASCUNHO — não está no ar) -->
+    <span id="avisoWecannEtiq"></span>
+    <!-- build: HUB-v2·58 (RASCUNHO — não está no ar) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -2439,6 +2457,25 @@ function conciliacaoPorQuarto(){
 let shIntegrarBusca='';  // texto de busca de voucher no integrador
 
 // lista os vouchers WeCann (hospedagem em um dos 3 hotéis) para o seletor de integração
+// TRUE se o voucher tem hospedagem em um dos 3 hotéis do WeCann Summit
+function voucherTemHotelWecann(v){
+  return (v&&v.services||[]).some(sv=>sv.type==='hotel' && HOTEIS_OCUPACAO.some(h=>h.match(sv.data&&sv.data.hotel)));
+}
+// TRUE se o voucher tem a palavra "wecann" escrita em algum campo de texto
+function voucherTemEtiquetaWecann(v){
+  if(!v) return false;
+  const campos=[v.evento, v.cliente, v.contato, v.num];
+  (v.services||[]).forEach(s=>{ if(s&&s.data){ Object.values(s.data).forEach(val=>{
+    if(val==null||val==='') return;
+    if(Array.isArray(val)) campos.push(val.map(x=>(x&&typeof x==='object')?Object.values(x).join(' '):x).join(' '));
+    else campos.push(String(val));
+  }); } });
+  return _normE(campos.filter(Boolean).join(' ')).includes('wecann');
+}
+// vouchers que TÊM hotel WeCann mas estão SEM a etiqueta "WeCann" no texto (furos de padronização)
+function vouchersWecannSemEtiqueta(list){
+  return (list||savedCache||[]).filter(v=>voucherTemHotelWecann(v) && !voucherTemEtiquetaWecann(v));
+}
 function vouchersWecannLista(){
   return (savedCache||[]).filter(v=>(v.services||[]).some(sv=>sv.type==='hotel' && HOTEIS_OCUPACAO.some(h=>h.match(sv.data&&sv.data.hotel))))
     .map(v=>{
@@ -3796,9 +3833,46 @@ function renderAvisoBuracos(list){
   }
 }
 
+/* OPÇÃO 2 — ALERTA DE PADRONIZAÇÃO WeCann
+   Mostra os vouchers que TÊM hotel do evento mas estão SEM a palavra "WeCann"
+   escrita, para você corrigir o cadastro e os números baterem. */
+let _wecannSemEtiqUltimaAssinatura='';
+function renderAvisoWecannSemEtiqueta(list){
+  const el=document.getElementById('avisoWecannEtiq'); if(!el) return;
+  const faltantes=vouchersWecannSemEtiqueta(list);
+  if(!faltantes.length){ el.innerHTML=''; el.style.display='none'; _wecannSemEtiqUltimaAssinatura=''; return; }
+  const e=esc, qtd=faltantes.length;
+  const itens=faltantes.map(v=>{
+    const serv=(v.services||[]).find(sv=>sv.type==='hotel' && HOTEIS_OCUPACAO.some(h=>h.match(sv.data&&sv.data.hotel)));
+    const hotel=(serv&&serv.data&&serv.data.hotel)||'';
+    const nome=(v.cliente||'').trim() || ((serv&&serv.data&&serv.data.hospedes&&serv.data.hospedes[0])||'—');
+    return `<li><b>#${e(v.num||'—')}</b> ${e(nome)} <span class="wse-hotel">${e(hotel)}</span></li>`;
+  }).join('');
+  el.style.display='inline-flex';
+  el.innerHTML=`
+    <button type="button" class="ab-btn wse-btn" id="wseBtn" title="Vouchers com hotel WeCann mas sem a etiqueta 'WeCann' — clique para ver">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="wse-badge">${qtd}</span>
+    </button>
+    <div class="ab-pop wse-pop" id="wsePop">
+      <b>${qtd} voucher(s) com hotel WeCann mas SEM a etiqueta "WeCann"</b>
+      <span class="wse-dica">Adicione "WeCann Summit 2026" no evento desses vouchers para padronizar:</span>
+      <ul class="wse-lista">${itens}</ul>
+    </div>`;
+  el.onclick=(ev)=>{ if(ev.target.closest('#wseBtn')){ const p=el.querySelector('#wsePop'); if(p) p.classList.toggle('show'); } };
+  const assinatura=faltantes.map(v=>v.num).join(',');
+  if(assinatura!==_wecannSemEtiqUltimaAssinatura){
+    _wecannSemEtiqUltimaAssinatura=assinatura;
+    logRemoto('wecann_sem_etiqueta', qtd+' voucher(s) com hotel WeCann sem a etiqueta no evento', { nums:faltantes.map(v=>v.num) });
+  }
+}
+
 function renderSaved(list){
   const q=_normE(($('#searchInput').value||'').trim());
   const termos=q.split(/\s+/).filter(Boolean); // cada palavra é buscada separadamente (parcial + multi-termo)
+  // OPÇÃO 1: se o usuário busca por "wecann", também reconhecemos vouchers pelo HOTEL do evento,
+  // mesmo que a palavra "wecann" não esteja escrita neles. Assim a busca bate com a contagem de hóspedes.
+  const buscaWecann = termos.some(t=>'wecann'.includes(t) && t.length>=3);
   const filt=ordenarVouchers(list.filter(v=>{
     if(!termos.length) return true;
     const campos=[v.num, v.cliente, v.vendedor, v.evento, v.contato];
@@ -3814,7 +3888,10 @@ function renderSaved(list){
       }
     });
     const texto=_normE(campos.filter(Boolean).join(' '));
-    return termos.every(t=>texto.includes(t)); // precisa conter TODOS os termos digitados
+    // passa por texto (todos os termos) OU, na busca WeCann, se tiver hotel do evento
+    if(termos.every(t=>texto.includes(t))) return true;
+    if(buscaWecann && voucherTemHotelWecann(v)) return true;
+    return false;
   }));
   const sc=$('#savedCount');
   const totHosp=totalHospedesWecann();
@@ -3827,6 +3904,7 @@ function renderSaved(list){
     sc.classList.remove('filtrando');
   }
   renderAvisoBuracos(list);
+  renderAvisoWecannSemEtiqueta(list);
   renderDisponibilidade();
   if(!filt.length){
     $('#savedList').innerHTML=`<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 7h16M4 7l1 13a1 1 0 001 1h12a1 1 0 001-1l1-13M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2" stroke-linecap="round" stroke-linejoin="round"/></svg><p>${q?'Nenhum voucher encontrado':'Nenhum voucher salvo ainda'}</p></div>`;
@@ -4986,6 +5064,10 @@ function excluirNotaUI(id){
     destroy('chTipo'); charts.chTipo=new Chart(document.getElementById('chTipo'),{type:'pie',data:{labels:tipos.map(tipoLabel),datasets:[{data:tipos.map(function(t){return porTipo[t];}),backgroundColor:PAL,borderWidth:0}]},options:common});
     var hk=Object.keys(porHotel);
     destroy('chHotel'); charts.chHotel=new Chart(document.getElementById('chHotel'),{type:'doughnut',data:{labels:hk,datasets:[{data:hk.map(function(h){return porHotel[h];}),backgroundColor:PAL,borderWidth:0}]},options:common});
+    // TOTAL dos 3 hotéis WeCann (soma tudo, menos "Outros") — exibido no canto do card
+    var totalHotelWec=0; Object.keys(porHotel).forEach(function(k){ if(k!=='Outros') totalHotelWec+=porHotel[k]; });
+    var elTotHotel=document.getElementById('totalHotelWecann');
+    if(elTotHotel) elTotHotel.textContent='Total: '+totalHotelWec;
     var ve=Object.entries(porVend).sort(function(a,b){return b[1]-a[1];}).slice(0,8);
     destroy('chVend'); charts.chVend=new Chart(document.getElementById('chVend'),{type:'bar',data:{labels:ve.map(function(x){return x[0];}),datasets:[{data:ve.map(function(x){return x[1];}),backgroundColor:ve.map(function(_,i){return PAL[i%PAL.length];}),borderRadius:6}]},options:Object.assign({},common,{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:tc.grid},ticks:{precision:0}},y:{grid:{display:false}}}})});
     var meses=Object.keys(porMes).sort();
