@@ -196,8 +196,9 @@ body.dark .hub-sidebar .nav-add{color:var(--verde)}
 /* ===== Cards "Vendas de hoje" (velocímetro e termômetro separados) ===== */
 .dash-grid-hoje{margin-top:4px}
 .dash-hoje-card{display:flex;flex-direction:column}
-.gauge-box{flex:1;display:flex;justify-content:center;align-items:center;padding:6px 2px;min-height:250px;width:100%}
-.gauge-box svg{width:100%;height:auto}
+.gauge-box{flex:1;display:flex;justify-content:center;align-items:center;padding:6px 0;min-height:250px;width:100%}
+.gauge-box #gaugeDia{width:100%}
+.gauge-box svg{width:100%;height:auto;display:block}
 .termo-box{flex:1;display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end;justify-content:flex-start;padding:10px 4px;min-height:230px;overflow-x:auto}
 .termo-vazio{color:var(--texto-fraco);font-size:13px;padding:20px 4px}
 .termo-item{display:flex;flex-direction:column;align-items:center;gap:4px;width:104px;flex:0 0 auto}
@@ -1142,7 +1143,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v2·65 (RASCUNHO — não está no ar) -->
+    <!-- build: HUB-v2·66 (RASCUNHO — não está no ar) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -5059,8 +5060,9 @@ function excluirNotaUI(id){
     ];
     // converte um número de vendas (0..TETO) em ângulo 0..180
     function a(n){ return 180*Math.min(Math.max(n,0)/TETO,1); }
-    // gera o arco SVG de um ângulo inicial a um final (raio R), no semicírculo superior
-    var cx=270, cy=258, R=240, r=145;
+    // geometria — o centro fica na base; o arco superior ocupa toda a largura útil.
+    // viewBox = 2*R de largura por (R + folga inferior) de altura, ABRAÇANDO o desenho.
+    var R=250, r=150, cx=R, cy=R;             // cx=cy=R → arco encosta nas bordas laterais
     function pol(cxx,cyy,rr,deg){ var rad=(180-deg)*Math.PI/180; return [cxx+rr*Math.cos(rad), cyy-rr*Math.sin(rad)]; }
     function arco(deg0,deg1,cor){
       var p0o=pol(cx,cy,R,deg0), p1o=pol(cx,cy,R,deg1), p1i=pol(cx,cy,r,deg1), p0i=pol(cx,cy,r,deg0);
@@ -5069,30 +5071,35 @@ function excluirNotaUI(id){
         ' A'+R+' '+R+' 0 '+large+' 1 '+p1o[0].toFixed(1)+' '+p1o[1].toFixed(1)+
         ' L'+p1i[0].toFixed(1)+' '+p1i[1].toFixed(1)+
         ' A'+r+' '+r+' 0 '+large+' 0 '+p0i[0].toFixed(1)+' '+p0i[1].toFixed(1)+
-        ' Z" fill="'+cor+'"/>';
+        ' Z" fill="'+cor+'" filter="url(#neonGlow)"/>';
     }
-    // desenha as 4 fatias — cores com LEVE TRANSPARÊNCIA (rgba com alpha 0.72)
+    // desenha as 4 fatias — cores NEON sólidas (sem transparência), com brilho
     var seg='';
     var limites=[
-      {d0:0,   d1:54,  cor:'rgba(228,53,59,.72)'},    // Baixo (vermelho)
-      {d0:54,  d1:108, cor:'rgba(242,192,41,.72)'},   // Médio (amarelo)
-      {d0:108, d1:153, cor:'rgba(62,142,222,.72)'},   // Bom (azul)
-      {d0:153, d1:180, cor:'rgba(53,196,107,.72)'}    // Ótimo (verde)
+      {d0:0,   d1:54,  cor:'#FF2A3C'},    // Baixo — vermelho neon
+      {d0:54,  d1:108, cor:'#FFD21A'},    // Médio — amarelo neon
+      {d0:108, d1:153, cor:'#1FA2FF'},    // Bom — azul neon
+      {d0:153, d1:180, cor:'#22E06B'}     // Ótimo — verde neon
     ];
     limites.forEach(function(L){ seg+=arco(L.d0,L.d1,L.cor); });
     // rótulos das faixas (no meio de cada arco, raio médio)
     var rMid=(R+r)/2;
-    function txt(deg,label,cor){ var p=pol(cx,cy,rMid,deg); return '<text x="'+p[0].toFixed(1)+'" y="'+p[1].toFixed(1)+'" fill="'+cor+'" font-size="19" font-weight="800" text-anchor="middle" dominant-baseline="middle">'+label+'</text>'; }
-    var labels=txt(27,'Baixo','#4A0C0F')+txt(81,'Médio','#5E4708')+txt(130,'Bom','#0C3352')+txt(168,'Ótimo','#083E1D');
+    function txt(deg,label,cor){ var p=pol(cx,cy,rMid,deg); return '<text x="'+p[0].toFixed(1)+'" y="'+p[1].toFixed(1)+'" fill="'+cor+'" font-size="20" font-weight="800" text-anchor="middle" dominant-baseline="middle">'+label+'</text>'; }
+    var labels=txt(27,'Baixo','#3A0508')+txt(81,'Médio','#4A3B04')+txt(130,'Bom','#062A45')+txt(168,'Ótimo','#053019');
     // ponteiro robusto
-    var pa=pol(cx,cy,R-18,ang);
-    var ponteiro='<line x1="'+cx+'" y1="'+cy+'" x2="'+pa[0].toFixed(1)+'" y2="'+pa[1].toFixed(1)+'" stroke="#0F1830" stroke-width="10" stroke-linecap="round"/>'+
-      '<circle cx="'+cx+'" cy="'+cy+'" r="24" fill="#8A96A8" stroke="#0F1830" stroke-width="5"/>';
-    var corVal = val<=2?'#E4353B':(val<=5?'#F2C029':(val<=9?'#3E8EDE':'#35C46B'));
+    var pa=pol(cx,cy,R-20,ang);
+    var ponteiro='<line x1="'+cx+'" y1="'+cy+'" x2="'+pa[0].toFixed(1)+'" y2="'+pa[1].toFixed(1)+'" stroke="#EAF2FF" stroke-width="11" stroke-linecap="round" filter="url(#neonGlow)"/>'+
+      '<circle cx="'+cx+'" cy="'+cy+'" r="26" fill="#8A96A8" stroke="#EAF2FF" stroke-width="5"/>';
+    var corVal = val<=2?'#FF2A3C':(val<=5?'#FFD21A':(val<=9?'#1FA2FF':'#22E06B'));
     var rotulo = val<=2?'Baixo':(val<=5?'Médio':(val<=9?'Bom':'Ótimo'));
-    el.innerHTML='<svg viewBox="0 0 540 320" width="100%" style="max-width:100%">'+
-      seg+labels+ponteiro+
-      '<text x="'+cx+'" y="'+(cy+56)+'" fill="'+corVal+'" font-size="28" font-weight="900" text-anchor="middle">'+rotulo+'</text>'+
+    // viewBox largura=2R (arco encosta nas laterais), altura=R+70 (folga p/ pino e rótulo)
+    var vbW=2*R, vbH=R+72;
+    // filtro de brilho neon (glow)
+    var defs='<defs><filter id="neonGlow" x="-30%" y="-30%" width="160%" height="160%">'+
+      '<feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>';
+    el.innerHTML='<svg viewBox="0 0 '+vbW+' '+vbH+'" width="100%" style="max-width:100%;display:block">'+
+      defs+seg+labels+ponteiro+
+      '<text x="'+cx+'" y="'+(cy+58)+'" fill="'+corVal+'" font-size="30" font-weight="900" text-anchor="middle" filter="url(#neonGlow)">'+rotulo+'</text>'+
       '</svg>';
   }
 
