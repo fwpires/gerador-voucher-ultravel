@@ -1144,7 +1144,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v2·70 (RASCUNHO — não está no ar) -->
+    <!-- build: HUB-v2·71 (RASCUNHO — não está no ar) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -5128,17 +5128,15 @@ function excluirNotaUI(id){
   function desenhaTermometros(mapaHoje){
     var box=document.getElementById('termoDia'); if(!box) return;
     var TETO=10;
+    // TODOS os atendentes sempre visíveis (mesmo com 0 vendas), ordenados por vendas
     var lista=(typeof ATENDENTES!=='undefined'?ATENDENTES.slice():Object.keys(mapaHoje))
       .map(function(nome){ return { nome:nome, n:(mapaHoje[nome]||0) }; })
-      .filter(function(x){ return x.n>0; })
       .sort(function(a,b){ return b.n-a.n; });
-    if(!lista.length){ box.innerHTML='<div class="termo-vazio">Nenhuma venda registrada hoje ainda.</div>'; return; }
+    if(!lista.length){ box.innerHTML='<div class="termo-vazio">Nenhum atendente cadastrado.</div>'; return; }
     box.innerHTML=lista.map(function(x){
-      var frac=Math.min(x.n/TETO,1);
       // geometria do tubo
       var yTopo=14, yBase=150, alturaTubo=yBase-yTopo;
-      var yNivel=yBase - frac*alturaTubo;
-      // nível da carinha ativa (0=base vermelho .. 4=topo verde)
+      // nível da carinha ativa (0=base vermelho .. 4=topo verde) — SÓ a carinha se move
       var faixaAtual = x.n<=1?0:(x.n<=3?1:(x.n<=5?2:(x.n<=8?3:4)));
       var yCaras=[140,110,80,50,20];   // posição vertical de cada carinha (baixo→topo)
       var carinhasSVG='';
@@ -5149,18 +5147,20 @@ function excluirNotaUI(id){
       return '<div class="termo-item" title="'+safeEsc(x.nome)+': '+x.n+' venda(s) hoje">'+
         '<svg viewBox="0 0 120 224" width="100%" style="max-width:108px">'+
           '<defs><linearGradient id="'+gid+'" x1="0" y1="1" x2="0" y2="0">'+
-            '<stop offset="0%" stop-color="#E23B34"/>'+     /* base vermelho */
-            '<stop offset="30%" stop-color="#F2913A"/>'+    /* laranja */
-            '<stop offset="52%" stop-color="#F2C233"/>'+    /* amarelo */
-            '<stop offset="75%" stop-color="#9BD13F"/>'+    /* verde claro */
-            '<stop offset="100%" stop-color="#4CB53F"/>'+   /* verde topo */
+            '<stop offset="0%" stop-color="#E8352B"/>'+     /* base vermelho */
+            '<stop offset="28%" stop-color="#F26A2E"/>'+    /* laranja */
+            '<stop offset="50%" stop-color="#F2C233"/>'+    /* amarelo */
+            '<stop offset="74%" stop-color="#9BD13F"/>'+    /* verde claro */
+            '<stop offset="100%" stop-color="#3FBF3F"/>'+   /* verde topo */
           '</linearGradient></defs>'+
           // trilho do tubo (fundo)
-          '<rect x="30" y="'+yTopo+'" width="20" height="'+(alturaTubo+8)+'" rx="10" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.18)" stroke-width="1.5"/>'+
-          // líquido com o DEGRADÊ FIXO (recorta do nível até a base) + bulbo
-          '<clipPath id="clip'+gid+'"><rect x="30" y="'+yNivel.toFixed(1)+'" width="20" height="'+(yBase-yNivel+30).toFixed(1)+'" rx="10"/></clipPath>'+
-          '<rect x="33" y="'+yTopo+'" width="14" height="'+(alturaTubo)+'" rx="7" fill="url(#'+gid+')" clip-path="url(#clip'+gid+')"/>'+
-          '<circle cx="40" cy="178" r="22" fill="url(#'+gid+')"/>'+
+          '<rect x="30" y="'+yTopo+'" width="20" height="'+(alturaTubo+8)+'" rx="10" fill="rgba(255,255,255,.06)" stroke="rgba(255,255,255,.16)" stroke-width="1.5"/>'+
+          // TUBO SEMPRE CHEIO: degradê completo do topo à base (não sobe/desce)
+          '<rect x="33" y="'+yTopo+'" width="14" height="'+alturaTubo+'" rx="7" fill="url(#'+gid+')"/>'+
+          // BULBO sempre VERMELHO fixo (como na imagem)
+          '<circle cx="40" cy="178" r="22" fill="#E8352B"/>'+
+          // conexão do bulbo com a base do tubo (vermelha, para dar continuidade)
+          '<rect x="33" y="150" width="14" height="16" fill="#E8352B"/>'+
           // marquinhas da escala
           '<g stroke="rgba(255,255,255,.30)" stroke-width="1.5">'+
             '<line x1="52" y1="30" x2="60" y2="30"/><line x1="52" y1="60" x2="60" y2="60"/>'+
