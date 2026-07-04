@@ -204,10 +204,10 @@ body.dark .hub-sidebar .nav-add{color:var(--verde)}
 .termo-item{display:flex;flex-direction:column;align-items:center;gap:4px;width:104px;flex:0 0 auto}
 .termo-item svg{display:block;margin:0 auto}
 .termo-nome{font-size:12px;color:var(--texto-fraco);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;max-width:104px}
-/* ===== Equalizador "Vouchers por dia da semana" (metade esquerda) ===== */
-.dash-grid-eq{margin-top:16px}
-.eq-box{padding:10px 6px;min-height:250px;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center, rgba(20,40,25,.35), rgba(8,14,12,.15));border-radius:10px}
-.dash-eq-empty{display:block}
+/* ===== Equalizador "Vouchers por dia da semana" (largura total) ===== */
+.dash-grid-eq{margin-top:16px;display:block}
+.eq-box{padding:14px 10px;min-height:280px;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center, rgba(0,120,192,.10), rgba(15,25,35,.20));border:1px solid var(--borda);border-radius:10px}
+.dash-eq-empty{display:none}
 .dash-empty{color:var(--texto-fraco);font-size:13px;text-align:center;padding:80px 20px}
 @media(max-width:1100px){.dash-grid{grid-template-columns:1fr}}
 .scr-soon-hidden{display:none}
@@ -1155,7 +1155,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v2·74 (RASCUNHO — não está no ar) -->
+    <!-- build: HUB-v2·75 (RASCUNHO — não está no ar) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -5063,13 +5063,6 @@ function excluirNotaUI(id){
     var val=Math.max(0, vendas||0);
     var frac=Math.min(val/TETO, 1);           // 0..1
     var ang=180*frac;                         // 0° (esquerda) .. 180° (direita)
-    // faixas (em graus, sobre o semicírculo de 180°): proporcionais às vendas
-    var faixas=[
-      {de:0,   ate:2,  cor:'#E4353B', label:'Baixo'},   // 0–2
-      {de:3,   ate:5,  cor:'#F2C029', label:'Médio'},   // 3–5
-      {de:6,   ate:9,  cor:'#3E8EDE', label:'Bom'},     // 6–9
-      {de:10,  ate:10, cor:'#35C46B', label:'Ótimo'}    // 10+
-    ];
     // converte um número de vendas (0..TETO) em ângulo 0..180
     function a(n){ return 180*Math.min(Math.max(n,0)/TETO,1); }
     // geometria — o centro fica na base; o arco superior ocupa toda a largura útil.
@@ -5085,24 +5078,24 @@ function excluirNotaUI(id){
         ' A'+r+' '+r+' 0 '+large+' 0 '+p0i[0].toFixed(1)+' '+p0i[1].toFixed(1)+
         ' Z" fill="'+cor+'" filter="url(#neonGlow)"/>';
     }
-    // desenha as 4 fatias — cores NEON sólidas (sem transparência), com brilho
+    // desenha as 4 fatias — cores alinhadas à PALETA OFICIAL do Dashboard
     var seg='';
     var limites=[
-      {d0:0,   d1:54,  cor:'#FF2A3C'},    // Baixo — vermelho neon
-      {d0:54,  d1:108, cor:'#FFD21A'},    // Médio — amarelo neon
-      {d0:108, d1:153, cor:'#1FA2FF'},    // Bom — azul neon
-      {d0:153, d1:180, cor:'#22E06B'}     // Ótimo — verde neon
+      {d0:0,   d1:54,  cor:'#FF2D95'},    // Baixo — rosa/magenta (alerta da paleta)
+      {d0:54,  d1:108, cor:'#FFC400'},    // Médio — amarelo oficial
+      {d0:108, d1:153, cor:'#0078C0'},    // Bom — azul principal
+      {d0:153, d1:180, cor:'#9CC00C'}     // Ótimo — verde-limão oficial
     ];
     limites.forEach(function(L){ seg+=arco(L.d0,L.d1,L.cor); });
-    // rótulos das faixas (no meio de cada arco, raio médio)
+    // rótulos das faixas (no meio de cada arco, raio médio) — tom escuro da própria cor
     var rMid=(R+r)/2;
     function txt(deg,label,cor){ var p=pol(cx,cy,rMid,deg); return '<text x="'+p[0].toFixed(1)+'" y="'+p[1].toFixed(1)+'" fill="'+cor+'" font-size="20" font-weight="800" text-anchor="middle" dominant-baseline="middle">'+label+'</text>'; }
-    var labels=txt(27,'Baixo','#3A0508')+txt(81,'Médio','#4A3B04')+txt(130,'Bom','#062A45')+txt(168,'Ótimo','#053019');
+    var labels=txt(27,'Baixo','#4A0A2C')+txt(81,'Médio','#4A3A00')+txt(130,'Bom','#03263D')+txt(168,'Ótimo','#2E3A04');
     // ponteiro robusto
     var pa=pol(cx,cy,R-20,ang);
-    var ponteiro='<line x1="'+cx+'" y1="'+cy+'" x2="'+pa[0].toFixed(1)+'" y2="'+pa[1].toFixed(1)+'" stroke="#EAF2FF" stroke-width="11" stroke-linecap="round" filter="url(#neonGlow)"/>'+
-      '<circle cx="'+cx+'" cy="'+cy+'" r="26" fill="#8A96A8" stroke="#EAF2FF" stroke-width="5"/>';
-    var corVal = val<=2?'#FF2A3C':(val<=5?'#FFD21A':(val<=9?'#1FA2FF':'#22E06B'));
+    var ponteiro='<line x1="'+cx+'" y1="'+cy+'" x2="'+pa[0].toFixed(1)+'" y2="'+pa[1].toFixed(1)+'" stroke="#E8EEF4" stroke-width="11" stroke-linecap="round" filter="url(#neonGlow)"/>'+
+      '<circle cx="'+cx+'" cy="'+cy+'" r="26" fill="#8BA4BF" stroke="#E8EEF4" stroke-width="5"/>';
+    var corVal = val<=2?'#FF2D95':(val<=5?'#FFC400':(val<=9?'#0078C0':'#9CC00C'));
     var rotulo = val<=2?'Baixo':(val<=5?'Médio':(val<=9?'Bom':'Ótimo'));
     // viewBox largura=2R (arco encosta nas laterais), altura=R+70 (folga p/ pino e rótulo)
     var vbW=2*R, vbH=R+72;
@@ -5186,8 +5179,10 @@ function excluirNotaUI(id){
   }
 
   /* ===== EQUALIZADOR — VOUCHERS POR DIA DA SEMANA (estilo LED de áudio) =====
-     Cada coluna é um dia da semana, feita de "blocos" LED verdes que acendem
-     de baixo para cima conforme a quantidade de vouchers criados naquele dia. */
+     Cada coluna é um dia da semana, feita de "blocos" LED que acendem de baixo
+     para cima conforme a quantidade de vouchers. Cores alinhadas à paleta do
+     Dashboard (azul → ciano → verde-limão). As colunas ESTICAM para preencher
+     toda a largura disponível, sem vazios laterais. */
   function desenhaEqualizador(porDia){
     var el=document.getElementById('eqSemana'); if(!el) return;
     // porDia: array [dom,seg,ter,qua,qui,sex,sab]; reordena para começar na segunda
@@ -5196,25 +5191,28 @@ function excluirNotaUI(id){
     var vals=ordem.map(function(i){ return (porDia&&porDia[i])||0; });
     var maxVal=Math.max.apply(null, vals.concat([1]));   // pelo menos 1 p/ evitar div/0
     var BLOCOS=14;                                         // nº de blocos LED por coluna
-    // geometria SVG
-    var colW=54, gap=8, padL=44, padTop=16, colH=230, baseY=padTop+colH;
-    var largura=padL + vals.length*(colW+gap) + 20;
+    // ===== geometria que PREENCHE toda a largura =====
+    var LARGURA=980;                     // largura de referência do viewBox (bem larga)
+    var padL=40, padR=16, padTop=16, colH=230, baseY=padTop+colH;
+    var nCols=vals.length;
+    var areaUtil=LARGURA - padL - padR;                  // espaço para as colunas
+    var gap=10;
+    var colW=(areaUtil - gap*(nCols-1))/nCols;           // largura de cada coluna (dinâmica)
     var altura=baseY+42;
     var blocoH=(colH/BLOCOS)-3;
-    var svg='<svg viewBox="0 0 '+largura+' '+altura+'" width="100%" style="max-width:100%;display:block">';
-    // linhas de referência do eixo (0, meio, máx) à esquerda e à direita
+    // cor do bloco alinhada à PALETA do Dashboard: base azul → meio ciano → topo verde-limão
     function corBloco(idx){
-      // idx 0 (base) → verde; topo → verde-claro/amarelado, dando o visual de áudio
       var t=idx/(BLOCOS-1);
-      if(t<0.55) return '#25E065';       // verde vivo (maior parte)
-      if(t<0.8)  return '#7CEA4E';       // verde-limão
-      return '#C6F24A';                  // topo verde-amarelado
+      if(t<0.5)  return '#0078C0';       // azul principal (base)
+      if(t<0.78) return '#00E5FF';       // ciano (meio)
+      return '#9CC00C';                  // verde-limão oficial (topo)
     }
-    // rótulos de escala (0, metade, máx) nas laterais
+    var svg='';
+    // rótulos de escala (0, metade, máx) à esquerda
     var meia=Math.round(maxVal/2);
-    svg+='<text x="'+(padL-12)+'" y="'+(padTop+8)+'" fill="#4E7A55" font-size="13" font-weight="700" text-anchor="end">'+maxVal+'</text>';
-    svg+='<text x="'+(padL-12)+'" y="'+(padTop+colH/2+4)+'" fill="#4E7A55" font-size="13" font-weight="700" text-anchor="end">'+meia+'</text>';
-    svg+='<text x="'+(padL-12)+'" y="'+baseY+'" fill="#4E7A55" font-size="13" font-weight="700" text-anchor="end">0</text>';
+    svg+='<text x="'+(padL-10)+'" y="'+(padTop+8)+'" fill="#8BA4BF" font-size="14" font-weight="700" text-anchor="end">'+maxVal+'</text>';
+    svg+='<text x="'+(padL-10)+'" y="'+(padTop+colH/2+4)+'" fill="#8BA4BF" font-size="14" font-weight="700" text-anchor="end">'+meia+'</text>';
+    svg+='<text x="'+(padL-10)+'" y="'+baseY+'" fill="#8BA4BF" font-size="14" font-weight="700" text-anchor="end">0</text>';
     // colunas
     vals.forEach(function(v,ci){
       var x=padL + ci*(colW+gap);
@@ -5224,20 +5222,20 @@ function excluirNotaUI(id){
         var on=b<acesos;
         var cor=on?corBloco(b):'rgba(255,255,255,.05)';
         var glow=on?' filter="url(#eqGlow)"':'';
-        svg+='<rect x="'+x+'" y="'+y.toFixed(1)+'" width="'+colW+'" height="'+blocoH.toFixed(1)+'" rx="2" fill="'+cor+'"'+glow+'/>';
+        svg+='<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+colW.toFixed(1)+'" height="'+blocoH.toFixed(1)+'" rx="2" fill="'+cor+'"'+glow+'/>';
       }
       // valor no topo da coluna
-      svg+='<text x="'+(x+colW/2)+'" y="'+(padTop-2)+'" fill="#9BE8B0" font-size="13" font-weight="800" text-anchor="middle">'+v+'</text>';
+      svg+='<text x="'+(x+colW/2).toFixed(1)+'" y="'+(padTop-2)+'" fill="#9CC00C" font-size="15" font-weight="800" text-anchor="middle">'+v+'</text>';
       // rótulo do dia embaixo
-      svg+='<text x="'+(x+colW/2)+'" y="'+(baseY+26)+'" fill="#8FA3B8" font-size="14" font-weight="700" text-anchor="middle">'+nomes[ci]+'</text>';
+      svg+='<text x="'+(x+colW/2).toFixed(1)+'" y="'+(baseY+28)+'" fill="#8BA4BF" font-size="15" font-weight="700" text-anchor="middle">'+nomes[ci]+'</text>';
     });
     // filtro de brilho (glow) estilo LED
-    svg='<svg viewBox="0 0 '+largura+' '+altura+'" width="100%" style="max-width:100%;display:block">'+
+    // monta o SVG final com o filtro de brilho (glow) estilo LED
+    var svgFinal='<svg viewBox="0 0 '+LARGURA+' '+altura+'" width="100%" style="max-width:100%;display:block">'+
       '<defs><filter id="eqGlow" x="-40%" y="-40%" width="180%" height="180%">'+
       '<feGaussianBlur stdDeviation="1.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>'+
-      svg.slice(svg.indexOf('>')+1);
-    svg+='</svg>';
-    el.innerHTML=svg;
+      svg + '</svg>';
+    el.innerHTML=svgFinal;
   }
 
   window.renderDashboard=function(){
