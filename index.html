@@ -1155,7 +1155,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v2·73 (RASCUNHO — não está no ar) -->
+    <!-- build: HUB-v2·74 (RASCUNHO — não está no ar) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -5250,7 +5250,17 @@ function excluirNotaUI(id){
     var porVend={}, porTipo={}, porMes={}, porDia=[0,0,0,0,0,0,0];
     var porHotel={};
     // ===== VENDAS DE HOJE (para o velocímetro e os termômetros) =====
-    var hojeStr=new Date().toISOString().slice(0,10);   // 'AAAA-MM-DD' de hoje
+    // Janela do dia = 00:00:00 até 23:59:59 no HORÁRIO LOCAL (Florianópolis, UTC-3).
+    // Geramos a chave 'AAAA-MM-DD' com getFullYear/Month/Date (local) — NÃO com
+    // toISOString(), que usa UTC e jogaria vouchers da noite para o dia seguinte.
+    function chaveDiaLocal(dt){
+      if(!dt || isNaN(dt.getTime())) return '';
+      var a=dt.getFullYear();
+      var m=String(dt.getMonth()+1).padStart(2,'0');
+      var d=String(dt.getDate()).padStart(2,'0');
+      return a+'-'+m+'-'+d;
+    }
+    var hojeStr=chaveDiaLocal(new Date());   // dia de hoje no horário local
     var vendasHoje=0;              // total de vouchers criados hoje
     var vendasHojePorVend={};      // vendas de hoje por vendedor
     vs.forEach(function(v){
@@ -5259,8 +5269,9 @@ function excluirNotaUI(id){
       // qualquer evento (WeCann ou não). É a visão geral de vendas do sistema.
       // (A aba Eventos > WeCann tem o ranking SÓ do WeCann, via calcRanking.)
       if(vd) porVend[vd]=(porVend[vd]||0)+1;
-      // é de hoje? (compara a parte da data do criadoEm com a data de hoje)
-      if((v.criadoEm||'').slice(0,10)===hojeStr){
+      // é de hoje? compara a data do criadoEm (convertida p/ horário local) com hoje
+      var dc=v.criadoEm?new Date(v.criadoEm):null;
+      if(dc && chaveDiaLocal(dc)===hojeStr){
         vendasHoje++;
         if(vd) vendasHojePorVend[vd]=(vendasHojePorVend[vd]||0)+1;
       }
