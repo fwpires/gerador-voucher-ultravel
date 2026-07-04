@@ -205,11 +205,12 @@ body.dark .hub-sidebar .nav-add{color:var(--verde)}
 .termo-item svg{display:block;margin:0 auto}
 .termo-nome{font-size:12px;color:var(--texto-fraco);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;max-width:104px}
 /* ===== Equalizador "Vouchers por dia da semana" (largura total) ===== */
-.dash-grid-eq{margin-top:16px;display:block}
+.dash-grid-eq{margin-top:16px;display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
 .eq-box{padding:14px 10px;min-height:280px;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center, rgba(0,120,192,.10), rgba(15,25,35,.20));border:1px solid var(--borda);border-radius:10px}
 .eq-box #eqSemana{width:100%}
 .eq-box #eqSemana svg{width:100%;height:auto;display:block}
-.dash-eq-empty{display:none}
+.dash-eq-empty{display:block}
+@media(max-width:1100px){.dash-eq-empty{display:none}}
 /* ===== Controles de navegação por data (setas nos indicadores de hoje) ===== */
 .dash-nav{display:inline-flex;align-items:center;gap:8px;float:right;font-weight:400}
 .dash-nav-btn{background:rgba(255,255,255,.06);border:1px solid var(--borda);color:var(--texto);width:26px;height:26px;border-radius:7px;cursor:pointer;font-size:12px;line-height:1;display:inline-flex;align-items:center;justify-content:center;transition:all .14s;padding:0}
@@ -1181,7 +1182,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v2·79 (RASCUNHO — não está no ar) -->
+    <!-- build: HUB-v2·80 (RASCUNHO — não está no ar) -->
   </div>
   <div class="saved-tools">
     <div class="search">
