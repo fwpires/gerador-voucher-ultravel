@@ -201,13 +201,21 @@ body.dark .hub-sidebar .nav-add{color:var(--verde)}
 .gauge-box svg{width:100%;height:auto;display:block}
 .termo-box{flex:1;display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end;justify-content:flex-start;padding:10px 4px;min-height:230px;overflow-x:auto}
 .termo-vazio{color:var(--texto-fraco);font-size:13px;padding:20px 4px}
-.termo-item{display:flex;flex-direction:column;align-items:center;gap:4px;width:104px;flex:0 0 auto}
+.termo-item{display:flex;flex-direction:column;align-items:center;gap:4px;width:88px;flex:0 0 auto}
 .termo-item svg{display:block;margin:0 auto}
 .termo-nome{font-size:12px;color:var(--texto-fraco);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;max-width:104px}
 /* ===== Equalizador "Vouchers por dia da semana" (largura total) ===== */
 .dash-grid-eq{margin-top:16px;display:block}
 .eq-box{padding:14px 10px;min-height:280px;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center, rgba(0,120,192,.10), rgba(15,25,35,.20));border:1px solid var(--borda);border-radius:10px}
+.eq-box #eqSemana{width:100%}
+.eq-box #eqSemana svg{width:100%;height:auto;display:block}
 .dash-eq-empty{display:none}
+/* ===== Controles de navegação por data (setas nos indicadores de hoje) ===== */
+.dash-nav{display:inline-flex;align-items:center;gap:8px;float:right;font-weight:400}
+.dash-nav-btn{background:rgba(255,255,255,.06);border:1px solid var(--borda);color:var(--texto);width:26px;height:26px;border-radius:7px;cursor:pointer;font-size:12px;line-height:1;display:inline-flex;align-items:center;justify-content:center;transition:all .14s;padding:0}
+.dash-nav-btn:hover:not(:disabled){background:var(--azul);border-color:var(--azul);color:#fff;transform:translateY(-1px)}
+.dash-nav-btn:disabled{opacity:.32;cursor:not-allowed}
+.dash-nav-lbl{font-size:12.5px;font-weight:700;color:#9DC0FF;min-width:82px;text-align:center;white-space:nowrap}
 .dash-empty{color:var(--texto-fraco);font-size:13px;text-align:center;padding:80px 20px}
 @media(max-width:1100px){.dash-grid{grid-template-columns:1fr}}
 .scr-soon-hidden{display:none}
@@ -991,17 +999,35 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
         </div>
         <div class="dash-grid dash-grid-hoje">
           <div class="dash-card dash-hoje-card">
-            <div class="dash-card-t">⚡ Volume de vendas do dia</div>
+            <div class="dash-card-t">⚡ Volume de vendas do dia
+              <span class="dash-nav">
+                <button type="button" class="dash-nav-btn" onclick="navVolumeDia(-1)" title="Dia anterior">◀</button>
+                <span class="dash-nav-lbl" id="navVolumeLbl">Hoje</span>
+                <button type="button" class="dash-nav-btn" id="navVolumeNext" onclick="navVolumeDia(1)" title="Próximo dia" disabled>▶</button>
+              </span>
+            </div>
             <div class="gauge-box"><div id="gaugeDia"></div></div>
           </div>
           <div class="dash-card dash-hoje-card">
-            <div class="dash-card-t">🌡️ Termômetro do Dia</div>
+            <div class="dash-card-t">🌡️ Termômetro do Dia
+              <span class="dash-nav">
+                <button type="button" class="dash-nav-btn" onclick="navTermoDia(-1)" title="Dia anterior">◀</button>
+                <span class="dash-nav-lbl" id="navTermoLbl">Hoje</span>
+                <button type="button" class="dash-nav-btn" id="navTermoNext" onclick="navTermoDia(1)" title="Próximo dia" disabled>▶</button>
+              </span>
+            </div>
             <div class="termo-box" id="termoDia"></div>
           </div>
         </div>
         <div class="dash-grid dash-grid-eq">
           <div class="dash-card">
-            <div class="dash-card-t">🎚️ Vouchers por dia da semana</div>
+            <div class="dash-card-t">🎚️ Vouchers por dia da semana
+              <span class="dash-nav">
+                <button type="button" class="dash-nav-btn" onclick="navVouchersSemana(-1)" title="Semana anterior">◀</button>
+                <span class="dash-nav-lbl" id="navVouchersLbl">Esta semana</span>
+                <button type="button" class="dash-nav-btn" id="navVouchersNext" onclick="navVouchersSemana(1)" title="Próxima semana" disabled>▶</button>
+              </span>
+            </div>
             <div class="eq-box"><div id="eqSemana"></div></div>
           </div>
           <div class="dash-eq-empty"></div>
@@ -1155,7 +1181,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v2·75 (RASCUNHO — não está no ar) -->
+    <!-- build: HUB-v2·79 (RASCUNHO — não está no ar) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -5054,6 +5080,101 @@ function excluirNotaUI(id){
   function mesLabel(ym){ var p=ym.split('-'); return p[1]+'/'+p[0].slice(2); }
   function safeEsc(s){ try{ return esc(s); }catch(e){ return String(s==null?'':s); } }
 
+  /* ===== NAVEGAÇÃO POR DATA DOS INDICADORES DE HOJE =====
+     Cada gráfico tem um "offset" que define qual dia/semana está sendo exibido:
+     - Volume e Termômetro: offset em DIAS (0 = hoje, -1 = ontem, +1 = amanhã)
+     - Vouchers: offset em SEMANAS (0 = semana atual, -1 = semana passada) */
+  var offsetVolumeDia = 0;
+  var offsetTermoDia = 0;
+  var offsetVouchersSemana = 0;
+
+  // chave 'AAAA-MM-DD' no horário local (mesma lógica usada no renderDashboard)
+  function _chaveDiaLocalG(dt){
+    if(!dt || isNaN(dt.getTime())) return '';
+    return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+  }
+  // retorna um Date deslocado N dias a partir de hoje
+  function _dataComOffsetDias(offset){
+    var d=new Date(); d.setDate(d.getDate()+offset); return d;
+  }
+  // rótulo amigável do dia (Hoje / Ontem / Amanhã / dd/mm)
+  function _rotuloDia(offset){
+    if(offset===0) return 'Hoje';
+    if(offset===-1) return 'Ontem';
+    if(offset===1) return 'Amanhã';
+    var d=_dataComOffsetDias(offset);
+    var diasSem=['dom','seg','ter','qua','qui','sex','sáb'];
+    return diasSem[d.getDay()]+', '+String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0');
+  }
+  // conta vouchers criados num dia específico (offset em dias); retorna {total, porVend}
+  function _vendasDoDia(offset){
+    var vs=(typeof savedCache!=='undefined'&&savedCache)?savedCache:[];
+    var alvo=_chaveDiaLocalG(_dataComOffsetDias(offset));
+    var total=0, porVend={};
+    vs.forEach(function(v){
+      var dc=v.criadoEm?new Date(v.criadoEm):null;
+      if(dc && _chaveDiaLocalG(dc)===alvo){
+        total++;
+        var vd=((v.vendedor||'')+'').trim();
+        if(vd) porVend[vd]=(porVend[vd]||0)+1;
+      }
+    });
+    return { total:total, porVend:porVend };
+  }
+  // conta vouchers por dia da semana, para a semana com offset em semanas
+  // retorna array [dom,seg,ter,qua,qui,sex,sab] + rótulo do intervalo
+  function _vouchersDaSemana(offsetSemanas){
+    var vs=(typeof savedCache!=='undefined'&&savedCache)?savedCache:[];
+    // acha a segunda-feira da semana atual, depois desloca por semanas
+    var hoje=new Date(); hoje.setHours(0,0,0,0);
+    var diaSemana=hoje.getDay();                    // 0=dom..6=sab
+    var difSeg=(diaSemana===0?-6:1-diaSemana);      // volta até segunda
+    var segunda=new Date(hoje); segunda.setDate(hoje.getDate()+difSeg+offsetSemanas*7);
+    var domingo=new Date(segunda); domingo.setDate(segunda.getDate()+6);
+    var chavesSemana=[];
+    for(var i=0;i<7;i++){ var d=new Date(segunda); d.setDate(segunda.getDate()+i); chavesSemana.push(_chaveDiaLocalG(d)); }
+    var porDia=[0,0,0,0,0,0,0];
+    vs.forEach(function(v){
+      var dc=v.criadoEm?new Date(v.criadoEm):null;
+      if(!dc||isNaN(dc.getTime())) return;
+      var k=_chaveDiaLocalG(dc);
+      var idx=chavesSemana.indexOf(k);
+      if(idx>=0){ porDia[dc.getDay()]++; }   // usa getDay real para casar com a ordem do gráfico
+    });
+    var rot=String(segunda.getDate()).padStart(2,'0')+'/'+String(segunda.getMonth()+1).padStart(2,'0')+
+            ' – '+String(domingo.getDate()).padStart(2,'0')+'/'+String(domingo.getMonth()+1).padStart(2,'0');
+    var ehAtual=(offsetSemanas===0);
+    return { porDia:porDia, rotulo:(ehAtual?'Esta semana':rot) };
+  }
+
+  // redesenha SÓ o velocímetro conforme o dia selecionado
+  window.navVolumeDia=function(delta){
+    offsetVolumeDia+=delta;
+    if(offsetVolumeDia>0) offsetVolumeDia=0;   // não deixa navegar para o futuro
+    var r=_vendasDoDia(offsetVolumeDia);
+    try{ desenhaVelocimetro(r.total); }catch(e){}
+    var lbl=document.getElementById('navVolumeLbl'); if(lbl) lbl.textContent=_rotuloDia(offsetVolumeDia);
+    var btnNext=document.getElementById('navVolumeNext'); if(btnNext) btnNext.disabled=(offsetVolumeDia>=0);
+  };
+  // redesenha SÓ os termômetros conforme o dia selecionado
+  window.navTermoDia=function(delta){
+    offsetTermoDia+=delta;
+    if(offsetTermoDia>0) offsetTermoDia=0;
+    var r=_vendasDoDia(offsetTermoDia);
+    try{ desenhaTermometros(r.porVend); }catch(e){}
+    var lbl=document.getElementById('navTermoLbl'); if(lbl) lbl.textContent=_rotuloDia(offsetTermoDia);
+    var btnNext=document.getElementById('navTermoNext'); if(btnNext) btnNext.disabled=(offsetTermoDia>=0);
+  };
+  // redesenha SÓ o gráfico de vouchers conforme a semana selecionada
+  window.navVouchersSemana=function(delta){
+    offsetVouchersSemana+=delta;
+    if(offsetVouchersSemana>0) offsetVouchersSemana=0;
+    var r=_vouchersDaSemana(offsetVouchersSemana);
+    try{ desenhaEqualizador(r.porDia); }catch(e){}
+    var lbl=document.getElementById('navVouchersLbl'); if(lbl) lbl.textContent=r.rotulo;
+    var btnNext=document.getElementById('navVouchersNext'); if(btnNext) btnNext.disabled=(offsetVouchersSemana>=0);
+  };
+
   /* ===== VELOCÍMETRO DE VENDAS DO DIA (SVG) =====
      4 faixas até o teto de 10 vendas (Ótimo):
      🔴 Baixo 0–2 · 🟡 Médio 3–5 · 🔵 Bom 6–9 · 🟢 Ótimo 10+  */
@@ -5149,7 +5270,7 @@ function excluirNotaUI(id){
       // gradiente ÚNICO por item (id único para não conflitar)
       var gid='termoGrad'+i+'_'+Math.random().toString(36).slice(2,7);
       return '<div class="termo-item" title="'+safeEsc(x.nome)+': '+x.n+' venda(s) hoje">'+
-        '<svg viewBox="0 0 120 224" width="100%" style="max-width:108px">'+
+        '<svg viewBox="0 0 120 224" width="100%" style="max-width:92px">'+
           '<defs><linearGradient id="'+gid+'" x1="0" y1="1" x2="0" y2="0">'+
             '<stop offset="0%" stop-color="#E8352B"/>'+     /* base vermelho */
             '<stop offset="28%" stop-color="#F26A2E"/>'+    /* laranja */
@@ -5190,51 +5311,73 @@ function excluirNotaUI(id){
     var nomes=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
     var vals=ordem.map(function(i){ return (porDia&&porDia[i])||0; });
     var maxVal=Math.max.apply(null, vals.concat([1]));   // pelo menos 1 p/ evitar div/0
-    var BLOCOS=14;                                         // nº de blocos LED por coluna
-    // ===== geometria que PREENCHE toda a largura =====
-    var LARGURA=980;                     // largura de referência do viewBox (bem larga)
-    var padL=40, padR=16, padTop=16, colH=230, baseY=padTop+colH;
+    // escala do topo: arredonda o máximo para cima (folga visual, como o "2h" do print)
+    var topo=Math.max(2, Math.ceil(maxVal*1.15));
+
+    // ===== geometria (estilo iOS: barras finas, arredondadas, empilhadas) =====
+    // LARGURA bem ampla + margens enxutas → as barras se espalham por todo o card
+    var LARGURA=1320, padL=30, padR=70, padTop=26, plotH=300;
+    var baseY=padTop+plotH;
     var nCols=vals.length;
-    var areaUtil=LARGURA - padL - padR;                  // espaço para as colunas
-    var gap=10;
-    var colW=(areaUtil - gap*(nCols-1))/nCols;           // largura de cada coluna (dinâmica)
-    var altura=baseY+42;
-    var blocoH=(colH/BLOCOS)-3;
-    // cor do bloco alinhada à PALETA do Dashboard: base azul → meio ciano → topo verde-limão
-    function corBloco(idx){
-      var t=idx/(BLOCOS-1);
-      if(t<0.5)  return '#0078C0';       // azul principal (base)
-      if(t<0.78) return '#00E5FF';       // ciano (meio)
-      return '#9CC00C';                  // verde-limão oficial (topo)
-    }
+    var areaUtil=LARGURA - padL - padR;
+    var slot=areaUtil/nCols;                  // espaço de cada dia
+    var colW=Math.min(70, slot*0.5);          // barra um pouco mais larga, proporcional
+    var altura=baseY+52;
+
+    // paleta das camadas empilhadas (base → topo), alinhada ao Dashboard
+    var camadas=[
+      {cor:'#0078C0', peso:0.55},   // azul principal (maior parte, base)
+      {cor:'#00E5FF', peso:0.24},   // ciano
+      {cor:'#FF7A00', peso:0.13},   // laranja
+      {cor:'#8BA4BF', peso:0.08}    // cinza (capuz no topo)
+    ];
+
+    function yDoValor(v){ return baseY - (v/topo)*plotH; }   // converte valor → posição Y
+
     var svg='';
-    // rótulos de escala (0, metade, máx) à esquerda
-    var meia=Math.round(maxVal/2);
-    svg+='<text x="'+(padL-10)+'" y="'+(padTop+8)+'" fill="#8BA4BF" font-size="14" font-weight="700" text-anchor="end">'+maxVal+'</text>';
-    svg+='<text x="'+(padL-10)+'" y="'+(padTop+colH/2+4)+'" fill="#8BA4BF" font-size="14" font-weight="700" text-anchor="end">'+meia+'</text>';
-    svg+='<text x="'+(padL-10)+'" y="'+baseY+'" fill="#8BA4BF" font-size="14" font-weight="700" text-anchor="end">0</text>';
-    // colunas
-    vals.forEach(function(v,ci){
-      var x=padL + ci*(colW+gap);
-      var acesos=Math.round((v/maxVal)*BLOCOS);
-      for(var b=0;b<BLOCOS;b++){
-        var y=baseY - (b+1)*(blocoH+3);
-        var on=b<acesos;
-        var cor=on?corBloco(b):'rgba(255,255,255,.05)';
-        var glow=on?' filter="url(#eqGlow)"':'';
-        svg+='<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+colW.toFixed(1)+'" height="'+blocoH.toFixed(1)+'" rx="2" fill="'+cor+'"'+glow+'/>';
-      }
-      // valor no topo da coluna
-      svg+='<text x="'+(x+colW/2).toFixed(1)+'" y="'+(padTop-2)+'" fill="#9CC00C" font-size="15" font-weight="800" text-anchor="middle">'+v+'</text>';
-      // rótulo do dia embaixo
-      svg+='<text x="'+(x+colW/2).toFixed(1)+'" y="'+(baseY+28)+'" fill="#8BA4BF" font-size="15" font-weight="700" text-anchor="middle">'+nomes[ci]+'</text>';
+    // ----- linhas de grade horizontais + rótulos de escala (0, meio, topo) à direita -----
+    var marcas=[0, Math.round(topo/2), topo];
+    marcas.forEach(function(m){
+      var y=yDoValor(m);
+      svg+='<line x1="'+padL+'" y1="'+y.toFixed(1)+'" x2="'+(LARGURA-padR+30)+'" y2="'+y.toFixed(1)+'" stroke="rgba(255,255,255,.08)" stroke-width="1"/>';
+      svg+='<text x="'+(LARGURA-padR+38)+'" y="'+(y+5).toFixed(1)+'" fill="#8BA4BF" font-size="17" font-weight="600" text-anchor="start">'+m+'</text>';
     });
-    // filtro de brilho (glow) estilo LED
-    // monta o SVG final com o filtro de brilho (glow) estilo LED
-    var svgFinal='<svg viewBox="0 0 '+LARGURA+' '+altura+'" width="100%" style="max-width:100%;display:block">'+
-      '<defs><filter id="eqGlow" x="-40%" y="-40%" width="180%" height="180%">'+
-      '<feGaussianBlur stdDeviation="1.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>'+
-      svg + '</svg>';
+    // ----- separadores verticais tracejados (como no print, a cada ~2 dias) -----
+    for(var s=1;s<nCols;s+=2){
+      var xsep=padL + s*slot;
+      svg+='<line x1="'+xsep.toFixed(1)+'" y1="'+padTop+'" x2="'+xsep.toFixed(1)+'" y2="'+baseY+'" stroke="rgba(255,255,255,.10)" stroke-width="1" stroke-dasharray="4 6"/>';
+    }
+
+    // ----- barras empilhadas -----
+    vals.forEach(function(v,ci){
+      var cx=padL + ci*slot + slot/2;          // centro do slot
+      var x=cx - colW/2;
+      var rx=colW/2;                            // topo arredondado (raio = metade da largura)
+      if(v<=0){
+        // sem vouchers: um tracinho baixo neutro na base (como as barras quase zeradas do print)
+        svg+='<rect x="'+x.toFixed(1)+'" y="'+(baseY-4).toFixed(1)+'" width="'+colW.toFixed(1)+'" height="4" rx="2" fill="rgba(255,255,255,.12)"/>';
+      } else {
+        var alturaTotal=(v/topo)*plotH;
+        var yBase=baseY, acc=0;
+        // desenha as camadas de baixo para cima; a última (topo) leva o arredondamento
+        camadas.forEach(function(cam,idx){
+          var hCam=alturaTotal*cam.peso;
+          if(hCam<0.5) return;
+          var yTopoCam=yBase - acc - hCam;
+          var ultima=(idx===camadas.length-1);
+          // para dar cantos arredondados só no topo da barra inteira, usamos rx e cortamos embaixo
+          svg+='<rect x="'+x.toFixed(1)+'" y="'+yTopoCam.toFixed(1)+'" width="'+colW.toFixed(1)+'" height="'+(hCam+ (ultima?0:0.6)).toFixed(1)+'" '+(ultima?('rx="'+rx.toFixed(1)+'"'):'')+' fill="'+cam.cor+'"/>';
+          acc+=hCam;
+        });
+        // "tampa" arredondada no topo com a cor da última camada visível, garantindo o cantinho liso
+        var yTopoBarra=baseY-alturaTotal;
+        svg+='<rect x="'+x.toFixed(1)+'" y="'+yTopoBarra.toFixed(1)+'" width="'+colW.toFixed(1)+'" height="'+Math.min(rx,alturaTotal).toFixed(1)+'" rx="'+rx.toFixed(1)+'" fill="#8BA4BF"/>';
+      }
+      // rótulo do dia embaixo
+      svg+='<text x="'+cx.toFixed(1)+'" y="'+(baseY+30)+'" fill="#8BA4BF" font-size="18" font-weight="600" text-anchor="middle">'+nomes[ci]+'</text>';
+    });
+
+    var svgFinal='<svg viewBox="0 0 '+LARGURA+' '+altura+'" width="100%" style="max-width:100%;display:block">'+svg+'</svg>';
     el.innerHTML=svgFinal;
   }
 
@@ -5293,9 +5436,18 @@ function excluirNotaUI(id){
 
     var sub=document.getElementById('dashSub');
     // indicadores de HOJE: desenhados SEMPRE (mesmo sem vouchers → velocímetro no 0)
+    // ao (re)renderizar o Dashboard, volta os indicadores para HOJE / semana atual
+    offsetVolumeDia=0; offsetTermoDia=0; offsetVouchersSemana=0;
     try{ desenhaVelocimetro(vendasHoje); }catch(e){}
     try{ desenhaTermometros(vendasHojePorVend); }catch(e){}
     try{ desenhaEqualizador(porDia); }catch(e){}
+    // sincroniza os rótulos e o estado dos botões "próximo" (desabilitados no presente)
+    try{
+      var l1=document.getElementById('navVolumeLbl'); if(l1) l1.textContent='Hoje';
+      var l2=document.getElementById('navTermoLbl'); if(l2) l2.textContent='Hoje';
+      var l3=document.getElementById('navVouchersLbl'); if(l3) l3.textContent='Esta semana';
+      ['navVolumeNext','navTermoNext','navVouchersNext'].forEach(function(id){ var b=document.getElementById(id); if(b) b.disabled=true; });
+    }catch(e){}
     if(!totalV){ ['chTipo','chHotel','chVend','chMes','chEvol','chRadar'].forEach(destroy); if(sub) sub.textContent='Nenhum voucher salvo ainda — os gráficos aparecem quando houver dados.'; return; }
     if(sub) sub.textContent=totalV+' voucher(s) · '+totalServ+' serviço(s)';
 
