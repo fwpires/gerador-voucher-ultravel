@@ -5182,11 +5182,9 @@ function excluirNotaUI(id){
   function desenhaVelocimetro(vendas){
     var el=document.getElementById('gaugeDia'); if(!el) return;
     var TETO=10;                              // 10+ = ótimo (ponteiro no topo)
-    var val=Math.max(0, vendas||0);
+    var val=Math.max(0, Number(vendas)||0);
     var frac=Math.min(val/TETO, 1);           // 0..1
     var ang=180*frac;                         // 0° (esquerda) .. 180° (direita)
-    // converte um número de vendas (0..TETO) em ângulo 0..180
-    function a(n){ return 180*Math.min(Math.max(n,0)/TETO,1); }
     // geometria — o centro fica na base; o arco superior ocupa toda a largura útil.
     // viewBox = 2*R de largura por (R + folga inferior) de altura, ABRAÇANDO o desenho.
     var R=250, r=150, cx=R, cy=R;             // cx=cy=R → arco encosta nas bordas laterais
@@ -5200,29 +5198,45 @@ function excluirNotaUI(id){
         ' A'+r+' '+r+' 0 '+large+' 0 '+p0i[0].toFixed(1)+' '+p0i[1].toFixed(1)+
         ' Z" fill="'+cor+'" filter="url(#neonGlow)"/>';
     }
-    // desenha as 4 fatias — cores alinhadas à PALETA OFICIAL do Dashboard
-    var seg='';
-    var limites=[
-      {d0:0,   d1:54,  cor:'#FF2D95'},    // Baixo — rosa/magenta (alerta da paleta)
-      {d0:54,  d1:108, cor:'#FFC400'},    // Médio — amarelo oficial
-      {d0:108, d1:153, cor:'#0078C0'},    // Bom — azul principal
-      {d0:153, d1:180, cor:'#9CC00C'}     // Ótimo — verde-limão oficial
+    // ===== FONTE ÚNICA DE VERDADE das 4 faixas (em nº de vendas, não em graus) =====
+    // arco, rótulo de texto e cor do valor final usam SEMPRE estes mesmos limites,
+    // então o ponteiro NUNCA mais vai cair numa cor enquanto o texto diz outra.
+    var FAIXAS=[
+      {ate:3,    cor:'#FF2D95', corTxt:'#4A0A2C', nome:'Baixo'},   // 0–3
+      {ate:6,    cor:'#FFC400', corTxt:'#4A3A00', nome:'Médio'},   // 3–6
+      {ate:9,    cor:'#0078C0', corTxt:'#03263D', nome:'Bom'},     // 6–9
+      {ate:TETO, cor:'#9CC00C', corTxt:'#2E3A04', nome:'Ótimo'}    // 9–10
     ];
-    limites.forEach(function(L){ seg+=arco(L.d0,L.d1,L.cor); });
-    // rótulos das faixas (no meio de cada arco, raio médio) — tom escuro da própria cor
+    var seg='', labels='', deg0=0;
     var rMid=(R+r)/2;
     function txt(deg,label,cor){ var p=pol(cx,cy,rMid,deg); return '<text x="'+p[0].toFixed(1)+'" y="'+p[1].toFixed(1)+'" fill="'+cor+'" font-size="20" font-weight="800" text-anchor="middle" dominant-baseline="middle">'+label+'</text>'; }
-    var labels=txt(27,'Baixo','#4A0A2C')+txt(81,'Médio','#4A3A00')+txt(130,'Bom','#03263D')+txt(168,'Ótimo','#2E3A04');
-    // ponteiro robusto
-    var pa=pol(cx,cy,R-20,ang);
+    FAIXAS.forEach(function(F){
+      var deg1=180*(F.ate/TETO);
+      seg+=arco(deg0,deg1,F.cor);
+      labels+=txt((deg0+deg1)/2, F.nome, F.corTxt);
+      F.deg0=deg0; F.deg1=deg1;
+      deg0=deg1;
+    });
+    // faixa atual = a mesma tabela usada para desenhar o arco (garante 100% de coerência)
+    var atual=null;
+    for(var i=0;i<FAIXAS.length;i++){ if(val<=FAIXAS[i].ate){ atual=FAIXAS[i]; break; } }
+    if(!atual) atual=FAIXAS[FAIXAS.length-1];
+    var corVal=atual.cor, rotulo=atual.nome;
+    // ponteiro robusto — pequeno recuo (clamp) para NUNCA ficar 100% na horizontal;
+    // um ângulo exatamente 0°/180° cria uma linha com altura zero, e o filtro de
+    // brilho (baseado no tamanho do próprio elemento) faz o Safari/WebKit simplesmente
+    // não desenhar o ponteiro nesse caso — por isso ele "sumia" em 0 e em 10+ vendas.
+    var angPonteiro=Math.min(179.5, Math.max(0.5, ang));
+    var pa=pol(cx,cy,R-20,angPonteiro);
     var ponteiro='<line x1="'+cx+'" y1="'+cy+'" x2="'+pa[0].toFixed(1)+'" y2="'+pa[1].toFixed(1)+'" stroke="#E8EEF4" stroke-width="11" stroke-linecap="round" filter="url(#neonGlow)"/>'+
       '<circle cx="'+cx+'" cy="'+cy+'" r="26" fill="#8BA4BF" stroke="#E8EEF4" stroke-width="5"/>';
-    var corVal = val<=2?'#FF2D95':(val<=5?'#FFC400':(val<=9?'#0078C0':'#9CC00C'));
-    var rotulo = val<=2?'Baixo':(val<=5?'Médio':(val<=9?'Bom':'Ótimo'));
     // viewBox largura=2R (arco encosta nas laterais), altura=R+70 (folga p/ pino e rótulo)
     var vbW=2*R, vbH=R+72;
-    // filtro de brilho neon (glow)
-    var defs='<defs><filter id="neonGlow" x="-30%" y="-30%" width="160%" height="160%">'+
+    // filtro de brilho neon (glow) — agora em unidades ABSOLUTAS (userSpaceOnUse),
+    // cobrindo todo o canvas. Isso elimina de vez o bug do ponteiro sumido: com
+    // objectBoundingBox, um elemento "achatado" (altura ou largura zero) faz o
+    // filtro falhar e o elemento não é desenhado em alguns navegadores.
+    var defs='<defs><filter id="neonGlow" filterUnits="userSpaceOnUse" x="-20" y="-20" width="'+(vbW+40)+'" height="'+(vbH+40)+'">'+
       '<feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>';
     el.innerHTML='<svg viewBox="0 0 '+vbW+' '+vbH+'" width="100%" style="max-width:100%;display:block">'+
       defs+seg+labels+ponteiro+
