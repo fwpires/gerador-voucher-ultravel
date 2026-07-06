@@ -5486,20 +5486,26 @@ function excluirNotaUI(id){
 })();
 </script>
 <script>
-/* ===== AUTO-REFRESH DE HORA EM HORA (em horas cheias do relógio) =====
-   O refresh acontece a cada HORA CHEIA (19:00, 20:00, 21:00, ...), alinhado
-   ao relógio — e não a cada X minutos.
+/* ===== AUTO-REFRESH SILENCIOSO A CADA 10 MINUTOS =====
+   ANTES: a página inteira era recarregada (location.reload), causando o
+   "piscar" da tela a cada hora.
+   AGORA: a cada 10 minutos buscamos SÓ os dados novos do backend (a parte
+   invisível) e redesenhamos SUAVEMENTE apenas a aba que está ativa. Quem
+   está olhando para a tela não percebe — nada pisca, nada some, a rolagem
+   é preservada.
 
-   A LÓGICA DE PROTEÇÃO CONTINUA A MESMA: nunca recarrega enquanto há um campo
-   em edição (editor de notas, input, textarea, select ou popover de cor aberto).
-   Se bater a hora cheia bem no meio de uma edição sua, o refresh fica PENDENTE
-   e só acontece assim que for seguro — protegendo qualquer texto não salvo. */
+   TRAVA DE SEGURANÇA (mantida e reforçada): se houver QUALQUER edição em
+   andamento (nota aberta, campo em foco, select, popover de cor, ou um card
+   sendo arrastado no Kanban), o refresh fica PENDENTE e só acontece quando
+   for 100% seguro — protegendo qualquer alteração não salva e evitando
+   "saltos" visuais no meio de uma interação sua. */
 (function(){
-  var CHECAGEM = 15 * 1000;                          // verifica a cada 15 segundos
-  var horaCheiaAtual = Math.floor(Date.now()/3600000); // índice da hora cheia atual
-  var pendente = false;                              // true quando bateu a hora e ainda não recarregou
+  var INTERVALO = 10 * 60 * 1000;                    // a cada 10 minutos: baixa dados
+  var CHECAGEM  = 15 * 1000;                         // verifica a cada 15s se pode aplicar
+  var proximo   = Date.now() + INTERVALO;            // horário do próximo refresh
+  var pendente  = false;                             // true = chegou a hora, ainda não aplicou
 
-  // detecta se há QUALQUER campo em edição no momento (trava de segurança — IGUAL a antes)
+  // detecta se há QUALQUER edição/interação em andamento (não mexer na tela agora)
   function estaEditando(){
     var a = document.activeElement;
     if(a){
@@ -5513,26 +5519,93 @@ function excluirNotaUI(id){
     // popover de cor aberto = edição de formatação em andamento
     var popCor = document.getElementById('ntbCorPop');
     if(popCor && popCor.style.display!=='none' && popCor.offsetParent!==null) return true;
+    // algum modal/preview aberto? (ex.: editor de voucher, preview) → não perturbar
+    var abertos = document.querySelectorAll('.modal.show, .modal.active, [data-modal-aberto="1"]');
+    if(abertos && abertos.length) return true;
+    // card sendo arrastado no Kanban (colunas em modo "dragging")
+    var dragging = document.querySelector('.dragging, .sh-cols.dragging, .est-track.drag');
+    if(dragging) return true;
     return false;
   }
 
-  function recarregar(){
-    try{ location.reload(); }catch(e){ window.location.href = window.location.href; }
+  // redesenha SÓ a aba que está visível agora, preservando a rolagem
+  function redesenharAbaAtiva(){
+    var ativa = document.querySelector('.screen.active');
+    var id = ativa ? ativa.id : '';
+
+    // guarda a posição de rolagem para restaurar depois (evita "pulo" da tela)
+    var scrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
+    var listaEl = document.getElementById('savedList');
+    var listaScroll = listaEl ? listaEl.scrollTop : 0;
+    var kbCols = document.getElementById('shCols');
+    var kbScroll = kbCols ? kbCols.scrollLeft : 0;
+
+    try{
+      if(id==='scr-dashboard'){
+        if(typeof renderDashboard==='function') renderDashboard();
+      } else if(id==='scr-wecann'){
+        // descobre qual visão do WeCann está ativa e redesenha o que for pertinente
+        if(typeof renderDisponibilidade==='function') renderDisponibilidade();
+        if(typeof renderStatusColunas==='function') renderStatusColunas();
+        var wec = ativa.getAttribute('data-wec');
+        if(wec==='conc' && typeof renderConciliacao==='function') renderConciliacao();
+        if(wec==='ranking' && typeof renderRankingCol==='function') renderRankingCol();
+        if(typeof ajustarAlturaCarrossel==='function') requestAnimationFrame(ajustarAlturaCarrossel);
+        if(wec==='kanban' && typeof setupKanbanScroll==='function') requestAnimationFrame(setupKanbanScroll);
+      } else if(id==='scr-vouchers'){
+        if(typeof renderSaved==='function') renderSaved(savedCache);
+      } else {
+        // qualquer outra aba: a lista de vouchers é a base — mantém sincronizada
+        if(typeof renderSaved==='function') renderSaved(savedCache);
+      }
+    }catch(e){}
+
+    // restaura a rolagem exatamente onde estava (o usuário não percebe)
+    try{
+      window.scrollTo(0, scrollY);
+      if(listaEl) listaEl.scrollTop = listaScroll;
+      var kb2 = document.getElementById('shCols');
+      if(kb2) kb2.scrollLeft = kbScroll;
+      if(typeof window.__kbUpdateThumb==='function') window.__kbUpdateThumb();
+    }catch(e){}
+  }
+
+  // baixa os dados novos do backend e, se der certo, redesenha a aba ativa
+  function atualizarDados(){
+    // api('/api/vouchers') busca a lista atual no backend. Atualizamos o
+    // savedCache (fonte da verdade em memória) e o localStorage, e só então
+    // redesenhamos a aba ativa de forma suave e controlada.
+    if(typeof api==='function'){
+      api('/api/vouchers').then(function(list){
+        if(Array.isArray(list)){
+          savedCache = list.sort(function(a,b){ return (b.criadoEm||'').localeCompare(a.criadoEm||''); });
+          try{ localStorage.setItem('uv_vouchers', JSON.stringify(savedCache)); }catch(e){}
+        }
+        redesenharAbaAtiva();
+      }).catch(function(){
+        // backend indisponível: mantém os dados atuais, não mexe na tela
+      });
+    } else if(typeof loadSaved==='function'){
+      // fallback: usa o loadSaved padrão (ele já redesenha a lista/dashboard)
+      loadSaved();
+    }
   }
 
   function verificar(){
-    // cruzou uma hora cheia (o relógio passou de XX:59 para XX+1:00)?
-    var idxAgora = Math.floor(Date.now()/3600000);
-    if(idxAgora !== horaCheiaAtual){
-      horaCheiaAtual = idxAgora;
-      pendente = true;               // marca que chegou a hora de recarregar
+    // já passou dos 10 minutos desde o último refresh?
+    if(Date.now() >= proximo){
+      proximo = Date.now() + INTERVALO;   // agenda o próximo ciclo
+      pendente = true;                    // marca que é hora de atualizar
     }
     if(!pendente) return;
-    // trava de segurança: se há edição em andamento, NÃO recarrega — mantém
-    // pendente e tenta de novo na próxima verificação, até ficar seguro.
+    // trava de segurança: se há edição/arraste em andamento, adia — tenta de novo
+    // na próxima checagem, até ficar seguro (nada é perdido nem "pula" na tela).
     if(estaEditando()) return;
+    // também adia se a aba do navegador estiver em segundo plano (economiza e evita
+    // redesenhar algo que o usuário nem está vendo; aplica assim que ele voltar).
+    if(document.hidden) return;
     pendente = false;
-    recarregar();                    // seguro → recarrega (a página reinicia)
+    atualizarDados();                     // seguro → baixa dados e redesenha suavemente
   }
 
   setInterval(verificar, CHECAGEM);
