@@ -1393,7 +1393,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v3·11 (correção definitiva: merge por timestamp — liberar botão nunca mais é desfeito por estado antigo da nuvem) -->
+    <!-- build: HUB-v3·12 (sorteio dinâmico: a vez é sempre de quem está MAIS livre — re-sorteia quando surge alguém com mais verdes) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -6068,38 +6068,43 @@ function excluirNotaUI(id){
     // polling da nuvem ou merge entre PCs.
     if(o.atual && ocpCheio(o, o.atual)){ o.atual=null; forcar=true; }
 
-    // Precisa sortear? Somente em dois casos:
-    //  • forcar=true  → o PRÓPRIO atendente da vez marcou vermelho (definido no clique)
-    //                   OU o da vez ficou cheio (rede de segurança acima), ou
+    // MODO DINÂMICO ("a vez é sempre de quem está MAIS livre"): se a da vez atual
+    // NÃO tem o maior número de verdes entre os sorteáveis — ou seja, se surgiu
+    // alguém ESTRITAMENTE mais livre —, a vez é reavaliada na hora. É isto que faz
+    // Eduardo/Liliane (3 verdes) assumirem quando a da vez tem só 2 verdes. Se a da
+    // vez já está empatada no topo (ninguém mais livre que ela), é MANTIDA — assim
+    // não fica trocando à toa nem gera flicker entre pessoas igualmente livres.
+    if(o.atual && !ocpCheio(o, o.atual)){
+      var vAtual=ocpVerdes(o, o.atual);
+      var vMax=Math.max.apply(null, OCP_SORTEAVEIS.map(function(n){ return ocpVerdes(o,n); }));
+      if(vMax>vAtual){ o.atual=null; forcar=true; }
+    }
+
+    // Precisa sortear?
+    //  • forcar=true  → a da vez marcou vermelho, ficou cheia, OU surgiu alguém mais livre;
     //  • !o.atual     → não há ninguém da vez (início do dia, pós-reset ou pós-suspensão).
-    // IMPORTANTE: NÃO usamos "ocpCheio(o.atual)" como gatilho quando OUTRA pessoa deixa
-    // botões vermelhos sem afetar o da vez — só a própria da vez (via clique) ou a rede
-    // de segurança acima (da vez cheio) trocam a vez. Nenhum resorteio indevido ocorre.
     var precisa = forcar || !o.atual;
     if(precisa){
       o.atual=null;
-      if(!Array.isArray(o.pool) || !o.pool.length) o.pool=OCP_SORTEAVEIS.slice();  // ciclo novo (só sorteáveis)
 
-      // BLINDAGEM: os candidatos SEMPRE saem exclusivamente de OCP_SORTEAVEIS.
-      // Mesmo que o pool venha "sujo" de um estado antigo salvo na nuvem (com nomes
-      // não-sorteáveis de versões anteriores), este filtro garante que Diego, Fernando,
-      // Ana Maria, Hynaê e Ruth NUNCA entrem na conta — nem para o sorteio, nem para a
-      // decisão de suspensão. A suspensão depende SÓ dos 6 sorteáveis estarem cheios.
-      var poolLimpo=o.pool.filter(function(n){ return OCP_SORTEAVEIS.indexOf(n)>=0; });
-      var candidatos=poolLimpo.filter(function(n){ return !ocpCheio(o,n); });
-      if(!candidatos.length){                       // ninguém elegível na fila → reinicia o ciclo
-        o.pool=OCP_SORTEAVEIS.slice();
-        candidatos=o.pool.filter(function(n){ return !ocpCheio(o,n); });
-      }
+      // CANDIDATOS = TODOS os 6 sorteáveis que NÃO estão cheios (não apenas a fila).
+      // No modo dinâmico a "vez é sempre de quem está mais livre", então a escolha
+      // olha para todos os sorteáveis disponíveis, e não para a posição na fila.
+      // BLINDAGEM: nunca inclui os 5 não-sorteáveis (Diego, Fernando, Ana Maria,
+      // Hynaê, Ruth) — nem no sorteio, nem na conta de suspensão.
+      var candidatos=OCP_SORTEAVEIS.filter(function(n){ return !ocpCheio(o,n); });
 
       if(candidatos.length){
-        // PRIORIDADE: acha o maior nº de verdes entre os candidatos...
+        // PRIORIDADE: o maior nº de verdes entre os candidatos vence...
         var maxVerdes=Math.max.apply(null, candidatos.map(function(n){ return ocpVerdes(o,n); }));
-        // ...e só concorrem os que têm esse máximo (os mais livres). Empate = sorteio.
+        // ...e só concorrem os que têm esse máximo (os mais livres). Empate = SORTEIO.
         var maisLivres=candidatos.filter(function(n){ return ocpVerdes(o,n)===maxVerdes; });
         var escolhido=maisLivres[Math.floor(Math.random()*maisLivres.length)];   // SORTEIO no empate
         o.atual=escolhido;
-        o.pool=o.pool.filter(function(n){ return n!==escolhido; });               // sai da fila do ciclo
+        // mantém a fila coerente (remove o escolhido; recria o ciclo se esvaziar)
+        if(!Array.isArray(o.pool)) o.pool=OCP_SORTEAVEIS.slice();
+        o.pool=o.pool.filter(function(n){ return n!==escolhido; });
+        if(!o.pool.length) o.pool=OCP_SORTEAVEIS.slice();
       }
       // candidatos vazio = os 6 SORTEÁVEIS estão 100% ocupados → o.atual permanece null
       // (SUSPENSÃO). Os não-sorteáveis, mesmo livres, não impedem a suspensão.
