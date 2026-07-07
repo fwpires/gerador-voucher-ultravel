@@ -1288,6 +1288,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
             <option>Fernando Pires</option>
             <option>Ana Maria</option>
             <option>Hynaê Teston</option>
+            <option>Mayara Marcelli</option>
           </select>
         </div>
       </div>
@@ -1381,7 +1382,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v3·05 (caixa Ausente rosa com campo Motivo obrigatório + tooltip amarelo) -->
+    <!-- build: HUB-v3·07 (Mayara Marcelli adicionada ao seletor de atendentes do Gerador de Voucher) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -2426,7 +2427,7 @@ function nomeBateVoucherEstrito(nome, setNomes){
   return false;
 }
 // lista fixa de atendentes (espelha o select de cadastro de voucher)
-const ATENDENTES=['Eduardo Vinícius','Ghabriella Bressan','Letícia Rosa','Diego Oliveira','Liliane Gaspar','Israel Hespanhol','Maria Eduarda','Fernando Pires','Ana Maria','Hynaê Teston'];
+const ATENDENTES=['Eduardo Vinícius','Ghabriella Bressan','Letícia Rosa','Diego Oliveira','Liliane Gaspar','Israel Hespanhol','Maria Eduarda','Fernando Pires','Ana Maria','Hynaê Teston','Mayara Marcelli'];
 // Chaves (primeiro nome + último sobrenome) dos VENDEDORES/ATENDENTES.
 // REGRA DE OURO: o nome de um vendedor NUNCA é contabilizado como hóspede/passageiro/pessoa.
 const _vendedorKeys=new Set(ATENDENTES.map(chaveNome).filter(Boolean));
@@ -6021,14 +6022,23 @@ function excluirNotaUI(id){
     if(o.atual && OCP_SORTEAVEIS.indexOf(o.atual)<0) o.atual=null;
     if(Array.isArray(o.pool)) o.pool=o.pool.filter(function(n){ return OCP_SORTEAVEIS.indexOf(n)>=0; });
 
+    // REDE DE SEGURANÇA (correção do "da vez cheio"): se o atendente da vez atual
+    // está TOTALMENTE CHEIO (3 vermelhos) MAS existe algum sorteável com botão verde
+    // livre, ele não deveria continuar sendo o da vez. Isso cobre qualquer caminho
+    // que tenha deixado o painel nesse estado — inclusive dados vindos do polling da
+    // nuvem ou do merge entre PCs, não só o clique local. Força um novo sorteio.
+    if(o.atual && ocpCheio(o, o.atual)){
+      var temAlguemLivre = OCP_SORTEAVEIS.some(function(n){ return !ocpCheio(o, n); });
+      if(temAlguemLivre){ o.atual=null; forcar=true; }
+    }
+
     // Precisa sortear? Somente em dois casos:
-    //  • forcar=true  → o PRÓPRIO atendente da vez marcou vermelho (definido no clique), ou
+    //  • forcar=true  → o PRÓPRIO atendente da vez marcou vermelho (definido no clique)
+    //                   OU o da vez ficou cheio havendo alguém livre (rede acima), ou
     //  • !o.atual     → não há ninguém da vez (início do dia, pós-reset ou pós-suspensão).
-    // IMPORTANTE: NÃO usamos mais "ocpCheio(o.atual)" como gatilho automático aqui.
-    // Isso garante que, se OUTRA pessoa (não a da vez) deixar botões vermelhos —
-    // inclusive completando por acaso os 3 de alguém —, o atendente da vez é
-    // MANTIDO e nenhum sorteio indevido acontece. O único caminho para trocar a
-    // vez por "ficar cheio" é o próprio da vez clicar, o que já liga o forcar.
+    // IMPORTANTE: NÃO usamos "ocpCheio(o.atual)" como gatilho quando OUTRA pessoa deixa
+    // botões vermelhos — só a própria da vez (via clique) ou a rede de segurança acima
+    // (da vez cheio + alguém livre) trocam a vez. Assim nenhum resorteio indevido ocorre.
     var precisa = forcar || !o.atual;
     if(precisa){
       o.atual=null;
@@ -6519,8 +6529,18 @@ function excluirNotaUI(id){
       }
       // atendente NÃO sorteável marcando vermelho: não mexe na fila nem no sorteio.
       // se foi OUTRA pessoa sorteável: o.atual permanece intacto — nenhum sorteio acontece.
+    } else {
+      // VIROU VERDE (liberou um botão): REAVALIA quem deve ser o da vez.
+      // REGRA CONSERVADORA: só re-sorteia se o atendente da vez ATUAL estiver
+      // TOTALMENTE CHEIO (3 vermelhos). Nesse caso ele não deveria continuar
+      // recebendo demanda enquanto acaba de surgir uma vaga verde em alguém.
+      // Se o atual ainda tem verde, nada muda (preserva o rodízio, sem troca à toa).
+      if(o.atual && ocpCheio(o, o.atual)){
+        o.atual=null;          // o da vez cheio abre espaço para quem está livre
+        forcarSorteio=true;    // dispara o sorteio entre os que têm botão verde
+      }
     }
-    window.renderOcupacao(forcarSorteio); // só força resorteio quando a própria da vez marcou vermelho
+    window.renderOcupacao(forcarSorteio); // força resorteio quando a da vez marcou vermelho OU quando o da vez cheio ganhou um colega livre
     try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(err){}
   });
 
