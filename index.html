@@ -1393,7 +1393,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v3·08 (suspensão visual: todos ocupados remove da vez + mensagem "no momento!" com LED vermelho piscando) -->
+    <!-- build: HUB-v3·10 (correção crítica dos botões: pool do merge copiado por valor + trava anti-embaralhamento no re-render durante modal aberto) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -5806,7 +5806,10 @@ function excluirNotaUI(id){
     var out={
       data: base.data || outro.data,
       slots:{}, inicios:{}, clientes:{}, livres:{},
-      pool: (base.pool!==undefined && base.pool!==null) ? base.pool : outro.pool,
+      // COPIA o pool por VALOR (slice), nunca por referência — se copiássemos a
+      // referência, um filter/push posterior no sorteio mutaria o estado antigo
+      // compartilhado e embaralharia a fila entre re-renders. slice() isola.
+      pool: (base.pool!==undefined && base.pool!==null) ? (Array.isArray(base.pool)?base.pool.slice():base.pool) : (Array.isArray(outro.pool)?outro.pool.slice():outro.pool),
       atual:(base.atual!==undefined && base.atual!==null) ? base.atual : outro.atual
     };
     // percorre TODOS os atendentes conhecidos (união de ambas as versões)
@@ -6056,8 +6059,13 @@ function excluirNotaUI(id){
       o.atual=null;
       if(!Array.isArray(o.pool) || !o.pool.length) o.pool=OCP_SORTEAVEIS.slice();  // ciclo novo (só sorteáveis)
 
-      // candidatos = quem ainda está na fila do ciclo e tem ao menos 1 verde
-      var candidatos=o.pool.filter(function(n){ return !ocpCheio(o,n); });
+      // BLINDAGEM: os candidatos SEMPRE saem exclusivamente de OCP_SORTEAVEIS.
+      // Mesmo que o pool venha "sujo" de um estado antigo salvo na nuvem (com nomes
+      // não-sorteáveis de versões anteriores), este filtro garante que Diego, Fernando,
+      // Ana Maria, Hynaê e Ruth NUNCA entrem na conta — nem para o sorteio, nem para a
+      // decisão de suspensão. A suspensão depende SÓ dos 6 sorteáveis estarem cheios.
+      var poolLimpo=o.pool.filter(function(n){ return OCP_SORTEAVEIS.indexOf(n)>=0; });
+      var candidatos=poolLimpo.filter(function(n){ return !ocpCheio(o,n); });
       if(!candidatos.length){                       // ninguém elegível na fila → reinicia o ciclo
         o.pool=OCP_SORTEAVEIS.slice();
         candidatos=o.pool.filter(function(n){ return !ocpCheio(o,n); });
@@ -6072,7 +6080,8 @@ function excluirNotaUI(id){
         o.atual=escolhido;
         o.pool=o.pool.filter(function(n){ return n!==escolhido; });               // sai da fila do ciclo
       }
-      // candidatos vazio = agência 100% ocupada → o.atual permanece null (suspende)
+      // candidatos vazio = os 6 SORTEÁVEIS estão 100% ocupados → o.atual permanece null
+      // (SUSPENSÃO). Os não-sorteáveis, mesmo livres, não impedem a suspensão.
     }
     return antes!==JSON.stringify({a:o.atual||null, p:o.pool||null});
   }
@@ -6580,6 +6589,12 @@ function excluirNotaUI(id){
       if(document.hidden) return;
       var ds=document.getElementById('scr-dashboard');
       if(!ds || !ds.classList.contains('active')) return;
+      // TRAVA DE SEGURANÇA: se o modal de seleção de cliente estiver aberto, NÃO
+      // mexemos no estado nem re-renderizamos agora — um re-render reconstrói o
+      // innerHTML dos quadros e faria o clique seguinte do usuário cair no botão
+      // errado (a origem do bug de "clicar em um e mexer no outro"). Adiamos para
+      // o próximo ciclo, quando o modal já estiver fechado.
+      if(document.getElementById('ocpCliModal')) return;
       if(typeof api!=='function') return;
       var c=await api('/api/config');
       if(!c || typeof c!=='object') return;
@@ -6668,6 +6683,9 @@ function excluirNotaUI(id){
     // popover de cor aberto = edição de formatação em andamento
     var popCor = document.getElementById('ntbCorPop');
     if(popCor && popCor.style.display!=='none' && popCor.offsetParent!==null) return true;
+    // modal de seleção de cliente do painel de ocupação aberto = interação em
+    // andamento: não re-renderizar (evita embaralhar os cliques nos LEDs).
+    if(document.getElementById('ocpCliModal')) return true;
     // algum modal/preview aberto? (ex.: editor de voucher, preview) → não perturbar
     var abertos = document.querySelectorAll('.modal.show, .modal.active, [data-modal-aberto="1"]');
     if(abertos && abertos.length) return true;
