@@ -1344,7 +1344,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v3·03 (botão X de exclusão bem menor e discreto) -->
+    <!-- build: HUB-v3·04 (CORREÇÃO CRÍTICA: cliente não some mais sozinho — merge inteligente anti-perda entre PCs) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -1876,6 +1876,8 @@ async function carregarConfig(){
   try{
     const c=await api('/api/config');
     if(c && typeof c==='object'){
+      // guarda o estado local de ocupação antes do spread, para poder mesclar depois
+      var ocupLocalAntes=appConfig.ocupacaoAtendentes;
       appConfig={...appConfig, ...c};
       // decisões PERMANENTES (só adicionam, nunca removem): "Nome já cadastrado" e "Não é a mesma
       // pessoa". Une o que está salvo localmente + na nuvem, pra que NUNCA voltem ao reimportar o CSV.
@@ -1885,6 +1887,14 @@ async function carregarConfig(){
       // Depois tira quem já foi marcado "Nome cadastrado" (está em voucherResolvido) pra não ressuscitar.
       appConfig.semCadastroWecann={...(local.semCadastroWecann||{}), ...(c.semCadastroWecann||{})};
       Object.keys(appConfig.voucherResolvido).forEach(k=>{ if(appConfig.semCadastroWecann[k]) delete appConfig.semCadastroWecann[k]; });
+      // PROTEÇÃO DO PAINEL DE OCUPAÇÃO: se já havia estado local de ocupação, mescla
+      // com o da nuvem em vez de deixar o spread acima simplesmente sobrescrevê-lo.
+      // (o merge só existe após o IIFE de ocupação carregar; a guarda evita erro)
+      if(ocupLocalAntes && c.ocupacaoAtendentes && typeof window.ocpMesclarEstados==='function'){
+        if(!ocupLocalAntes.data || !c.ocupacaoAtendentes.data || ocupLocalAntes.data===c.ocupacaoAtendentes.data){
+          appConfig.ocupacaoAtendentes=window.ocpMesclarEstados(ocupLocalAntes, c.ocupacaoAtendentes);
+        }
+      }
       localStorage.setItem('uv_config',JSON.stringify(appConfig));
     }
   }catch(e){}
@@ -1900,6 +1910,31 @@ async function salvarConfig(){
     appConfig.voucherResolvido ={...(cloud.voucherResolvido ||{}), ...(appConfig.voucherResolvido ||{})};
     appConfig.naoMesmaPessoa   ={...(cloud.naoMesmaPessoa   ||{}), ...(appConfig.naoMesmaPessoa   ||{})};
     appConfig.semCadastroWecann={...(cloud.semCadastroWecann||{}), ...(appConfig.semCadastroWecann||{})};
+    // PROTEÇÃO DO PAINEL DE OCUPAÇÃO (anti-perda de cliente entre PCs):
+    // Antes de gravar, mesclamos o ocupacaoAtendentes local com o da nuvem via merge
+    // inteligente. Assim, se este PC tem um estado ligeiramente antigo, ele NÃO apaga
+    // uma seleção de cliente que outro PC acabou de fazer — a regra de ouro garante
+    // que todo cliente de botão vermelho seja preservado (só some no verde).
+    if(cloud.ocupacaoAtendentes && appConfig.ocupacaoAtendentes && typeof window.ocpMesclarEstados==='function'){
+      // só mescla se forem do MESMO dia (senão o reset diário local prevalece)
+      if(!cloud.ocupacaoAtendentes.data || !appConfig.ocupacaoAtendentes.data
+         || cloud.ocupacaoAtendentes.data===appConfig.ocupacaoAtendentes.data){
+        appConfig.ocupacaoAtendentes=window.ocpMesclarEstados(appConfig.ocupacaoAtendentes, cloud.ocupacaoAtendentes);
+      }
+    } else if(cloud.ocupacaoAtendentes && !appConfig.ocupacaoAtendentes){
+      // este PC não tem estado local ainda: adota o da nuvem para não zerar nada
+      appConfig.ocupacaoAtendentes=cloud.ocupacaoAtendentes;
+    }
+    // CLIENTES CADASTRADOS (adicionados/removidos): também unimos com a nuvem para
+    // que o cadastro de clientes feito em um PC nunca seja apagado por outro.
+    if(cloud.ocupacaoClientes || appConfig.ocupacaoClientes){
+      var cA=(cloud.ocupacaoClientes&&cloud.ocupacaoClientes.adicionados)||[];
+      var cR=(cloud.ocupacaoClientes&&cloud.ocupacaoClientes.removidos)||[];
+      var lA=(appConfig.ocupacaoClientes&&appConfig.ocupacaoClientes.adicionados)||[];
+      var lR=(appConfig.ocupacaoClientes&&appConfig.ocupacaoClientes.removidos)||[];
+      var uniq=function(arr){ var v={},o=[]; arr.forEach(function(n){ var k=(n||'').toString().trim().toLowerCase(); if(k&&!v[k]){v[k]=1;o.push(n);} }); return o; };
+      appConfig.ocupacaoClientes={ adicionados:uniq(cA.concat(lA)), removidos:uniq(cR.concat(lR)) };
+    }
     // quem já virou "Nome cadastrado" (está em voucherResolvido) não fica no vermelho
     Object.keys(appConfig.voucherResolvido).forEach(k=>{ if(appConfig.semCadastroWecann[k]) delete appConfig.semCadastroWecann[k]; });
     localStorage.setItem('uv_config',JSON.stringify(appConfig));
@@ -5699,6 +5734,72 @@ function excluirNotaUI(id){
   var OCP_ATENDENTES=['Eduardo Vinícius','Ghabriella Bressan','Liliane Gaspar','Israel Hespanhol','Maria Eduarda','Juliana Lupo','Diego Oliveira','Fernando Pires','Ana Maria','Hynaê Teston','Ruth Alves'];
   var OCP_SORTEAVEIS=['Eduardo Vinícius','Ghabriella Bressan','Liliane Gaspar','Israel Hespanhol','Maria Eduarda','Juliana Lupo'];
 
+  // >>> MERGE INTELIGENTE DE ESTADOS (anti-perda de dados entre PCs) <<<
+  // PROBLEMA que isto resolve: vários PCs compartilham o mesmo config na nuvem.
+  // Se um PC baixava o estado da nuvem (polling) ou gravava o config (salvarConfig)
+  // usando "last-write-wins", uma seleção de cliente recém-feita em OUTRO PC (ainda
+  // não propagada) era APAGADA. O cliente "sumia do nada".
+  //
+  // REGRA DE OURO (exatamente a que o gestor definiu): o cliente/timer/nomes livres
+  // de um slot SÓ desaparecem quando aquele botão está VERDE. Em qualquer outra
+  // situação a seleção é preservada. Este merge combina duas versões (base × outro)
+  // slot a slot, honrando essa regra, sem nunca perder um dado válido.
+  //
+  //  • Se o slot está VERMELHO em qualquer das versões, o slot fica VERMELHO.
+  //  • O cliente/timer/nomes livres vêm da versão que TEM o slot vermelho e dado.
+  //  • Só quando AMBAS têm o slot verde é que o slot zera (comportamento correto).
+  function ocpMesclarEstados(base, outro){
+    // validações defensivas: se um dos lados não existe, devolve o outro
+    if(!outro || typeof outro!=='object') return base;
+    if(!base  || typeof base !=='object') return outro;
+    // se são de dias diferentes, não mescla (o reset diário local prevalece)
+    if(base.data && outro.data && base.data!==outro.data) return base;
+    var out={
+      data: base.data || outro.data,
+      slots:{}, inicios:{}, clientes:{}, livres:{},
+      pool: (base.pool!==undefined && base.pool!==null) ? base.pool : outro.pool,
+      atual:(base.atual!==undefined && base.atual!==null) ? base.atual : outro.atual
+    };
+    // percorre TODOS os atendentes conhecidos (união de ambas as versões)
+    var nomes={};
+    OCP_ATENDENTES.forEach(function(n){ nomes[n]=1; });
+    Object.keys(base.slots||{}).forEach(function(n){ nomes[n]=1; });
+    Object.keys(outro.slots||{}).forEach(function(n){ nomes[n]=1; });
+    Object.keys(nomes).forEach(function(a){
+      var bs=(base.slots&&base.slots[a])   || [0,0,0];
+      var os=(outro.slots&&outro.slots[a]) || [0,0,0];
+      var bi=(base.inicios&&base.inicios[a])   || [0,0,0];
+      var oi=(outro.inicios&&outro.inicios[a]) || [0,0,0];
+      var bc=(base.clientes&&base.clientes[a]) || ['','',''];
+      var oc=(outro.clientes&&outro.clientes[a]) || ['','',''];
+      var bl=(base.livres&&base.livres[a])   || [[],[],[]];
+      var ol=(outro.livres&&outro.livres[a]) || [[],[],[]];
+      out.slots[a]=[0,0,0]; out.inicios[a]=[0,0,0];
+      out.clientes[a]=['','','']; out.livres[a]=[[],[],[]];
+      for(var i=0;i<3;i++){
+        var vermelhoBase = !!bs[i];
+        var vermelhoOutro= !!os[i];
+        // o slot fica VERMELHO se estiver vermelho em qualquer das versões
+        var vermelho = vermelhoBase || vermelhoOutro;
+        out.slots[a][i] = vermelho ? 1 : 0;
+        if(!vermelho){
+          // AMBOS verdes → slot zera por completo (regra de ouro: só limpa no verde)
+          out.inicios[a][i]=0; out.clientes[a][i]=''; out.livres[a][i]=[];
+          continue;
+        }
+        // slot vermelho → preserva cliente/timer/livres da versão que os tem.
+        // Preferimos a BASE quando ela já está vermelha e tem cliente; senão o OUTRO.
+        var cliente = (vermelhoBase && bc[i]) ? bc[i] : ((vermelhoOutro && oc[i]) ? oc[i] : (bc[i]||oc[i]||''));
+        var inicio  = (vermelhoBase && bi[i]) ? bi[i] : ((vermelhoOutro && oi[i]) ? oi[i] : (bi[i]||oi[i]||0));
+        var livres  = (vermelhoBase && bl[i] && bl[i].length) ? bl[i] : ((vermelhoOutro && ol[i] && ol[i].length) ? ol[i] : (bl[i]&&bl[i].length?bl[i]:(ol[i]||[])));
+        out.clientes[a][i]=cliente;
+        out.inicios[a][i]=inicio || Date.now();   // se ficou vermelho sem início, começa agora
+        out.livres[a][i]=Array.isArray(livres)?livres.slice():[];
+      }
+    });
+    return out;
+  }
+
   // >>> ESCALA DE PLANTÕES (dados OCULTOS — nada é exibido em tabela na interface).
   // O sistema mostra apenas o plantonista do DIA ATUAL, ao lado direito do banner.
   // Chave = data no formato AAAA-MM-DD (horário LOCAL). Dias sem plantonista ficam
@@ -5916,6 +6017,10 @@ function excluirNotaUI(id){
     }
     return antes!==JSON.stringify({a:o.atual||null, p:o.pool||null});
   }
+
+  // expõe o merge inteligente ao escopo global para que o salvarConfig (que vive
+  // fora deste IIFE) proteja o ocupacaoAtendentes contra sobrescrita entre PCs.
+  window.ocpMesclarEstados=ocpMesclarEstados;
 
   // desenha o banner do sorteio + os quadros com os LEDs no Dashboard.
   // forcar=true → um vermelho acabou de ser marcado: força um novo sorteio.
@@ -6351,8 +6456,13 @@ function excluirNotaUI(id){
       if(!nuvem || typeof nuvem!=='object') return;
       if(nuvem.data!==ocpHoje()) return;   // estado de outro dia na nuvem: ignora (reset local vale)
       var localStr=JSON.stringify(appConfig.ocupacaoAtendentes||{});
-      if(JSON.stringify(nuvem)!==localStr){
-        appConfig.ocupacaoAtendentes=nuvem;
+      // MERGE INTELIGENTE (anti-perda): em vez de substituir o objeto inteiro pela
+      // versão da nuvem — o que apagava uma seleção de cliente recém-feita neste PC
+      // ainda não propagada —, mesclamos os dois estados slot a slot. A regra de ouro
+      // garante que nenhum cliente de botão vermelho seja perdido; só some no verde.
+      var mesclado=ocpMesclarEstados(appConfig.ocupacaoAtendentes||{}, nuvem);
+      if(JSON.stringify(mesclado)!==localStr){
+        appConfig.ocupacaoAtendentes=mesclado;
         try{ localStorage.setItem('uv_config', JSON.stringify(appConfig)); }catch(e){}
         // se após aplicar o estado da nuvem faltar um "da vez" válido, este PC
         // sorteia e grava — assim a fila nunca fica órfã.
