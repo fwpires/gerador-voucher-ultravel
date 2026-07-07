@@ -206,8 +206,8 @@ body.dark .hub-sidebar .nav-add{color:var(--verde)}
 .ocp-box{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:10px 12px 12px;display:flex;flex-direction:column;gap:9px;transition:border-color .25s}
 .ocp-box:hover{border-color:rgba(255,255,255,.2)}
 .ocp-nome{font-weight:800;font-size:13px;color:#E8EEF4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
-.ocp-leds{display:flex;gap:14px;justify-content:center;align-items:flex-start}
-.ocp-slot{display:flex;flex-direction:column;align-items:center;gap:4px}
+.ocp-leds{display:flex;gap:6px;justify-content:center;align-items:flex-start;width:100%}
+.ocp-slot{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1 1 0;min-width:0}
 .ocp-led{width:15px;height:15px;border-radius:50%;border:2px solid rgba(255,255,255,.22);cursor:pointer;padding:0;outline:none;transition:transform .12s ease}
 .ocp-led:active{transform:scale(.9)}
 .ocp-timer{font-size:10px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:.3px;line-height:1;min-height:11px;text-align:center;transition:color .3s}
@@ -224,7 +224,7 @@ body.dark .hub-sidebar .nav-add{color:var(--verde)}
 .ocp-cli-btn.tem:hover{background:linear-gradient(180deg,#0b95e0,#0773b8);box-shadow:0 0 11px rgba(53,166,234,.8)}
 .ocp-cli-btn:active{transform:scale(.92)}
 /* Tooltip customizado do botão Cliente: nome em PRETO NEGRITO dentro de caixa AMARELA */
-.ocp-cli-btn.tem{position:relative}
+.ocp-cli-btn.tem{position:relative;overflow:visible;max-width:none}
 .ocp-cli-btn.tem::after{
   content:attr(data-ocp-cli-nome);
   position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%) scale(.9);
@@ -243,6 +243,16 @@ body.dark .hub-sidebar .nav-add{color:var(--verde)}
 .ocp-cli-btn.tem:hover::after,.ocp-cli-btn.tem:hover::before{
   opacity:1;transform:translateX(-50%) scale(1);
 }
+/* Botão "Indisponível" (vermelho) abaixo do LED — substitui o botão de cliente */
+.ocp-cli-btn.indisp{background:linear-gradient(180deg,#c81a1a,#8f0d0d);border:1px solid #ff5252;color:#fff;box-shadow:0 0 7px rgba(255,61,61,.55);font-size:7px;letter-spacing:-.2px;max-width:100%;width:100%;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;padding:3px 3px;animation:ocpIndispBlink 1.4s ease-in-out infinite}
+.ocp-cli-btn.indisp:hover{background:linear-gradient(180deg,#e02222,#a51010);box-shadow:0 0 11px rgba(255,61,61,.85)}
+@keyframes ocpIndispBlink{0%,100%{opacity:1}50%{opacity:.72}}
+/* Caixinha "Indisponível" dentro do modal */
+.ocp-indisp-box{display:flex;align-items:center;gap:9px;margin:4px 18px 2px;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,61,61,.4);background:rgba(255,61,61,.08);cursor:pointer;transition:all .15s}
+.ocp-indisp-box:hover{background:rgba(255,61,61,.15);border-color:rgba(255,61,61,.6)}
+.ocp-indisp-box input[type=checkbox]{width:19px;height:19px;accent-color:#ff3d3d;cursor:pointer;flex-shrink:0}
+.ocp-indisp-box label{color:#ff5252;font-weight:800;font-size:14px;letter-spacing:.3px;cursor:pointer;user-select:none}
+.ocp-indisp-box .ocp-indisp-hint{color:#c98b8b;font-size:11px;font-weight:600;margin-left:auto}
 /* Modal seletor de clientes */
 .ocp-modal-bg{position:fixed;inset:0;background:rgba(4,8,16,.72);backdrop-filter:blur(3px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px}
 .ocp-modal{background:#131c2b;border:1px solid rgba(255,255,255,.14);border-radius:16px;width:100%;max-width:420px;max-height:82vh;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(0,0,0,.6);overflow:hidden}
@@ -260,8 +270,15 @@ body.dark .hub-sidebar .nav-add{color:var(--verde)}
 .ocp-cli-item.especial{background:rgba(255,196,0,.08);border-color:rgba(255,196,0,.25);color:#ffd970}
 .ocp-cli-item.especial:hover{background:rgba(255,196,0,.18)}
 .ocp-cli-livre-wrap{margin:6px 0 3px;display:none}
-.ocp-cli-livre-wrap.show{display:block}
-.ocp-cli-livre-wrap input{width:100%;box-sizing:border-box;padding:9px 12px;border-radius:9px;border:1px solid rgba(255,196,0,.5);background:rgba(255,196,0,.06);color:#E8EEF4;font-size:14px;outline:none}
+.ocp-cli-livre-wrap.show{display:flex;gap:6px;align-items:stretch}
+.ocp-cli-livre-wrap input{flex:1;min-width:0;box-sizing:border-box;padding:9px 12px;border-radius:9px;border:1px solid rgba(255,196,0,.5);background:rgba(255,196,0,.06);color:#E8EEF4;font-size:14px;outline:none}
+.ocp-cli-livre-ok{flex-shrink:0;padding:0 16px;border-radius:9px;border:none;background:linear-gradient(180deg,#FFC400,#e0a800);color:#231a00;font-size:14px;font-weight:900;cursor:pointer;transition:all .15s}
+.ocp-cli-livre-ok:hover{background:linear-gradient(180deg,#ffd42e,#f0b800);box-shadow:0 0 10px rgba(255,196,0,.6)}
+.ocp-cli-livre-ok:active{transform:scale(.94)}
+/* Nome livre já salvo aparece no topo da lista, com destaque */
+.ocp-cli-item.meulivre{background:rgba(255,196,0,.16);border-color:rgba(255,196,0,.55);color:#ffe08a;font-weight:800}
+.ocp-cli-item.meulivre:hover{background:rgba(255,196,0,.26)}
+.ocp-cli-item.meulivre::before{content:"⭐ ";font-size:11px}
 .ocp-modal-vazio{text-align:center;color:#8BA4BF;font-size:13px;padding:18px 8px}
 .ocp-modal-ft{display:flex;gap:8px;padding:12px 18px;border-top:1px solid rgba(255,255,255,.08)}
 .ocp-modal-ft button{flex:1;padding:11px;border-radius:10px;font-size:14px;font-weight:800;cursor:pointer;border:none;transition:all .15s}
@@ -1290,7 +1307,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v2·92 (tooltip amarelo customizado no botão Cliente) -->
+    <!-- build: HUB-v2·99 (correção: Limpar agora apaga também os nomes livres salvos no topo da lista) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -5690,7 +5707,7 @@ function excluirNotaUI(id){
     var o=appConfig.ocupacaoAtendentes;
     var hoje=ocpHoje();
     if(!o || typeof o!=='object' || o.data!==hoje){
-      o={data:hoje, slots:{}, inicios:{}, clientes:{}, pool:null, atual:null};   // dia novo: tudo verde, fila, timers e clientes zerados
+      o={data:hoje, slots:{}, inicios:{}, clientes:{}, livres:{}, pool:null, atual:null};   // dia novo: tudo verde, fila, timers, clientes e nomes livres zerados
       appConfig.ocupacaoAtendentes=o;
     }
     if(!o.slots || typeof o.slots!=='object') o.slots={};
@@ -5700,17 +5717,25 @@ function excluirNotaUI(id){
     // 'clientes' guarda o cliente selecionado (string) em CADA botão vermelho.
     // Também paralela aos slots. Vazio ('') = nenhum cliente escolhido ainda.
     if(!o.clientes || typeof o.clientes!=='object') o.clientes={};
+    // 'livres' guarda os nomes personalizados (campo livre de Lazer/Outros) criados
+    // NAQUELE slot específico. Cada slot tem sua própria lista; some ao ficar verde.
+    if(!o.livres || typeof o.livres!=='object') o.livres={};
     OCP_ATENDENTES.forEach(function(a){
       if(!Array.isArray(o.slots[a]) || o.slots[a].length!==3) o.slots[a]=[0,0,0];
       if(!Array.isArray(o.inicios[a]) || o.inicios[a].length!==3) o.inicios[a]=[0,0,0];
       if(!Array.isArray(o.clientes[a]) || o.clientes[a].length!==3) o.clientes[a]=['','',''];
+      // cada slot tem um array de nomes livres: o.livres[a] = [ [...], [...], [...] ]
+      if(!Array.isArray(o.livres[a]) || o.livres[a].length!==3) o.livres[a]=[[],[],[]];
       // sincroniza timers com o estado real: vermelho sem início → carimba agora;
       // verde com início preso → zera (auto-correção de qualquer inconsistência).
       for(var i=0;i<3;i++){
+        if(!Array.isArray(o.livres[a][i])) o.livres[a][i]=[];
         if(o.slots[a][i] && !o.inicios[a][i]) o.inicios[a][i]=Date.now();
         if(!o.slots[a][i] && o.inicios[a][i]) o.inicios[a][i]=0;
         // botão liberado (verde) não pode manter cliente preso: limpa a seleção.
         if(!o.slots[a][i] && o.clientes[a][i]) o.clientes[a][i]='';
+        // botão liberado (verde) ZERA a lista de nomes livres criados naquele slot.
+        if(!o.slots[a][i] && o.livres[a][i].length) o.livres[a][i]=[];
       }
     });
     return o;
@@ -5801,21 +5826,26 @@ function excluirNotaUI(id){
       var ehVez=(a===o.atual);
       var leds=[0,1,2].map(function(i){
         var oc=!!s[i];
-        // timer: só aparece quando o botão está vermelho e tem um início carimbado
+        var nomeCli=(cli[i]||'').trim();
+        var indisp=(nomeCli==='__INDISPONIVEL__');   // valor sentinela do estado Indisponível
+        // timer: aparece quando o botão está vermelho e tem início — MAS não quando indisponível
         var tmClass='ocp-timer vazio', tmTxt='00:00', tmData='';
-        if(oc && ini[i]){
+        if(oc && ini[i] && !indisp){
           var f=ocpFmtTimer(agora-ini[i]);
           tmClass='ocp-timer '+f.cor;
           tmTxt=f.txt;
           tmData=' data-ocp-ini="'+ini[i]+'"';
         }
-        // botão de cliente: só aparece quando o botão está VERMELHO (atendimento ativo).
-        //  • sem cliente escolhido → botão "+"
-        //  • com cliente escolhido → botão "Cliente" (hover mostra o nome; clique reabre o seletor)
+        // botão abaixo do timer (só quando o LED está VERMELHO / atendimento ativo):
+        //  • Indisponível  → botão "Indisponível" (vermelho, sem timer)
+        //  • com cliente    → botão "Cliente" (hover mostra o nome)
+        //  • sem cliente    → botão "+"
         var btnCli='';
         if(oc){
-          var nomeCli=(cli[i]||'').trim();
-          if(nomeCli){
+          if(indisp){
+            btnCli='<button type="button" class="ocp-cli-btn indisp" data-ocp-cli-at="'+ocpEsc(a)+'" data-ocp-cli-i="'+i+'"'+
+              ' title="Indisponível — clique para alterar">Indisponível</button>';
+          }else if(nomeCli){
             btnCli='<button type="button" class="ocp-cli-btn tem" data-ocp-cli-at="'+ocpEsc(a)+'" data-ocp-cli-i="'+i+'"'+
               ' data-ocp-cli-nome="'+ocpEsc(nomeCli)+'">Cliente</button>';
           }else{
@@ -5863,6 +5893,7 @@ function excluirNotaUI(id){
     if(!o.slots[at] || !o.slots[at][i]) return;   // só abre para botão vermelho
     ocpModalCtx={at:at, i:i};
     var atualSel=(o.clientes[at] && o.clientes[at][i]) ? o.clientes[at][i] : '';
+    var estaIndisp=(atualSel==='__INDISPONIVEL__');
 
     var bg=document.createElement('div');
     bg.className='ocp-modal-bg';
@@ -5873,44 +5904,90 @@ function excluirNotaUI(id){
           '<h3>👥 Cliente em atendimento</h3>'+
           '<div class="ocp-modal-sub">'+ocpEsc(at)+' — selecione o cliente</div>'+
         '</div>'+
+        '<label class="ocp-indisp-box" for="ocpIndispChk">'+
+          '<input type="checkbox" id="ocpIndispChk"'+(estaIndisp?' checked':'')+'>'+
+          '<label for="ocpIndispChk">Indisponível</label>'+
+          '<span class="ocp-indisp-hint">sem cliente e sem contagem de tempo</span>'+
+        '</label>'+
         '<div class="ocp-modal-busca"><input type="text" id="ocpCliBusca" placeholder="Buscar cliente..." autocomplete="off"></div>'+
         '<div class="ocp-modal-lista" id="ocpCliLista"></div>'+
         '<div class="ocp-modal-ft">'+
-          (atualSel ? '<button class="ocp-btn-limpar" id="ocpCliLimpar">Limpar</button>' : '')+
+          '<button class="ocp-btn-limpar" id="ocpCliLimpar" style="'+(atualSel?'':'display:none')+'">Limpar</button>'+
           '<button class="ocp-btn-cancelar" id="ocpCliCancelar">Cancelar</button>'+
         '</div>'+
       '</div>';
     document.body.appendChild(bg);
 
+    // checkbox "Indisponível": ao marcar, grava o estado (substitui cliente) e fecha;
+    // ao desmarcar, limpa o estado (volta a botão "+") e fecha.
+    var chkIndisp=document.getElementById('ocpIndispChk');
+    if(chkIndisp) chkIndisp.onchange=function(){
+      ocpDefinirCliente(at, i, chkIndisp.checked ? '__INDISPONIVEL__' : '');
+      ocpFecharModal();
+    };
+
     // fecha ao clicar fora ou no cancelar
     bg.addEventListener('click', function(ev){ if(ev.target===bg) ocpFecharModal(); });
     var btnCancel=document.getElementById('ocpCliCancelar');
     if(btnCancel) btnCancel.onclick=ocpFecharModal;
+
+    // mostra/esconde o botão "Limpar" conforme houver (ou não) um cliente selecionado.
+    // Chamada sempre que a seleção muda (Ok, escolha de cliente, etc).
+    function atualizarBotaoLimpar(){
+      var bl=document.getElementById('ocpCliLimpar');
+      if(bl) bl.style.display = atualSel ? '' : 'none';
+    }
+
     var btnLimpar=document.getElementById('ocpCliLimpar');
-    if(btnLimpar) btnLimpar.onclick=function(){ ocpDefinirCliente(at,i,''); ocpFecharModal(); };
+    if(btnLimpar) btnLimpar.onclick=function(){
+      // 1) apaga o texto de qualquer campo livre (Lazer/Outros), esteja aberto ou não
+      ['Lazer','Outros'].forEach(function(rot){
+        var inp=document.querySelector('[data-ocp-livre-input="'+rot+'"]');
+        if(inp) inp.value='';
+      });
+      // 2) APAGA TODOS os nomes livres salvos NESTE slot (os itens ⭐ do topo da lista).
+      // Este era o passo que faltava: o nome "Lazer: xxxx" fica guardado em o.livres,
+      // então limpar só o cliente não o removia da lista — agora zeramos essa lista.
+      var oAtual=ocpEstado();
+      if(Array.isArray(oAtual.livres[at]) && Array.isArray(oAtual.livres[at][i])){
+        oAtual.livres[at][i]=[];
+      }
+      // 3) remove o cliente selecionado do atendimento (salva na nuvem)
+      ocpDefinirCliente(at,i,'');
+      atualSel='';
+      // 4) repinta a lista (agora sem os nomes livres) e esconde o próprio botão Limpar
+      pintarLista();
+      atualizarBotaoLimpar();
+    };
 
     var busca=document.getElementById('ocpCliBusca');
     function pintarLista(){
       var termo=ocpNormaliza(busca.value);
       var lista=document.getElementById('ocpCliLista');
+      var oAtual=ocpEstado();
+      var meusLivres=(oAtual.livres[at] && oAtual.livres[at][i]) ? oAtual.livres[at][i] : [];
       var html='';
-      // clientes normais que batem com a busca
+      // 1) NOMES LIVRES já salvos NESTE slot — sempre no TOPO da lista, com destaque ⭐
+      meusLivres.forEach(function(nome){
+        if(termo && ocpNormaliza(nome).indexOf(termo)<0) return;
+        var sel=(nome===atualSel)?' sel':'';
+        html+='<button type="button" class="ocp-cli-item meulivre'+sel+'" data-ocp-pick="'+ocpEsc(nome)+'">'+ocpEsc(nome)+'</button>';
+      });
+      // 2) clientes normais que batem com a busca
       var achou=OCP_CLIENTES.filter(function(c){ return ocpNormaliza(c).indexOf(termo)>=0; });
       achou.forEach(function(c){
         var sel=(c===atualSel)?' sel':'';
         html+='<button type="button" class="ocp-cli-item'+sel+'" data-ocp-pick="'+ocpEsc(c)+'">'+ocpEsc(c)+'</button>';
       });
-      // opções especiais com campo livre (Lazer / Outros) — aparecem se baterem na busca
+      // 3) opções especiais com campo livre (Lazer / Outros) — com botão "Ok"
       [['Lazer','ocpLivreLazer'],['Outros','ocpLivreOutros']].forEach(function(par){
         var rotulo=par[0];
         if(termo && ocpNormaliza(rotulo).indexOf(termo)<0) return;
-        // valor livre já salvo? (ex.: "Lazer: praia") vem como "Rotulo: xxxx"
-        var prefixo=rotulo+': ';
-        var jaLivre=(atualSel && atualSel.indexOf(prefixo)===0)?atualSel.slice(prefixo.length):'';
-        var selEsp=(atualSel===rotulo || jaLivre)?' sel':'';
-        html+='<button type="button" class="ocp-cli-item especial'+selEsp+'" data-ocp-especial="'+rotulo+'">'+rotulo+' — campo livre</button>';
-        html+='<div class="ocp-cli-livre-wrap'+((jaLivre||selEsp)?' show':'')+'" data-ocp-livre-wrap="'+rotulo+'">'+
-              '<input type="text" data-ocp-livre-input="'+rotulo+'" placeholder="Digite: '+rotulo.toLowerCase()+' — ex.: nome/descrição" value="'+ocpEsc(jaLivre)+'"></div>';
+        html+='<button type="button" class="ocp-cli-item especial" data-ocp-especial="'+rotulo+'">'+rotulo+' — campo livre</button>';
+        html+='<div class="ocp-cli-livre-wrap" data-ocp-livre-wrap="'+rotulo+'">'+
+              '<input type="text" data-ocp-livre-input="'+rotulo+'" placeholder="Digite: '+rotulo.toLowerCase()+' — ex.: nome/descrição">'+
+              '<button type="button" class="ocp-cli-livre-ok" data-ocp-livre-ok="'+rotulo+'">Ok</button>'+
+              '</div>';
       });
       if(!html) html='<div class="ocp-modal-vazio">Nenhum cliente encontrado para "'+ocpEsc(busca.value)+'"</div>';
       lista.innerHTML=html;
@@ -5919,31 +5996,60 @@ function excluirNotaUI(id){
     busca.addEventListener('input', pintarLista);
     setTimeout(function(){ try{ busca.focus(); }catch(e){} }, 30);
 
-    // cliques dentro da lista (delegação): escolher cliente normal, abrir campo livre, confirmar livre
+    // salva o nome do campo livre: adiciona ao topo da lista DESTE slot, seleciona,
+    // repinta a lista (o nome sobe ao topo com destaque), ROLA PARA O TOPO, mostra o
+    // botão Limpar e MANTÉM O MODAL ABERTO.
+    function confirmarLivreOk(rotulo){
+      var inp=document.querySelector('[data-ocp-livre-input="'+rotulo+'"]');
+      if(!inp) return;
+      var t=(inp.value||'').trim();
+      if(!t){ try{ inp.focus(); }catch(e){} return; }   // vazio: não faz nada
+      var valor=rotulo+': '+t;                            // grava como "Lazer: xxxx" / "Outros: xxxx"
+      // adiciona à lista de livres DESTE slot (sem duplicar), no topo
+      var oAtual=ocpEstado();
+      if(!Array.isArray(oAtual.livres[at]) || oAtual.livres[at].length!==3) oAtual.livres[at]=[[],[],[]];
+      if(!Array.isArray(oAtual.livres[at][i])) oAtual.livres[at][i]=[];
+      oAtual.livres[at][i]=oAtual.livres[at][i].filter(function(n){ return n!==valor; });
+      oAtual.livres[at][i].unshift(valor);                // topo da lista
+      // seleciona automaticamente como cliente do atendimento (salva na nuvem e atualiza os botões de fundo)
+      ocpDefinirCliente(at, i, valor);
+      atualSel=valor;                                     // marca o novo nome como selecionado na lista
+      busca.value='';                                     // limpa a busca para o nome aparecer no topo
+      pintarLista();                                      // REPINTA: o nome sobe ao topo com destaque ⭐
+      atualizarBotaoLimpar();                             // PROBLEMA 2: mostra o botão "Limpar" agora
+      // PROBLEMA 1: rola a lista de volta ao TOPO para você VER o nome recém-adicionado
+      var listaEl2=document.getElementById('ocpCliLista');
+      if(listaEl2) listaEl2.scrollTop=0;
+      // NÃO fecha o modal — o gestor vê o nome salvo lá em cima e pode continuar
+    }
+
+    // cliques dentro da lista (delegação): escolher item, abrir campo livre, confirmar com "Ok"
     document.getElementById('ocpCliLista').addEventListener('click', function(ev){
+      // botão "Ok" do campo livre
+      var okb=ev.target.closest ? ev.target.closest('[data-ocp-livre-ok]') : null;
+      if(okb){ confirmarLivreOk(okb.getAttribute('data-ocp-livre-ok')); return; }
+      // escolher um cliente (normal ou nome livre já salvo)
       var pick=ev.target.closest ? ev.target.closest('[data-ocp-pick]') : null;
       if(pick){ ocpDefinirCliente(at,i, pick.getAttribute('data-ocp-pick')); ocpFecharModal(); return; }
+      // abrir/fechar o campo livre de Lazer/Outros (TOGGLE)
       var esp=ev.target.closest ? ev.target.closest('[data-ocp-especial]') : null;
       if(esp){
         var rot=esp.getAttribute('data-ocp-especial');
         var wrap=document.querySelector('[data-ocp-livre-wrap="'+rot+'"]');
         var inp=document.querySelector('[data-ocp-livre-input="'+rot+'"]');
-        if(wrap){ wrap.classList.add('show'); }
-        if(inp){ setTimeout(function(){ try{ inp.focus(); }catch(e){} }, 20);
-          inp.onkeydown=function(k){ if(k.key==='Enter'){ ocpConfirmarLivre(rot, inp.value, at, i); } };
-          // salva ao sair do campo com conteúdo
-          inp.onblur=function(){ /* mantém aberto; confirmação é pelo Enter */ };
+        if(wrap){
+          if(wrap.classList.contains('show')){
+            wrap.classList.remove('show');   // já estava aberto → FECHA
+          }else{
+            wrap.classList.add('show');      // estava fechado → ABRE
+            if(inp){ setTimeout(function(){ try{ inp.focus(); }catch(e){} }, 20);
+              // Enter no campo confirma (mesmo efeito do botão Ok)
+              inp.onkeydown=function(k){ if(k.key==='Enter'){ confirmarLivreOk(rot); } };
+            }
+          }
         }
       }
     });
-  }
-
-  // confirma um valor de campo livre (Lazer/Outros) → grava como "Rotulo: texto"
-  function ocpConfirmarLivre(rotulo, texto, at, i){
-    var t=(texto||'').trim();
-    var valor = t ? (rotulo+': '+t) : rotulo;   // sem texto → grava só o rótulo
-    ocpDefinirCliente(at, i, valor);
-    ocpFecharModal();
   }
 
   // grava o cliente no slot e salva na nuvem (compartilhado entre PCs)
