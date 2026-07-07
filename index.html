@@ -1232,7 +1232,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v2·88 (ajuste visual: botões ainda menores + nome do sorteado em 12px) -->
+    <!-- build: HUB-v2·89 (sorteio só troca quando o próprio atendente da vez pega o atendimento) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -5544,9 +5544,12 @@ function excluirNotaUI(id){
 
    SORTEIO AUTOMÁTICO (fila do dia) — REGRAS:
    • O sistema SORTEIA o "ATENDENTE DA VEZ" e mostra o nome num banner dourado.
-   • A CADA botão que fica VERMELHO, um NOVO SORTEIO é disparado na hora (não
-     espera mais completar os 3 vermelhos) e o nome que recebeu o vermelho vai
-     para o FINAL DA FILA do sorteio.
+   • O NOVO SORTEIO só é disparado quando o PRÓPRIO atendente da vez marca um
+     botão VERMELHO (ele pegou o atendimento). Se OUTRA pessoa marcar vermelho
+     — mesmo puxando um atendimento no lugar dele —, o atendente da vez é
+     MANTIDO e NENHUM sorteio acontece.
+   • FIM DA FILA: qualquer pessoa que marque vermelho vai para o fim da fila do
+     sorteio (rodízio justo), independentemente de ter gerado sorteio ou não.
    • Liberar um botão (vermelho→verde) NÃO sorteia — apenas reativa o sorteio
      caso ele estivesse suspenso.
    • PRIORIDADE POR VERDE: entre os candidatos da fila, concorrem só os que têm
@@ -5654,9 +5657,15 @@ function excluirNotaUI(id){
     if(o.atual && OCP_ATENDENTES.indexOf(o.atual)<0) o.atual=null;
     if(Array.isArray(o.pool)) o.pool=o.pool.filter(function(n){ return OCP_ATENDENTES.indexOf(n)>=0; });
 
-    // precisa sortear? Sim se: foi forçado por um vermelho, OU não há atual,
-    // OU o atual já não tem mais nenhum verde (ficou 100% ocupado).
-    var precisa = forcar || !o.atual || ocpCheio(o, o.atual);
+    // Precisa sortear? Somente em dois casos:
+    //  • forcar=true  → o PRÓPRIO atendente da vez marcou vermelho (definido no clique), ou
+    //  • !o.atual     → não há ninguém da vez (início do dia, pós-reset ou pós-suspensão).
+    // IMPORTANTE: NÃO usamos mais "ocpCheio(o.atual)" como gatilho automático aqui.
+    // Isso garante que, se OUTRA pessoa (não a da vez) deixar botões vermelhos —
+    // inclusive completando por acaso os 3 de alguém —, o atendente da vez é
+    // MANTIDO e nenhum sorteio indevido acontece. O único caminho para trocar a
+    // vez por "ficar cheio" é o próprio da vez clicar, o que já liga o forcar.
+    var precisa = forcar || !o.atual;
     if(precisa){
       o.atual=null;
       if(!Array.isArray(o.pool) || !o.pool.length) o.pool=OCP_ATENDENTES.slice();  // ciclo novo
@@ -5729,9 +5738,13 @@ function excluirNotaUI(id){
     return mudouSorteio;
   };
 
-  // clique num LED → alterna a cor e aplica as REGRAS NOVAS do sorteio:
-  //  • Virou VERMELHO (livre→ocupado): manda esse nome para o FIM DA FILA e
-  //    força um NOVO SORTEIO na hora (mesmo que o atual ainda tenha verdes).
+  // clique num LED → alterna a cor e aplica as REGRAS do sorteio:
+  //  • Virou VERMELHO (livre→ocupado):
+  //     - O nome SEMPRE vai para o FIM DA FILA (rodízio justo).
+  //     - Mas o NOVO SORTEIO só é disparado se quem marcou vermelho for o
+  //       PRÓPRIO ATENDENTE DA VEZ. Se outra pessoa puxou o atendimento e
+  //       marcou vermelho, o atendente da vez é MANTIDO (nenhum sorteio) —
+  //       o botão dela fica vermelho e o timer roda normalmente.
   //  • Virou VERDE (ocupado→livre): NÃO sorteia. Apenas redesenha — o que já
   //    reativa o sorteio automaticamente caso estivesse suspenso ("todos ocupados").
   document.addEventListener('click', function(e){
@@ -5744,19 +5757,27 @@ function excluirNotaUI(id){
     var eraLivre = !o.slots[at][i];
     o.slots[at][i]=o.slots[at][i]?0:1;   // alterna livre ⇄ ocupado
     var virouVermelho = eraLivre;        // clicou num verde → agora é vermelho
+    // quem clicou É o atendente da vez atual? só ele pode disparar o resorteio.
+    var souDaVez = (o.atual===at);
     // TIMER: carimba o horário exato do clique quando vira vermelho; zera ao liberar.
     // Como o timestamp é absoluto e vai pra nuvem, todos os PCs contam o MESMO tempo.
     if(!Array.isArray(o.inicios[at]) || o.inicios[at].length!==3) o.inicios[at]=[0,0,0];
     o.inicios[at][i] = virouVermelho ? Date.now() : 0;
+    var forcarSorteio = false;
     if(virouVermelho){
-      // fim da fila: remove o nome de onde estiver e recoloca no final do pool
+      // fim da fila: SEMPRE — remove o nome de onde estiver e recoloca no final.
+      // Vale para qualquer pessoa que puxe um atendimento, seja ela a da vez ou não.
       if(!Array.isArray(o.pool)) o.pool=OCP_ATENDENTES.slice();
       o.pool=o.pool.filter(function(n){ return n!==at; });
       o.pool.push(at);
-      // se quem virou vermelho era o "da vez", ele perde a vez agora
-      if(o.atual===at) o.atual=null;
+      // sorteio novo SÓ se foi o próprio atendente da vez que marcou vermelho.
+      if(souDaVez){
+        o.atual=null;          // ele perde a vez → abre espaço para o sorteio
+        forcarSorteio=true;
+      }
+      // se foi OUTRA pessoa: o.atual permanece intacto — nenhum sorteio acontece.
     }
-    window.renderOcupacao(virouVermelho); // vermelho → força resorteio; verde → só redesenha
+    window.renderOcupacao(forcarSorteio); // só força resorteio quando a própria da vez marcou vermelho
     try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(err){}
   });
 
