@@ -213,7 +213,9 @@ body.dark .hub-sidebar .nav-add{color:var(--verde)}
 .ocp-timer{font-size:10px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:.3px;line-height:1;min-height:11px;text-align:center;transition:color .3s}
 .ocp-timer.vazio{visibility:hidden}
 .ocp-timer.t-verde{color:#43e06a;text-shadow:0 0 6px rgba(67,224,106,.5)}
+.ocp-timer.t-azul{color:#4db6ff;text-shadow:0 0 6px rgba(77,182,255,.55)}
 .ocp-timer.t-amarelo{color:#FFC400;text-shadow:0 0 6px rgba(255,196,0,.55)}
+.ocp-timer.t-laranja{color:#ff9838;text-shadow:0 0 6px rgba(255,152,56,.6)}
 .ocp-timer.t-vermelho{color:#ff5252;text-shadow:0 0 7px rgba(255,82,82,.65);animation:ocpTimerBlink 1s ease-in-out infinite}
 @keyframes ocpTimerBlink{0%,100%{opacity:1}50%{opacity:.55}}
 /* Botão de cliente (+/Cliente) abaixo do timer */
@@ -246,13 +248,23 @@ body.dark .hub-sidebar .nav-add{color:var(--verde)}
 /* Botão "Indisponível" (vermelho) abaixo do LED — substitui o botão de cliente */
 .ocp-cli-btn.indisp{background:linear-gradient(180deg,#c81a1a,#8f0d0d);border:1px solid #ff5252;color:#fff;box-shadow:0 0 7px rgba(255,61,61,.55);font-size:7px;letter-spacing:-.2px;max-width:100%;width:100%;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;padding:3px 3px;animation:ocpIndispBlink 1.4s ease-in-out infinite}
 .ocp-cli-btn.indisp:hover{background:linear-gradient(180deg,#e02222,#a51010);box-shadow:0 0 11px rgba(255,61,61,.85)}
+/* Botão "Interno" (amarelo) — Gestão Interna, sem contador de tempo */
+.ocp-cli-btn.interno{background:linear-gradient(180deg,#e0a800,#b88700);border:1px solid #FFC400;color:#231a00;box-shadow:0 0 7px rgba(255,196,0,.55);font-size:7px;letter-spacing:-.2px;max-width:100%;width:100%;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;padding:3px 3px;font-weight:900;animation:ocpInternoBlink 1.4s ease-in-out infinite}
+.ocp-cli-btn.interno:hover{background:linear-gradient(180deg,#f0b800,#cc9600);box-shadow:0 0 11px rgba(255,196,0,.85)}
 @keyframes ocpIndispBlink{0%,100%{opacity:1}50%{opacity:.72}}
-/* Caixinha "Indisponível" dentro do modal */
-.ocp-indisp-box{display:flex;align-items:center;gap:9px;margin:4px 18px 2px;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,61,61,.4);background:rgba(255,61,61,.08);cursor:pointer;transition:all .15s}
+@keyframes ocpInternoBlink{0%,100%{opacity:1}50%{opacity:.72}}
+/* Caixinhas compactas "Indisponível" e "Gestão Interna" dentro do modal */
+.ocp-indisp-box{display:flex;align-items:center;gap:6px;margin:2px 18px 1px;padding:5px 9px;border-radius:7px;border:1px solid rgba(255,61,61,.4);background:rgba(255,61,61,.08);cursor:pointer;transition:all .15s}
 .ocp-indisp-box:hover{background:rgba(255,61,61,.15);border-color:rgba(255,61,61,.6)}
-.ocp-indisp-box input[type=checkbox]{width:19px;height:19px;accent-color:#ff3d3d;cursor:pointer;flex-shrink:0}
-.ocp-indisp-box label{color:#ff5252;font-weight:800;font-size:14px;letter-spacing:.3px;cursor:pointer;user-select:none}
-.ocp-indisp-box .ocp-indisp-hint{color:#c98b8b;font-size:11px;font-weight:600;margin-left:auto}
+.ocp-indisp-box input[type=checkbox]{width:14px;height:14px;accent-color:#ff3d3d;cursor:pointer;flex-shrink:0}
+.ocp-indisp-box label{color:#ff5252;font-weight:800;font-size:11px;letter-spacing:.2px;cursor:pointer;user-select:none}
+.ocp-indisp-box .ocp-indisp-hint{color:#c98b8b;font-size:9px;font-weight:600;margin-left:auto}
+/* Caixinha "Gestão Interna" — mesma estrutura compacta, em amarelo */
+.ocp-interno-box{display:flex;align-items:center;gap:6px;margin:1px 18px 2px;padding:5px 9px;border-radius:7px;border:1px solid rgba(255,196,0,.45);background:rgba(255,196,0,.08);cursor:pointer;transition:all .15s}
+.ocp-interno-box:hover{background:rgba(255,196,0,.16);border-color:rgba(255,196,0,.65)}
+.ocp-interno-box input[type=checkbox]{width:14px;height:14px;accent-color:#e0a800;cursor:pointer;flex-shrink:0}
+.ocp-interno-box label{color:#e0b000;font-weight:800;font-size:11px;letter-spacing:.2px;cursor:pointer;user-select:none}
+.ocp-interno-box .ocp-interno-hint{color:#b39860;font-size:9px;font-weight:600;margin-left:auto}
 /* Modal seletor de clientes */
 .ocp-modal-bg{position:fixed;inset:0;background:rgba(4,8,16,.72);backdrop-filter:blur(3px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px}
 .ocp-modal{background:#131c2b;border:1px solid rgba(255,255,255,.14);border-radius:16px;width:100%;max-width:420px;max-height:82vh;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(0,0,0,.6);overflow:hidden}
@@ -278,6 +290,31 @@ body.dark .hub-sidebar .nav-add{color:var(--verde)}
 /* Nome livre já salvo aparece no topo da lista, com destaque */
 .ocp-cli-item.meulivre{background:rgba(255,196,0,.16);border-color:rgba(255,196,0,.55);color:#ffe08a;font-weight:800}
 .ocp-cli-item.meulivre:hover{background:rgba(255,196,0,.26)}
+/* Linha de cliente com botão de excluir (X) ao lado */
+.ocp-cli-row{display:flex;align-items:center;gap:3px;margin:3px 0}
+.ocp-cli-row .ocp-cli-item{margin:0;flex:1;min-width:0}
+.ocp-cli-del{flex-shrink:0;width:18px;height:18px;padding:0;border-radius:5px;border:none;background:transparent;color:rgba(255,107,107,.55);font-size:9px;font-weight:700;cursor:pointer;transition:all .12s;line-height:1;display:flex;align-items:center;justify-content:center}
+.ocp-cli-del:hover{background:rgba(255,61,61,.22);color:#ff5252}
+.ocp-cli-del:active{transform:scale(.85)}
+/* Bloco "Adicionar Cliente" (cadastro permanente) no topo da lista */
+.ocp-add-wrap{display:flex;gap:6px;align-items:stretch;margin:2px 0 10px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.09)}
+.ocp-add-wrap input{flex:1;min-width:0;box-sizing:border-box;padding:9px 12px;border-radius:9px;border:1px solid rgba(67,224,106,.5);background:rgba(67,224,106,.06);color:#E8EEF4;font-size:14px;outline:none}
+.ocp-add-wrap input:focus{border-color:#43e06a;background:rgba(67,224,106,.12)}
+.ocp-add-salvar{flex-shrink:0;padding:0 15px;border-radius:9px;border:none;background:linear-gradient(180deg,#2ee65f,#0e9c3a);color:#04240f;font-size:13px;font-weight:900;cursor:pointer;transition:all .15s;white-space:nowrap}
+.ocp-add-salvar:hover{background:linear-gradient(180deg,#43f06a,#12b545);box-shadow:0 0 10px rgba(46,230,95,.6)}
+.ocp-add-salvar:active{transform:scale(.95)}
+/* Modal de confirmação de exclusão (sobre o modal do seletor) */
+.ocp-confirm-bg{position:fixed;inset:0;background:rgba(4,8,16,.8);backdrop-filter:blur(3px);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px}
+.ocp-confirm{background:#1a2233;border:1px solid rgba(255,61,61,.4);border-radius:14px;max-width:340px;width:100%;padding:20px;box-shadow:0 24px 70px rgba(0,0,0,.7);text-align:center}
+.ocp-confirm h4{margin:0 0 8px;color:#E8EEF4;font-size:16px;font-weight:800}
+.ocp-confirm p{margin:0 0 18px;color:#b9c6d6;font-size:13.5px;line-height:1.45}
+.ocp-confirm p b{color:#ff8a8a}
+.ocp-confirm-btns{display:flex;gap:10px}
+.ocp-confirm-btns button{flex:1;padding:11px;border-radius:9px;font-size:14px;font-weight:800;cursor:pointer;border:none;transition:all .15s}
+.ocp-confirm-nao{background:rgba(255,255,255,.1);color:#cfe0f0}
+.ocp-confirm-nao:hover{background:rgba(255,255,255,.18)}
+.ocp-confirm-sim{background:linear-gradient(180deg,#e02222,#a51010);color:#fff}
+.ocp-confirm-sim:hover{background:linear-gradient(180deg,#f02b2b,#c01414);box-shadow:0 0 12px rgba(255,61,61,.6)}
 .ocp-cli-item.meulivre::before{content:"⭐ ";font-size:11px}
 .ocp-modal-vazio{text-align:center;color:#8BA4BF;font-size:13px;padding:18px 8px}
 .ocp-modal-ft{display:flex;gap:8px;padding:12px 18px;border-top:1px solid rgba(255,255,255,.08)}
@@ -1307,7 +1344,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v3·00 (5 novos atendentes no painel, com gestão completa mas fora do sorteio) -->
+    <!-- build: HUB-v3·03 (botão X de exclusão bem menor e discreto) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -5673,6 +5710,68 @@ function excluirNotaUI(id){
   // Para incluir/remover clientes, edite este array (a ordenação é feita na tela).
   var OCP_CLIENTES=["Central do Avivamento","Cia do Cr\u00e9dito","Clint","Conect","CredForYou","Credfranco","Criminal","Elements","Extratos da Terra","Fam\u00edlia (Lideran\u00e7a)","Hocta/Prosper","Icred","In Foco Agro","Licita\u00e7\u00e3o","Lideran\u00e7a","Maxpan","Nova Promotora","Palavra Viva","Pitz","Reali","Terraplein","\u00danica","Vallora","Wecann"];
 
+  // >>> CLIENTES EDITÁVEIS (compartilhado na nuvem via appConfig.ocupacaoClientes).
+  // Estrutura: { adicionados:[...], removidos:[...] }
+  //  • adicionados = clientes personalizados cadastrados pelo gestor (permanentes).
+  //  • removidos   = nomes ocultados da lista (pode incluir originais de OCP_CLIENTES).
+  // A LISTA EFETIVA = (originais + adicionados) − removidos, sempre em ordem alfabética.
+  function ocpClientesStore(){
+    if(typeof appConfig!=='object' || !appConfig) return {adicionados:[],removidos:[]};
+    var c=appConfig.ocupacaoClientes;
+    if(!c || typeof c!=='object') c={adicionados:[],removidos:[]};
+    if(!Array.isArray(c.adicionados)) c.adicionados=[];
+    if(!Array.isArray(c.removidos)) c.removidos=[];
+    appConfig.ocupacaoClientes=c;
+    return c;
+  }
+  // remove acentos e baixa a caixa — usado para comparar nomes sem diferença de acento/maiúscula
+  function ocpChaveNome(s){ return (s||'').toString().trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+  // monta a lista final de clientes visíveis no seletor, em ordem alfabética
+  function ocpClientesEfetivos(){
+    var store=ocpClientesStore();
+    var remSet={};
+    store.removidos.forEach(function(n){ remSet[ocpChaveNome(n)]=1; });
+    var vistos={}, out=[];
+    // originais + adicionados, pulando os removidos e as duplicatas
+    OCP_CLIENTES.concat(store.adicionados).forEach(function(n){
+      var nome=(n||'').toString().trim();
+      if(!nome) return;
+      var ch=ocpChaveNome(nome);
+      if(remSet[ch]) return;              // foi removido
+      if(vistos[ch]) return;              // já está na lista (evita duplicata)
+      vistos[ch]=1; out.push(nome);
+    });
+    out.sort(function(a,b){ return ocpChaveNome(a).localeCompare(ocpChaveNome(b)); });
+    return out;
+  }
+  // adiciona um cliente novo (permanente). Devolve true se adicionou, false se já existia/ inválido.
+  function ocpAdicionarCliente(nome){
+    var t=(nome||'').toString().trim();
+    if(!t) return false;
+    var store=ocpClientesStore();
+    var ch=ocpChaveNome(t);
+    // se estava na lista de removidos, "revive" tirando de lá
+    store.removidos=store.removidos.filter(function(n){ return ocpChaveNome(n)!==ch; });
+    // já existe na lista efetiva? não duplica
+    var jaExiste=ocpClientesEfetivos().some(function(n){ return ocpChaveNome(n)===ch; });
+    if(jaExiste) return false;
+    store.adicionados.push(t);
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+    return true;
+  }
+  // exclui um cliente da lista efetiva (funciona para originais E adicionados)
+  function ocpExcluirCliente(nome){
+    var t=(nome||'').toString().trim();
+    if(!t) return;
+    var store=ocpClientesStore();
+    var ch=ocpChaveNome(t);
+    // tira dos adicionados (se for um personalizado)
+    store.adicionados=store.adicionados.filter(function(n){ return ocpChaveNome(n)!==ch; });
+    // marca como removido (cobre também os originais embutidos)
+    if(!store.removidos.some(function(n){ return ocpChaveNome(n)===ch; })) store.removidos.push(t);
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+  }
+
   function ocpHoje(){
     var d=new Date();
     return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
@@ -5701,8 +5800,19 @@ function excluirNotaUI(id){
     var s=totalSeg%60;
     var p2=function(n){ return String(n).padStart(2,'0'); };
     var txt = h>0 ? (p2(h)+':'+p2(m)+':'+p2(s)) : (p2(m)+':'+p2(s));
-    var totalMin=totalSeg/60;
-    var cor = totalMin<10 ? 't-verde' : (totalMin<20 ? 't-amarelo' : 't-vermelho');
+    // FAIXAS DE COR POR HORA (alerta visual progressivo):
+    //  • 0 a 1h            → verde
+    //  • 1h01 a 2h         → azul
+    //  • 2h01 a 3h         → amarelo
+    //  • 3h01 a 4h         → laranja
+    //  • 4h01 em diante    → vermelho (sempre)
+    // A troca acontece ao COMPLETAR a hora (ex.: exatamente 1h ainda é verde; 1h e 1s vira azul).
+    var cor;
+    if(totalSeg<=3600)        cor='t-verde';       // até 1h exata
+    else if(totalSeg<=7200)   cor='t-azul';        // 1h01 até 2h
+    else if(totalSeg<=10800)  cor='t-amarelo';     // 2h01 até 3h
+    else if(totalSeg<=14400)  cor='t-laranja';     // 3h01 até 4h
+    else                      cor='t-vermelho';    // 4h01 em diante
     return {txt:txt, cor:cor};
   }
 
@@ -5737,10 +5847,15 @@ function excluirNotaUI(id){
         if(!Array.isArray(o.livres[a][i])) o.livres[a][i]=[];
         if(o.slots[a][i] && !o.inicios[a][i]) o.inicios[a][i]=Date.now();
         if(!o.slots[a][i] && o.inicios[a][i]) o.inicios[a][i]=0;
-        // botão liberado (verde) não pode manter cliente preso: limpa a seleção.
-        if(!o.slots[a][i] && o.clientes[a][i]) o.clientes[a][i]='';
+        // >>> GARANTIA DE PERSISTÊNCIA (Tarefa 3): enquanto o botão está VERMELHO,
+        // o cliente selecionado (incluindo Indisponível/Gestão Interna) NUNCA é
+        // apagado automaticamente. Ele permanece fixo até que o atendente:
+        //   (a) clique em "Limpar" no modal, ou
+        //   (b) libere o LED (volte ao VERDE) — só então o estado abaixo zera.
+        // Nenhum re-render, polling, tick de timer ou sorteio mexe nessa seleção.
+        if(!o.slots[a][i] && o.clientes[a][i]) o.clientes[a][i]='';   // só limpa no VERDE
         // botão liberado (verde) ZERA a lista de nomes livres criados naquele slot.
-        if(!o.slots[a][i] && o.livres[a][i].length) o.livres[a][i]=[];
+        if(!o.slots[a][i] && o.livres[a][i].length) o.livres[a][i]=[]; // só limpa no VERDE
       }
     });
     return o;
@@ -5834,23 +5949,29 @@ function excluirNotaUI(id){
         var oc=!!s[i];
         var nomeCli=(cli[i]||'').trim();
         var indisp=(nomeCli==='__INDISPONIVEL__');   // valor sentinela do estado Indisponível
-        // timer: aparece quando o botão está vermelho e tem início — MAS não quando indisponível
+        var interno=(nomeCli==='__INTERNO__');        // valor sentinela do estado Gestão Interna
+        // timer: aparece quando o botão está vermelho e tem início — MAS não quando
+        // indisponível NEM em gestão interna (ambos removem a contagem de tempo).
         var tmClass='ocp-timer vazio', tmTxt='00:00', tmData='';
-        if(oc && ini[i] && !indisp){
+        if(oc && ini[i] && !indisp && !interno){
           var f=ocpFmtTimer(agora-ini[i]);
           tmClass='ocp-timer '+f.cor;
           tmTxt=f.txt;
           tmData=' data-ocp-ini="'+ini[i]+'"';
         }
         // botão abaixo do timer (só quando o LED está VERMELHO / atendimento ativo):
-        //  • Indisponível  → botão "Indisponível" (vermelho, sem timer)
-        //  • com cliente    → botão "Cliente" (hover mostra o nome)
-        //  • sem cliente    → botão "+"
+        //  • Indisponível   → botão "Indisponível" (vermelho, sem timer)
+        //  • Gestão Interna → botão "Interno" (amarelo, sem timer)
+        //  • com cliente     → botão "Cliente" (hover mostra o nome)
+        //  • sem cliente     → botão "+"
         var btnCli='';
         if(oc){
           if(indisp){
             btnCli='<button type="button" class="ocp-cli-btn indisp" data-ocp-cli-at="'+ocpEsc(a)+'" data-ocp-cli-i="'+i+'"'+
               ' title="Indisponível — clique para alterar">Indisponível</button>';
+          }else if(interno){
+            btnCli='<button type="button" class="ocp-cli-btn interno" data-ocp-cli-at="'+ocpEsc(a)+'" data-ocp-cli-i="'+i+'"'+
+              ' title="Gestão Interna — clique para alterar">Interno</button>';
           }else if(nomeCli){
             btnCli='<button type="button" class="ocp-cli-btn tem" data-ocp-cli-at="'+ocpEsc(a)+'" data-ocp-cli-i="'+i+'"'+
               ' data-ocp-cli-nome="'+ocpEsc(nomeCli)+'">Cliente</button>';
@@ -5900,6 +6021,7 @@ function excluirNotaUI(id){
     ocpModalCtx={at:at, i:i};
     var atualSel=(o.clientes[at] && o.clientes[at][i]) ? o.clientes[at][i] : '';
     var estaIndisp=(atualSel==='__INDISPONIVEL__');
+    var estaInterno=(atualSel==='__INTERNO__');
 
     var bg=document.createElement('div');
     bg.className='ocp-modal-bg';
@@ -5915,6 +6037,11 @@ function excluirNotaUI(id){
           '<label for="ocpIndispChk">Indisponível</label>'+
           '<span class="ocp-indisp-hint">sem cliente e sem contagem de tempo</span>'+
         '</label>'+
+        '<label class="ocp-interno-box" for="ocpInternoChk">'+
+          '<input type="checkbox" id="ocpInternoChk"'+(estaInterno?' checked':'')+'>'+
+          '<label for="ocpInternoChk">Gestão Interna</label>'+
+          '<span class="ocp-interno-hint">sem cliente e sem contagem de tempo</span>'+
+        '</label>'+
         '<div class="ocp-modal-busca"><input type="text" id="ocpCliBusca" placeholder="Buscar cliente..." autocomplete="off"></div>'+
         '<div class="ocp-modal-lista" id="ocpCliLista"></div>'+
         '<div class="ocp-modal-ft">'+
@@ -5924,11 +6051,20 @@ function excluirNotaUI(id){
       '</div>';
     document.body.appendChild(bg);
 
-    // checkbox "Indisponível": ao marcar, grava o estado (substitui cliente) e fecha;
-    // ao desmarcar, limpa o estado (volta a botão "+") e fecha.
+    // checkbox "Indisponível": marca → grava __INDISPONIVEL__ (substitui cliente) e fecha.
+    // Como o campo guarda um valor só, marcar Indisponível já desmarca Gestão Interna
+    // automaticamente (exclusividade mútua garantida pela estrutura).
     var chkIndisp=document.getElementById('ocpIndispChk');
     if(chkIndisp) chkIndisp.onchange=function(){
       ocpDefinirCliente(at, i, chkIndisp.checked ? '__INDISPONIVEL__' : '');
+      ocpFecharModal();
+    };
+
+    // checkbox "Gestão Interna": marca → grava __INTERNO__ (substitui cliente) e fecha.
+    // Mesma exclusividade: marcar aqui desmarca o Indisponível automaticamente.
+    var chkInterno=document.getElementById('ocpInternoChk');
+    if(chkInterno) chkInterno.onchange=function(){
+      ocpDefinirCliente(at, i, chkInterno.checked ? '__INTERNO__' : '');
       ocpFecharModal();
     };
 
@@ -5973,17 +6109,26 @@ function excluirNotaUI(id){
       var oAtual=ocpEstado();
       var meusLivres=(oAtual.livres[at] && oAtual.livres[at][i]) ? oAtual.livres[at][i] : [];
       var html='';
-      // 1) NOMES LIVRES já salvos NESTE slot — sempre no TOPO da lista, com destaque ⭐
+      // 0) FORMULÁRIO "Adicionar Cliente" (cadastro permanente) — sempre no topo
+      html+='<div class="ocp-add-wrap">'+
+            '<input type="text" id="ocpAddCliInput" placeholder="Adicionar cliente..." autocomplete="off">'+
+            '<button type="button" class="ocp-add-salvar" id="ocpAddCliSalvar">Salvar</button>'+
+            '</div>';
+      // 1) NOMES LIVRES já salvos NESTE slot — logo abaixo, com destaque ⭐
       meusLivres.forEach(function(nome){
         if(termo && ocpNormaliza(nome).indexOf(termo)<0) return;
         var sel=(nome===atualSel)?' sel':'';
         html+='<button type="button" class="ocp-cli-item meulivre'+sel+'" data-ocp-pick="'+ocpEsc(nome)+'">'+ocpEsc(nome)+'</button>';
       });
-      // 2) clientes normais que batem com a busca
-      var achou=OCP_CLIENTES.filter(function(c){ return ocpNormaliza(c).indexOf(termo)>=0; });
-      achou.forEach(function(c){
+      // 2) clientes da LISTA EFETIVA (originais + adicionados − removidos), cada um
+      //    com seu botão de EXCLUIR (X) ao lado.
+      var efetivos=ocpClientesEfetivos().filter(function(c){ return ocpNormaliza(c).indexOf(termo)>=0; });
+      efetivos.forEach(function(c){
         var sel=(c===atualSel)?' sel':'';
-        html+='<button type="button" class="ocp-cli-item'+sel+'" data-ocp-pick="'+ocpEsc(c)+'">'+ocpEsc(c)+'</button>';
+        html+='<div class="ocp-cli-row">'+
+              '<button type="button" class="ocp-cli-item'+sel+'" data-ocp-pick="'+ocpEsc(c)+'">'+ocpEsc(c)+'</button>'+
+              '<button type="button" class="ocp-cli-del" data-ocp-del="'+ocpEsc(c)+'" title="Excluir cliente">✕</button>'+
+              '</div>';
       });
       // 3) opções especiais com campo livre (Lazer / Outros) — com botão "Ok"
       [['Lazer','ocpLivreLazer'],['Outros','ocpLivreOutros']].forEach(function(par){
@@ -5995,8 +6140,25 @@ function excluirNotaUI(id){
               '<button type="button" class="ocp-cli-livre-ok" data-ocp-livre-ok="'+rotulo+'">Ok</button>'+
               '</div>';
       });
-      if(!html) html='<div class="ocp-modal-vazio">Nenhum cliente encontrado para "'+ocpEsc(busca.value)+'"</div>';
       lista.innerHTML=html;
+      // religa o formulário de adicionar cliente (recriado a cada pintura)
+      var addInp=document.getElementById('ocpAddCliInput');
+      var addBtn=document.getElementById('ocpAddCliSalvar');
+      function salvarNovoCliente(){
+        if(!addInp) return;
+        var nome=(addInp.value||'').trim();
+        if(!nome){ try{ addInp.focus(); }catch(e){} return; }
+        if(ocpAdicionarCliente(nome)){
+          busca.value='';           // limpa a busca para o novo cliente aparecer
+          pintarLista();            // repinta com o novo cliente já na lista
+        }else{
+          // já existia: apenas limpa o campo e foca (feedback silencioso)
+          addInp.value='';
+          try{ addInp.focus(); }catch(e){}
+        }
+      }
+      if(addBtn) addBtn.onclick=salvarNovoCliente;
+      if(addInp) addInp.onkeydown=function(k){ if(k.key==='Enter'){ salvarNovoCliente(); } };
     }
     pintarLista();
     busca.addEventListener('input', pintarLista);
@@ -6029,8 +6191,37 @@ function excluirNotaUI(id){
       // NÃO fecha o modal — o gestor vê o nome salvo lá em cima e pode continuar
     }
 
-    // cliques dentro da lista (delegação): escolher item, abrir campo livre, confirmar com "Ok"
+    // abre um modal de CONFIRMAÇÃO antes de excluir um cliente da lista
+    function ocpConfirmarExclusao(nome){
+      var cbg=document.createElement('div');
+      cbg.className='ocp-confirm-bg';
+      cbg.innerHTML=
+        '<div class="ocp-confirm">'+
+          '<h4>Excluir cliente</h4>'+
+          '<p>Deseja realmente excluir <b>'+ocpEsc(nome)+'</b> da lista de clientes? Esta ação vale para todos os computadores.</p>'+
+          '<div class="ocp-confirm-btns">'+
+            '<button type="button" class="ocp-confirm-nao">Cancelar</button>'+
+            '<button type="button" class="ocp-confirm-sim">Excluir</button>'+
+          '</div>'+
+        '</div>';
+      document.body.appendChild(cbg);
+      function fechar(){ if(cbg.parentNode) cbg.parentNode.removeChild(cbg); }
+      cbg.addEventListener('click', function(e){ if(e.target===cbg) fechar(); });
+      cbg.querySelector('.ocp-confirm-nao').onclick=fechar;
+      cbg.querySelector('.ocp-confirm-sim').onclick=function(){
+        ocpExcluirCliente(nome);
+        // se o cliente excluído era o selecionado neste atendimento, limpa a seleção
+        if(atualSel===nome){ ocpDefinirCliente(at,i,''); atualSel=''; atualizarBotaoLimpar(); }
+        fechar();
+        pintarLista();   // atualiza a lista sem o cliente excluído
+      };
+    }
+
+    // cliques dentro da lista (delegação): excluir, escolher item, abrir campo livre, confirmar "Ok"
     document.getElementById('ocpCliLista').addEventListener('click', function(ev){
+      // botão EXCLUIR (X) de um cliente → abre confirmação
+      var del=ev.target.closest ? ev.target.closest('[data-ocp-del]') : null;
+      if(del){ ev.stopPropagation(); ocpConfirmarExclusao(del.getAttribute('data-ocp-del')); return; }
       // botão "Ok" do campo livre
       var okb=ev.target.closest ? ev.target.closest('[data-ocp-livre-ok]') : null;
       if(okb){ confirmarLivreOk(okb.getAttribute('data-ocp-livre-ok')); return; }
