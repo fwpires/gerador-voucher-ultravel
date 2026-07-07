@@ -199,6 +199,42 @@ body.dark .hub-sidebar .nav-add{color:var(--verde)}
 .gauge-box{flex:1;display:flex;justify-content:center;align-items:center;padding:8px 0;min-height:210px;width:100%}
 .gauge-box #gaugeDia{width:100%;max-width:350px;margin:0 auto}
 .gauge-box svg{width:100%;height:auto;display:block}
+/* ===== OCUPAÇÃO DOS ATENDENTES (LEDs) ===== */
+.ocp-card{margin-bottom:14px}
+.ocp-hint{font-size:11px;font-weight:600;color:#8BA4BF;margin-left:10px}
+.ocp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:12px;padding:8px 2px 2px}
+.ocp-box{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:10px 12px 12px;display:flex;flex-direction:column;gap:9px;transition:border-color .25s}
+.ocp-box:hover{border-color:rgba(255,255,255,.2)}
+.ocp-nome{font-weight:800;font-size:13px;color:#E8EEF4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
+.ocp-leds{display:flex;gap:12px;justify-content:center}
+.ocp-led{width:32px;height:32px;border-radius:50%;border:2px solid rgba(255,255,255,.22);cursor:pointer;padding:0;outline:none;transition:transform .12s ease}
+.ocp-led:active{transform:scale(.9)}
+.ocp-led.livre{
+  background:radial-gradient(circle at 32% 28%, #d2ffe0 0%, #2ee65f 45%, #0e9c3a 100%);
+  animation:ocpPulseG 1.7s ease-in-out infinite;
+}
+.ocp-led.ocupado{
+  background:radial-gradient(circle at 32% 28%, #ffd0d0 0%, #ff3d3d 45%, #b60d0d 100%);
+  animation:ocpPulseR 1.1s ease-in-out infinite;
+}
+@keyframes ocpPulseG{
+  0%,100%{box-shadow:0 0 8px 2px rgba(46,230,95,.75),0 0 18px 5px rgba(46,230,95,.35),inset 0 0 6px rgba(255,255,255,.5)}
+  50%{box-shadow:0 0 14px 4px rgba(46,230,95,1),0 0 30px 10px rgba(46,230,95,.55),inset 0 0 8px rgba(255,255,255,.7)}
+}
+@keyframes ocpPulseR{
+  0%,100%{box-shadow:0 0 8px 2px rgba(255,61,61,.8),0 0 18px 5px rgba(255,61,61,.4),inset 0 0 6px rgba(255,255,255,.45)}
+  50%{box-shadow:0 0 15px 5px rgba(255,61,61,1),0 0 32px 11px rgba(255,61,61,.6),inset 0 0 8px rgba(255,255,255,.65)}
+}
+/* Banner do sorteio "Atendente da vez" */
+.ocp-vez-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;background:rgba(255,196,0,.09);border:1px solid rgba(255,196,0,.4);border-radius:10px;padding:10px 14px;margin:8px 2px 10px;font-size:14px;font-weight:700;color:#E8EEF4}
+.ocp-vez-nome{color:#FFC400;font-size:17px;letter-spacing:.3px;animation:ocpVezGlow 1.6s ease-in-out infinite}
+.ocp-vez-bar.ocp-todos-ocupados{background:rgba(255,61,61,.09);border-color:rgba(255,61,61,.45)}
+/* Destaque dourado no quadro do atendente sorteado */
+.ocp-box{position:relative}
+.ocp-box.ocp-vez{border:1px solid #FFC400;animation:ocpVezBorda 1.6s ease-in-out infinite}
+.ocp-vez-selo{position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:#FFC400;color:#231a00;font-size:10px;font-weight:900;letter-spacing:.5px;padding:2px 8px;border-radius:99px;box-shadow:0 0 10px rgba(255,196,0,.7);white-space:nowrap}
+@keyframes ocpVezGlow{0%,100%{text-shadow:0 0 8px rgba(255,196,0,.45)}50%{text-shadow:0 0 16px rgba(255,196,0,.95)}}
+@keyframes ocpVezBorda{0%,100%{box-shadow:0 0 8px rgba(255,196,0,.3),inset 0 0 10px rgba(255,196,0,.05)}50%{box-shadow:0 0 18px rgba(255,196,0,.6),inset 0 0 14px rgba(255,196,0,.1)}}
 .termo-box{flex:1;display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end;justify-content:flex-start;padding:10px 4px;min-height:230px;overflow-x:auto}
 .termo-vazio{color:var(--texto-fraco);font-size:13px;padding:20px 4px}
 .termo-item{display:flex;flex-direction:column;align-items:center;gap:4px;width:88px;flex:0 0 auto}
@@ -990,6 +1026,11 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
           <span class="dash-sub" id="dashSub">Visão geral dos vouchers salvos</span>
         </div>
         <div class="dash-cards" id="dashCards"></div>
+        <div class="dash-card ocp-card">
+          <div class="dash-card-t">🚦 Ocupação dos Atendentes<span class="ocp-hint">verde = livre &nbsp;·&nbsp; vermelho = ocupado &nbsp;·&nbsp; 3 vermelhos = passa a vez (novo sorteio)</span></div>
+          <div class="ocp-vez-bar" id="ocpVezBar"></div>
+          <div class="ocp-grid" id="ocpGrid"></div>
+        </div>
         <div class="dash-grid">
           <div class="dash-card"><div class="dash-card-t">🥧 Vouchers por tipo de serviço</div><div class="dash-canvas"><canvas id="chTipo"></canvas></div></div>
           <div class="dash-card"><div class="dash-card-t">🍩 Vouchers por hotel (WeCann)</div><div class="dash-canvas"><canvas id="chHotel"></canvas><span class="dash-total-hotel" id="totalHotelWecann"></span></div></div>
@@ -1182,7 +1223,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v2·80 (RASCUNHO — não está no ar) -->
+    <!-- build: HUB-v2·82 (sorteio atendente da vez + fila cíclica) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -5397,6 +5438,7 @@ function excluirNotaUI(id){
   }
 
   window.renderDashboard=function(){
+    try{ if(typeof renderOcupacao==='function') renderOcupacao(); }catch(e){}
     if(typeof Chart==='undefined') return;
     var vs=(typeof savedCache!=='undefined'&&savedCache)?savedCache:[];
     var tc=themeColors();
@@ -5483,6 +5525,165 @@ function excluirNotaUI(id){
     destroy('chEvol'); charts.chEvol=new Chart(document.getElementById('chEvol'),{type:'line',data:{labels:meses.map(mesLabel),datasets:[{label:'Acumulado',data:accData,borderColor:'#9CC00C',backgroundColor:'rgba(156,192,12,.15)',fill:true,tension:.3,pointRadius:3}]},options:Object.assign({},common,{plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:tc.grid},ticks:{precision:0}}}})});
     destroy('chRadar'); charts.chRadar=new Chart(document.getElementById('chRadar'),{type:'radar',data:{labels:['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'],datasets:[{label:'Emissões',data:porDia,borderColor:'#FF2D95',backgroundColor:'rgba(255,45,149,.2)',pointBackgroundColor:'#FF2D95'}]},options:Object.assign({},common,{plugins:{legend:{display:false}},scales:{r:{grid:{color:tc.grid},angleLines:{color:tc.grid},ticks:{backdropColor:'transparent',precision:0}}}})});
   };
+})();
+</script>
+<script>
+/* ===== OCUPAÇÃO DOS ATENDENTES (LEDs) + SORTEIO "ATENDENTE DA VEZ" =====
+   Cada atendente tem um quadro no Dashboard com 3 botões LED:
+   • VERDE vivo  = desocupado (livre)
+   • VERMELHO vivo = ocupado — clique alterna livre ⇄ ocupado.
+
+   SORTEIO AUTOMÁTICO (fila do dia):
+   • O sistema SORTEIA aleatoriamente o "ATENDENTE DA VEZ" e mostra o nome
+     num banner dourado no topo do quadro (o card dele ganha moldura + selo).
+   • Quando o atendente da vez deixa os 3 LEDs VERMELHOS, ele vai para o
+     FINAL DA FILA e um NOVO SORTEIO acontece IMEDIATAMENTE entre os nomes
+     que ainda não foram contemplados neste ciclo.
+   • Quando todos já passaram, o ciclo REINICIA com todos os nomes de novo.
+   • Se TODOS os candidatos estiverem com 3 LEDs vermelhos, o banner avisa
+     "todos ocupados" e o sorteio dispara sozinho assim que alguém liberar
+     um LED.
+
+   LISTA PRÓPRIA deste painel (OCP_ATENDENTES): não altera a lista global
+   ATENDENTES usada em vendas, rankings e seletores — nada mais é afetado.
+
+   COMPARTILHADO NA NUVEM: estado (LEDs + fila + atendente da vez) vive em
+   appConfig.ocupacaoAtendentes, salvo no Worker via /api/config. Todos os
+   PCs veem o mesmo sorteio. Polling leve de 60s puxa mudanças de outros PCs.
+
+   RESET DIÁRIO AUTOMÁTICO: data em horário LOCAL (nunca UTC). No primeiro
+   uso de um dia novo, LEDs voltam ao verde e a fila recomeça do zero. */
+(function(){
+  // >>> EQUIPE DO PAINEL DE OCUPAÇÃO (edite aqui para incluir/remover nomes)
+  var OCP_ATENDENTES=['Eduardo Vinícius','Ghabriella Bressan','Liliane Gaspar','Israel Hespanhol','Maria Eduarda','Juliana Lupo'];
+
+  function ocpHoje(){
+    var d=new Date();
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
+  var ocpEsc=(typeof esc==='function')?esc:function(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
+
+  // o atendente está com os 3 LEDs vermelhos?
+  function ocpCheio(o,a){ var s=o.slots[a]; return Array.isArray(s)&&!!s[0]&&!!s[1]&&!!s[2]; }
+
+  // devolve o estado do dia, criando/zerando quando é um dia novo (reset diário)
+  function ocpEstado(){
+    if(typeof appConfig!=='object' || !appConfig) window.appConfig=appConfig||{};
+    var o=appConfig.ocupacaoAtendentes;
+    var hoje=ocpHoje();
+    if(!o || typeof o!=='object' || o.data!==hoje){
+      o={data:hoje, slots:{}, pool:null, atual:null};   // dia novo: tudo verde, fila zerada
+      appConfig.ocupacaoAtendentes=o;
+    }
+    if(!o.slots || typeof o.slots!=='object') o.slots={};
+    OCP_ATENDENTES.forEach(function(a){
+      if(!Array.isArray(o.slots[a]) || o.slots[a].length!==3) o.slots[a]=[0,0,0];
+    });
+    return o;
+  }
+
+  /* Garante que existe um "atendente da vez" válido — sorteando quando preciso.
+     Retorna true se o sorteio/fila foi alterado (para sabermos quando salvar). */
+  function ocpGarantirVez(o){
+    var antes=JSON.stringify({a:o.atual||null, p:o.pool||null});
+    // nomes que saíram da equipe não podem permanecer na fila nem como "da vez"
+    if(o.atual && OCP_ATENDENTES.indexOf(o.atual)<0) o.atual=null;
+    if(Array.isArray(o.pool)) o.pool=o.pool.filter(function(n){ return OCP_ATENDENTES.indexOf(n)>=0; });
+    // a vez atual segue valendo enquanto o atendente NÃO estiver com 3 vermelhos
+    if(!(o.atual && !ocpCheio(o,o.atual))){
+      o.atual=null;                                        // completou → vai pro FINAL DA FILA
+      if(!Array.isArray(o.pool) || !o.pool.length) o.pool=OCP_ATENDENTES.slice();   // ciclo novo: todos voltam
+      // sorteia entre os do ciclo que NÃO estão com 3 vermelhos
+      var livres=o.pool.filter(function(n){ return !ocpCheio(o,n); });
+      if(!livres.length){                                  // ciclo inteiro cheio → tenta reiniciar com todos
+        o.pool=OCP_ATENDENTES.slice();
+        livres=o.pool.filter(function(n){ return !ocpCheio(o,n); });
+      }
+      if(livres.length){
+        var escolhido=livres[Math.floor(Math.random()*livres.length)];   // SORTEIO aleatório
+        o.atual=escolhido;
+        o.pool=o.pool.filter(function(n){ return n!==escolhido; });      // sai da fila do ciclo
+      }
+      // se livres ficou vazio: agência 100% ocupada → o.atual permanece null
+    }
+    return antes!==JSON.stringify({a:o.atual||null, p:o.pool||null});
+  }
+
+  // desenha o banner do sorteio + os quadros com os LEDs no Dashboard
+  window.renderOcupacao=function(){
+    var el=document.getElementById('ocpGrid'); if(!el) return false;
+    var o=ocpEstado();
+    var mudouSorteio=ocpGarantirVez(o);
+    var barra=document.getElementById('ocpVezBar');
+    if(barra){
+      if(o.atual){
+        barra.className='ocp-vez-bar';
+        barra.innerHTML='🎯 Atendente da vez: <b class="ocp-vez-nome">'+ocpEsc(o.atual)+'</b>';
+      }else{
+        barra.className='ocp-vez-bar ocp-todos-ocupados';
+        barra.innerHTML='🔴 <b>Todos os atendentes estão ocupados</b> — o sorteio acontece sozinho assim que alguém liberar um LED';
+      }
+    }
+    el.innerHTML=OCP_ATENDENTES.map(function(a){
+      var s=o.slots[a]||[0,0,0];
+      var ehVez=(a===o.atual);
+      var leds=[0,1,2].map(function(i){
+        var oc=!!s[i];
+        return '<button type="button" class="ocp-led '+(oc?'ocupado':'livre')+'"'+
+          ' data-ocp-at="'+ocpEsc(a)+'" data-ocp-i="'+i+'"'+
+          ' title="'+(oc?'Ocupado — clique para liberar':'Livre — clique para marcar ocupado')+'"></button>';
+      }).join('');
+      return '<div class="ocp-box'+(ehVez?' ocp-vez':'')+'">'+
+             (ehVez?'<div class="ocp-vez-selo">🎯 DA VEZ</div>':'')+
+             '<div class="ocp-nome" title="'+ocpEsc(a)+'">'+ocpEsc(a)+'</div>'+
+             '<div class="ocp-leds">'+leds+'</div></div>';
+    }).join('');
+    return mudouSorteio;
+  };
+
+  // clique num LED → alterna, o render cuida do sorteio automático, e salva na nuvem.
+  // Cobre os dois gatilhos: (1) atendente da vez completou 3 vermelhos → novo sorteio
+  // NA HORA; (2) estava "todos ocupados" e alguém liberou → sorteio dispara sozinho.
+  document.addEventListener('click', function(e){
+    var b=e.target && e.target.closest ? e.target.closest('.ocp-led') : null;
+    if(!b) return;
+    var at=b.getAttribute('data-ocp-at');
+    var i=parseInt(b.getAttribute('data-ocp-i'),10);
+    var o=ocpEstado();
+    if(!o.slots[at] || isNaN(i)) return;
+    o.slots[at][i]=o.slots[at][i]?0:1;   // alterna livre ⇄ ocupado
+    window.renderOcupacao();              // feedback visual + sorteio imediato se preciso
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(err){}
+  });
+
+  // POLLING entre PCs: a cada 60s (só com Dashboard visível e aba em 1º plano)
+  // busca o config da nuvem e aplica LEDs + fila + sorteio feitos em outro PC.
+  setInterval(async function(){
+    try{
+      if(document.hidden) return;
+      var ds=document.getElementById('scr-dashboard');
+      if(!ds || !ds.classList.contains('active')) return;
+      if(typeof api!=='function') return;
+      var c=await api('/api/config');
+      if(!c || typeof c!=='object') return;
+      var nuvem=c.ocupacaoAtendentes;
+      if(!nuvem || typeof nuvem!=='object') return;
+      if(nuvem.data!==ocpHoje()) return;   // estado de outro dia na nuvem: ignora (reset local vale)
+      var localStr=JSON.stringify(appConfig.ocupacaoAtendentes||{});
+      if(JSON.stringify(nuvem)!==localStr){
+        appConfig.ocupacaoAtendentes=nuvem;
+        try{ localStorage.setItem('uv_config', JSON.stringify(appConfig)); }catch(e){}
+        // se após aplicar o estado da nuvem faltar um "da vez" válido, este PC
+        // sorteia e grava — assim a fila nunca fica órfã.
+        if(window.renderOcupacao()){ try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){} }
+      }
+    }catch(e){}
+  }, 60*1000);
+
+  // primeira pintura: se este PC fez o 1º sorteio do dia, grava na nuvem na hora
+  function ini(){ try{ if(window.renderOcupacao()){ if(typeof salvarConfig==='function') salvarConfig(); } }catch(e){} }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', ini);
+  else ini();
 })();
 </script>
 <script>
