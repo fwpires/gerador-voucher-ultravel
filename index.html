@@ -233,8 +233,11 @@ body.dark .hub-sidebar .nav-add{color:var(--verde)}
   50%{box-shadow:0 0 11px 3px rgba(255,61,61,1),0 0 22px 8px rgba(255,61,61,.6),inset 0 0 6px rgba(255,255,255,.65)}
 }
 /* Banner do sorteio "Atendente da vez" */
-.ocp-vez-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;background:rgba(255,196,0,.09);border:1px solid rgba(255,196,0,.4);border-radius:10px;padding:10px 14px;margin:8px 2px 10px;font-size:14px;font-weight:700;color:#E8EEF4}
+.ocp-vez-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;background:rgba(255,196,0,.09);border:1px solid rgba(255,196,0,.4);border-radius:10px;padding:10px 14px;margin:8px 2px 10px;font-size:14px;font-weight:700;color:#E8EEF4}
+.ocp-vez-lado{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .ocp-vez-nome{color:#FFC400;font-size:12px;letter-spacing:.3px;animation:ocpVezGlow 1.6s ease-in-out infinite}
+.ocp-plantao{display:flex;align-items:center;gap:6px;background:rgba(0,120,192,.14);border:1px solid rgba(0,150,230,.45);border-radius:8px;padding:5px 11px;font-size:13px;font-weight:700;color:#cfe6f7}
+.ocp-plantao-nome{color:#4db6ff;font-size:13px;font-weight:800;letter-spacing:.3px;text-shadow:0 0 8px rgba(77,182,255,.5)}
 .ocp-vez-bar.ocp-todos-ocupados{background:rgba(255,61,61,.09);border-color:rgba(255,61,61,.45)}
 .ocp-todos-msg{color:#ff4d4d;font-size:15px;letter-spacing:.3px;animation:ocpVezGlowR 1.3s ease-in-out infinite}
 @keyframes ocpVezGlowR{0%,100%{text-shadow:0 0 8px rgba(255,61,61,.5)}50%{text-shadow:0 0 16px rgba(255,61,61,1)}}
@@ -1232,7 +1235,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v2·89 (sorteio só troca quando o próprio atendente da vez pega o atendimento) -->
+    <!-- build: HUB-v2·90 (plantonista do dia no banner + escala oculta até dez/2026) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -5582,9 +5585,20 @@ function excluirNotaUI(id){
   // >>> EQUIPE DO PAINEL DE OCUPAÇÃO (edite aqui para incluir/remover nomes)
   var OCP_ATENDENTES=['Eduardo Vinícius','Ghabriella Bressan','Liliane Gaspar','Israel Hespanhol','Maria Eduarda','Juliana Lupo'];
 
+  // >>> ESCALA DE PLANTÕES (dados OCULTOS — nada é exibido em tabela na interface).
+  // O sistema mostra apenas o plantonista do DIA ATUAL, ao lado direito do banner.
+  // Chave = data no formato AAAA-MM-DD (horário LOCAL). Dias sem plantonista ficam
+  // de fora e simplesmente não exibem nome. Para editar a escala, altere aqui.
+  var OCP_ESCALA={"2026-07-06": "Nando", "2026-07-07": "Ghabi", "2026-07-08": "Leticia", "2026-07-09": "Ana", "2026-07-11": "Nando", "2026-07-13": "Ghabi", "2026-07-14": "Juliana", "2026-07-15": "Ana", "2026-07-16": "Ghabi", "2026-07-18": "Ghabi", "2026-07-20": "Juliana", "2026-07-21": "Ana", "2026-07-22": "Hynae", "2026-07-23": "Vini", "2026-07-25": "Juliana", "2026-07-27": "Ana", "2026-07-28": "Hynae", "2026-07-29": "Vini", "2026-07-30": "Mayara", "2026-08-01": "Ana", "2026-08-03": "Hynae", "2026-08-04": "Vini", "2026-08-05": "Mayara", "2026-08-06": "Liliane", "2026-08-08": "Hynae", "2026-08-10": "Vini", "2026-08-11": "Mayara", "2026-08-12": "Liliane", "2026-08-13": "Rael", "2026-08-15": "Vini", "2026-08-17": "Mayara", "2026-08-18": "Liliane", "2026-08-19": "Rael", "2026-08-20": "Madu", "2026-08-22": "Mayara", "2026-08-24": "Liliane", "2026-08-25": "Rael", "2026-08-26": "Madu", "2026-08-27": "Nando", "2026-08-29": "Liliane", "2026-08-31": "Rael", "2026-09-01": "Madu", "2026-09-02": "Nando", "2026-09-03": "Ghabi", "2026-09-05": "Rael", "2026-09-07": "Madu", "2026-09-08": "Nando", "2026-09-09": "Ghabi", "2026-09-10": "Juliana", "2026-09-12": "Madu", "2026-09-14": "Nando", "2026-09-15": "Ghabi", "2026-09-16": "Juliana", "2026-09-17": "Ana", "2026-09-18": "Nando", "2026-09-19": "Nando", "2026-09-21": "Ghabi", "2026-09-22": "Juliana", "2026-09-23": "Ana", "2026-09-24": "Hynae", "2026-09-26": "Ghabi", "2026-09-28": "Juliana", "2026-09-29": "Ana", "2026-09-30": "Hynae", "2026-10-01": "Vini", "2026-10-03": "Juliana", "2026-10-05": "Ana", "2026-10-06": "Hynae", "2026-10-07": "Vini", "2026-10-08": "Mayara", "2026-10-10": "Ana", "2026-10-12": "Hynae", "2026-10-13": "Vini", "2026-10-14": "Mayara", "2026-10-15": "Liliane", "2026-10-17": "Hynae", "2026-10-19": "Vini", "2026-10-20": "Mayara", "2026-10-21": "Liliane", "2026-10-22": "Rael", "2026-10-24": "Vini", "2026-10-26": "Mayara", "2026-10-27": "Liliane", "2026-10-28": "Rael", "2026-10-29": "Madu", "2026-10-31": "Mayara", "2026-11-02": "Liliane", "2026-11-03": "Rael", "2026-11-04": "Madu", "2026-11-05": "Nando", "2026-11-07": "Liliane", "2026-11-09": "Rael", "2026-11-10": "Madu", "2026-11-11": "Nando", "2026-11-12": "Ghabi", "2026-11-14": "Rael", "2026-11-16": "Madu", "2026-11-17": "Nando", "2026-11-18": "Ghabi", "2026-11-19": "Juliana", "2026-11-21": "Madu", "2026-11-23": "Nando", "2026-11-24": "Ghabi", "2026-11-25": "Juliana", "2026-11-26": "Ana", "2026-11-28": "Nando", "2026-11-30": "Ghabi", "2026-12-01": "Juliana", "2026-12-02": "Ana", "2026-12-03": "Hynae", "2026-12-05": "Ghabi", "2026-12-07": "Juliana", "2026-12-08": "Ana", "2026-12-09": "Hynae", "2026-12-10": "Vini", "2026-12-12": "Juliana", "2026-12-14": "Ana", "2026-12-15": "Hynae", "2026-12-16": "Vini", "2026-12-17": "Mayara", "2026-12-19": "Ana", "2026-12-21": "Hynae", "2026-12-22": "Vini", "2026-12-23": "Mayara", "2026-12-24": "Liliane", "2026-12-26": "Hynae", "2026-12-28": "Vini", "2026-12-29": "Mayara", "2026-12-30": "Liliane", "2026-12-31": "Rael"};
+
   function ocpHoje(){
     var d=new Date();
     return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
+  // retorna o nome do plantonista do DIA ATUAL (ou '' se o dia não tem plantão na escala)
+  function ocpPlantonistaHoje(){
+    try{ var n=OCP_ESCALA[ocpHoje()]; return (typeof n==='string' && n.trim()) ? n.trim() : ''; }
+    catch(e){ return ''; }
   }
   var ocpEsc=(typeof esc==='function')?esc:function(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
 
@@ -5699,13 +5713,18 @@ function excluirNotaUI(id){
     var mudouSorteio=ocpGarantirVez(o, forcar);
     var barra=document.getElementById('ocpVezBar');
     if(barra){
+      // lado direito: plantonista do dia (só aparece se houver plantão hoje na escala)
+      var plant=ocpPlantonistaHoje();
+      var direita = plant
+        ? '<span class="ocp-plantao">📅 Plantonista: <b class="ocp-plantao-nome">'+ocpEsc(plant)+'</b></span>'
+        : '';
       if(o.atual){
         barra.className='ocp-vez-bar';
-        barra.innerHTML='🎯 Atendente da vez: <b class="ocp-vez-nome">'+ocpEsc(o.atual)+'</b>';
+        barra.innerHTML='<span class="ocp-vez-lado">🎯 Atendente da vez: <b class="ocp-vez-nome">'+ocpEsc(o.atual)+'</b></span>'+direita;
       }else{
         // SUSPENSÃO: todos com 3 vermelhos — mensagem exata, em vermelho vivo
         barra.className='ocp-vez-bar ocp-todos-ocupados';
-        barra.innerHTML='<b class="ocp-todos-msg">🔴 Todos os atendentes estão ocupados neste momento!</b>';
+        barra.innerHTML='<span class="ocp-vez-lado"><b class="ocp-todos-msg">🔴 Todos os atendentes estão ocupados neste momento!</b></span>'+direita;
       }
     }
     var agora=Date.now();
