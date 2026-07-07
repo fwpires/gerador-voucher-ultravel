@@ -246,11 +246,32 @@ body.dark .hub-sidebar .nav-add{color:var(--verde)}
   opacity:1;transform:translateX(-50%) scale(1);
 }
 /* Botão "Indisponível" (vermelho) abaixo do LED — substitui o botão de cliente */
-.ocp-cli-btn.indisp{background:linear-gradient(180deg,#c81a1a,#8f0d0d);border:1px solid #ff5252;color:#fff;box-shadow:0 0 7px rgba(255,61,61,.55);font-size:7px;letter-spacing:-.2px;max-width:100%;width:100%;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;padding:3px 3px;animation:ocpIndispBlink 1.4s ease-in-out infinite}
-.ocp-cli-btn.indisp:hover{background:linear-gradient(180deg,#e02222,#a51010);box-shadow:0 0 11px rgba(255,61,61,.85)}
+.ocp-cli-btn.indisp{background:linear-gradient(180deg,#c81a1a,#8f0d0d);border:1px solid #ff5252;color:#fff;box-shadow:0 0 7px rgba(255,61,61,.55);font-size:7px;letter-spacing:-.2px;max-width:100%;width:100%;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;padding:3px 3px;animation:ocpIndispBlink 1.4s ease-in-out infinite}.ocp-cli-btn.indisp:hover{background:linear-gradient(180deg,#e02222,#a51010);box-shadow:0 0 11px rgba(255,61,61,.85)}
 /* Botão "Interno" (amarelo) — Gestão Interna, sem contador de tempo */
 .ocp-cli-btn.interno{background:linear-gradient(180deg,#e0a800,#b88700);border:1px solid #FFC400;color:#231a00;box-shadow:0 0 7px rgba(255,196,0,.55);font-size:7px;letter-spacing:-.2px;max-width:100%;width:100%;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;padding:3px 3px;font-weight:900;animation:ocpInternoBlink 1.4s ease-in-out infinite}
 .ocp-cli-btn.interno:hover{background:linear-gradient(180deg,#f0b800,#cc9600);box-shadow:0 0 11px rgba(255,196,0,.85)}
+/* Botão "Ausente" (rosa) abaixo do LED — pisca como os outros, MAS tem tooltip
+   amarelo com o MOTIVO da ausência (igual ao botão Cliente). É híbrido. */
+.ocp-cli-btn.ausente{background:linear-gradient(180deg,#e0559a,#b83079);border:1px solid #ff7ec0;color:#fff;box-shadow:0 0 7px rgba(255,105,180,.55);font-size:7px;letter-spacing:-.2px;max-width:100%;width:100%;box-sizing:border-box;padding:3px 3px;font-weight:900;animation:ocpAusenteBlink 1.4s ease-in-out infinite;position:relative;overflow:visible}
+.ocp-cli-btn.ausente:hover{background:linear-gradient(180deg,#f065ab,#c93a89);box-shadow:0 0 11px rgba(255,105,180,.85)}
+/* tooltip amarelo do MOTIVO da ausência (mesmo visual do tooltip do Cliente) */
+.ocp-cli-btn.ausente::after{
+  content:attr(data-ocp-motivo);
+  position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%) scale(.9);
+  background:#FFC400;color:#000;font-weight:800;font-size:12px;letter-spacing:.2px;
+  padding:5px 10px;border-radius:7px;white-space:nowrap;
+  box-shadow:0 4px 14px rgba(0,0,0,.45);border:1px solid #d9a900;
+  opacity:0;pointer-events:none;transition:opacity .15s ease,transform .15s ease;z-index:50;
+}
+.ocp-cli-btn.ausente::before{
+  content:"";position:absolute;bottom:calc(100% + 2px);left:50%;transform:translateX(-50%) scale(.9);
+  border:5px solid transparent;border-top-color:#FFC400;
+  opacity:0;pointer-events:none;transition:opacity .15s ease,transform .15s ease;z-index:50;
+}
+.ocp-cli-btn.ausente:hover::after,.ocp-cli-btn.ausente:hover::before{
+  opacity:1;transform:translateX(-50%) scale(1);
+}
+@keyframes ocpAusenteBlink{0%,100%{opacity:1}50%{opacity:.72}}
 @keyframes ocpIndispBlink{0%,100%{opacity:1}50%{opacity:.72}}
 @keyframes ocpInternoBlink{0%,100%{opacity:1}50%{opacity:.72}}
 /* Caixinhas compactas "Indisponível" e "Gestão Interna" dentro do modal */
@@ -265,6 +286,22 @@ body.dark .hub-sidebar .nav-add{color:var(--verde)}
 .ocp-interno-box input[type=checkbox]{width:14px;height:14px;accent-color:#e0a800;cursor:pointer;flex-shrink:0}
 .ocp-interno-box label{color:#e0b000;font-weight:800;font-size:11px;letter-spacing:.2px;cursor:pointer;user-select:none}
 .ocp-interno-box .ocp-interno-hint{color:#b39860;font-size:9px;font-weight:600;margin-left:auto}
+/* Caixinha "Ausente" — mesma estrutura compacta, em ROSA. Ao marcar, revela o campo Motivo. */
+.ocp-ausente-box{display:flex;align-items:center;gap:6px;margin:1px 18px 2px;padding:5px 9px;border-radius:7px;border:1px solid rgba(233,79,158,.45);background:rgba(233,79,158,.08);cursor:pointer;transition:all .15s}
+.ocp-ausente-box:hover{background:rgba(233,79,158,.16);border-color:rgba(233,79,158,.65)}
+.ocp-ausente-box input[type=checkbox]{width:14px;height:14px;accent-color:#e0559a;cursor:pointer;flex-shrink:0}
+.ocp-ausente-box label{color:#f072ab;font-weight:800;font-size:11px;letter-spacing:.2px;cursor:pointer;user-select:none}
+.ocp-ausente-box .ocp-ausente-hint{color:#c98bb0;font-size:9px;font-weight:600;margin-left:auto}
+/* Campo "Motivo:" que aparece ao marcar Ausente (fica oculto por padrão) */
+.ocp-motivo-wrap{display:none;margin:0 18px 6px;padding:8px 9px;border-radius:7px;border:1px solid rgba(233,79,158,.35);background:rgba(233,79,158,.05)}
+.ocp-motivo-wrap.aberto{display:block}
+.ocp-motivo-wrap .ocp-motivo-lbl{display:block;color:#f072ab;font-weight:800;font-size:11px;margin-bottom:5px}
+.ocp-motivo-row{display:flex;gap:6px;align-items:stretch}
+.ocp-motivo-row input{flex:1;min-width:0;box-sizing:border-box;padding:8px 10px;border-radius:7px;border:1px solid rgba(233,79,158,.5);background:rgba(233,79,158,.06);color:#E8EEF4;font-size:13px;outline:none}
+.ocp-motivo-row input:focus{border-color:#e0559a;background:rgba(233,79,158,.12)}
+.ocp-motivo-ok{flex-shrink:0;padding:0 15px;border-radius:7px;border:none;background:linear-gradient(180deg,#e0559a,#b83079);color:#fff;font-size:13px;font-weight:900;cursor:pointer;transition:all .15s;white-space:nowrap}
+.ocp-motivo-ok:hover{background:linear-gradient(180deg,#f065ab,#c93a89);box-shadow:0 0 10px rgba(233,79,158,.6)}
+.ocp-motivo-ok:active{transform:scale(.95)}
 /* Modal seletor de clientes */
 .ocp-modal-bg{position:fixed;inset:0;background:rgba(4,8,16,.72);backdrop-filter:blur(3px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px}
 .ocp-modal{background:#131c2b;border:1px solid rgba(255,255,255,.14);border-radius:16px;width:100%;max-width:420px;max-height:82vh;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(0,0,0,.6);overflow:hidden}
@@ -1344,7 +1381,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v3·04 (CORREÇÃO CRÍTICA: cliente não some mais sozinho — merge inteligente anti-perda entre PCs) -->
+    <!-- build: HUB-v3·05 (caixa Ausente rosa com campo Motivo obrigatório + tooltip amarelo) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -6055,10 +6092,14 @@ function excluirNotaUI(id){
         var nomeCli=(cli[i]||'').trim();
         var indisp=(nomeCli==='__INDISPONIVEL__');   // valor sentinela do estado Indisponível
         var interno=(nomeCli==='__INTERNO__');        // valor sentinela do estado Gestão Interna
+        // AUSENTE: sentinela no formato "__AUSENTE__:motivo aqui". Detecta pelo prefixo
+        // e extrai o motivo para exibir no tooltip amarelo do botão rosa.
+        var ausente=(nomeCli.indexOf('__AUSENTE__')===0);
+        var motivoAus=ausente ? nomeCli.slice('__AUSENTE__'.length).replace(/^:/,'') : '';
         // timer: aparece quando o botão está vermelho e tem início — MAS não quando
-        // indisponível NEM em gestão interna (ambos removem a contagem de tempo).
+        // indisponível NEM em gestão interna NEM ausente (todos removem a contagem).
         var tmClass='ocp-timer vazio', tmTxt='00:00', tmData='';
-        if(oc && ini[i] && !indisp && !interno){
+        if(oc && ini[i] && !indisp && !interno && !ausente){
           var f=ocpFmtTimer(agora-ini[i]);
           tmClass='ocp-timer '+f.cor;
           tmTxt=f.txt;
@@ -6067,6 +6108,7 @@ function excluirNotaUI(id){
         // botão abaixo do timer (só quando o LED está VERMELHO / atendimento ativo):
         //  • Indisponível   → botão "Indisponível" (vermelho, sem timer)
         //  • Gestão Interna → botão "Interno" (amarelo, sem timer)
+        //  • Ausente         → botão "Ausente" (rosa, sem timer, tooltip com o motivo)
         //  • com cliente     → botão "Cliente" (hover mostra o nome)
         //  • sem cliente     → botão "+"
         var btnCli='';
@@ -6077,6 +6119,9 @@ function excluirNotaUI(id){
           }else if(interno){
             btnCli='<button type="button" class="ocp-cli-btn interno" data-ocp-cli-at="'+ocpEsc(a)+'" data-ocp-cli-i="'+i+'"'+
               ' title="Gestão Interna — clique para alterar">Interno</button>';
+          }else if(ausente){
+            btnCli='<button type="button" class="ocp-cli-btn ausente" data-ocp-cli-at="'+ocpEsc(a)+'" data-ocp-cli-i="'+i+'"'+
+              ' data-ocp-motivo="'+ocpEsc(motivoAus||'(sem motivo)')+'">Ausente</button>';
           }else if(nomeCli){
             btnCli='<button type="button" class="ocp-cli-btn tem" data-ocp-cli-at="'+ocpEsc(a)+'" data-ocp-cli-i="'+i+'"'+
               ' data-ocp-cli-nome="'+ocpEsc(nomeCli)+'">Cliente</button>';
@@ -6127,6 +6172,8 @@ function excluirNotaUI(id){
     var atualSel=(o.clientes[at] && o.clientes[at][i]) ? o.clientes[at][i] : '';
     var estaIndisp=(atualSel==='__INDISPONIVEL__');
     var estaInterno=(atualSel==='__INTERNO__');
+    var estaAusente=(atualSel.indexOf('__AUSENTE__')===0);
+    var motivoAtual=estaAusente ? atualSel.slice('__AUSENTE__'.length).replace(/^:/,'') : '';
 
     var bg=document.createElement('div');
     bg.className='ocp-modal-bg';
@@ -6147,6 +6194,18 @@ function excluirNotaUI(id){
           '<label for="ocpInternoChk">Gestão Interna</label>'+
           '<span class="ocp-interno-hint">sem cliente e sem contagem de tempo</span>'+
         '</label>'+
+        '<label class="ocp-ausente-box" for="ocpAusenteChk">'+
+          '<input type="checkbox" id="ocpAusenteChk"'+(estaAusente?' checked':'')+'>'+
+          '<label for="ocpAusenteChk">Ausente</label>'+
+          '<span class="ocp-ausente-hint">informe o motivo abaixo</span>'+
+        '</label>'+
+        '<div class="ocp-motivo-wrap'+(estaAusente?' aberto':'')+'" id="ocpMotivoWrap">'+
+          '<span class="ocp-motivo-lbl">Motivo:</span>'+
+          '<div class="ocp-motivo-row">'+
+            '<input type="text" id="ocpMotivoInput" placeholder="Ex.: almoço, consulta médica, folga..." autocomplete="off" value="'+ocpEsc(motivoAtual)+'">'+
+            '<button type="button" class="ocp-motivo-ok" id="ocpMotivoOk">Ok</button>'+
+          '</div>'+
+        '</div>'+
         '<div class="ocp-modal-busca"><input type="text" id="ocpCliBusca" placeholder="Buscar cliente..." autocomplete="off"></div>'+
         '<div class="ocp-modal-lista" id="ocpCliLista"></div>'+
         '<div class="ocp-modal-ft">'+
@@ -6172,6 +6231,45 @@ function excluirNotaUI(id){
       ocpDefinirCliente(at, i, chkInterno.checked ? '__INTERNO__' : '');
       ocpFecharModal();
     };
+
+    // checkbox "Ausente": ao MARCAR, revela o campo Motivo (NÃO grava ainda — o motivo
+    // é OBRIGATÓRIO). Ao DESMARCAR, limpa o estado e esconde o campo. A gravação só
+    // acontece quando o usuário digita o motivo e clica em "Ok".
+    var chkAusente=document.getElementById('ocpAusenteChk');
+    var motivoWrap=document.getElementById('ocpMotivoWrap');
+    var motivoInput=document.getElementById('ocpMotivoInput');
+    if(chkAusente) chkAusente.onchange=function(){
+      if(chkAusente.checked){
+        // desmarca os outros (exclusividade visual imediata)
+        if(chkIndisp) chkIndisp.checked=false;
+        if(chkInterno) chkInterno.checked=false;
+        if(motivoWrap) motivoWrap.classList.add('aberto');
+        setTimeout(function(){ try{ motivoInput.focus(); }catch(e){} }, 30);
+      }else{
+        // desmarcou Ausente: se havia um estado ausente salvo, limpa
+        if(motivoWrap) motivoWrap.classList.remove('aberto');
+        if(atualSel.indexOf('__AUSENTE__')===0){ ocpDefinirCliente(at, i, ''); ocpFecharModal(); }
+      }
+    };
+
+    // botão "Ok" do motivo: valida que o motivo NÃO está vazio (obrigatório) e então
+    // grava a sentinela "__AUSENTE__:motivo", substituindo qualquer cliente/estado.
+    function confirmarAusente(){
+      if(!motivoInput) return;
+      var motivo=(motivoInput.value||'').trim();
+      if(!motivo){
+        // motivo obrigatório: destaca o campo e não deixa confirmar
+        try{ motivoInput.focus(); }catch(e){}
+        motivoInput.style.borderColor='#ff5252';
+        motivoInput.placeholder='⚠ Digite o motivo para marcar como Ausente';
+        return;
+      }
+      ocpDefinirCliente(at, i, '__AUSENTE__:'+motivo);
+      ocpFecharModal();
+    }
+    var btnMotivoOk=document.getElementById('ocpMotivoOk');
+    if(btnMotivoOk) btnMotivoOk.onclick=confirmarAusente;
+    if(motivoInput) motivoInput.onkeydown=function(k){ if(k.key==='Enter'){ confirmarAusente(); } };
 
     // fecha ao clicar fora ou no cancelar
     bg.addEventListener('click', function(ev){ if(ev.target===bg) ocpFecharModal(); });
