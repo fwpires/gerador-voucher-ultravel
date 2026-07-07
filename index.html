@@ -216,6 +216,61 @@ body.dark .hub-sidebar .nav-add{color:var(--verde)}
 .ocp-timer.t-amarelo{color:#FFC400;text-shadow:0 0 6px rgba(255,196,0,.55)}
 .ocp-timer.t-vermelho{color:#ff5252;text-shadow:0 0 7px rgba(255,82,82,.65);animation:ocpTimerBlink 1s ease-in-out infinite}
 @keyframes ocpTimerBlink{0%,100%{opacity:1}50%{opacity:.55}}
+/* Botão de cliente (+/Cliente) abaixo do timer */
+.ocp-cli-btn{font-size:9px;font-weight:800;line-height:1;border-radius:6px;cursor:pointer;padding:3px 6px;outline:none;transition:all .15s;white-space:nowrap;max-width:64px;overflow:hidden;text-overflow:ellipsis}
+.ocp-cli-btn.add{width:20px;height:16px;padding:0;font-size:13px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.3);color:#cfe0f0}
+.ocp-cli-btn.add:hover{background:rgba(0,150,230,.35);border-color:#4db6ff;color:#fff}
+.ocp-cli-btn.tem{background:linear-gradient(180deg,#0a84c8,#0663a0);border:1px solid #35a6ea;color:#fff;box-shadow:0 0 7px rgba(53,166,234,.5)}
+.ocp-cli-btn.tem:hover{background:linear-gradient(180deg,#0b95e0,#0773b8);box-shadow:0 0 11px rgba(53,166,234,.8)}
+.ocp-cli-btn:active{transform:scale(.92)}
+/* Tooltip customizado do botão Cliente: nome em PRETO NEGRITO dentro de caixa AMARELA */
+.ocp-cli-btn.tem{position:relative}
+.ocp-cli-btn.tem::after{
+  content:attr(data-ocp-cli-nome);
+  position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%) scale(.9);
+  background:#FFC400;color:#000;font-weight:800;font-size:12px;letter-spacing:.2px;
+  padding:5px 10px;border-radius:7px;white-space:nowrap;
+  box-shadow:0 4px 14px rgba(0,0,0,.45);border:1px solid #d9a900;
+  opacity:0;pointer-events:none;transition:opacity .15s ease,transform .15s ease;
+  z-index:50;
+}
+/* seta amarela apontando para o botão */
+.ocp-cli-btn.tem::before{
+  content:"";position:absolute;bottom:calc(100% + 2px);left:50%;transform:translateX(-50%) scale(.9);
+  border:5px solid transparent;border-top-color:#FFC400;
+  opacity:0;pointer-events:none;transition:opacity .15s ease,transform .15s ease;z-index:50;
+}
+.ocp-cli-btn.tem:hover::after,.ocp-cli-btn.tem:hover::before{
+  opacity:1;transform:translateX(-50%) scale(1);
+}
+/* Modal seletor de clientes */
+.ocp-modal-bg{position:fixed;inset:0;background:rgba(4,8,16,.72);backdrop-filter:blur(3px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px}
+.ocp-modal{background:#131c2b;border:1px solid rgba(255,255,255,.14);border-radius:16px;width:100%;max-width:420px;max-height:82vh;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(0,0,0,.6);overflow:hidden}
+.ocp-modal-hd{padding:16px 18px 12px;border-bottom:1px solid rgba(255,255,255,.08)}
+.ocp-modal-hd h3{margin:0 0 3px;font-size:16px;color:#E8EEF4;font-weight:800}
+.ocp-modal-hd .ocp-modal-sub{font-size:12px;color:#8BA4BF;font-weight:600}
+.ocp-modal-busca{margin:12px 18px 8px;position:relative}
+.ocp-modal-busca input{width:100%;box-sizing:border-box;padding:10px 12px 10px 34px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#E8EEF4;font-size:14px;outline:none}
+.ocp-modal-busca input:focus{border-color:#4db6ff;background:rgba(0,120,192,.12)}
+.ocp-modal-busca::before{content:"🔍";position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:13px;opacity:.7}
+.ocp-modal-lista{overflow-y:auto;padding:4px 10px 10px;flex:1}
+.ocp-cli-item{display:block;width:100%;text-align:left;box-sizing:border-box;padding:10px 12px;margin:3px 0;border-radius:9px;border:1px solid transparent;background:rgba(255,255,255,.04);color:#E8EEF4;font-size:14px;font-weight:600;cursor:pointer;transition:all .12s}
+.ocp-cli-item:hover{background:rgba(0,120,192,.22);border-color:rgba(77,182,255,.5)}
+.ocp-cli-item.sel{background:rgba(0,150,230,.3);border-color:#4db6ff;font-weight:800}
+.ocp-cli-item.especial{background:rgba(255,196,0,.08);border-color:rgba(255,196,0,.25);color:#ffd970}
+.ocp-cli-item.especial:hover{background:rgba(255,196,0,.18)}
+.ocp-cli-livre-wrap{margin:6px 0 3px;display:none}
+.ocp-cli-livre-wrap.show{display:block}
+.ocp-cli-livre-wrap input{width:100%;box-sizing:border-box;padding:9px 12px;border-radius:9px;border:1px solid rgba(255,196,0,.5);background:rgba(255,196,0,.06);color:#E8EEF4;font-size:14px;outline:none}
+.ocp-modal-vazio{text-align:center;color:#8BA4BF;font-size:13px;padding:18px 8px}
+.ocp-modal-ft{display:flex;gap:8px;padding:12px 18px;border-top:1px solid rgba(255,255,255,.08)}
+.ocp-modal-ft button{flex:1;padding:11px;border-radius:10px;font-size:14px;font-weight:800;cursor:pointer;border:none;transition:all .15s}
+.ocp-btn-limpar{background:rgba(255,61,61,.16);border:1px solid rgba(255,61,61,.45)!important;color:#ff8a8a}
+.ocp-btn-limpar:hover{background:rgba(255,61,61,.3)}
+.ocp-btn-cancelar{background:rgba(255,255,255,.08);color:#cfe0f0}
+.ocp-btn-cancelar:hover{background:rgba(255,255,255,.16)}
+.ocp-btn-confirmar{background:linear-gradient(180deg,#0a84c8,#0663a0);color:#fff;box-shadow:0 0 10px rgba(53,166,234,.4)}
+.ocp-btn-confirmar:hover{background:linear-gradient(180deg,#0b95e0,#0773b8)}
 .ocp-led.livre{
   background:radial-gradient(circle at 32% 28%, #d2ffe0 0%, #2ee65f 45%, #0e9c3a 100%);
   animation:ocpPulseG 1.7s ease-in-out infinite;
@@ -1235,7 +1290,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v2·90 (plantonista do dia no banner + escala oculta até dez/2026) -->
+    <!-- build: HUB-v2·92 (tooltip amarelo customizado no botão Cliente) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -5591,6 +5646,11 @@ function excluirNotaUI(id){
   // de fora e simplesmente não exibem nome. Para editar a escala, altere aqui.
   var OCP_ESCALA={"2026-07-06": "Nando", "2026-07-07": "Ghabi", "2026-07-08": "Leticia", "2026-07-09": "Ana", "2026-07-11": "Nando", "2026-07-13": "Ghabi", "2026-07-14": "Juliana", "2026-07-15": "Ana", "2026-07-16": "Ghabi", "2026-07-18": "Ghabi", "2026-07-20": "Juliana", "2026-07-21": "Ana", "2026-07-22": "Hynae", "2026-07-23": "Vini", "2026-07-25": "Juliana", "2026-07-27": "Ana", "2026-07-28": "Hynae", "2026-07-29": "Vini", "2026-07-30": "Mayara", "2026-08-01": "Ana", "2026-08-03": "Hynae", "2026-08-04": "Vini", "2026-08-05": "Mayara", "2026-08-06": "Liliane", "2026-08-08": "Hynae", "2026-08-10": "Vini", "2026-08-11": "Mayara", "2026-08-12": "Liliane", "2026-08-13": "Rael", "2026-08-15": "Vini", "2026-08-17": "Mayara", "2026-08-18": "Liliane", "2026-08-19": "Rael", "2026-08-20": "Madu", "2026-08-22": "Mayara", "2026-08-24": "Liliane", "2026-08-25": "Rael", "2026-08-26": "Madu", "2026-08-27": "Nando", "2026-08-29": "Liliane", "2026-08-31": "Rael", "2026-09-01": "Madu", "2026-09-02": "Nando", "2026-09-03": "Ghabi", "2026-09-05": "Rael", "2026-09-07": "Madu", "2026-09-08": "Nando", "2026-09-09": "Ghabi", "2026-09-10": "Juliana", "2026-09-12": "Madu", "2026-09-14": "Nando", "2026-09-15": "Ghabi", "2026-09-16": "Juliana", "2026-09-17": "Ana", "2026-09-18": "Nando", "2026-09-19": "Nando", "2026-09-21": "Ghabi", "2026-09-22": "Juliana", "2026-09-23": "Ana", "2026-09-24": "Hynae", "2026-09-26": "Ghabi", "2026-09-28": "Juliana", "2026-09-29": "Ana", "2026-09-30": "Hynae", "2026-10-01": "Vini", "2026-10-03": "Juliana", "2026-10-05": "Ana", "2026-10-06": "Hynae", "2026-10-07": "Vini", "2026-10-08": "Mayara", "2026-10-10": "Ana", "2026-10-12": "Hynae", "2026-10-13": "Vini", "2026-10-14": "Mayara", "2026-10-15": "Liliane", "2026-10-17": "Hynae", "2026-10-19": "Vini", "2026-10-20": "Mayara", "2026-10-21": "Liliane", "2026-10-22": "Rael", "2026-10-24": "Vini", "2026-10-26": "Mayara", "2026-10-27": "Liliane", "2026-10-28": "Rael", "2026-10-29": "Madu", "2026-10-31": "Mayara", "2026-11-02": "Liliane", "2026-11-03": "Rael", "2026-11-04": "Madu", "2026-11-05": "Nando", "2026-11-07": "Liliane", "2026-11-09": "Rael", "2026-11-10": "Madu", "2026-11-11": "Nando", "2026-11-12": "Ghabi", "2026-11-14": "Rael", "2026-11-16": "Madu", "2026-11-17": "Nando", "2026-11-18": "Ghabi", "2026-11-19": "Juliana", "2026-11-21": "Madu", "2026-11-23": "Nando", "2026-11-24": "Ghabi", "2026-11-25": "Juliana", "2026-11-26": "Ana", "2026-11-28": "Nando", "2026-11-30": "Ghabi", "2026-12-01": "Juliana", "2026-12-02": "Ana", "2026-12-03": "Hynae", "2026-12-05": "Ghabi", "2026-12-07": "Juliana", "2026-12-08": "Ana", "2026-12-09": "Hynae", "2026-12-10": "Vini", "2026-12-12": "Juliana", "2026-12-14": "Ana", "2026-12-15": "Hynae", "2026-12-16": "Vini", "2026-12-17": "Mayara", "2026-12-19": "Ana", "2026-12-21": "Hynae", "2026-12-22": "Vini", "2026-12-23": "Mayara", "2026-12-24": "Liliane", "2026-12-26": "Hynae", "2026-12-28": "Vini", "2026-12-29": "Mayara", "2026-12-30": "Liliane", "2026-12-31": "Rael"};
 
+  // >>> LISTA DE CLIENTES/EMPRESAS (ordem alfabética) para o seletor gerencial.
+  // Aparece quando o gestor clica no botão "+" abaixo do timer de um atendimento.
+  // Para incluir/remover clientes, edite este array (a ordenação é feita na tela).
+  var OCP_CLIENTES=["Central do Avivamento","Cia do Cr\u00e9dito","Clint","Conect","CredForYou","Credfranco","Criminal","Elements","Extratos da Terra","Fam\u00edlia (Lideran\u00e7a)","Hocta/Prosper","Icred","In Foco Agro","Licita\u00e7\u00e3o","Lideran\u00e7a","Maxpan","Nova Promotora","Palavra Viva","Pitz","Reali","Terraplein","\u00danica","Vallora","Wecann"];
+
   function ocpHoje(){
     var d=new Date();
     return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
@@ -5630,21 +5690,27 @@ function excluirNotaUI(id){
     var o=appConfig.ocupacaoAtendentes;
     var hoje=ocpHoje();
     if(!o || typeof o!=='object' || o.data!==hoje){
-      o={data:hoje, slots:{}, inicios:{}, pool:null, atual:null};   // dia novo: tudo verde, fila e timers zerados
+      o={data:hoje, slots:{}, inicios:{}, clientes:{}, pool:null, atual:null};   // dia novo: tudo verde, fila, timers e clientes zerados
       appConfig.ocupacaoAtendentes=o;
     }
     if(!o.slots || typeof o.slots!=='object') o.slots={};
     // 'inicios' guarda o timestamp (ms) de quando CADA botão virou vermelho.
     // Estrutura paralela aos slots — não interfere no sorteio nem na contagem de verdes.
     if(!o.inicios || typeof o.inicios!=='object') o.inicios={};
+    // 'clientes' guarda o cliente selecionado (string) em CADA botão vermelho.
+    // Também paralela aos slots. Vazio ('') = nenhum cliente escolhido ainda.
+    if(!o.clientes || typeof o.clientes!=='object') o.clientes={};
     OCP_ATENDENTES.forEach(function(a){
       if(!Array.isArray(o.slots[a]) || o.slots[a].length!==3) o.slots[a]=[0,0,0];
       if(!Array.isArray(o.inicios[a]) || o.inicios[a].length!==3) o.inicios[a]=[0,0,0];
+      if(!Array.isArray(o.clientes[a]) || o.clientes[a].length!==3) o.clientes[a]=['','',''];
       // sincroniza timers com o estado real: vermelho sem início → carimba agora;
       // verde com início preso → zera (auto-correção de qualquer inconsistência).
       for(var i=0;i<3;i++){
         if(o.slots[a][i] && !o.inicios[a][i]) o.inicios[a][i]=Date.now();
         if(!o.slots[a][i] && o.inicios[a][i]) o.inicios[a][i]=0;
+        // botão liberado (verde) não pode manter cliente preso: limpa a seleção.
+        if(!o.slots[a][i] && o.clientes[a][i]) o.clientes[a][i]='';
       }
     });
     return o;
@@ -5731,6 +5797,7 @@ function excluirNotaUI(id){
     el.innerHTML=OCP_ATENDENTES.map(function(a){
       var s=o.slots[a]||[0,0,0];
       var ini=o.inicios[a]||[0,0,0];
+      var cli=o.clientes[a]||['','',''];
       var ehVez=(a===o.atual);
       var leds=[0,1,2].map(function(i){
         var oc=!!s[i];
@@ -5742,11 +5809,26 @@ function excluirNotaUI(id){
           tmTxt=f.txt;
           tmData=' data-ocp-ini="'+ini[i]+'"';
         }
+        // botão de cliente: só aparece quando o botão está VERMELHO (atendimento ativo).
+        //  • sem cliente escolhido → botão "+"
+        //  • com cliente escolhido → botão "Cliente" (hover mostra o nome; clique reabre o seletor)
+        var btnCli='';
+        if(oc){
+          var nomeCli=(cli[i]||'').trim();
+          if(nomeCli){
+            btnCli='<button type="button" class="ocp-cli-btn tem" data-ocp-cli-at="'+ocpEsc(a)+'" data-ocp-cli-i="'+i+'"'+
+              ' data-ocp-cli-nome="'+ocpEsc(nomeCli)+'">Cliente</button>';
+          }else{
+            btnCli='<button type="button" class="ocp-cli-btn add" data-ocp-cli-at="'+ocpEsc(a)+'" data-ocp-cli-i="'+i+'"'+
+              ' title="Selecionar cliente em atendimento">+</button>';
+          }
+        }
         return '<div class="ocp-slot">'+
           '<button type="button" class="ocp-led '+(oc?'ocupado':'livre')+'"'+
           ' data-ocp-at="'+ocpEsc(a)+'" data-ocp-i="'+i+'"'+
           ' title="'+(oc?'Ocupado — clique para liberar':'Livre — clique para marcar ocupado')+'"></button>'+
           '<span class="'+tmClass+'"'+tmData+'>'+tmTxt+'</span>'+
+          btnCli+
         '</div>';
       }).join('');
       return '<div class="ocp-box'+(ehVez?' ocp-vez':'')+'">'+
@@ -5756,6 +5838,135 @@ function excluirNotaUI(id){
     }).join('');
     return mudouSorteio;
   };
+
+  /* ===== SELETOR DE CLIENTES (modal gerencial) =====
+     Abre quando o gestor clica no "+" (ou no botão "Cliente") sob um atendimento
+     ativo. Mostra a lista de clientes em ordem alfabética + as opções especiais
+     "Lazer" e "Outros" (cada uma com campo livre). Tem busca por nome. Ao
+     confirmar, grava o cliente escolhido no slot e publica na nuvem (compartilhado). */
+  var ocpModalCtx=null;   // {at, i} do slot que está sendo editado
+
+  function ocpNormaliza(s){
+    return (s||'').toString().toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'');   // remove acentos p/ busca
+  }
+
+  function ocpFecharModal(){
+    var bg=document.getElementById('ocpCliModal');
+    if(bg && bg.parentNode) bg.parentNode.removeChild(bg);
+    ocpModalCtx=null;
+  }
+
+  function ocpAbrirModalCliente(at, i){
+    ocpFecharModal();
+    var o=ocpEstado();
+    if(!o.slots[at] || !o.slots[at][i]) return;   // só abre para botão vermelho
+    ocpModalCtx={at:at, i:i};
+    var atualSel=(o.clientes[at] && o.clientes[at][i]) ? o.clientes[at][i] : '';
+
+    var bg=document.createElement('div');
+    bg.className='ocp-modal-bg';
+    bg.id='ocpCliModal';
+    bg.innerHTML=
+      '<div class="ocp-modal" role="dialog">'+
+        '<div class="ocp-modal-hd">'+
+          '<h3>👥 Cliente em atendimento</h3>'+
+          '<div class="ocp-modal-sub">'+ocpEsc(at)+' — selecione o cliente</div>'+
+        '</div>'+
+        '<div class="ocp-modal-busca"><input type="text" id="ocpCliBusca" placeholder="Buscar cliente..." autocomplete="off"></div>'+
+        '<div class="ocp-modal-lista" id="ocpCliLista"></div>'+
+        '<div class="ocp-modal-ft">'+
+          (atualSel ? '<button class="ocp-btn-limpar" id="ocpCliLimpar">Limpar</button>' : '')+
+          '<button class="ocp-btn-cancelar" id="ocpCliCancelar">Cancelar</button>'+
+        '</div>'+
+      '</div>';
+    document.body.appendChild(bg);
+
+    // fecha ao clicar fora ou no cancelar
+    bg.addEventListener('click', function(ev){ if(ev.target===bg) ocpFecharModal(); });
+    var btnCancel=document.getElementById('ocpCliCancelar');
+    if(btnCancel) btnCancel.onclick=ocpFecharModal;
+    var btnLimpar=document.getElementById('ocpCliLimpar');
+    if(btnLimpar) btnLimpar.onclick=function(){ ocpDefinirCliente(at,i,''); ocpFecharModal(); };
+
+    var busca=document.getElementById('ocpCliBusca');
+    function pintarLista(){
+      var termo=ocpNormaliza(busca.value);
+      var lista=document.getElementById('ocpCliLista');
+      var html='';
+      // clientes normais que batem com a busca
+      var achou=OCP_CLIENTES.filter(function(c){ return ocpNormaliza(c).indexOf(termo)>=0; });
+      achou.forEach(function(c){
+        var sel=(c===atualSel)?' sel':'';
+        html+='<button type="button" class="ocp-cli-item'+sel+'" data-ocp-pick="'+ocpEsc(c)+'">'+ocpEsc(c)+'</button>';
+      });
+      // opções especiais com campo livre (Lazer / Outros) — aparecem se baterem na busca
+      [['Lazer','ocpLivreLazer'],['Outros','ocpLivreOutros']].forEach(function(par){
+        var rotulo=par[0];
+        if(termo && ocpNormaliza(rotulo).indexOf(termo)<0) return;
+        // valor livre já salvo? (ex.: "Lazer: praia") vem como "Rotulo: xxxx"
+        var prefixo=rotulo+': ';
+        var jaLivre=(atualSel && atualSel.indexOf(prefixo)===0)?atualSel.slice(prefixo.length):'';
+        var selEsp=(atualSel===rotulo || jaLivre)?' sel':'';
+        html+='<button type="button" class="ocp-cli-item especial'+selEsp+'" data-ocp-especial="'+rotulo+'">'+rotulo+' — campo livre</button>';
+        html+='<div class="ocp-cli-livre-wrap'+((jaLivre||selEsp)?' show':'')+'" data-ocp-livre-wrap="'+rotulo+'">'+
+              '<input type="text" data-ocp-livre-input="'+rotulo+'" placeholder="Digite: '+rotulo.toLowerCase()+' — ex.: nome/descrição" value="'+ocpEsc(jaLivre)+'"></div>';
+      });
+      if(!html) html='<div class="ocp-modal-vazio">Nenhum cliente encontrado para "'+ocpEsc(busca.value)+'"</div>';
+      lista.innerHTML=html;
+    }
+    pintarLista();
+    busca.addEventListener('input', pintarLista);
+    setTimeout(function(){ try{ busca.focus(); }catch(e){} }, 30);
+
+    // cliques dentro da lista (delegação): escolher cliente normal, abrir campo livre, confirmar livre
+    document.getElementById('ocpCliLista').addEventListener('click', function(ev){
+      var pick=ev.target.closest ? ev.target.closest('[data-ocp-pick]') : null;
+      if(pick){ ocpDefinirCliente(at,i, pick.getAttribute('data-ocp-pick')); ocpFecharModal(); return; }
+      var esp=ev.target.closest ? ev.target.closest('[data-ocp-especial]') : null;
+      if(esp){
+        var rot=esp.getAttribute('data-ocp-especial');
+        var wrap=document.querySelector('[data-ocp-livre-wrap="'+rot+'"]');
+        var inp=document.querySelector('[data-ocp-livre-input="'+rot+'"]');
+        if(wrap){ wrap.classList.add('show'); }
+        if(inp){ setTimeout(function(){ try{ inp.focus(); }catch(e){} }, 20);
+          inp.onkeydown=function(k){ if(k.key==='Enter'){ ocpConfirmarLivre(rot, inp.value, at, i); } };
+          // salva ao sair do campo com conteúdo
+          inp.onblur=function(){ /* mantém aberto; confirmação é pelo Enter */ };
+        }
+      }
+    });
+  }
+
+  // confirma um valor de campo livre (Lazer/Outros) → grava como "Rotulo: texto"
+  function ocpConfirmarLivre(rotulo, texto, at, i){
+    var t=(texto||'').trim();
+    var valor = t ? (rotulo+': '+t) : rotulo;   // sem texto → grava só o rótulo
+    ocpDefinirCliente(at, i, valor);
+    ocpFecharModal();
+  }
+
+  // grava o cliente no slot e salva na nuvem (compartilhado entre PCs)
+  function ocpDefinirCliente(at, i, valor){
+    var o=ocpEstado();
+    if(!Array.isArray(o.clientes[at]) || o.clientes[at].length!==3) o.clientes[at]=['','',''];
+    o.clientes[at][i]=(valor||'').trim();
+    window.renderOcupacao();
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+  }
+
+  // clique nos botões "+"/"Cliente" → abre o seletor (delegação global)
+  document.addEventListener('click', function(e){
+    var cb=e.target && e.target.closest ? e.target.closest('.ocp-cli-btn') : null;
+    if(!cb) return;
+    e.stopPropagation();
+    var at=cb.getAttribute('data-ocp-cli-at');
+    var i=parseInt(cb.getAttribute('data-ocp-cli-i'),10);
+    if(at && !isNaN(i)) ocpAbrirModalCliente(at, i);
+  });
+
+  // ESC fecha o modal
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') ocpFecharModal(); });
 
   // clique num LED → alterna a cor e aplica as REGRAS do sorteio:
   //  • Virou VERMELHO (livre→ocupado):
@@ -5782,6 +5993,10 @@ function excluirNotaUI(id){
     // Como o timestamp é absoluto e vai pra nuvem, todos os PCs contam o MESMO tempo.
     if(!Array.isArray(o.inicios[at]) || o.inicios[at].length!==3) o.inicios[at]=[0,0,0];
     o.inicios[at][i] = virouVermelho ? Date.now() : 0;
+    // CLIENTE: ao LIBERAR o botão (virou verde), limpa o cliente daquele slot —
+    // o atendimento terminou, então a seleção de cliente não faz mais sentido.
+    if(!Array.isArray(o.clientes[at]) || o.clientes[at].length!==3) o.clientes[at]=['','',''];
+    if(!virouVermelho) o.clientes[at][i]='';
     var forcarSorteio = false;
     if(virouVermelho){
       // fim da fila: SEMPRE — remove o nome de onde estiver e recoloca no final.
