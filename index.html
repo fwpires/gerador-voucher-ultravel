@@ -206,9 +206,16 @@ body.dark .hub-sidebar .nav-add{color:var(--verde)}
 .ocp-box{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:10px 12px 12px;display:flex;flex-direction:column;gap:9px;transition:border-color .25s}
 .ocp-box:hover{border-color:rgba(255,255,255,.2)}
 .ocp-nome{font-weight:800;font-size:13px;color:#E8EEF4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
-.ocp-leds{display:flex;gap:9px;justify-content:center}
-.ocp-led{width:22px;height:22px;border-radius:50%;border:2px solid rgba(255,255,255,.22);cursor:pointer;padding:0;outline:none;transition:transform .12s ease}
+.ocp-leds{display:flex;gap:14px;justify-content:center;align-items:flex-start}
+.ocp-slot{display:flex;flex-direction:column;align-items:center;gap:4px}
+.ocp-led{width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,.22);cursor:pointer;padding:0;outline:none;transition:transform .12s ease}
 .ocp-led:active{transform:scale(.9)}
+.ocp-timer{font-size:10px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:.3px;line-height:1;min-height:11px;text-align:center;transition:color .3s}
+.ocp-timer.vazio{visibility:hidden}
+.ocp-timer.t-verde{color:#43e06a;text-shadow:0 0 6px rgba(67,224,106,.5)}
+.ocp-timer.t-amarelo{color:#FFC400;text-shadow:0 0 6px rgba(255,196,0,.55)}
+.ocp-timer.t-vermelho{color:#ff5252;text-shadow:0 0 7px rgba(255,82,82,.65);animation:ocpTimerBlink 1s ease-in-out infinite}
+@keyframes ocpTimerBlink{0%,100%{opacity:1}50%{opacity:.55}}
 .ocp-led.livre{
   background:radial-gradient(circle at 32% 28%, #d2ffe0 0%, #2ee65f 45%, #0e9c3a 100%);
   animation:ocpPulseG 1.7s ease-in-out infinite;
@@ -227,8 +234,10 @@ body.dark .hub-sidebar .nav-add{color:var(--verde)}
 }
 /* Banner do sorteio "Atendente da vez" */
 .ocp-vez-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;background:rgba(255,196,0,.09);border:1px solid rgba(255,196,0,.4);border-radius:10px;padding:10px 14px;margin:8px 2px 10px;font-size:14px;font-weight:700;color:#E8EEF4}
-.ocp-vez-nome{color:#FFC400;font-size:17px;letter-spacing:.3px;animation:ocpVezGlow 1.6s ease-in-out infinite}
+.ocp-vez-nome{color:#FFC400;font-size:14px;letter-spacing:.3px;animation:ocpVezGlow 1.6s ease-in-out infinite}
 .ocp-vez-bar.ocp-todos-ocupados{background:rgba(255,61,61,.09);border-color:rgba(255,61,61,.45)}
+.ocp-todos-msg{color:#ff4d4d;font-size:15px;letter-spacing:.3px;animation:ocpVezGlowR 1.3s ease-in-out infinite}
+@keyframes ocpVezGlowR{0%,100%{text-shadow:0 0 8px rgba(255,61,61,.5)}50%{text-shadow:0 0 16px rgba(255,61,61,1)}}
 /* Destaque dourado no quadro do atendente sorteado */
 .ocp-box{position:relative}
 .ocp-box.ocp-vez{border:1px solid #FFC400;animation:ocpVezBorda 1.6s ease-in-out infinite}
@@ -1223,7 +1232,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v2·83 (LEDs menores) -->
+    <!-- build: HUB-v2·87 (ajuste visual: botões e nome do sorteado menores) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -5533,16 +5542,19 @@ function excluirNotaUI(id){
    • VERDE vivo  = desocupado (livre)
    • VERMELHO vivo = ocupado — clique alterna livre ⇄ ocupado.
 
-   SORTEIO AUTOMÁTICO (fila do dia):
-   • O sistema SORTEIA aleatoriamente o "ATENDENTE DA VEZ" e mostra o nome
-     num banner dourado no topo do quadro (o card dele ganha moldura + selo).
-   • Quando o atendente da vez deixa os 3 LEDs VERMELHOS, ele vai para o
-     FINAL DA FILA e um NOVO SORTEIO acontece IMEDIATAMENTE entre os nomes
-     que ainda não foram contemplados neste ciclo.
+   SORTEIO AUTOMÁTICO (fila do dia) — REGRAS:
+   • O sistema SORTEIA o "ATENDENTE DA VEZ" e mostra o nome num banner dourado.
+   • A CADA botão que fica VERMELHO, um NOVO SORTEIO é disparado na hora (não
+     espera mais completar os 3 vermelhos) e o nome que recebeu o vermelho vai
+     para o FINAL DA FILA do sorteio.
+   • Liberar um botão (vermelho→verde) NÃO sorteia — apenas reativa o sorteio
+     caso ele estivesse suspenso.
+   • PRIORIDADE POR VERDE: entre os candidatos da fila, concorrem só os que têm
+     MAIS LEDs verdes; havendo empate nesse máximo, o desempate é por sorteio
+     aleatório. Quem tem menos verde fica atrás.
+   • SUSPENSÃO: quando TODOS estão com os 3 vermelhos, o sorteio para e o banner
+     mostra "Todos os atendentes estão ocupados neste momento!" em vermelho.
    • Quando todos já passaram, o ciclo REINICIA com todos os nomes de novo.
-   • Se TODOS os candidatos estiverem com 3 LEDs vermelhos, o banner avisa
-     "todos ocupados" e o sorteio dispara sozinho assim que alguém liberar
-     um LED.
 
    LISTA PRÓPRIA deste painel (OCP_ATENDENTES): não altera a lista global
    ATENDENTES usada em vendas, rankings e seletores — nada mais é afetado.
@@ -5551,8 +5563,18 @@ function excluirNotaUI(id){
    appConfig.ocupacaoAtendentes, salvo no Worker via /api/config. Todos os
    PCs veem o mesmo sorteio. Polling leve de 60s puxa mudanças de outros PCs.
 
-   RESET DIÁRIO AUTOMÁTICO: data em horário LOCAL (nunca UTC). No primeiro
-   uso de um dia novo, LEDs voltam ao verde e a fila recomeça do zero. */
+   RESET DIÁRIO AUTOMÁTICO: data em horário LOCAL (nunca UTC). Existem DOIS
+   gatilhos que garantem a virada, então o reset acontece mesmo se ninguém
+   tocar em nada:
+   1) Um verificador dedicado roda a cada 20s e detecta a troca de dia
+      SOZINHO, mesmo que o usuário esteja em outra tela do sistema — assim que
+      bate meia-noite, tudo já está zerado e um novo sorteio já foi feito.
+   2) Como reforço, ocpEstado() também confere a data toda vez que o painel é
+      desenhado — então mesmo que o PC estivesse desligado à meia-noite, ao
+      ligar de manhã o reset acontece na hora.
+   Em ambos os casos: LEDs voltam ao verde, a fila (pool) reinicia do zero e
+   um novo "atendente da vez" é sorteado — e o resultado é publicado na nuvem
+   (salvarConfig) para que todos os PCs vejam o mesmo reset. */
 (function(){
   // >>> EQUIPE DO PAINEL DE OCUPAÇÃO (edite aqui para incluir/remover nomes)
   var OCP_ATENDENTES=['Eduardo Vinícius','Ghabriella Bressan','Liliane Gaspar','Israel Hespanhol','Maria Eduarda','Juliana Lupo'];
@@ -5565,6 +5587,25 @@ function excluirNotaUI(id){
 
   // o atendente está com os 3 LEDs vermelhos?
   function ocpCheio(o,a){ var s=o.slots[a]; return Array.isArray(s)&&!!s[0]&&!!s[1]&&!!s[2]; }
+  // quantos LEDs VERDES (livres) o atendente tem — usado na prioridade do sorteio
+  function ocpVerdes(o,a){ var s=o.slots[a]||[0,0,0]; return (s[0]?0:1)+(s[1]?0:1)+(s[2]?0:1); }
+
+  /* Formata o tempo decorrido (em ms) para o timer sob cada botão.
+     • Formato AUTOMÁTICO: MM:SS normalmente; passa a HH:MM:SS após 1 hora.
+     • Devolve também a classe de COR por faixa de tempo (alerta visual):
+       verde (< 10 min) → amarelo (10 a 20 min) → vermelho (> 20 min). */
+  function ocpFmtTimer(ms){
+    if(ms<0) ms=0;
+    var totalSeg=Math.floor(ms/1000);
+    var h=Math.floor(totalSeg/3600);
+    var m=Math.floor((totalSeg%3600)/60);
+    var s=totalSeg%60;
+    var p2=function(n){ return String(n).padStart(2,'0'); };
+    var txt = h>0 ? (p2(h)+':'+p2(m)+':'+p2(s)) : (p2(m)+':'+p2(s));
+    var totalMin=totalSeg/60;
+    var cor = totalMin<10 ? 't-verde' : (totalMin<20 ? 't-amarelo' : 't-vermelho');
+    return {txt:txt, cor:cor};
+  }
 
   // devolve o estado do dia, criando/zerando quando é um dia novo (reset diário)
   function ocpEstado(){
@@ -5572,66 +5613,113 @@ function excluirNotaUI(id){
     var o=appConfig.ocupacaoAtendentes;
     var hoje=ocpHoje();
     if(!o || typeof o!=='object' || o.data!==hoje){
-      o={data:hoje, slots:{}, pool:null, atual:null};   // dia novo: tudo verde, fila zerada
+      o={data:hoje, slots:{}, inicios:{}, pool:null, atual:null};   // dia novo: tudo verde, fila e timers zerados
       appConfig.ocupacaoAtendentes=o;
     }
     if(!o.slots || typeof o.slots!=='object') o.slots={};
+    // 'inicios' guarda o timestamp (ms) de quando CADA botão virou vermelho.
+    // Estrutura paralela aos slots — não interfere no sorteio nem na contagem de verdes.
+    if(!o.inicios || typeof o.inicios!=='object') o.inicios={};
     OCP_ATENDENTES.forEach(function(a){
       if(!Array.isArray(o.slots[a]) || o.slots[a].length!==3) o.slots[a]=[0,0,0];
+      if(!Array.isArray(o.inicios[a]) || o.inicios[a].length!==3) o.inicios[a]=[0,0,0];
+      // sincroniza timers com o estado real: vermelho sem início → carimba agora;
+      // verde com início preso → zera (auto-correção de qualquer inconsistência).
+      for(var i=0;i<3;i++){
+        if(o.slots[a][i] && !o.inicios[a][i]) o.inicios[a][i]=Date.now();
+        if(!o.slots[a][i] && o.inicios[a][i]) o.inicios[a][i]=0;
+      }
     });
     return o;
   }
 
-  /* Garante que existe um "atendente da vez" válido — sorteando quando preciso.
-     Retorna true se o sorteio/fila foi alterado (para sabermos quando salvar). */
-  function ocpGarantirVez(o){
+  /* Garante que existe um "atendente da vez" válido, aplicando as REGRAS NOVAS:
+
+     • forcar=true  → um botão acabou de ficar VERMELHO. Isso SEMPRE dispara um
+       novo sorteio, mesmo que o atual ainda tenha botões verdes. O nome que
+       recebeu o vermelho já foi mandado para o fim da fila pelo handler de clique.
+
+     • PRIORIDADE POR VERDE (regra C): entre os candidatos elegíveis, só concorrem
+       os que têm o MAIOR número de LEDs verdes. Se houver empate nesse máximo,
+       aí sim o desempate é por SORTEIO aleatório. Quem tem menos verde fica atrás
+       e só entra se os mais livres não estiverem disponíveis.
+
+     • SUSPENSÃO: se TODOS estiverem com 3 vermelhos (nenhum verde em ninguém),
+       o.atual vira null e o painel mostra a mensagem de "todos ocupados".
+
+     Retorna true se o sorteio/fila mudou (para sabermos quando salvar na nuvem). */
+  function ocpGarantirVez(o, forcar){
     var antes=JSON.stringify({a:o.atual||null, p:o.pool||null});
-    // nomes que saíram da equipe não podem permanecer na fila nem como "da vez"
+    // higiene: nomes fora da equipe não podem ficar na fila nem como "da vez"
     if(o.atual && OCP_ATENDENTES.indexOf(o.atual)<0) o.atual=null;
     if(Array.isArray(o.pool)) o.pool=o.pool.filter(function(n){ return OCP_ATENDENTES.indexOf(n)>=0; });
-    // a vez atual segue valendo enquanto o atendente NÃO estiver com 3 vermelhos
-    if(!(o.atual && !ocpCheio(o,o.atual))){
-      o.atual=null;                                        // completou → vai pro FINAL DA FILA
-      if(!Array.isArray(o.pool) || !o.pool.length) o.pool=OCP_ATENDENTES.slice();   // ciclo novo: todos voltam
-      // sorteia entre os do ciclo que NÃO estão com 3 vermelhos
-      var livres=o.pool.filter(function(n){ return !ocpCheio(o,n); });
-      if(!livres.length){                                  // ciclo inteiro cheio → tenta reiniciar com todos
+
+    // precisa sortear? Sim se: foi forçado por um vermelho, OU não há atual,
+    // OU o atual já não tem mais nenhum verde (ficou 100% ocupado).
+    var precisa = forcar || !o.atual || ocpCheio(o, o.atual);
+    if(precisa){
+      o.atual=null;
+      if(!Array.isArray(o.pool) || !o.pool.length) o.pool=OCP_ATENDENTES.slice();  // ciclo novo
+
+      // candidatos = quem ainda está na fila do ciclo e tem ao menos 1 verde
+      var candidatos=o.pool.filter(function(n){ return !ocpCheio(o,n); });
+      if(!candidatos.length){                       // ninguém elegível na fila → reinicia o ciclo
         o.pool=OCP_ATENDENTES.slice();
-        livres=o.pool.filter(function(n){ return !ocpCheio(o,n); });
+        candidatos=o.pool.filter(function(n){ return !ocpCheio(o,n); });
       }
-      if(livres.length){
-        var escolhido=livres[Math.floor(Math.random()*livres.length)];   // SORTEIO aleatório
+
+      if(candidatos.length){
+        // PRIORIDADE: acha o maior nº de verdes entre os candidatos...
+        var maxVerdes=Math.max.apply(null, candidatos.map(function(n){ return ocpVerdes(o,n); }));
+        // ...e só concorrem os que têm esse máximo (os mais livres). Empate = sorteio.
+        var maisLivres=candidatos.filter(function(n){ return ocpVerdes(o,n)===maxVerdes; });
+        var escolhido=maisLivres[Math.floor(Math.random()*maisLivres.length)];   // SORTEIO no empate
         o.atual=escolhido;
-        o.pool=o.pool.filter(function(n){ return n!==escolhido; });      // sai da fila do ciclo
+        o.pool=o.pool.filter(function(n){ return n!==escolhido; });               // sai da fila do ciclo
       }
-      // se livres ficou vazio: agência 100% ocupada → o.atual permanece null
+      // candidatos vazio = agência 100% ocupada → o.atual permanece null (suspende)
     }
     return antes!==JSON.stringify({a:o.atual||null, p:o.pool||null});
   }
 
-  // desenha o banner do sorteio + os quadros com os LEDs no Dashboard
-  window.renderOcupacao=function(){
+  // desenha o banner do sorteio + os quadros com os LEDs no Dashboard.
+  // forcar=true → um vermelho acabou de ser marcado: força um novo sorteio.
+  window.renderOcupacao=function(forcar){
     var el=document.getElementById('ocpGrid'); if(!el) return false;
     var o=ocpEstado();
-    var mudouSorteio=ocpGarantirVez(o);
+    var mudouSorteio=ocpGarantirVez(o, forcar);
     var barra=document.getElementById('ocpVezBar');
     if(barra){
       if(o.atual){
         barra.className='ocp-vez-bar';
         barra.innerHTML='🎯 Atendente da vez: <b class="ocp-vez-nome">'+ocpEsc(o.atual)+'</b>';
       }else{
+        // SUSPENSÃO: todos com 3 vermelhos — mensagem exata, em vermelho vivo
         barra.className='ocp-vez-bar ocp-todos-ocupados';
-        barra.innerHTML='🔴 <b>Todos os atendentes estão ocupados</b> — o sorteio acontece sozinho assim que alguém liberar um LED';
+        barra.innerHTML='<b class="ocp-todos-msg">🔴 Todos os atendentes estão ocupados neste momento!</b>';
       }
     }
+    var agora=Date.now();
     el.innerHTML=OCP_ATENDENTES.map(function(a){
       var s=o.slots[a]||[0,0,0];
+      var ini=o.inicios[a]||[0,0,0];
       var ehVez=(a===o.atual);
       var leds=[0,1,2].map(function(i){
         var oc=!!s[i];
-        return '<button type="button" class="ocp-led '+(oc?'ocupado':'livre')+'"'+
+        // timer: só aparece quando o botão está vermelho e tem um início carimbado
+        var tmClass='ocp-timer vazio', tmTxt='00:00', tmData='';
+        if(oc && ini[i]){
+          var f=ocpFmtTimer(agora-ini[i]);
+          tmClass='ocp-timer '+f.cor;
+          tmTxt=f.txt;
+          tmData=' data-ocp-ini="'+ini[i]+'"';
+        }
+        return '<div class="ocp-slot">'+
+          '<button type="button" class="ocp-led '+(oc?'ocupado':'livre')+'"'+
           ' data-ocp-at="'+ocpEsc(a)+'" data-ocp-i="'+i+'"'+
-          ' title="'+(oc?'Ocupado — clique para liberar':'Livre — clique para marcar ocupado')+'"></button>';
+          ' title="'+(oc?'Ocupado — clique para liberar':'Livre — clique para marcar ocupado')+'"></button>'+
+          '<span class="'+tmClass+'"'+tmData+'>'+tmTxt+'</span>'+
+        '</div>';
       }).join('');
       return '<div class="ocp-box'+(ehVez?' ocp-vez':'')+'">'+
              (ehVez?'<div class="ocp-vez-selo">🎯 DA VEZ</div>':'')+
@@ -5641,9 +5729,11 @@ function excluirNotaUI(id){
     return mudouSorteio;
   };
 
-  // clique num LED → alterna, o render cuida do sorteio automático, e salva na nuvem.
-  // Cobre os dois gatilhos: (1) atendente da vez completou 3 vermelhos → novo sorteio
-  // NA HORA; (2) estava "todos ocupados" e alguém liberou → sorteio dispara sozinho.
+  // clique num LED → alterna a cor e aplica as REGRAS NOVAS do sorteio:
+  //  • Virou VERMELHO (livre→ocupado): manda esse nome para o FIM DA FILA e
+  //    força um NOVO SORTEIO na hora (mesmo que o atual ainda tenha verdes).
+  //  • Virou VERDE (ocupado→livre): NÃO sorteia. Apenas redesenha — o que já
+  //    reativa o sorteio automaticamente caso estivesse suspenso ("todos ocupados").
   document.addEventListener('click', function(e){
     var b=e.target && e.target.closest ? e.target.closest('.ocp-led') : null;
     if(!b) return;
@@ -5651,10 +5741,40 @@ function excluirNotaUI(id){
     var i=parseInt(b.getAttribute('data-ocp-i'),10);
     var o=ocpEstado();
     if(!o.slots[at] || isNaN(i)) return;
+    var eraLivre = !o.slots[at][i];
     o.slots[at][i]=o.slots[at][i]?0:1;   // alterna livre ⇄ ocupado
-    window.renderOcupacao();              // feedback visual + sorteio imediato se preciso
+    var virouVermelho = eraLivre;        // clicou num verde → agora é vermelho
+    // TIMER: carimba o horário exato do clique quando vira vermelho; zera ao liberar.
+    // Como o timestamp é absoluto e vai pra nuvem, todos os PCs contam o MESMO tempo.
+    if(!Array.isArray(o.inicios[at]) || o.inicios[at].length!==3) o.inicios[at]=[0,0,0];
+    o.inicios[at][i] = virouVermelho ? Date.now() : 0;
+    if(virouVermelho){
+      // fim da fila: remove o nome de onde estiver e recoloca no final do pool
+      if(!Array.isArray(o.pool)) o.pool=OCP_ATENDENTES.slice();
+      o.pool=o.pool.filter(function(n){ return n!==at; });
+      o.pool.push(at);
+      // se quem virou vermelho era o "da vez", ele perde a vez agora
+      if(o.atual===at) o.atual=null;
+    }
+    window.renderOcupacao(virouVermelho); // vermelho → força resorteio; verde → só redesenha
     try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(err){}
   });
+
+  // ===== RESET AUTOMÁTICO À MEIA-NOITE =====
+  // Verifica a cada 20s se a data mudou (virou meia-noite). Funciona mesmo que
+  // o usuário esteja em OUTRA tela (não precisa estar no Dashboard olhando):
+  // assim que a virada acontece, o sorteio é reiniciado e já fica pronto —
+  // com um novo "atendente da vez" sorteado — quando a pessoa abrir o Dashboard.
+  var ocpUltimaDataVista=(appConfig.ocupacaoAtendentes && appConfig.ocupacaoAtendentes.data) || ocpHoje();
+  setInterval(function(){
+    try{
+      var hojeAgora=ocpHoje();
+      if(hojeAgora===ocpUltimaDataVista) return;   // ainda é o mesmo dia: nada a fazer
+      ocpUltimaDataVista=hojeAgora;                // vamos tratar a virada agora
+      window.renderOcupacao();                     // ocpEstado() detecta a data nova e ZERA tudo + sorteia
+      try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}  // publica o reset pra todos os PCs
+    }catch(e){}
+  }, 20*1000);
 
   // POLLING entre PCs: a cada 60s (só com Dashboard visível e aba em 1º plano)
   // busca o config da nuvem e aplica LEDs + fila + sorteio feitos em outro PC.
@@ -5679,6 +5799,32 @@ function excluirNotaUI(id){
       }
     }catch(e){}
   }, 60*1000);
+
+  /* ===== TICK DO TIMER (1 segundo) =====
+     Atualiza SÓ o texto e a cor de cada timer já presente na tela — não
+     redesenha os quadros nem os LEDs. Assim a contagem sobe suave (00:01,
+     00:02, ...) sem piscar, sem custo, e sem interferir em cliques/sorteio.
+     Cada <span> de timer ativo carrega o timestamp de início em data-ocp-ini;
+     o tick apenas recalcula agora−início a cada segundo. Roda somente com o
+     Dashboard visível e a aba em primeiro plano (economiza recursos). */
+  setInterval(function(){
+    try{
+      if(document.hidden) return;
+      var ds=document.getElementById('scr-dashboard');
+      if(!ds || !ds.classList.contains('active')) return;
+      var spans=document.querySelectorAll('#ocpGrid .ocp-timer[data-ocp-ini]');
+      if(!spans.length) return;
+      var agora=Date.now();
+      spans.forEach(function(sp){
+        var ini=parseInt(sp.getAttribute('data-ocp-ini'),10);
+        if(!ini) return;
+        var f=ocpFmtTimer(agora-ini);
+        if(sp.textContent!==f.txt) sp.textContent=f.txt;
+        var cls='ocp-timer '+f.cor;
+        if(sp.className!==cls) sp.className=cls;   // troca a cor ao cruzar as faixas de tempo
+      });
+    }catch(e){}
+  }, 1000);
 
   // primeira pintura: se este PC fez o 1º sorteio do dia, grava na nuvem na hora
   function ini(){ try{ if(window.renderOcupacao()){ if(typeof salvarConfig==='function') salvarConfig(); } }catch(e){} }
