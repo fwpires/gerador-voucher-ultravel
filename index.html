@@ -1393,7 +1393,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v3·10 (correção crítica dos botões: pool do merge copiado por valor + trava anti-embaralhamento no re-render durante modal aberto) -->
+    <!-- build: HUB-v3·11 (correção definitiva: merge por timestamp — liberar botão nunca mais é desfeito por estado antigo da nuvem) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -5805,7 +5805,7 @@ function excluirNotaUI(id){
     if(base.data && outro.data && base.data!==outro.data) return base;
     var out={
       data: base.data || outro.data,
-      slots:{}, inicios:{}, clientes:{}, livres:{},
+      slots:{}, inicios:{}, clientes:{}, livres:{}, mods:{},
       // COPIA o pool por VALOR (slice), nunca por referência — se copiássemos a
       // referência, um filter/push posterior no sorteio mutaria o estado antigo
       // compartilhado e embaralharia a fila entre re-renders. slice() isola.
@@ -5826,27 +5826,40 @@ function excluirNotaUI(id){
       var oc=(outro.clientes&&outro.clientes[a]) || ['','',''];
       var bl=(base.livres&&base.livres[a])   || [[],[],[]];
       var ol=(outro.livres&&outro.livres[a]) || [[],[],[]];
+      // carimbos de tempo por slot (0 = nunca modificado nesta versão)
+      var bm=(base.mods&&base.mods[a])   || [0,0,0];
+      var om=(outro.mods&&outro.mods[a]) || [0,0,0];
       out.slots[a]=[0,0,0]; out.inicios[a]=[0,0,0];
-      out.clientes[a]=['','','']; out.livres[a]=[[],[],[]];
+      out.clientes[a]=['','','']; out.livres[a]=[[],[],[]]; out.mods[a]=[0,0,0];
       for(var i=0;i<3;i++){
-        var vermelhoBase = !!bs[i];
-        var vermelhoOutro= !!os[i];
-        // o slot fica VERMELHO se estiver vermelho em qualquer das versões
-        var vermelho = vermelhoBase || vermelhoOutro;
-        out.slots[a][i] = vermelho ? 1 : 0;
-        if(!vermelho){
-          // AMBOS verdes → slot zera por completo (regra de ouro: só limpa no verde)
+        var modBase = bm[i]||0;
+        var modOutro= om[i]||0;
+        // DECISÃO POR RECÊNCIA: a versão que mexeu por último NESTE slot vence —
+        // seja para marcar vermelho, seja para LIBERAR (verde). É isso que impede
+        // um vermelho antigo da nuvem de "ressuscitar" um botão que você acabou de
+        // liberar. Empate ou ambos sem carimbo → cai na regra segura (vermelho vence)
+        // para nunca perder um atendimento em curso entre PCs.
+        var venc;   // 'base' | 'outro'
+        if(modBase>modOutro)      venc='base';
+        else if(modOutro>modBase) venc='outro';
+        else                      venc=(!!bs[i]) ? 'base' : (!!os[i] ? 'outro' : 'base'); // sem carimbo: preserva vermelho
+        var sVenc = (venc==='base') ? bs[i] : os[i];
+        out.slots[a][i] = sVenc ? 1 : 0;
+        out.mods[a][i]  = Math.max(modBase, modOutro);
+        if(!sVenc){
+          // vencedor está VERDE → limpa tudo (liberação intencional prevalece)
           out.inicios[a][i]=0; out.clientes[a][i]=''; out.livres[a][i]=[];
           continue;
         }
-        // slot vermelho → preserva cliente/timer/livres da versão que os tem.
-        // Preferimos a BASE quando ela já está vermelha e tem cliente; senão o OUTRO.
-        var cliente = (vermelhoBase && bc[i]) ? bc[i] : ((vermelhoOutro && oc[i]) ? oc[i] : (bc[i]||oc[i]||''));
-        var inicio  = (vermelhoBase && bi[i]) ? bi[i] : ((vermelhoOutro && oi[i]) ? oi[i] : (bi[i]||oi[i]||0));
-        var livres  = (vermelhoBase && bl[i] && bl[i].length) ? bl[i] : ((vermelhoOutro && ol[i] && ol[i].length) ? ol[i] : (bl[i]&&bl[i].length?bl[i]:(ol[i]||[])));
-        out.clientes[a][i]=cliente;
-        out.inicios[a][i]=inicio || Date.now();   // se ficou vermelho sem início, começa agora
-        out.livres[a][i]=Array.isArray(livres)?livres.slice():[];
+        // vencedor está VERMELHO → usa cliente/timer/livres DESSA versão vencedora
+        var cVenc = (venc==='base') ? bc[i] : oc[i];
+        var iVenc = (venc==='base') ? bi[i] : oi[i];
+        var lVenc = (venc==='base') ? bl[i] : ol[i];
+        // se a versão vencedora não tiver cliente/timer, tenta o da outra (não perde dado)
+        out.clientes[a][i]=cVenc || bc[i] || oc[i] || '';
+        out.inicios[a][i]=(iVenc || bi[i] || oi[i] || 0) || Date.now();
+        var lFin = (lVenc && lVenc.length) ? lVenc : ((bl[i]&&bl[i].length)?bl[i]:(ol[i]||[]));
+        out.livres[a][i]=Array.isArray(lFin)?lFin.slice():[];
       }
     });
     return out;
@@ -5988,10 +6001,18 @@ function excluirNotaUI(id){
     // 'livres' guarda os nomes personalizados (campo livre de Lazer/Outros) criados
     // NAQUELE slot específico. Cada slot tem sua própria lista; some ao ficar verde.
     if(!o.livres || typeof o.livres!=='object') o.livres={};
+    // 'mods' guarda o TIMESTAMP da última alteração de CADA slot (feita neste PC).
+    // É a chave da sincronização correta entre dispositivos: no merge, quando duas
+    // versões divergem, vence a que tem o carimbo MAIS RECENTE. Assim, LIBERAR um
+    // botão (deixá-lo verde) vence um vermelho antigo que ainda esteja na nuvem —
+    // corrigindo o bug do estado "ressuscitado". Preserva a proteção entre PCs
+    // porque a ação mais nova (de qualquer PC) é sempre a que prevalece.
+    if(!o.mods || typeof o.mods!=='object') o.mods={};
     OCP_ATENDENTES.forEach(function(a){
       if(!Array.isArray(o.slots[a]) || o.slots[a].length!==3) o.slots[a]=[0,0,0];
       if(!Array.isArray(o.inicios[a]) || o.inicios[a].length!==3) o.inicios[a]=[0,0,0];
       if(!Array.isArray(o.clientes[a]) || o.clientes[a].length!==3) o.clientes[a]=['','',''];
+      if(!Array.isArray(o.mods[a]) || o.mods[a].length!==3) o.mods[a]=[0,0,0];
       // cada slot tem um array de nomes livres: o.livres[a] = [ [...], [...], [...] ]
       if(!Array.isArray(o.livres[a]) || o.livres[a].length!==3) o.livres[a]=[[],[],[]];
       // sincroniza timers com o estado real: vermelho sem início → carimba agora;
@@ -6489,6 +6510,9 @@ function excluirNotaUI(id){
     var o=ocpEstado();
     if(!Array.isArray(o.clientes[at]) || o.clientes[at].length!==3) o.clientes[at]=['','',''];
     o.clientes[at][i]=(valor||'').trim();
+    // carimba a modificação deste slot (marcar/limpar cliente ou Interno/Indisp/Ausente)
+    if(!Array.isArray(o.mods[at]) || o.mods[at].length!==3) o.mods[at]=[0,0,0];
+    o.mods[at][i]=Date.now();
     window.renderOcupacao();
     try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
   }
@@ -6524,6 +6548,10 @@ function excluirNotaUI(id){
     if(!o.slots[at] || isNaN(i)) return;
     var eraLivre = !o.slots[at][i];
     o.slots[at][i]=o.slots[at][i]?0:1;   // alterna livre ⇄ ocupado
+    // CARIMBO DE MODIFICAÇÃO: registra QUANDO este slot mudou, para o merge entre
+    // PCs saber que esta ação é a mais recente (e não deixar a nuvem antiga desfazê-la).
+    if(!Array.isArray(o.mods[at]) || o.mods[at].length!==3) o.mods[at]=[0,0,0];
+    o.mods[at][i]=Date.now();
     var virouVermelho = eraLivre;        // clicou num verde → agora é vermelho
     // quem clicou É o atendente da vez atual? só ele pode disparar o resorteio.
     var souDaVez = (o.atual===at);
