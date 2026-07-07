@@ -1307,7 +1307,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v2·99 (correção: Limpar agora apaga também os nomes livres salvos no topo da lista) -->
+    <!-- build: HUB-v3·00 (5 novos atendentes no painel, com gestão completa mas fora do sorteio) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -5655,7 +5655,12 @@ function excluirNotaUI(id){
    (salvarConfig) para que todos os PCs vejam o mesmo reset. */
 (function(){
   // >>> EQUIPE DO PAINEL DE OCUPAÇÃO (edite aqui para incluir/remover nomes)
-  var OCP_ATENDENTES=['Eduardo Vinícius','Ghabriella Bressan','Liliane Gaspar','Israel Hespanhol','Maria Eduarda','Juliana Lupo'];
+  // OCP_ATENDENTES = TODOS que aparecem no painel (com LEDs, timers, clientes, etc).
+  // OCP_SORTEAVEIS = apenas os que ENTRAM no sorteio do "atendente da vez".
+  // Os nomes que estão em OCP_ATENDENTES mas NÃO em OCP_SORTEAVEIS têm o sistema
+  // completo de gestão, porém NUNCA são sorteados.
+  var OCP_ATENDENTES=['Eduardo Vinícius','Ghabriella Bressan','Liliane Gaspar','Israel Hespanhol','Maria Eduarda','Juliana Lupo','Diego Oliveira','Fernando Pires','Ana Maria','Hynaê Teston','Ruth Alves'];
+  var OCP_SORTEAVEIS=['Eduardo Vinícius','Ghabriella Bressan','Liliane Gaspar','Israel Hespanhol','Maria Eduarda','Juliana Lupo'];
 
   // >>> ESCALA DE PLANTÕES (dados OCULTOS — nada é exibido em tabela na interface).
   // O sistema mostra apenas o plantonista do DIA ATUAL, ao lado direito do banner.
@@ -5758,9 +5763,10 @@ function excluirNotaUI(id){
      Retorna true se o sorteio/fila mudou (para sabermos quando salvar na nuvem). */
   function ocpGarantirVez(o, forcar){
     var antes=JSON.stringify({a:o.atual||null, p:o.pool||null});
-    // higiene: nomes fora da equipe não podem ficar na fila nem como "da vez"
-    if(o.atual && OCP_ATENDENTES.indexOf(o.atual)<0) o.atual=null;
-    if(Array.isArray(o.pool)) o.pool=o.pool.filter(function(n){ return OCP_ATENDENTES.indexOf(n)>=0; });
+    // higiene: só quem é SORTEÁVEL pode ficar na fila ou como "da vez".
+    // Isso garante que os atendentes fora do sorteio NUNCA sejam selecionados.
+    if(o.atual && OCP_SORTEAVEIS.indexOf(o.atual)<0) o.atual=null;
+    if(Array.isArray(o.pool)) o.pool=o.pool.filter(function(n){ return OCP_SORTEAVEIS.indexOf(n)>=0; });
 
     // Precisa sortear? Somente em dois casos:
     //  • forcar=true  → o PRÓPRIO atendente da vez marcou vermelho (definido no clique), ou
@@ -5773,12 +5779,12 @@ function excluirNotaUI(id){
     var precisa = forcar || !o.atual;
     if(precisa){
       o.atual=null;
-      if(!Array.isArray(o.pool) || !o.pool.length) o.pool=OCP_ATENDENTES.slice();  // ciclo novo
+      if(!Array.isArray(o.pool) || !o.pool.length) o.pool=OCP_SORTEAVEIS.slice();  // ciclo novo (só sorteáveis)
 
       // candidatos = quem ainda está na fila do ciclo e tem ao menos 1 verde
       var candidatos=o.pool.filter(function(n){ return !ocpCheio(o,n); });
       if(!candidatos.length){                       // ninguém elegível na fila → reinicia o ciclo
-        o.pool=OCP_ATENDENTES.slice();
+        o.pool=OCP_SORTEAVEIS.slice();
         candidatos=o.pool.filter(function(n){ return !ocpCheio(o,n); });
       }
 
@@ -6105,17 +6111,20 @@ function excluirNotaUI(id){
     if(!virouVermelho) o.clientes[at][i]='';
     var forcarSorteio = false;
     if(virouVermelho){
-      // fim da fila: SEMPRE — remove o nome de onde estiver e recoloca no final.
-      // Vale para qualquer pessoa que puxe um atendimento, seja ela a da vez ou não.
-      if(!Array.isArray(o.pool)) o.pool=OCP_ATENDENTES.slice();
-      o.pool=o.pool.filter(function(n){ return n!==at; });
-      o.pool.push(at);
-      // sorteio novo SÓ se foi o próprio atendente da vez que marcou vermelho.
-      if(souDaVez){
-        o.atual=null;          // ele perde a vez → abre espaço para o sorteio
-        forcarSorteio=true;
+      // fim da fila: SÓ para atendentes SORTEÁVEIS — os fora do sorteio nunca
+      // entram na fila. Remove o nome de onde estiver e recoloca no final.
+      if(OCP_SORTEAVEIS.indexOf(at)>=0){
+        if(!Array.isArray(o.pool)) o.pool=OCP_SORTEAVEIS.slice();
+        o.pool=o.pool.filter(function(n){ return n!==at; });
+        o.pool.push(at);
+        // sorteio novo SÓ se foi o próprio atendente da vez (que é sorteável) que marcou vermelho.
+        if(souDaVez){
+          o.atual=null;          // ele perde a vez → abre espaço para o sorteio
+          forcarSorteio=true;
+        }
       }
-      // se foi OUTRA pessoa: o.atual permanece intacto — nenhum sorteio acontece.
+      // atendente NÃO sorteável marcando vermelho: não mexe na fila nem no sorteio.
+      // se foi OUTRA pessoa sorteável: o.atual permanece intacto — nenhum sorteio acontece.
     }
     window.renderOcupacao(forcarSorteio); // só força resorteio quando a própria da vez marcou vermelho
     try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(err){}
