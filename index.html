@@ -274,6 +274,36 @@ body.dark .hub-sidebar .nav-add{color:var(--verde)}
 @keyframes ocpAusenteBlink{0%,100%{opacity:1}50%{opacity:.72}}
 @keyframes ocpIndispBlink{0%,100%{opacity:1}50%{opacity:.72}}
 @keyframes ocpInternoBlink{0%,100%{opacity:1}50%{opacity:.72}}
+/* ===== STAND BY — clientes atendidos que aguardam retorno (fora da ocupação ativa) ===== */
+.ocp-sb{margin-top:9px;padding-top:8px;border-top:1px dashed rgba(255,255,255,.13);display:flex;flex-direction:column;gap:6px}
+.ocp-sb-tit{font-size:10px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:#ff9838;text-align:center;opacity:.92}
+.ocp-sb-list{display:flex;flex-direction:column;gap:5px;align-items:stretch}
+.ocp-sb-add{align-self:center;width:26px;height:20px;padding:0;font-size:15px;line-height:1;font-weight:800;border-radius:7px;cursor:pointer;background:rgba(255,152,56,.14);border:1px solid rgba(255,152,56,.5);color:#ff9838;transition:all .15s}
+.ocp-sb-add:hover{background:rgba(255,152,56,.3);border-color:#ff9838;color:#fff}
+.ocp-sb-add:active{transform:scale(.9)}
+/* botão laranja neon piscando de cada cliente em stand by (visual igual aos de status) */
+.ocp-sb-btn{position:relative;font-size:10px;font-weight:900;line-height:1.15;border-radius:7px;cursor:pointer;padding:5px 7px;outline:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;width:100%;box-sizing:border-box;background:linear-gradient(180deg,#ff8a1c,#e06600);border:1px solid #ffb057;color:#231400;box-shadow:0 0 8px rgba(255,138,28,.6);animation:ocpSbBlink 1.4s ease-in-out infinite;transition:all .15s}
+.ocp-sb-btn:hover{background:linear-gradient(180deg,#ff9d33,#f07400);box-shadow:0 0 12px rgba(255,138,28,.9)}
+.ocp-sb-btn:active{transform:scale(.95)}
+@keyframes ocpSbBlink{0%,100%{opacity:1}50%{opacity:.68}}
+/* tooltip amarelo com a OBSERVAÇÃO (só aparece se houver observação) */
+.ocp-sb-btn[data-ocp-sb-obs]:not([data-ocp-sb-obs=""])::after{content:attr(data-ocp-sb-obs);position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%) scale(.9);background:#FFC400;color:#000;font-weight:800;font-size:12px;letter-spacing:.2px;padding:6px 11px;border-radius:7px;white-space:normal;width:max-content;max-width:220px;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,.45);border:1px solid #d9a900;opacity:0;pointer-events:none;transition:opacity .15s ease,transform .15s ease;z-index:50}
+.ocp-sb-btn[data-ocp-sb-obs]:not([data-ocp-sb-obs=""])::before{content:"";position:absolute;bottom:calc(100% + 2px);left:50%;transform:translateX(-50%) scale(.9);border:5px solid transparent;border-top-color:#FFC400;opacity:0;pointer-events:none;transition:opacity .15s ease,transform .15s ease;z-index:50}
+.ocp-sb-btn[data-ocp-sb-obs]:not([data-ocp-sb-obs=""]):hover::after,.ocp-sb-btn[data-ocp-sb-obs]:not([data-ocp-sb-obs=""]):hover::before{opacity:1;transform:translateX(-50%) scale(1)}
+/* campo Observação dentro do modal de stand by */
+.ocp-sb-obs-wrap{margin:12px 18px 4px}
+.ocp-sb-obs-wrap label{display:block;font-size:12px;font-weight:800;color:#8BA4BF;margin-bottom:5px}
+.ocp-sb-obs-wrap textarea{width:100%;box-sizing:border-box;min-height:60px;resize:vertical;padding:9px 11px;border-radius:9px;border:1px solid rgba(255,152,56,.5);background:rgba(255,152,56,.06);color:#E8EEF4;font-size:13px;font-family:inherit;outline:none}
+.ocp-sb-obs-wrap textarea:focus{border-color:#ff9838;background:rgba(255,152,56,.11)}
+.ocp-sb-obs-wrap textarea::placeholder{color:#7089a3}
+/* seleção de cliente destacada no modal de stand by */
+.ocp-cli-item.sbsel{background:rgba(255,138,28,.22);border-color:#ff9838;color:#fff}
+/* rodapé do modal de stand by */
+.ocp-sb-confirmar{flex:1;padding:10px;border-radius:9px;border:none;background:linear-gradient(180deg,#ff8a1c,#e06600);color:#231400;font-size:14px;font-weight:900;cursor:pointer;transition:all .15s}
+.ocp-sb-confirmar:hover{background:linear-gradient(180deg,#ff9d33,#f07400);box-shadow:0 0 11px rgba(255,138,28,.7)}
+.ocp-sb-confirmar:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+.ocp-sb-remover{padding:10px 14px;border-radius:9px;border:1px solid #ff5252;background:rgba(255,61,61,.12);color:#ff7a7a;font-size:13px;font-weight:800;cursor:pointer;transition:all .15s}
+.ocp-sb-remover:hover{background:rgba(255,61,61,.25);color:#fff}
 /* Caixinhas compactas "Indisponível" e "Gestão Interna" dentro do modal */
 .ocp-indisp-box{display:flex;align-items:center;gap:6px;margin:2px 18px 1px;padding:5px 9px;border-radius:7px;border:1px solid rgba(255,61,61,.4);background:rgba(255,61,61,.08);cursor:pointer;transition:all .15s}
 .ocp-indisp-box:hover{background:rgba(255,61,61,.15);border-color:rgba(255,61,61,.6)}
@@ -404,6 +434,45 @@ body.dark .hub-sidebar .nav-add{color:var(--verde)}
 .ocp-vez-selo{position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:#FFC400;color:#231a00;font-size:10px;font-weight:900;letter-spacing:.5px;padding:2px 8px;border-radius:99px;box-shadow:0 0 10px rgba(255,196,0,.7);white-space:nowrap}
 @keyframes ocpVezGlow{0%,100%{text-shadow:0 0 8px rgba(255,196,0,.45)}50%{text-shadow:0 0 16px rgba(255,196,0,.95)}}
 @keyframes ocpVezBorda{0%,100%{box-shadow:0 0 8px rgba(255,196,0,.3),inset 0 0 10px rgba(255,196,0,.05)}50%{box-shadow:0 0 18px rgba(255,196,0,.6),inset 0 0 14px rgba(255,196,0,.1)}}
+/* ============================================================
+   MODO CLARO — ajustes de contraste do Painel de Ocupação.
+   O painel foi desenhado para o fundo escuro (textos claros,
+   bordas brancas translúcidas). No modo claro (padrão, sem a
+   classe .dark) esses elementos somem no fundo branco, então
+   aqui recolorimos tudo para ficar legível e bonito no claro.
+   ============================================================ */
+/* ---- Quadros dos atendentes: cartões brancos com leve profundidade ---- */
+body:not(.dark) .ocp-box{background:#FFFFFF;border:1px solid #E4EAF1;box-shadow:0 1px 2px rgba(16,42,67,.05),0 4px 12px rgba(16,42,67,.04)}
+body:not(.dark) .ocp-box:hover{border-color:#A9C1DD;box-shadow:0 2px 6px rgba(16,42,67,.08),0 10px 22px rgba(16,42,67,.08)}
+/* quadro do atendente DA VEZ: realce âmbar suave também no claro */
+body:not(.dark) .ocp-box.ocp-vez{border-color:#E0A800;background:linear-gradient(180deg,#FFFDF6,#FFF9EC)}
+/* nome, legenda e anel dos LEDs bem legíveis no branco */
+body:not(.dark) .ocp-nome{color:#1A2733}
+body:not(.dark) .ocp-hint{color:#64748B}
+body:not(.dark) .ocp-led{border-color:rgba(20,45,70,.30)}
+/* banner "Atendente da vez": tom âmbar quentinho com texto escuro */
+body:not(.dark) .ocp-vez-bar{color:#3A3320;background:linear-gradient(180deg,#FFF9E8,#FFF3D2);border-color:rgba(224,168,0,.55);box-shadow:0 1px 2px rgba(184,135,0,.08)}
+body:not(.dark) .ocp-vez-nome{color:#A66A00;text-shadow:none}
+/* plantonista: azul escuro e legível no claro */
+body:not(.dark) .ocp-plantao{color:#0A4E80;background:rgba(0,120,192,.08);border-color:rgba(0,120,192,.38)}
+body:not(.dark) .ocp-plantao-nome{color:#0663a0;text-shadow:none}
+/* botão "+" (adicionar cliente): visível e clean no fundo branco */
+body:not(.dark) .ocp-cli-btn.add{background:#EEF3F9;border:1px solid #C4D3E4;color:#2A4763}
+body:not(.dark) .ocp-cli-btn.add:hover{background:rgba(0,150,230,.15);border-color:#0a84c8;color:#0663a0}
+/* timers: cores mais escuras para contraste no branco (sem glow) */
+body:not(.dark) .ocp-timer.t-verde{color:#12933f;text-shadow:none}
+body:not(.dark) .ocp-timer.t-azul{color:#0a74d0;text-shadow:none}
+body:not(.dark) .ocp-timer.t-amarelo{color:#B07D00;text-shadow:none}
+body:not(.dark) .ocp-timer.t-laranja{color:#D0600F;text-shadow:none}
+body:not(.dark) .ocp-timer.t-vermelho{color:#E01E1E;text-shadow:none}
+/* mensagem "todos ocupados": vermelho forte sobre leve fundo rosado */
+body:not(.dark) .ocp-vez-bar.ocp-todos-ocupados{background:linear-gradient(180deg,#FFF0F0,#FFE4E4);border-color:rgba(224,40,40,.5)}
+body:not(.dark) .ocp-todos-msg{color:#D01414}
+/* Stand By no modo claro */
+body:not(.dark) .ocp-sb{border-top-color:#E4EAF1}
+body:not(.dark) .ocp-sb-tit{color:#D0600F}
+body:not(.dark) .ocp-sb-add{background:rgba(255,138,28,.12);border-color:rgba(224,102,0,.5);color:#C25A00}
+body:not(.dark) .ocp-sb-add:hover{background:rgba(255,138,28,.24);border-color:#e06600;color:#8a3f00}
 .termo-box{flex:1;display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end;justify-content:flex-start;padding:10px 4px;min-height:230px;overflow-x:auto}
 .termo-vazio{color:var(--texto-fraco);font-size:13px;padding:20px 4px}
 .termo-item{display:flex;flex-direction:column;align-items:center;gap:4px;width:88px;flex:0 0 auto}
@@ -1393,7 +1462,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v3·18 (fonte do status Interno aumentada de 7px para 9px no quadro do atendente) -->
+    <!-- build: HUB-v3·21 (Stand By: cada atendente gerencia clientes atendidos aguardando retorno — botão laranja neon, observação livre, persiste entre dias e PCs) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -1963,6 +2032,22 @@ async function carregarConfig(){
         var _mT={}; [_cT,_nT].forEach(function(src){ Object.keys(src||{}).forEach(function(k){ var s=src[k]||{}; var d=_mT[k]||{a:0,r:0}; _mT[k]={a:Math.max(d.a||0,s.a||0), r:Math.max(d.r||0,s.r||0)}; }); });
         appConfig.ocupacaoClientes={ adicionados:_uniq(_cA.concat(_nA)), removidos:_uniq(_cR.concat(_nR)), ts:_mT };
       }
+      // STAND BY (clientes aguardando): decisão que NÃO reseta diariamente. Une
+      // local+nuvem por atendente e por id da entrada — vence sempre o carimbo (ts)
+      // mais recente, preservando adições/edições/remoções entre PCs.
+      {
+        var _sbA=(local.ocupacaoStandby&&typeof local.ocupacaoStandby==='object')?local.ocupacaoStandby:{};
+        var _sbB=(c.ocupacaoStandby&&typeof c.ocupacaoStandby==='object')?c.ocupacaoStandby:{};
+        var _mSb={}, _ats={};
+        Object.keys(_sbA).forEach(function(k){_ats[k]=1;}); Object.keys(_sbB).forEach(function(k){_ats[k]=1;});
+        Object.keys(_ats).forEach(function(at){
+          var ma=_sbA[at]||{}, mb=_sbB[at]||{}, mo={}, ids={};
+          Object.keys(ma).forEach(function(k){ids[k]=1;}); Object.keys(mb).forEach(function(k){ids[k]=1;});
+          Object.keys(ids).forEach(function(id){ var ea=ma[id], eb=mb[id]; mo[id]=(ea&&eb)?(((ea.ts||0)>=(eb.ts||0))?ea:eb):(ea||eb); });
+          _mSb[at]=mo;
+        });
+        appConfig.ocupacaoStandby=_mSb;
+      }
       localStorage.setItem('uv_config',JSON.stringify(appConfig));
     }
   }catch(e){}
@@ -2011,6 +2096,20 @@ async function salvarConfig(){
       // remoção. Assim a ação mais recente (de qualquer PC) prevalece na visibilidade.
       var mT={}; [cT,lT].forEach(function(src){ Object.keys(src||{}).forEach(function(k){ var s=src[k]||{}; var d=mT[k]||{a:0,r:0}; mT[k]={a:Math.max(d.a||0,s.a||0), r:Math.max(d.r||0,s.r||0)}; }); });
       appConfig.ocupacaoClientes={ adicionados:uniq(cA.concat(lA)), removidos:uniq(cR.concat(lR)), ts:mT };
+    }
+    // STAND BY: une nuvem+local por atendente e por id (carimbo mais recente vence)
+    {
+      var sbCloud=(cloud.ocupacaoStandby&&typeof cloud.ocupacaoStandby==='object')?cloud.ocupacaoStandby:{};
+      var sbLocal=(appConfig.ocupacaoStandby&&typeof appConfig.ocupacaoStandby==='object')?appConfig.ocupacaoStandby:{};
+      var sbOut={}, sbAts={};
+      Object.keys(sbCloud).forEach(function(k){sbAts[k]=1;}); Object.keys(sbLocal).forEach(function(k){sbAts[k]=1;});
+      Object.keys(sbAts).forEach(function(at){
+        var ma=sbCloud[at]||{}, mb=sbLocal[at]||{}, mo={}, ids={};
+        Object.keys(ma).forEach(function(k){ids[k]=1;}); Object.keys(mb).forEach(function(k){ids[k]=1;});
+        Object.keys(ids).forEach(function(id){ var ea=ma[id], eb=mb[id]; mo[id]=(ea&&eb)?(((ea.ts||0)>=(eb.ts||0))?ea:eb):(ea||eb); });
+        sbOut[at]=mo;
+      });
+      appConfig.ocupacaoStandby=sbOut;
     }
     // quem já virou "Nome cadastrado" (está em voucherResolvido) não fica no vermelho
     Object.keys(appConfig.voucherResolvido).forEach(k=>{ if(appConfig.semCadastroWecann[k]) delete appConfig.semCadastroWecann[k]; });
@@ -4430,6 +4529,38 @@ function aplicarIA(r){
   // casa QUALQUER variação de nome que a IA devolva (ex.: "Data de Chegada" → "datadechegada"→ tenta chegada)
   const canon = s => (s||'').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[\s._-]/g,'');
   const norm = s => (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  // ---- Normalização de DATA para AAAA-MM-DD (formato exigido pelo <input type=date>) ----
+  // Aceita ISO, dd/mm/aaaa, dd-mm-aaaa, "29 de agosto de 2026", "29 ago 2026", "August 29, 2026" etc.
+  const MESES_IA = {janeiro:1,fevereiro:2,marco:3,abril:4,maio:5,junho:6,julho:7,agosto:8,setembro:9,outubro:10,novembro:11,dezembro:12,jan:1,fev:2,mar:3,abr:4,mai:5,jun:6,jul:7,ago:8,set:9,out:10,nov:11,dez:12,january:1,february:2,march:3,april:4,june:6,july:7,august:8,september:9,october:10,november:11,december:12,sept:9};
+  function normData(v){
+    if(v==null) return '';
+    let s=String(v).trim(); if(!s) return '';
+    let m=s.match(/(\d{4})-(\d{1,2})-(\d{1,2})/);                 // ISO AAAA-MM-DD
+    if(m) return m[1]+'-'+String(m[2]).padStart(2,'0')+'-'+String(m[3]).padStart(2,'0');
+    m=s.match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);       // dd/mm/aaaa (ou dd-mm / dd.mm)
+    if(m){ let d=+m[1],mo=+m[2],y=+m[3]; if(y<100)y+=2000; if(mo>12&&d<=12){const t=d;d=mo;mo=t;} // corrige mm/dd
+      if(mo>=1&&mo<=12&&d>=1&&d<=31) return y+'-'+String(mo).padStart(2,'0')+'-'+String(d).padStart(2,'0'); }
+    const sl=norm(s);
+    m=sl.match(/(\d{1,2})\s*(?:de\s+)?([a-z]+)\.?\s*(?:de\s+)?(\d{4})/);  // "29 de agosto de 2026"
+    if(m&&MESES_IA[m[2]]) return m[3]+'-'+String(MESES_IA[m[2]]).padStart(2,'0')+'-'+String(m[1]).padStart(2,'0');
+    m=sl.match(/([a-z]+)\.?\s+(\d{1,2}),?\s+(\d{4})/);            // "August 29, 2026"
+    if(m&&MESES_IA[m[1]]) return m[3]+'-'+String(MESES_IA[m[1]]).padStart(2,'0')+'-'+String(m[2]).padStart(2,'0');
+    return '';
+  }
+  // ---- Normalização de HORA para HH:MM (formato exigido pelo <input type=time>) ----
+  function normHora(v){
+    if(v==null) return '';
+    let s=String(v).trim(); if(!s||/^-{1,2}\s*:?\s*-{0,2}$/.test(s)) return '';
+    const ap=s.toLowerCase().match(/([ap])\.?\s*m\.?/); const ampm=ap?ap[1]:null;
+    let m=s.match(/(\d{1,2})\s*[:h]\s*(\d{2})/);                  // 14:10 / 14h10
+    if(!m){ const o=s.match(/^(\d{1,2})(\d{2})$/); if(o) m=[null,o[1],o[2]]; }  // 1410
+    if(!m){ const h=s.match(/^(\d{1,2})$/); if(h) m=[null,h[1],'00']; }         // 14
+    if(!m) return '';
+    let hh=+m[1],mm=+m[2];
+    if(ampm==='p'&&hh<12)hh+=12; if(ampm==='a'&&hh===12)hh=0;
+    if(hh>23||mm>59) return '';
+    return String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0');
+  }
   const HOTEIS_WECANN = ['royal tower','royal palm tower','contemporaneo','anhanguera'];
   let eventoWecann = false;
   itens.forEach(it=>{
@@ -4445,7 +4576,14 @@ function aplicarIA(r){
         if(/chegada|desembarque|arrival/.test(ck)) kk = ehHora ? 'horaVolta' : 'dataVolta';
         else if(/partida|embarque|ida|departure|saida/.test(ck)) kk = ehHora ? 'horaIda' : 'dataIda';
       }
-      if(def.fields.some(f=>f.k===kk)) data[kk]=v;
+      if(def.fields.some(f=>f.k===kk)){
+        const ft=(def.fields.find(f=>f.k===kk)||{}).t;
+        // datas e horas precisam do formato exato do <input>; normaliza qualquer
+        // formato que a IA devolva (dd/mm/aaaa, "29 de agosto 2026", 14h10, etc.)
+        if(ft==='date'){ const nd=normData(v); if(nd) data[kk]=nd; }
+        else if(ft==='time'){ const nt=normHora(v); if(nt) data[kk]=nt; }
+        else data[kk]=v;
+      }
     });
     if(type==='outro'&&!data.descricao&&it.dados){ data.descricao=Object.entries(it.dados).map(([k,v])=>`${k}: ${v}`).join('\n'); }
     if(type==='hotel'){
@@ -6039,6 +6177,59 @@ function excluirNotaUI(id){
     try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
   }
 
+  /* ===== STAND BY (clientes atendidos aguardando retorno) =====
+     Guardado numa estrutura SEPARADA (appConfig.ocupacaoStandby) que NÃO zera no
+     reset diário — porque um cliente em stand by pode aguardar dias (resposta de
+     fornecedor, cia aérea, operadora). Estrutura por atendente, indexada por id:
+       ocupacaoStandby = { 'João': { 'sbABC': {cliente, obs, ts, del}, ... }, ... }
+     'del'=1 marca removido; 'ts' = última alteração (usado no merge entre PCs:
+     mesma entrada em dois PCs → vence a de carimbo mais recente). */
+  function ocpStandbyStore(){
+    if(typeof appConfig!=='object' || !appConfig) return {};
+    var s=appConfig.ocupacaoStandby;
+    if(!s || typeof s!=='object'){ s={}; appConfig.ocupacaoStandby=s; }
+    return s;
+  }
+  function ocpStandbyDe(at){
+    var s=ocpStandbyStore();
+    if(!s[at] || typeof s[at]!=='object') s[at]={};
+    return s[at];
+  }
+  // lista VISÍVEL (não removidos) de um atendente, em ordem de criação
+  function ocpStandbyLista(at){
+    var m=ocpStandbyDe(at);
+    return Object.keys(m).map(function(id){ var e=m[id]||{}; return {id:id, cliente:e.cliente||'', obs:e.obs||'', ts:e.ts||0, del:e.del?1:0}; })
+      .filter(function(e){ return !e.del && e.cliente; })
+      .sort(function(a,b){ return (a.ts||0)-(b.ts||0); });
+  }
+  function ocpStandbyGet(at, id){ var m=ocpStandbyDe(at); return m[id]||null; }
+  // adiciona um novo cliente ao stand by (com observação opcional)
+  function ocpStandbyAdd(at, cliente, obs){
+    cliente=(cliente||'').toString().trim(); if(!cliente) return;
+    var m=ocpStandbyDe(at);
+    var id='sb'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+    m[id]={ cliente:cliente, obs:(obs||'').toString().trim(), ts:Date.now(), del:0 };
+    window.renderOcupacao();
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+  }
+  // atualiza cliente/observação de uma entrada existente
+  function ocpStandbyUpd(at, id, cliente, obs){
+    var m=ocpStandbyDe(at); if(!m[id]) return;
+    var c=(cliente||'').toString().trim();
+    if(c) m[id].cliente=c;
+    m[id].obs=(obs||'').toString().trim();
+    m[id].ts=Date.now();
+    window.renderOcupacao();
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+  }
+  // remove (finaliza) uma entrada do stand by — carimba para vencer no merge
+  function ocpStandbyDel(at, id){
+    var m=ocpStandbyDe(at); if(!m[id]) return;
+    m[id].del=1; m[id].ts=Date.now();
+    window.renderOcupacao();
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+  }
+
   function ocpHoje(){
     var d=new Date();
     return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
@@ -6300,7 +6491,15 @@ function excluirNotaUI(id){
       return '<div class="ocp-box'+(ehVez?' ocp-vez':'')+'">'+
              (ehVez?'<div class="ocp-vez-selo">🎯 DA VEZ</div>':'')+
              '<div class="ocp-nome" title="'+ocpEsc(a)+'">'+ocpEsc(a)+'</div>'+
-             '<div class="ocp-leds">'+leds+'</div></div>';
+             '<div class="ocp-leds">'+leds+'</div>'+
+             '<div class="ocp-sb"><div class="ocp-sb-tit">Stand By</div><div class="ocp-sb-list">'+
+               ocpStandbyLista(a).map(function(e){
+                 return '<button type="button" class="ocp-sb-btn" data-ocp-sb-at="'+ocpEsc(a)+'" data-ocp-sb-id="'+ocpEsc(e.id)+'"'+
+                        ' data-ocp-sb-obs="'+ocpEsc(e.obs||'')+'" title="'+ocpEsc(e.cliente)+(e.obs?' — '+ocpEsc(e.obs):'')+'">'+ocpEsc(e.cliente)+'</button>';
+               }).join('')+
+               '<button type="button" class="ocp-sb-add" data-ocp-sb-at="'+ocpEsc(a)+'" title="Adicionar cliente em Stand By">+</button>'+
+             '</div></div>'+
+             '</div>';
     }).join('');
     return mudouSorteio;
   };
@@ -6631,6 +6830,132 @@ function excluirNotaUI(id){
     var at=cb.getAttribute('data-ocp-cli-at');
     var i=parseInt(cb.getAttribute('data-ocp-cli-i'),10);
     if(at && !isNaN(i)) ocpAbrirModalCliente(at, i);
+  });
+
+  /* ===== MODAL DO STAND BY =====
+     Reaproveita o mesmo seletor de clientes (busca, cadastro permanente, lista com
+     exclusão, Lazer/Outros), MAS sem as caixas Indisponível/Interno/Ausente, e com
+     um campo OBSERVAÇÃO livre. Ao confirmar, grava {cliente, obs} no stand by do
+     atendente. Em modo EDIÇÃO (clicando num cliente já em stand by) o cliente e a
+     observação vêm preenchidos, podendo editar OU remover. */
+  function ocpAbrirModalStandby(at, editId){
+    ocpFecharModal();
+    ocpModalCtx={at:at, sb:true};
+    var ent = editId ? ocpStandbyGet(at, editId) : null;
+    var sbSel = ent ? (ent.cliente||'') : '';
+    var obsIni = ent ? (ent.obs||'') : '';
+
+    var bg=document.createElement('div');
+    bg.className='ocp-modal-bg';
+    bg.id='ocpCliModal';
+    bg.innerHTML=
+      '<div class="ocp-modal" role="dialog">'+
+        '<div class="ocp-modal-hd">'+
+          '<h3>🟠 Stand By</h3>'+
+          '<div class="ocp-modal-sub">'+ocpEsc(at)+' — cliente aguardando retorno</div>'+
+        '</div>'+
+        '<div class="ocp-sb-obs-wrap">'+
+          '<label>Observação — o que está aguardando?</label>'+
+          '<textarea id="ocpSbObs" placeholder="Ex.: aguardando confirmação do hotel / retorno da cia aérea / cliente vai decidir...">'+ocpEsc(obsIni)+'</textarea>'+
+        '</div>'+
+        '<div class="ocp-modal-busca"><input type="text" id="ocpSbBusca" placeholder="Buscar cliente..." autocomplete="off"></div>'+
+        '<div class="ocp-modal-lista" id="ocpCliLista"></div>'+
+        '<div class="ocp-modal-ft">'+
+          (editId?'<button class="ocp-sb-remover" id="ocpSbRemover">Remover</button>':'')+
+          '<button class="ocp-sb-confirmar" id="ocpSbConfirmar"'+(sbSel?'':' disabled')+'>Confirmar</button>'+
+          '<button class="ocp-btn-cancelar" id="ocpSbCancelar">Cancelar</button>'+
+        '</div>'+
+      '</div>';
+    document.body.appendChild(bg);
+
+    var busca=document.getElementById('ocpSbBusca');
+    function setSel(v){ sbSel=v||''; var cf=document.getElementById('ocpSbConfirmar'); if(cf) cf.disabled=!sbSel; }
+
+    function sbPintar(){
+      var termo=ocpNormaliza(busca.value);
+      var lista=document.getElementById('ocpCliLista');
+      var html='';
+      // cadastro permanente de cliente (mesma funcionalidade do outro seletor)
+      html+='<div class="ocp-add-wrap"><input type="text" id="ocpAddCliInput" placeholder="Adicionar cliente..." autocomplete="off"><button type="button" class="ocp-add-salvar" id="ocpAddCliSalvar">Salvar</button></div>';
+      // lista efetiva de clientes (cada um com botão excluir)
+      ocpClientesEfetivos().filter(function(c){ return ocpNormaliza(c).indexOf(termo)>=0; }).forEach(function(c){
+        var sel=(c===sbSel)?' sbsel':'';
+        html+='<div class="ocp-cli-row"><button type="button" class="ocp-cli-item'+sel+'" data-ocp-pick="'+ocpEsc(c)+'">'+ocpEsc(c)+'</button>'+
+              '<button type="button" class="ocp-cli-del" data-ocp-del="'+ocpEsc(c)+'" title="Excluir cliente">✕</button></div>';
+      });
+      // opções livres Lazer / Outros
+      ['Lazer','Outros'].forEach(function(rot){
+        if(termo && ocpNormaliza(rot).indexOf(termo)<0) return;
+        html+='<button type="button" class="ocp-cli-item especial" data-ocp-especial="'+rot+'">'+rot+' — campo livre</button>'+
+              '<div class="ocp-cli-livre-wrap" data-ocp-livre-wrap="'+rot+'"><input type="text" data-ocp-livre-input="'+rot+'" placeholder="Digite: '+rot.toLowerCase()+'"><button type="button" class="ocp-cli-livre-ok" data-ocp-livre-ok="'+rot+'">Ok</button></div>';
+      });
+      lista.innerHTML=html;
+      var addInp=document.getElementById('ocpAddCliInput'), addBtn=document.getElementById('ocpAddCliSalvar');
+      function salvarNovo(){ if(!addInp) return; var nome=(addInp.value||'').trim(); if(!nome){ try{addInp.focus();}catch(e){} return; } if(ocpAdicionarCliente(nome)){ busca.value=''; sbPintar(); } else { addInp.value=''; try{addInp.focus();}catch(e){} } }
+      if(addBtn) addBtn.onclick=salvarNovo;
+      if(addInp) addInp.onkeydown=function(k){ if(k.key==='Enter') salvarNovo(); };
+    }
+
+    function sbConfirmarLivre(rot){
+      var inp=document.querySelector('[data-ocp-livre-input="'+rot+'"]');
+      if(!inp) return; var t=(inp.value||'').trim(); if(!t){ try{inp.focus();}catch(e){} return; }
+      setSel(rot+': '+t); busca.value=''; sbPintar();
+      var le=document.getElementById('ocpCliLista'); if(le) le.scrollTop=0;
+    }
+    function sbConfirmarExclusao(nome){
+      var cbg=document.createElement('div'); cbg.className='ocp-confirm-bg';
+      cbg.innerHTML='<div class="ocp-confirm"><h4>Excluir cliente</h4><p>Deseja excluir <b>'+ocpEsc(nome)+'</b> da lista de clientes? Vale para todos os computadores.</p><div class="ocp-confirm-btns"><button type="button" class="ocp-confirm-nao">Cancelar</button><button type="button" class="ocp-confirm-sim">Excluir</button></div></div>';
+      document.body.appendChild(cbg);
+      function fechar(){ if(cbg.parentNode) cbg.parentNode.removeChild(cbg); }
+      cbg.addEventListener('click', function(e){ if(e.target===cbg) fechar(); });
+      cbg.querySelector('.ocp-confirm-nao').onclick=fechar;
+      cbg.querySelector('.ocp-confirm-sim').onclick=function(){ ocpExcluirCliente(nome); if(sbSel===nome) setSel(''); fechar(); sbPintar(); };
+    }
+
+    sbPintar();
+    busca.addEventListener('input', sbPintar);
+    setTimeout(function(){ try{ busca.focus(); }catch(e){} }, 30);
+
+    document.getElementById('ocpCliLista').addEventListener('click', function(ev){
+      var del=ev.target.closest ? ev.target.closest('[data-ocp-del]') : null;
+      if(del){ ev.stopPropagation(); sbConfirmarExclusao(del.getAttribute('data-ocp-del')); return; }
+      var okb=ev.target.closest ? ev.target.closest('[data-ocp-livre-ok]') : null;
+      if(okb){ sbConfirmarLivre(okb.getAttribute('data-ocp-livre-ok')); return; }
+      var pick=ev.target.closest ? ev.target.closest('[data-ocp-pick]') : null;
+      if(pick){ setSel(pick.getAttribute('data-ocp-pick')); sbPintar(); return; }
+      var esp=ev.target.closest ? ev.target.closest('[data-ocp-especial]') : null;
+      if(esp){
+        var rot=esp.getAttribute('data-ocp-especial');
+        var wrap=document.querySelector('[data-ocp-livre-wrap="'+rot+'"]');
+        var inp=document.querySelector('[data-ocp-livre-input="'+rot+'"]');
+        if(wrap){ if(wrap.classList.contains('show')){ wrap.classList.remove('show'); } else { wrap.classList.add('show'); if(inp){ setTimeout(function(){ try{inp.focus();}catch(e){} },20); inp.onkeydown=function(k){ if(k.key==='Enter') sbConfirmarLivre(rot); }; } } }
+      }
+    });
+
+    // Confirmar: grava (add ou update)
+    var btnConf=document.getElementById('ocpSbConfirmar');
+    if(btnConf) btnConf.onclick=function(){
+      if(!sbSel) return;
+      var obs=(document.getElementById('ocpSbObs').value||'').trim();
+      if(editId) ocpStandbyUpd(at, editId, sbSel, obs);
+      else ocpStandbyAdd(at, sbSel, obs);
+      ocpFecharModal();
+    };
+    // Remover (só em edição)
+    var btnRem=document.getElementById('ocpSbRemover');
+    if(btnRem) btnRem.onclick=function(){ ocpStandbyDel(at, editId); ocpFecharModal(); };
+    // Cancelar / clicar fora
+    var btnCanc=document.getElementById('ocpSbCancelar');
+    if(btnCanc) btnCanc.onclick=ocpFecharModal;
+    bg.addEventListener('click', function(ev){ if(ev.target===bg) ocpFecharModal(); });
+  }
+
+  // clique no "+" do Stand By ou num cliente laranja → abre o modal do stand by
+  document.addEventListener('click', function(e){
+    var add=e.target && e.target.closest ? e.target.closest('.ocp-sb-add') : null;
+    if(add){ e.stopPropagation(); var a1=add.getAttribute('data-ocp-sb-at'); if(a1) ocpAbrirModalStandby(a1, null); return; }
+    var btn=e.target && e.target.closest ? e.target.closest('.ocp-sb-btn') : null;
+    if(btn){ e.stopPropagation(); var a2=btn.getAttribute('data-ocp-sb-at'), id=btn.getAttribute('data-ocp-sb-id'); if(a2&&id) ocpAbrirModalStandby(a2, id); return; }
   });
 
   // ESC fecha o modal
