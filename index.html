@@ -248,7 +248,7 @@ body.dark .hub-sidebar .nav-add{color:var(--verde)}
 /* Botão "Indisponível" (vermelho) abaixo do LED — substitui o botão de cliente */
 .ocp-cli-btn.indisp{background:linear-gradient(180deg,#c81a1a,#8f0d0d);border:1px solid #ff5252;color:#fff;box-shadow:0 0 7px rgba(255,61,61,.55);font-size:7px;letter-spacing:-.2px;max-width:100%;width:100%;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;padding:3px 3px;animation:ocpIndispBlink 1.4s ease-in-out infinite}.ocp-cli-btn.indisp:hover{background:linear-gradient(180deg,#e02222,#a51010);box-shadow:0 0 11px rgba(255,61,61,.85)}
 /* Botão "Interno" (amarelo) — Gestão Interna, sem contador de tempo */
-.ocp-cli-btn.interno{background:linear-gradient(180deg,#e0a800,#b88700);border:1px solid #FFC400;color:#231a00;box-shadow:0 0 7px rgba(255,196,0,.55);font-size:7px;letter-spacing:-.2px;max-width:100%;width:100%;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;padding:3px 3px;font-weight:900;animation:ocpInternoBlink 1.4s ease-in-out infinite}
+.ocp-cli-btn.interno{background:linear-gradient(180deg,#e0a800,#b88700);border:1px solid #FFC400;color:#231a00;box-shadow:0 0 7px rgba(255,196,0,.55);font-size:9px;letter-spacing:-.2px;max-width:100%;width:100%;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;padding:3px 3px;font-weight:900;animation:ocpInternoBlink 1.4s ease-in-out infinite}
 .ocp-cli-btn.interno:hover{background:linear-gradient(180deg,#f0b800,#cc9600);box-shadow:0 0 11px rgba(255,196,0,.85)}
 /* Botão "Ausente" (rosa) abaixo do LED — pisca como os outros, MAS tem tooltip
    amarelo com o MOTIVO da ausência (igual ao botão Cliente). É híbrido. */
@@ -1393,7 +1393,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v3·12 (sorteio dinâmico: a vez é sempre de quem está MAIS livre — re-sorteia quando surge alguém com mais verdes) -->
+    <!-- build: HUB-v3·18 (fonte do status Interno aumentada de 7px para 9px no quadro do atendente) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -1936,6 +1936,11 @@ async function carregarConfig(){
       // Depois tira quem já foi marcado "Nome cadastrado" (está em voucherResolvido) pra não ressuscitar.
       appConfig.semCadastroWecann={...(local.semCadastroWecann||{}), ...(c.semCadastroWecann||{})};
       Object.keys(appConfig.voucherResolvido).forEach(k=>{ if(appConfig.semCadastroWecann[k]) delete appConfig.semCadastroWecann[k]; });
+      // BAIXA DE QUARTOS (conciliação WeCann): decisão PERMANENTE. Une local+nuvem por
+      // assinatura (ID+nomes) E pelo ID da reserva. Assim, um quarto conferido NUNCA
+      // volta para a lista "sem voucher" ao reimportar o CSV — nem entre PCs diferentes.
+      appConfig.quartosConferidos  ={...(local.quartosConferidos  ||{}), ...(c.quartosConferidos  ||{})};
+      appConfig.quartosBaixadosPorId={...(local.quartosBaixadosPorId||{}), ...(c.quartosBaixadosPorId||{})};
       // PROTEÇÃO DO PAINEL DE OCUPAÇÃO: se já havia estado local de ocupação, mescla
       // com o da nuvem em vez de deixar o spread acima simplesmente sobrescrevê-lo.
       // (o merge só existe após o IIFE de ocupação carregar; a guarda evita erro)
@@ -1943,6 +1948,20 @@ async function carregarConfig(){
         if(!ocupLocalAntes.data || !c.ocupacaoAtendentes.data || ocupLocalAntes.data===c.ocupacaoAtendentes.data){
           appConfig.ocupacaoAtendentes=window.ocpMesclarEstados(ocupLocalAntes, c.ocupacaoAtendentes);
         }
+      }
+      // CLIENTES CADASTRADOS (seletor de ocupação): decisão PERMANENTE. Une local+nuvem
+      // (adicionados, removidos e carimbos de tempo) para que um cliente cadastrado em
+      // qualquer PC apareça para TODOS e nunca seja perdido ao carregar/reimportar.
+      {
+        var _cA=(local.ocupacaoClientes&&local.ocupacaoClientes.adicionados)||[];
+        var _cR=(local.ocupacaoClientes&&local.ocupacaoClientes.removidos)||[];
+        var _nA=(c.ocupacaoClientes&&c.ocupacaoClientes.adicionados)||[];
+        var _nR=(c.ocupacaoClientes&&c.ocupacaoClientes.removidos)||[];
+        var _cT=(local.ocupacaoClientes&&local.ocupacaoClientes.ts)||{};
+        var _nT=(c.ocupacaoClientes&&c.ocupacaoClientes.ts)||{};
+        var _uniq=function(arr){ var v={},o=[]; arr.forEach(function(n){ var k=(n||'').toString().trim().toLowerCase(); if(k&&!v[k]){v[k]=1;o.push(n);} }); return o; };
+        var _mT={}; [_cT,_nT].forEach(function(src){ Object.keys(src||{}).forEach(function(k){ var s=src[k]||{}; var d=_mT[k]||{a:0,r:0}; _mT[k]={a:Math.max(d.a||0,s.a||0), r:Math.max(d.r||0,s.r||0)}; }); });
+        appConfig.ocupacaoClientes={ adicionados:_uniq(_cA.concat(_nA)), removidos:_uniq(_cR.concat(_nR)), ts:_mT };
       }
       localStorage.setItem('uv_config',JSON.stringify(appConfig));
     }
@@ -1959,6 +1978,10 @@ async function salvarConfig(){
     appConfig.voucherResolvido ={...(cloud.voucherResolvido ||{}), ...(appConfig.voucherResolvido ||{})};
     appConfig.naoMesmaPessoa   ={...(cloud.naoMesmaPessoa   ||{}), ...(appConfig.naoMesmaPessoa   ||{})};
     appConfig.semCadastroWecann={...(cloud.semCadastroWecann||{}), ...(appConfig.semCadastroWecann||{})};
+    // BAIXA DE QUARTOS: mesma proteção permanente (une nuvem+local, nunca apaga).
+    // Impede que um PC com estado antigo sobrescreva/ressuscite uma baixa já feita.
+    appConfig.quartosConferidos  ={...(cloud.quartosConferidos  ||{}), ...(appConfig.quartosConferidos  ||{})};
+    appConfig.quartosBaixadosPorId={...(cloud.quartosBaixadosPorId||{}), ...(appConfig.quartosBaixadosPorId||{})};
     // PROTEÇÃO DO PAINEL DE OCUPAÇÃO (anti-perda de cliente entre PCs):
     // Antes de gravar, mesclamos o ocupacaoAtendentes local com o da nuvem via merge
     // inteligente. Assim, se este PC tem um estado ligeiramente antigo, ele NÃO apaga
@@ -1981,8 +2004,13 @@ async function salvarConfig(){
       var cR=(cloud.ocupacaoClientes&&cloud.ocupacaoClientes.removidos)||[];
       var lA=(appConfig.ocupacaoClientes&&appConfig.ocupacaoClientes.adicionados)||[];
       var lR=(appConfig.ocupacaoClientes&&appConfig.ocupacaoClientes.removidos)||[];
+      var cT=(cloud.ocupacaoClientes&&cloud.ocupacaoClientes.ts)||{};
+      var lT=(appConfig.ocupacaoClientes&&appConfig.ocupacaoClientes.ts)||{};
       var uniq=function(arr){ var v={},o=[]; arr.forEach(function(n){ var k=(n||'').toString().trim().toLowerCase(); if(k&&!v[k]){v[k]=1;o.push(n);} }); return o; };
-      appConfig.ocupacaoClientes={ adicionados:uniq(cA.concat(lA)), removidos:uniq(cR.concat(lR)) };
+      // une os CARIMBOS: por cliente, mantém o MAIOR tempo de cadastro e o MAIOR de
+      // remoção. Assim a ação mais recente (de qualquer PC) prevalece na visibilidade.
+      var mT={}; [cT,lT].forEach(function(src){ Object.keys(src||{}).forEach(function(k){ var s=src[k]||{}; var d=mT[k]||{a:0,r:0}; mT[k]={a:Math.max(d.a||0,s.a||0), r:Math.max(d.r||0,s.r||0)}; }); });
+      appConfig.ocupacaoClientes={ adicionados:uniq(cA.concat(lA)), removidos:uniq(cR.concat(lR)), ts:mT };
     }
     // quem já virou "Nome cadastrado" (está em voucherResolvido) não fica no vermelho
     Object.keys(appConfig.voucherResolvido).forEach(k=>{ if(appConfig.semCadastroWecann[k]) delete appConfig.semCadastroWecann[k]; });
@@ -2696,13 +2724,16 @@ function conciliacaoPorQuarto(){
   const sobraPessoa=[];      // {id, voucherNum, sobrando:[nomes]}
 
   const conferidos=_quartosConferidos();   // { 'TOWER-026': true, ... } (baixados manualmente)
+  const baixadosPorId=(appConfig.quartosBaixadosPorId && typeof appConfig.quartosBaixadosPorId==='object') ? appConfig.quartosBaixadosPorId : {};
   let totalConferidos=0;
 
   quartos.forEach(q=>{
     // quarto já conferido/baixado manualmente: não gera divergência (sai das listas).
-    // Usa a assinatura (ID + nomes) — se o ID reaparecer com pessoas diferentes,
-    // NÃO fica baixado (é tratado como quarto novo, para não esconder furos).
-    if(conferidos[_assinaturaQuarto(q.id, q.pessoas)]){ totalConferidos++; return; }
+    // Fica baixado se a ASSINATURA (ID+nomes) bater OU se o ID da reserva já foi
+    // baixado antes — assim, uma vez conferido, o quarto NUNCA volta para a lista,
+    // mesmo que o CSV reapareça com o quarto (conforme regra definida pelo Nando).
+    var _kidQ=(q.id||'').trim().toUpperCase();
+    if(conferidos[_assinaturaQuarto(q.id, q.pessoas)] || (_kidQ && baixadosPorId[_kidQ])){ totalConferidos++; return; }
     // para cada pessoa do quarto, acha em qual voucher ela está (casando por nome + hotel)
     const achadosPorPessoa=q.pessoas.map(nm=>{
       const cands=vInfo.filter(vi=>{
@@ -2888,16 +2919,27 @@ function darBaixaQuarto(id, pessoas){
   const sig=_assinaturaQuarto(id, pessoas); if(!sig) return;
   if(!appConfig.quartosConferidos || typeof appConfig.quartosConferidos!=='object') appConfig.quartosConferidos={};
   appConfig.quartosConferidos[sig]=true;
+  // ÂNCORA POR ID DA RESERVA: guarda a baixa também pelo ID (âncora estável). Assim,
+  // mesmo que o CSV reapareça com nomes/pessoas ligeiramente diferentes, uma vez
+  // baixado o quarto NUNCA mais volta para a lista "sem voucher".
+  const kid=(id||'').trim().toUpperCase();
+  if(kid){
+    if(!appConfig.quartosBaixadosPorId || typeof appConfig.quartosBaixadosPorId!=='object') appConfig.quartosBaixadosPorId={};
+    appConfig.quartosBaixadosPorId[kid]=true;
+  }
   salvarConfig();
   renderConciliacao();
-  toast('Quarto “'+id+'” conferido e baixado ✅','ok');
+  toast('Quarto "'+id+'" conferido e baixado ✅','ok');
 }
 function reverterBaixaQuarto(id, pessoas){
   const sig=_assinaturaQuarto(id, pessoas); if(!sig) return;
   if(appConfig.quartosConferidos) delete appConfig.quartosConferidos[sig];
+  // remove também a âncora por ID (para a reversão realmente reexibir o quarto)
+  const kid=(id||'').trim().toUpperCase();
+  if(kid && appConfig.quartosBaixadosPorId) delete appConfig.quartosBaixadosPorId[kid];
   salvarConfig();
   renderConciliacao();
-  toast('Baixa do quarto “'+id+'” desfeita','info');
+  toast('Baixa do quarto "'+id+'" desfeita','info');
 }
 
 // monta o HTML do painel de conciliação por QUARTO (ID Reserva)
@@ -4371,7 +4413,22 @@ function aplicarIA(r){
   }
   syncClienteComPax();
   const itens = Array.isArray(r.servicos)?r.servicos : (r.tipo?[{tipo:r.tipo,dados:r.dados||{}}]:[]);
-  const ALIAS = {entrada:'checkin','entrada_hora':'checkinHora',saida:'checkout','saída':'checkout','saida_hora':'checkoutHora',checkindata:'checkin',checkoutdata:'checkout',horaentrada:'checkinHora',horasaida:'checkoutHora'};
+  const ALIAS = {
+    // ----- HOTEL -----
+    entrada:'checkin', saida:'checkout', 'saída':'checkout',
+    entradahora:'checkinHora', saidahora:'checkoutHora',
+    checkindata:'checkin', checkoutdata:'checkout', horaentrada:'checkinHora', horasaida:'checkoutHora',
+    // ----- AÉREO · PARTIDA -----  (a IA às vezes usa "partida"/"embarque" em vez de "ida")
+    datapartida:'dataIda', horapartida:'horaIda', partida:'dataIda',
+    dataembarque:'dataIda', horaembarque:'horaIda', embarque:'dataIda',
+    // ----- AÉREO · CHEGADA -----  (a IA usa "chegada"/"desembarque" em vez de "volta",
+    // especialmente em voos SOMENTE IDA, onde "volta" não faz sentido)
+    datachegada:'dataVolta', horachegada:'horaVolta', chegada:'dataVolta',
+    datadesembarque:'dataVolta', horadesembarque:'horaVolta', desembarque:'dataVolta'
+  };
+  // canônico: minúsculas, sem acento e sem espaços/pontos/underscores/hífens —
+  // casa QUALQUER variação de nome que a IA devolva (ex.: "Data de Chegada" → "datadechegada"→ tenta chegada)
+  const canon = s => (s||'').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[\s._-]/g,'');
   const norm = s => (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
   const HOTEIS_WECANN = ['royal tower','royal palm tower','contemporaneo','anhanguera'];
   let eventoWecann = false;
@@ -4380,7 +4437,14 @@ function aplicarIA(r){
     const def=SERVICES[type];
     const data={};
     Object.entries(it.dados||{}).forEach(([k,v])=>{
-      const kk = ALIAS[k] || ALIAS[k.toLowerCase()] || k;
+      let kk = ALIAS[k] || ALIAS[k.toLowerCase()] || ALIAS[canon(k)] || k;
+      // ÚLTIMA CAMADA (só aéreo): se ainda não bateu em nenhum campo, resolve pelo
+      // CONTEÚDO do nome. Cobre variações como "dataDeChegada", "horario_chegada" etc.
+      if(type==='aereo' && !def.fields.some(f=>f.k===kk)){
+        const ck=canon(k), ehHora=/hora|horario|hr/.test(ck);
+        if(/chegada|desembarque|arrival/.test(ck)) kk = ehHora ? 'horaVolta' : 'dataVolta';
+        else if(/partida|embarque|ida|departure|saida/.test(ck)) kk = ehHora ? 'horaIda' : 'dataIda';
+      }
       if(def.fields.some(f=>f.k===kk)) data[kk]=v;
     });
     if(type==='outro'&&!data.descricao&&it.dados){ data.descricao=Object.entries(it.dados).map(([k,v])=>`${k}: ${v}`).join('\n'); }
@@ -4806,7 +4870,21 @@ init();
     }
     if(!kbWired){
       kbWired=true;
+      // função única que ZERA qualquer estado de arraste preso (auto-cura).
+      // É a correção central do "trava e não deixa rolar": se o mouse for solto
+      // FORA da janela (o mouseup se perde) ou você trocar de aba no meio do
+      // arraste, o estado ficava ligado e a rolagem grudava no mouse. Aqui
+      // desligamos tudo com segurança por vários caminhos.
+      function kbSoltar(){
+        kbDown=false; kbThDown=false; kbMoved=false;
+        if(kbThumb) kbThumb.classList.remove('dragging');
+        if(kbCols) kbCols.classList.remove('dragging');
+      }
       window.addEventListener('mousemove', function(e){
+        // AUTO-CURA: se achamos que há arraste em andamento MAS nenhum botão do
+        // mouse está pressionado, o "soltar" se perdeu — zeramos na hora. Isso
+        // impede a rolagem de ficar presa seguindo o mouse sem o botão apertado.
+        if((kbDown||kbThDown) && e.buttons===0){ kbSoltar(); return; }
         if(kbThDown && kbThumb && kbCols && kbTrack){
           var tw=kbThumb.offsetWidth, range=kbTrack.clientWidth-tw;
           var left=Math.max(0,Math.min(range, kbThStartLeft+(e.pageX-kbThStartX)));
@@ -4819,7 +4897,12 @@ init();
           if(kbMoved){ e.preventDefault(); kbCols.scrollLeft=kbStartScroll-dx; }
         }
       });
-      window.addEventListener('mouseup', function(){ kbDown=false; kbThDown=false; if(kbThumb) kbThumb.classList.remove('dragging'); if(kbCols) setTimeout(function(){ kbCols.classList.remove('dragging'); },0); });
+      // vários caminhos de "soltar" para NUNCA deixar o arraste preso:
+      window.addEventListener('mouseup', function(){ kbThDown=false; kbDown=false; if(kbThumb) kbThumb.classList.remove('dragging'); if(kbCols) setTimeout(function(){ kbCols.classList.remove('dragging'); },0); });
+      window.addEventListener('blur', kbSoltar);            // trocou de aba/janela
+      window.addEventListener('pointerup', kbSoltar);       // soltou (pointer)
+      window.addEventListener('pointercancel', kbSoltar);   // gesto cancelado pelo SO
+      document.addEventListener('mouseleave', kbSoltar);    // mouse saiu da página
       window.addEventListener('resize', kbUpdateThumb);
     }
   }
@@ -5780,7 +5863,7 @@ function excluirNotaUI(id){
   // OCP_SORTEAVEIS = apenas os que ENTRAM no sorteio do "atendente da vez".
   // Os nomes que estão em OCP_ATENDENTES mas NÃO em OCP_SORTEAVEIS têm o sistema
   // completo de gestão, porém NUNCA são sorteados.
-  var OCP_ATENDENTES=['Eduardo Vinícius','Ghabriella Bressan','Liliane Gaspar','Israel Hespanhol','Maria Eduarda','Juliana Lupo','Diego Oliveira','Fernando Pires','Ana Maria','Hynaê Teston','Ruth Alves'];
+  var OCP_ATENDENTES=['Eduardo Vinícius','Ghabriella Bressan','Liliane Gaspar','Israel Hespanhol','Maria Eduarda','Juliana Lupo','Diego Oliveira','Fernando Pires','Ana Maria','Hynaê Teston','Ruth Alves','Mayara Marcelli'];
   var OCP_SORTEAVEIS=['Eduardo Vinícius','Ghabriella Bressan','Liliane Gaspar','Israel Hespanhol','Maria Eduarda','Juliana Lupo'];
 
   // >>> MERGE INTELIGENTE DE ESTADOS (anti-perda de dados entre PCs) <<<
@@ -5882,11 +5965,15 @@ function excluirNotaUI(id){
   //  • removidos   = nomes ocultados da lista (pode incluir originais de OCP_CLIENTES).
   // A LISTA EFETIVA = (originais + adicionados) − removidos, sempre em ordem alfabética.
   function ocpClientesStore(){
-    if(typeof appConfig!=='object' || !appConfig) return {adicionados:[],removidos:[]};
+    if(typeof appConfig!=='object' || !appConfig) return {adicionados:[],removidos:[],ts:{}};
     var c=appConfig.ocupacaoClientes;
-    if(!c || typeof c!=='object') c={adicionados:[],removidos:[]};
+    if(!c || typeof c!=='object') c={adicionados:[],removidos:[],ts:{}};
     if(!Array.isArray(c.adicionados)) c.adicionados=[];
     if(!Array.isArray(c.removidos)) c.removidos=[];
+    // 'ts' = carimbo por cliente: { chaveNome: {a:tsAdd, r:tsRemove} }. A ação mais
+    // recente (add vs remove) vence — é o que torna o cadastro PERMANENTE e resolve
+    // conflitos entre PCs sem que uma remoção antiga esconda um cliente recém-salvo.
+    if(!c.ts || typeof c.ts!=='object') c.ts={};
     appConfig.ocupacaoClientes=c;
     return c;
   }
@@ -5897,31 +5984,42 @@ function excluirNotaUI(id){
     var store=ocpClientesStore();
     var remSet={};
     store.removidos.forEach(function(n){ remSet[ocpChaveNome(n)]=1; });
+    // um cliente é visível se o carimbo de ADIÇÃO for >= o de REMOÇÃO (add vence
+    // empate). Sem carimbo (dados legados), cai na regra antiga (não estar em removidos).
+    function visivel(ch){
+      var t=store.ts[ch];
+      if(t){ return (t.a||0) >= (t.r||0); }
+      return !remSet[ch];
+    }
     var vistos={}, out=[];
-    // originais + adicionados, pulando os removidos e as duplicatas
+    // originais + adicionados, aplicando a visibilidade por carimbo e evitando duplicatas
     OCP_CLIENTES.concat(store.adicionados).forEach(function(n){
       var nome=(n||'').toString().trim();
       if(!nome) return;
       var ch=ocpChaveNome(nome);
-      if(remSet[ch]) return;              // foi removido
+      if(!visivel(ch)) return;             // removido (e não recadastrado depois)
       if(vistos[ch]) return;              // já está na lista (evita duplicata)
       vistos[ch]=1; out.push(nome);
     });
     out.sort(function(a,b){ return ocpChaveNome(a).localeCompare(ocpChaveNome(b)); });
     return out;
   }
-  // adiciona um cliente novo (permanente). Devolve true se adicionou, false se já existia/ inválido.
+  // adiciona um cliente novo (PERMANENTE). Devolve true se adicionou, false se já existia/inválido.
   function ocpAdicionarCliente(nome){
     var t=(nome||'').toString().trim();
     if(!t) return false;
     var store=ocpClientesStore();
     var ch=ocpChaveNome(t);
-    // se estava na lista de removidos, "revive" tirando de lá
-    store.removidos=store.removidos.filter(function(n){ return ocpChaveNome(n)!==ch; });
-    // já existe na lista efetiva? não duplica
+    // já visível na lista efetiva? não duplica
     var jaExiste=ocpClientesEfetivos().some(function(n){ return ocpChaveNome(n)===ch; });
     if(jaExiste) return false;
-    store.adicionados.push(t);
+    // CARIMBA o cadastro como a ação MAIS RECENTE: vence qualquer remoção antiga
+    // (inclusive de outro PC), garantindo que o cliente entre na lista para sempre.
+    var prev=store.ts[ch]||{a:0,r:0};
+    store.ts[ch]={a:Date.now(), r:prev.r||0};
+    // "revive" tirando de removidos e garante o nome na lista de adicionados
+    store.removidos=store.removidos.filter(function(n){ return ocpChaveNome(n)!==ch; });
+    if(!store.adicionados.some(function(n){ return ocpChaveNome(n)===ch; })) store.adicionados.push(t);
     try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
     return true;
   }
@@ -5931,6 +6029,9 @@ function excluirNotaUI(id){
     if(!t) return;
     var store=ocpClientesStore();
     var ch=ocpChaveNome(t);
+    // CARIMBA a remoção como a ação mais recente (para vencer um cadastro anterior)
+    var prev=store.ts[ch]||{a:0,r:0};
+    store.ts[ch]={a:prev.a||0, r:Date.now()};
     // tira dos adicionados (se for um personalizado)
     store.adicionados=store.adicionados.filter(function(n){ return ocpChaveNome(n)!==ch; });
     // marca como removido (cobre também os originais embutidos)
