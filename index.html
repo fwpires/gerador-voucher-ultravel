@@ -275,21 +275,24 @@ body.dark .hub-sidebar .nav-add{color:var(--verde)}
 @keyframes ocpIndispBlink{0%,100%{opacity:1}50%{opacity:.72}}
 @keyframes ocpInternoBlink{0%,100%{opacity:1}50%{opacity:.72}}
 /* ===== STAND BY — clientes atendidos que aguardam retorno (fora da ocupação ativa) ===== */
-.ocp-sb{margin-top:9px;padding-top:8px;border-top:1px dashed rgba(255,255,255,.13);display:flex;flex-direction:column;gap:6px}
-.ocp-sb-tit{font-size:10px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:#ff9838;text-align:center;opacity:.92}
-.ocp-sb-list{display:flex;flex-direction:column;gap:5px;align-items:stretch}
-.ocp-sb-add{align-self:center;width:26px;height:20px;padding:0;font-size:15px;line-height:1;font-weight:800;border-radius:7px;cursor:pointer;background:rgba(255,152,56,.14);border:1px solid rgba(255,152,56,.5);color:#ff9838;transition:all .15s}
-.ocp-sb-add:hover{background:rgba(255,152,56,.3);border-color:#ff9838;color:#fff}
+.ocp-sb{margin-top:9px;padding-top:8px;border-top:1px dashed rgba(255,255,255,.13);display:flex;flex-direction:column;gap:7px;align-items:center}
+.ocp-sb-tit{font-size:10px;font-weight:800;letter-spacing:.3px;color:#FFFFFF;text-align:center;opacity:.95}
+.ocp-sb-list{display:flex;flex-wrap:wrap;gap:7px;align-items:center;justify-content:center;width:100%}
+/* botão "+" para adicionar (bolinha pontilhada, menor e branca) */
+.ocp-sb-add{width:13px;height:13px;border-radius:50%;padding:0;font-size:11px;line-height:1;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.08);border:1px dashed rgba(255,255,255,.5);color:#FFFFFF;flex-shrink:0;transition:all .15s}
+.ocp-sb-add:hover{background:rgba(255,255,255,.2);border-color:#FFFFFF;color:#FFFFFF}
 .ocp-sb-add:active{transform:scale(.9)}
-/* botão laranja neon piscando de cada cliente em stand by (visual igual aos de status) */
-.ocp-sb-btn{position:relative;font-size:10px;font-weight:900;line-height:1.15;border-radius:7px;cursor:pointer;padding:5px 7px;outline:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;width:100%;box-sizing:border-box;background:linear-gradient(180deg,#ff8a1c,#e06600);border:1px solid #ffb057;color:#231400;box-shadow:0 0 8px rgba(255,138,28,.6);animation:ocpSbBlink 1.4s ease-in-out infinite;transition:all .15s}
-.ocp-sb-btn:hover{background:linear-gradient(180deg,#ff9d33,#f07400);box-shadow:0 0 12px rgba(255,138,28,.9)}
-.ocp-sb-btn:active{transform:scale(.95)}
-@keyframes ocpSbBlink{0%,100%{opacity:1}50%{opacity:.68}}
-/* tooltip amarelo com a OBSERVAÇÃO (só aparece se houver observação) */
-.ocp-sb-btn[data-ocp-sb-obs]:not([data-ocp-sb-obs=""])::after{content:attr(data-ocp-sb-obs);position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%) scale(.9);background:#FFC400;color:#000;font-weight:800;font-size:12px;letter-spacing:.2px;padding:6px 11px;border-radius:7px;white-space:normal;width:max-content;max-width:220px;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,.45);border:1px solid #d9a900;opacity:0;pointer-events:none;transition:opacity .15s ease,transform .15s ease;z-index:50}
-.ocp-sb-btn[data-ocp-sb-obs]:not([data-ocp-sb-obs=""])::before{content:"";position:absolute;bottom:calc(100% + 2px);left:50%;transform:translateX(-50%) scale(.9);border:5px solid transparent;border-top-color:#FFC400;opacity:0;pointer-events:none;transition:opacity .15s ease,transform .15s ease;z-index:50}
-.ocp-sb-btn[data-ocp-sb-obs]:not([data-ocp-sb-obs=""]):hover::after,.ocp-sb-btn[data-ocp-sb-obs]:not([data-ocp-sb-obs=""]):hover::before{opacity:1;transform:translateX(-50%) scale(1)}
+/* cada cliente em stand by = BOLINHA LARANJA (igual às verdes de status), piscando */
+.ocp-sb-btn{position:relative;width:15px;height:15px;border-radius:50%;border:2px solid rgba(255,255,255,.22);padding:0;cursor:pointer;outline:none;flex-shrink:0;background:radial-gradient(circle at 32% 28%, #ffe0b0 0%, #ff9422 45%, #d86a00 100%);animation:ocpPulseO 1.45s ease-in-out infinite;transition:transform .12s ease}
+.ocp-sb-btn:active{transform:scale(.9)}
+@keyframes ocpPulseO{
+  0%,100%{box-shadow:0 0 6px 1px rgba(255,148,34,.75),0 0 13px 4px rgba(255,148,34,.35),inset 0 0 4px rgba(255,255,255,.5)}
+  50%{box-shadow:0 0 10px 3px rgba(255,148,34,1),0 0 21px 7px rgba(255,148,34,.55),inset 0 0 6px rgba(255,255,255,.7)}
+}
+/* tooltip amarelo: "Nome do Cliente - observação" ao passar o mouse na bolinha */
+.ocp-sb-btn::after{content:attr(data-ocp-sb-tip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%) scale(.9);background:#FFC400;color:#000;font-weight:800;font-size:12px;letter-spacing:.2px;padding:6px 11px;border-radius:7px;white-space:normal;width:max-content;max-width:230px;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,.45);border:1px solid #d9a900;opacity:0;pointer-events:none;transition:opacity .15s ease,transform .15s ease;z-index:50}
+.ocp-sb-btn::before{content:"";position:absolute;bottom:calc(100% + 3px);left:50%;transform:translateX(-50%) scale(.9);border:5px solid transparent;border-top-color:#FFC400;opacity:0;pointer-events:none;transition:opacity .15s ease,transform .15s ease;z-index:50}
+.ocp-sb-btn:hover::after,.ocp-sb-btn:hover::before{opacity:1;transform:translateX(-50%) scale(1)}
 /* campo Observação dentro do modal de stand by */
 .ocp-sb-obs-wrap{margin:12px 18px 4px}
 .ocp-sb-obs-wrap label{display:block;font-size:12px;font-weight:800;color:#8BA4BF;margin-bottom:5px}
@@ -470,9 +473,9 @@ body:not(.dark) .ocp-vez-bar.ocp-todos-ocupados{background:linear-gradient(180de
 body:not(.dark) .ocp-todos-msg{color:#D01414}
 /* Stand By no modo claro */
 body:not(.dark) .ocp-sb{border-top-color:#E4EAF1}
-body:not(.dark) .ocp-sb-tit{color:#D0600F}
-body:not(.dark) .ocp-sb-add{background:rgba(255,138,28,.12);border-color:rgba(224,102,0,.5);color:#C25A00}
-body:not(.dark) .ocp-sb-add:hover{background:rgba(255,138,28,.24);border-color:#e06600;color:#8a3f00}
+body:not(.dark) .ocp-sb-tit{color:#475569}
+body:not(.dark) .ocp-sb-add{background:rgba(20,45,70,.05);border-color:rgba(20,45,70,.35);color:#64748B}
+body:not(.dark) .ocp-sb-add:hover{background:rgba(20,45,70,.1);border-color:#64748B;color:#334155}
 .termo-box{flex:1;display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end;justify-content:flex-start;padding:10px 4px;min-height:230px;overflow-x:auto}
 .termo-vazio{color:var(--texto-fraco);font-size:13px;padding:20px 4px}
 .termo-item{display:flex;flex-direction:column;align-items:center;gap:4px;width:88px;flex:0 0 auto}
@@ -1462,7 +1465,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v3·21 (Stand By: cada atendente gerencia clientes atendidos aguardando retorno — botão laranja neon, observação livre, persiste entre dias e PCs) -->
+    <!-- build: HUB-v3·23 (Stand By: botão + menor e branco + título "Stand By" sem caixa alta) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -6494,8 +6497,9 @@ function excluirNotaUI(id){
              '<div class="ocp-leds">'+leds+'</div>'+
              '<div class="ocp-sb"><div class="ocp-sb-tit">Stand By</div><div class="ocp-sb-list">'+
                ocpStandbyLista(a).map(function(e){
+                 var tip=e.cliente+(e.obs?' - '+e.obs:'');
                  return '<button type="button" class="ocp-sb-btn" data-ocp-sb-at="'+ocpEsc(a)+'" data-ocp-sb-id="'+ocpEsc(e.id)+'"'+
-                        ' data-ocp-sb-obs="'+ocpEsc(e.obs||'')+'" title="'+ocpEsc(e.cliente)+(e.obs?' — '+ocpEsc(e.obs):'')+'">'+ocpEsc(e.cliente)+'</button>';
+                        ' data-ocp-sb-tip="'+ocpEsc(tip)+'" title="'+ocpEsc(tip)+'"></button>';
                }).join('')+
                '<button type="button" class="ocp-sb-add" data-ocp-sb-at="'+ocpEsc(a)+'" title="Adicionar cliente em Stand By">+</button>'+
              '</div></div>'+
