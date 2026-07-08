@@ -293,6 +293,25 @@ body.dark .hub-sidebar .nav-add{color:var(--verde)}
 .ocp-sb-btn::after{content:attr(data-ocp-sb-tip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%) scale(.9);background:#FFC400;color:#000;font-weight:800;font-size:12px;letter-spacing:.2px;padding:6px 11px;border-radius:7px;white-space:normal;width:max-content;max-width:230px;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,.45);border:1px solid #d9a900;opacity:0;pointer-events:none;transition:opacity .15s ease,transform .15s ease;z-index:50}
 .ocp-sb-btn::before{content:"";position:absolute;bottom:calc(100% + 3px);left:50%;transform:translateX(-50%) scale(.9);border:5px solid transparent;border-top-color:#FFC400;opacity:0;pointer-events:none;transition:opacity .15s ease,transform .15s ease;z-index:50}
 .ocp-sb-btn:hover::after,.ocp-sb-btn:hover::before{opacity:1;transform:translateX(-50%) scale(1)}
+/* ===== SELOS ANTI-BURLA (reinícios / reaberturas) — visíveis a todos ===== */
+.ocp-selo-wrap{display:flex;flex-wrap:wrap;gap:3px;justify-content:center;margin-top:1px}
+.ocp-selo-rei{font-size:8.5px;font-weight:900;letter-spacing:.2px;padding:1px 5px;border-radius:6px;background:linear-gradient(180deg,#ffb037,#e58a00);color:#231400;border:1px solid #ffc766;box-shadow:0 0 5px rgba(255,150,20,.5);cursor:help;white-space:nowrap}
+.ocp-selo-rea{font-size:8.5px;font-weight:900;letter-spacing:.2px;padding:1px 5px;border-radius:6px;background:rgba(0,150,230,.16);color:#5cc6ff;border:1px solid rgba(0,150,230,.5);cursor:help;white-space:nowrap}
+body:not(.dark) .ocp-selo-rea{background:rgba(0,120,192,.1);color:#0663a0;border-color:rgba(0,120,192,.4)}
+/* campo "Qual o Pax da vez?" no modal de reabertura */
+.ocp-reab{max-width:340px}
+.ocp-reab-pax{margin:10px 0 4px;text-align:left}
+.ocp-reab-pax label{display:block;font-size:12px;font-weight:800;color:#8BA4BF;margin-bottom:5px}
+.ocp-reab-pax input{width:100%;box-sizing:border-box;padding:9px 11px;border-radius:9px;border:1px solid rgba(0,150,230,.5);background:rgba(0,150,230,.06);color:#E8EEF4;font-size:13px;outline:none}
+.ocp-reab-pax input:focus{border-color:#0a9cf0;background:rgba(0,150,230,.11)}
+.ocp-reab-cont{padding:10px 12px;border-radius:9px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:#E8EEF4;font-size:13px;font-weight:800;cursor:pointer;transition:all .15s}
+.ocp-reab-cont:hover{background:rgba(255,255,255,.18)}
+.ocp-reab-novo{padding:10px 12px;border-radius:9px;border:none;background:linear-gradient(180deg,#0a9cf0,#0678c8);color:#fff;font-size:13px;font-weight:800;cursor:pointer;transition:all .15s}
+.ocp-reab-novo:hover{background:linear-gradient(180deg,#28abff,#0a86d8)}
+body:not(.dark) .ocp-reab-cont{background:#EEF3F9;border-color:#C4D3E4;color:#2A4763}
+body:not(.dark) .ocp-reab-cont:hover{background:#e2ebf5}
+body:not(.dark) .ocp-reab-pax label{color:#64748B}
+body:not(.dark) .ocp-reab-pax input{background:#fff;color:#1A2733;border-color:#C4D3E4}
 /* campo Observação dentro do modal de stand by */
 .ocp-sb-obs-wrap{margin:12px 18px 4px}
 .ocp-sb-obs-wrap label{display:block;font-size:12px;font-weight:800;color:#8BA4BF;margin-bottom:5px}
@@ -1465,7 +1484,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v3·23 (Stand By: botão + menor e branco + título "Stand By" sem caixa alta) -->
+    <!-- build: HUB-v3·24 (anti-burla do timer: tempo gruda na dupla atendente+cliente — reiniciar retoma o tempo, conta reinícios, selo visível a todos + reabertura com "Qual o Pax da vez?") -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -6006,6 +6025,11 @@ function excluirNotaUI(id){
   // completo de gestão, porém NUNCA são sorteados.
   var OCP_ATENDENTES=['Eduardo Vinícius','Ghabriella Bressan','Liliane Gaspar','Israel Hespanhol','Maria Eduarda','Juliana Lupo','Diego Oliveira','Fernando Pires','Ana Maria','Hynaê Teston','Ruth Alves','Mayara Marcelli'];
   var OCP_SORTEAVEIS=['Eduardo Vinícius','Ghabriella Bressan','Liliane Gaspar','Israel Hespanhol','Maria Eduarda','Juliana Lupo'];
+  // ANTI-BURLA: janela em que reabrir o MESMO cliente é tratado como CONTINUAÇÃO
+  // (retoma o tempo, conta reinício) sem perguntar. Passou disso → pergunta se é
+  // continuação ou novo atendimento (com "Qual o Pax da vez?").
+  var OCP_TOLERANCIA = 15*60*1000;   // 15 minutos
+  var OCP_LIMIAR_SELO = 2;           // selo "↻" aparece a partir de 2 reinícios (visível a todos)
 
   // >>> MERGE INTELIGENTE DE ESTADOS (anti-perda de dados entre PCs) <<<
   // PROBLEMA que isto resolve: vários PCs compartilham o mesmo config na nuvem.
@@ -6029,7 +6053,7 @@ function excluirNotaUI(id){
     if(base.data && outro.data && base.data!==outro.data) return base;
     var out={
       data: base.data || outro.data,
-      slots:{}, inicios:{}, clientes:{}, livres:{}, mods:{},
+      slots:{}, inicios:{}, clientes:{}, livres:{}, mods:{}, histCliente:{},
       // COPIA o pool por VALOR (slice), nunca por referência — se copiássemos a
       // referência, um filter/push posterior no sorteio mutaria o estado antigo
       // compartilhado e embaralharia a fila entre re-renders. slice() isola.
@@ -6085,6 +6109,24 @@ function excluirNotaUI(id){
         var lFin = (lVenc && lVenc.length) ? lVenc : ((bl[i]&&bl[i].length)?bl[i]:(ol[i]||[]));
         out.livres[a][i]=Array.isArray(lFin)?lFin.slice():[];
       }
+    });
+    // MERGE do histórico ANTI-BURLA: união por atendente e por cliente. Para a mesma
+    // entrada, vence o carimbo (ts) mais recente (ini/ult/pax), e os contadores
+    // (rei/rea) ficam com o MAIOR valor — assim nenhum reinício/reabertura se perde
+    // entre PCs, e a memória do tempo acumulado é preservada.
+    var bh=base.histCliente||{}, oh=outro.histCliente||{}, atsH={};
+    Object.keys(bh).forEach(function(k){atsH[k]=1;}); Object.keys(oh).forEach(function(k){atsH[k]=1;});
+    Object.keys(atsH).forEach(function(at){
+      var ma=bh[at]||{}, mb=oh[at]||{}, mo={}, chs={};
+      Object.keys(ma).forEach(function(k){chs[k]=1;}); Object.keys(mb).forEach(function(k){chs[k]=1;});
+      Object.keys(chs).forEach(function(ch){
+        var ea=ma[ch], eb=mb[ch];
+        if(ea && eb){
+          var base2=((ea.ts||0)>=(eb.ts||0))?ea:eb;
+          mo[ch]={ ini:base2.ini, ult:Math.max(ea.ult||0,eb.ult||0), rei:Math.max(ea.rei||0,eb.rei||0), rea:Math.max(ea.rea||0,eb.rea||0), pax:base2.pax||'', ts:Math.max(ea.ts||0,eb.ts||0) };
+        } else { mo[ch]=ea||eb; }
+      });
+      out.histCliente[at]=mo;
     });
     return out;
   }
@@ -6303,6 +6345,14 @@ function excluirNotaUI(id){
     // corrigindo o bug do estado "ressuscitado". Preserva a proteção entre PCs
     // porque a ação mais nova (de qualquer PC) é sempre a que prevalece.
     if(!o.mods || typeof o.mods!=='object') o.mods={};
+    // 'histCliente' = memória ANTI-BURLA por atendente+cliente (não por slot). Guarda,
+    // por cliente atendido no dia: ini (início REAL/acumulado do timer), ult (última
+    // vez ativo — base da janela de tolerância), rei (nº de reinícios sem informar
+    // Pax), rea (nº de reaberturas legítimas com Pax) e pax (último Pax informado).
+    // É isto que faz o timer GRUDAR no cliente: reiniciar o mesmo cliente retoma o
+    // tempo acumulado em vez de zerar. Reseta com o dia (dentro de ocupacaoAtendentes).
+    if(!o.histCliente || typeof o.histCliente!=='object') o.histCliente={};
+    OCP_ATENDENTES.forEach(function(a){ if(!o.histCliente[a] || typeof o.histCliente[a]!=='object') o.histCliente[a]={}; });
     OCP_ATENDENTES.forEach(function(a){
       if(!Array.isArray(o.slots[a]) || o.slots[a].length!==3) o.slots[a]=[0,0,0];
       if(!Array.isArray(o.inicios[a]) || o.inicios[a].length!==3) o.inicios[a]=[0,0,0];
@@ -6483,12 +6533,24 @@ function excluirNotaUI(id){
               ' title="Selecionar cliente em atendimento">+</button>';
           }
         }
+        // SELO ANTI-BURLA (visível a todos): a partir de 2 reinícios sem Pax mostra
+        // "↻ Nx" em âmbar; reaberturas legítimas (com Pax) mostram "✨ Nx" em azul.
+        var selo='';
+        if(oc && nomeCli && !indisp && !interno && !ausente){
+          var _chS=ocpChaveCli(nomeCli);
+          var _h=_chS ? ((o.histCliente[a]||{})[_chS]) : null;
+          if(_h){
+            if((_h.rei||0) >= OCP_LIMIAR_SELO) selo+='<span class="ocp-selo-rei" title="Reinícios sem informar o Pax hoje">↻ '+_h.rei+'x</span>';
+            if((_h.rea||0) >= 1) selo+='<span class="ocp-selo-rea" title="Reaberturas com Pax informado'+(_h.pax?' (último: '+ocpEsc(_h.pax)+')':'')+'">✨ '+_h.rea+'x</span>';
+          }
+        }
         return '<div class="ocp-slot">'+
           '<button type="button" class="ocp-led '+(oc?'ocupado':'livre')+'"'+
           ' data-ocp-at="'+ocpEsc(a)+'" data-ocp-i="'+i+'"'+
           ' title="'+(oc?'Ocupado — clique para liberar':'Livre — clique para marcar ocupado')+'"></button>'+
           '<span class="'+tmClass+'"'+tmData+'>'+tmTxt+'</span>'+
           btnCli+
+          (selo?'<div class="ocp-selo-wrap">'+selo+'</div>':'')+
         '</div>';
       }).join('');
       return '<div class="ocp-box'+(ehVez?' ocp-vez':'')+'">'+
@@ -6815,6 +6877,41 @@ function excluirNotaUI(id){
   }
 
   // grava o cliente no slot e salva na nuvem (compartilhado entre PCs)
+  /* ===== ANTI-BURLA: timer que gruda na dupla (atendente + cliente) ===== */
+  // chave do cliente para o histórico — vazia para sentinelas (Indisp/Interno/Ausente)
+  // e vazio, que NÃO entram no controle anti-burla.
+  function ocpChaveCli(nome){
+    var t=(nome||'').toString().trim();
+    if(!t || t==='__INDISPONIVEL__' || t==='__INTERNO__' || t.indexOf('__AUSENTE__')===0) return '';
+    return ocpChaveNome(t);
+  }
+  function ocpHistStore(at){ var o=ocpEstado(); if(!o.histCliente[at] || typeof o.histCliente[at]!=='object') o.histCliente[at]={}; return o.histCliente[at]; }
+
+  // aplica o timer certo ao pôr um cliente num slot. Retorna:
+  //  'ask'    → passou da tolerância: precisa perguntar (continuação/novo com Pax)
+  //  'ok'     → resolvido (fresco ou continuação automática)
+  function ocpAplicarTimerCliente(at, i, valor){
+    var o=ocpEstado();
+    var ch=ocpChaveCli(valor);
+    if(!ch) return 'ok';                 // sentinela/vazio: timer normal, sem histórico
+    var H=ocpHistStore(at); var h=H[ch]; var agora=Date.now();
+    if(!Array.isArray(o.inicios[at]) || o.inicios[at].length!==3) o.inicios[at]=[0,0,0];
+    if(h && h.ini){
+      var dt = agora - (h.ult || h.ini);
+      if(dt <= OCP_TOLERANCIA){
+        // CONTINUAÇÃO AUTOMÁTICA: retoma o tempo acumulado e conta o reinício
+        o.inicios[at][i] = h.ini;
+        h.rei = (h.rei||0) + 1; h.ult = agora; h.ts = agora;
+        return 'ok';
+      }
+      return 'ask';                      // passou da tolerância → decide via modal
+    }
+    // PRIMEIRA vez do cliente hoje: usa o início atual do slot (marcação vermelha)
+    var iniSlot = o.inicios[at][i] || agora;
+    H[ch]={ ini:iniSlot, ult:agora, rei:0, rea:0, pax:'', ts:agora };
+    return 'ok';
+  }
+
   function ocpDefinirCliente(at, i, valor){
     var o=ocpEstado();
     if(!Array.isArray(o.clientes[at]) || o.clientes[at].length!==3) o.clientes[at]=['','',''];
@@ -6822,8 +6919,60 @@ function excluirNotaUI(id){
     // carimba a modificação deste slot (marcar/limpar cliente ou Interno/Indisp/Ausente)
     if(!Array.isArray(o.mods[at]) || o.mods[at].length!==3) o.mods[at]=[0,0,0];
     o.mods[at][i]=Date.now();
+    // ANTI-BURLA: ajusta o timer conforme o histórico do cliente
+    var r=ocpAplicarTimerCliente(at, i, valor);
+    if(r==='ask'){
+      // passou da tolerância: pergunta se é continuação ou novo atendimento (com Pax).
+      // A gravação/render final acontece no callback do modal.
+      window.renderOcupacao();
+      ocpPerguntarReabertura(at, i, valor);
+      return;
+    }
     window.renderOcupacao();
     try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+  }
+
+  // modal: "Já atendeu este cliente hoje — continuação ou novo atendimento?"
+  function ocpPerguntarReabertura(at, i, cliente){
+    var ch=ocpChaveCli(cliente); if(!ch){ try{ salvarConfig(); }catch(e){} return; }
+    var bg=document.createElement('div'); bg.className='ocp-confirm-bg'; bg.id='ocpReabModal';
+    bg.innerHTML=
+      '<div class="ocp-confirm ocp-reab">'+
+        '<h4>🔁 Cliente já atendido hoje</h4>'+
+        '<p>Você já atendeu <b>'+ocpEsc(cliente)+'</b> hoje. É a <b>continuação</b> do mesmo caso ou um <b>novo atendimento</b>?</p>'+
+        '<div class="ocp-reab-pax" id="ocpReabPaxWrap" style="display:none">'+
+          '<label>Qual o Pax da vez?</label>'+
+          '<input type="text" id="ocpReabPax" placeholder="Nome do passageiro/pessoa atendida agora" autocomplete="off">'+
+        '</div>'+
+        '<div class="ocp-confirm-btns">'+
+          '<button type="button" class="ocp-reab-cont" id="ocpReabCont">🔄 Continuação</button>'+
+          '<button type="button" class="ocp-reab-novo" id="ocpReabNovo">✨ Novo atendimento</button>'+
+        '</div>'+
+      '</div>';
+    document.body.appendChild(bg);
+    function fechar(){ if(bg.parentNode) bg.parentNode.removeChild(bg); }
+    function finalizar(){ window.renderOcupacao(); try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){} }
+    var o=ocpEstado(); var H=ocpHistStore(at); var h=H[ch]||{}; var agora=Date.now();
+    // Continuação: retoma o tempo acumulado (não zera, não conta reabertura)
+    document.getElementById('ocpReabCont').onclick=function(){
+      if(!Array.isArray(o.inicios[at])||o.inicios[at].length!==3) o.inicios[at]=[0,0,0];
+      o.inicios[at][i] = h.ini || o.inicios[at][i] || agora;
+      h.ini = o.inicios[at][i]; h.ult = agora; h.ts = agora; H[ch]=h;
+      fechar(); finalizar();
+    };
+    // Novo atendimento: exige o Pax → timer fresco + conta reabertura legítima
+    var paxWrap=document.getElementById('ocpReabPaxWrap'), paxInp=document.getElementById('ocpReabPax'), btnNovo=document.getElementById('ocpReabNovo');
+    btnNovo.onclick=function(){
+      if(paxWrap.style.display==='none'){ paxWrap.style.display='block'; btnNovo.textContent='✅ Confirmar novo'; setTimeout(function(){ try{paxInp.focus();}catch(e){} },20); return; }
+      var pax=(paxInp.value||'').trim();
+      if(!pax){ try{paxInp.focus();}catch(e){} paxInp.style.borderColor='#ff5252'; return; }
+      if(!Array.isArray(o.inicios[at])||o.inicios[at].length!==3) o.inicios[at]=[0,0,0];
+      o.inicios[at][i]=agora;
+      h.ini=agora; h.ult=agora; h.rea=(h.rea||0)+1; h.pax=pax; h.ts=agora; H[ch]=h;
+      fechar(); finalizar();
+    };
+    if(paxInp) paxInp.onkeydown=function(k){ if(k.key==='Enter') btnNovo.click(); };
+    bg.addEventListener('click', function(e){ if(e.target===bg){ /* fora → assume continuação (não zera) */ document.getElementById('ocpReabCont').click(); } });
   }
 
   // clique nos botões "+"/"Cliente" → abre o seletor (delegação global)
@@ -6997,7 +7146,14 @@ function excluirNotaUI(id){
     // CLIENTE: ao LIBERAR o botão (virou verde), limpa o cliente daquele slot —
     // o atendimento terminou, então a seleção de cliente não faz mais sentido.
     if(!Array.isArray(o.clientes[at]) || o.clientes[at].length!==3) o.clientes[at]=['','',''];
-    if(!virouVermelho) o.clientes[at][i]='';
+    if(!virouVermelho){
+      // ANTI-BURLA: ao LIBERAR, carimba a "última vez visto" do cliente que estava
+      // aqui. É esse carimbo que abre a janela de tolerância: se o mesmo cliente for
+      // reaberto em poucos minutos, o timer RETOMA (não zera) e conta o reinício.
+      var _chLib=ocpChaveCli(o.clientes[at][i]);
+      if(_chLib){ var _H=ocpHistStore(at); if(_H[_chLib]){ _H[_chLib].ult=Date.now(); _H[_chLib].ts=Date.now(); } }
+      o.clientes[at][i]='';
+    }
     var forcarSorteio = false;
     if(virouVermelho){
       // fim da fila: SÓ para atendentes SORTEÁVEIS — os fora do sorteio nunca
