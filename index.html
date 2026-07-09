@@ -1590,7 +1590,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v3·44 (correção real dos campos de hora: showPicker síncrono no clique direto do input (abre clicando em qualquer área) e listener wheel direto no elemento com passive:false + limiar maior — scroll agora desacelera de verdade), e scroll do mouse desacelerado para ajuste suave de hora/minuto) com merge por timestamp em salvar+carregar+polling, soft delete nos arquivados e migração automática do legado)" do cabeçalho), barra lateral vermelha e separador antes do compromisso); fontes em branco vivo; ordem bolinha - nome - data - hora - compromisso) em atendimento na bolinha vermelha e pergunta qual transferir; transferir libera o slot de origem) -->
+    <!-- build: HUB-v3·45 (scroll dos campos de hora bem mais lento: limiar de desaceleração 90 → 260) e listener wheel direto no elemento com passive:false + limiar maior — scroll agora desacelera de verdade), e scroll do mouse desacelerado para ajuste suave de hora/minuto) com merge por timestamp em salvar+carregar+polling, soft delete nos arquivados e migração automática do legado)" do cabeçalho), barra lateral vermelha e separador antes do compromisso); fontes em branco vivo; ordem bolinha - nome - data - hora - compromisso) em atendimento na bolinha vermelha e pergunta qual transferir; transferir libera o slot de origem) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -7911,7 +7911,7 @@ function excluirNotaUI(id){
         e.preventDefault(); e.stopPropagation();
         if(aprWheelAlvo!==inp){ aprWheelAlvo=inp; aprWheelAcc=0; }
         aprWheelAcc += e.deltaY;
-        var LIMIAR=90;                       // maior = mais devagar/suave
+        var LIMIAR=260;                      // maior = mais devagar/suave
         if(Math.abs(aprWheelAcc) < LIMIAR) return;
         var dir = aprWheelAcc>0 ? -1 : 1;    // rolar para baixo diminui
         aprWheelAcc=0;
