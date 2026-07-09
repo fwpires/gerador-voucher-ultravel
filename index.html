@@ -1578,7 +1578,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v3·40 (efeito reverso do Stand By: clicar numa bolinha verde com clientes no Stand By pergunta se quer puxar algum de volta ao atendimento; ao confirmar vira vermelha com o nome embaixo e sai da fila do Stand By)" do cabeçalho), barra lateral vermelha e separador antes do compromisso); fontes em branco vivo; ordem bolinha - nome - data - hora - compromisso) em atendimento na bolinha vermelha e pergunta qual transferir; transferir libera o slot de origem) -->
+    <!-- build: HUB-v3·41 (FIX: nomes indo sozinhos para Contato Realizado — carteira e arquivados eram salvos SEM merge e um PC defasado ressuscitava estado velho ao importar CSV; agora toda operação é carimbada (carteiraOps) com merge por timestamp em salvar+carregar+polling, soft delete nos arquivados e migração automática do legado)" do cabeçalho), barra lateral vermelha e separador antes do compromisso); fontes em branco vivo; ordem bolinha - nome - data - hora - compromisso) em atendimento na bolinha vermelha e pergunta qual transferir; transferir libera o slot de origem) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -2126,6 +2126,13 @@ async function carregarConfig(){
       // volta para a lista "sem voucher" ao reimportar o CSV — nem entre PCs diferentes.
       appConfig.quartosConferidos  ={...(local.quartosConferidos  ||{}), ...(c.quartosConferidos  ||{})};
       appConfig.quartosBaixadosPorId={...(local.quartosBaixadosPorId||{}), ...(c.quartosBaixadosPorId||{})};
+      // CARTEIRA + ARQUIVADOS: merge por carimbo (a operação mais recente vence).
+      // Sem isso, o spread acima deixava a nuvem sobrescrever cegamente — e um estado
+      // velho em qualquer lado ressuscitava nomes em "Contato Realizado".
+      if(typeof uvMesclarCarteiraArq==='function'){
+        var _mcL=uvMesclarCarteiraArq(local, c);
+        appConfig.carteira=_mcL.carteira; appConfig.carteiraOps=_mcL.carteiraOps; appConfig.arquivados=_mcL.arquivados;
+      }
       // PROTEÇÃO DO PAINEL DE OCUPAÇÃO: se já havia estado local de ocupação, mescla
       // com o da nuvem em vez de deixar o spread acima simplesmente sobrescrevê-lo.
       // (o merge só existe após o IIFE de ocupação carregar; a guarda evita erro)
@@ -2245,6 +2252,13 @@ async function salvarConfig(){
       Object.keys(apCloud).forEach(function(k){apIds[k]=1;}); Object.keys(apLocal).forEach(function(k){apIds[k]=1;});
       Object.keys(apIds).forEach(function(id){ var ea=apCloud[id], eb=apLocal[id]; apOut[id]=(ea&&eb)?(((ea.ts||0)>=(eb.ts||0))?ea:eb):(ea||eb); });
       appConfig.ausenciasProgramadas=apOut;
+    }
+    // CARTEIRA + ARQUIVADOS (Contato Realizado / Template Enviado): merge por carimbo.
+    // Corrige a ressurreição de nomes: um PC defasado NÃO reenvia carteira velha —
+    // a operação mais recente (trazer/devolver/arquivar/restaurar) SEMPRE vence.
+    if(typeof uvMesclarCarteiraArq==='function'){
+      var _mc=uvMesclarCarteiraArq(appConfig, cloud);
+      appConfig.carteira=_mc.carteira; appConfig.carteiraOps=_mc.carteiraOps; appConfig.arquivados=_mc.arquivados;
     }
     // quem já virou "Nome cadastrado" (está em voucherResolvido) não fica no vermelho
     Object.keys(appConfig.voucherResolvido).forEach(k=>{ if(appConfig.semCadastroWecann[k]) delete appConfig.semCadastroWecann[k]; });
@@ -3384,6 +3398,44 @@ function hotelCanonico(nomeHotel){
 // carteira: { normNome: "Atendente" } — quem puxou cada contato (salvo na nuvem via config)
 function carteiraMap(){ return (appConfig.carteira && typeof appConfig.carteira==='object') ? appConfig.carteira : {}; }
 
+/* ===== PROTEÇÃO ANTI-RESSURREIÇÃO (carteira + arquivados) =====
+   A carteira e os arquivados eram enviados à nuvem SEM merge: um PC com estado
+   defasado (aberto há horas) reenviava a carteira velha inteira ao rodar qualquer
+   salvarConfig (inclusive na importação de CSV!) e nomes já movidos para "Template
+   Enviado" RESSUSCITAVAM sozinhos em "Contato Realizado". Agora toda mudança grava
+   um carimbo em carteiraOps {nome:{at,ts,del}} e os arquivados carregam {tsm,del}:
+   no merge, o carimbo MAIS RECENTE vence — igual aos demais mapas do sistema. */
+function uvCarimbarCarteira(n, at, del){
+  if(!appConfig.carteiraOps || typeof appConfig.carteiraOps!=='object') appConfig.carteiraOps={};
+  appConfig.carteiraOps[n]={ at:(at||''), ts:Date.now(), del:del?1:0 };
+}
+function uvMesclarCarteiraArq(base, outro){
+  base=base||{}; outro=outro||{};
+  // 1) migração do legado: nomes na carteira sem entrada em ops ganham ts:0 (perdem
+  //    para qualquer decisão carimbada); arquivados sem tsm herdam a data ISO antiga.
+  function migrar(cfg){
+    var ops={...(cfg.carteiraOps||{})};
+    Object.keys(cfg.carteira||{}).forEach(function(n){ if(!ops[n]) ops[n]={at:cfg.carteira[n]||'', ts:0, del:0}; });
+    var arq={}; Object.keys(cfg.arquivados||{}).forEach(function(n){
+      var it=cfg.arquivados[n]||{}; arq[n]={...it, tsm:(typeof it.tsm==='number'?it.tsm:(Date.parse(it.ts||'')||0)), del:it.del?1:0};
+    });
+    return {ops:ops, arq:arq};
+  }
+  var A=migrar(base), B=migrar(outro);
+  // 2) merge por nome: carimbo mais recente vence
+  var ops={}, ids={};
+  Object.keys(A.ops).forEach(function(k){ids[k]=1;}); Object.keys(B.ops).forEach(function(k){ids[k]=1;});
+  Object.keys(ids).forEach(function(n){ var a=A.ops[n], b=B.ops[n]; ops[n]=(a&&b)?(((a.ts||0)>=(b.ts||0))?a:b):(a||b); });
+  var arq={}, ids2={};
+  Object.keys(A.arq).forEach(function(k){ids2[k]=1;}); Object.keys(B.arq).forEach(function(k){ids2[k]=1;});
+  Object.keys(ids2).forEach(function(n){ var a=A.arq[n], b=B.arq[n]; arq[n]=(a&&b)?(((a.tsm||0)>=(b.tsm||0))?a:b):(a||b); });
+  // 3) a carteira é RECONSTRUÍDA a partir das operações vivas (del:0)
+  var cart={};
+  Object.keys(ops).forEach(function(n){ var e=ops[n]; if(e && !e.del && e.at) cart[n]=e.at; });
+  return { carteira:cart, carteiraOps:ops, arquivados:arq };
+}
+try{ window.uvMesclarCarteiraArq=uvMesclarCarteiraArq; }catch(e){}
+
 // status EFETIVO = o mais avançado entre: CSV, carteira (→Contato Realizado), voucher (→Fechado)
 // ordem: contato(0) < realizado(1) < tratativa(2) < fechado(3)
 // COLUNA da pessoa = 100% definida pelo "Status Hotel" do CSV:
@@ -3420,7 +3472,7 @@ function trazerParaCarteira(){
   if(!atendente){ toast('Selecione "Sou:" (seu nome) antes de trazer','err'); if(sel) sel.focus(); return; }
   if(!shSelecionados.size){ toast('Marque ao menos um contato na coluna "Fazer contato"','err'); return; }
   if(!appConfig.carteira || typeof appConfig.carteira!=='object') appConfig.carteira={};
-  let n=0; shSelecionados.forEach(nm=>{ appConfig.carteira[nm]=atendente; n++; });
+  let n=0; shSelecionados.forEach(nm=>{ appConfig.carteira[nm]=atendente; uvCarimbarCarteira(nm, atendente, 0); n++; });
   shSelecionados.clear();
   salvarConfig();
   renderStatusColunas();
@@ -3433,6 +3485,7 @@ function devolverContato(nome){
   if(!confirm(msg)) return; // pergunta de segurança — só devolve se confirmar
   const n=normNome(nome);
   if(appConfig.carteira) delete appConfig.carteira[n];
+  uvCarimbarCarteira(n, '', 1);   // carimbo de remoção: vence merges com estado velho
   salvarConfig();
   renderStatusColunas();
   toast('Contato devolvido para "Fazer contato"','info');
@@ -3440,15 +3493,20 @@ function devolverContato(nome){
 
 /* ===== PASTA "ARQUIVADOS" (Contato Feito) ===== */
 let shArquivAberto=false; // pasta de arquivados aberta/fechada
-function arquivadosMap(){ return (appConfig.arquivados && typeof appConfig.arquivados==='object') ? appConfig.arquivados : {}; }
+function arquivadosMap(){
+  var m=(appConfig.arquivados && typeof appConfig.arquivados==='object') ? appConfig.arquivados : {};
+  var out={}; Object.keys(m).forEach(function(k){ var it=m[k]; if(it && !it.del) out[k]=it; });
+  return out;
+}
 
 // "Contato Feito": tira o nome de "Contato Realizado" e guarda nos Arquivados (na nuvem)
 function arquivarContato(nome){
   const n=normNome(nome); if(!n) return;
   if(!appConfig.arquivados || typeof appConfig.arquivados!=='object') appConfig.arquivados={};
   const at=(appConfig.carteira||{})[n]||'';
-  appConfig.arquivados[n]={ nome, atendente:at, ts:new Date().toISOString() };
+  appConfig.arquivados[n]={ nome, atendente:at, ts:new Date().toISOString(), tsm:Date.now(), del:0 };
   if(appConfig.carteira) delete appConfig.carteira[n]; // sai da coluna "Contato Realizado"
+  uvCarimbarCarteira(n, at, 1);   // carimbo: saiu da carteira AGORA (vence estado velho)
   salvarConfig();
   renderStatusColunas();
   toast('“'+nome+'” movido para Template Enviado ✅','ok');
@@ -3460,7 +3518,9 @@ function restaurarArquivado(nome){
   const arq=arquivadosMap(); const it=arq[n]; if(!it) return;
   if(!appConfig.carteira || typeof appConfig.carteira!=='object') appConfig.carteira={};
   if(it.atendente) appConfig.carteira[n]=it.atendente;
-  delete appConfig.arquivados[n];
+  uvCarimbarCarteira(n, it.atendente||'', 0);   // voltou à carteira AGORA
+  // soft delete no arquivado (nunca delete: o carimbo tsm vence merges com estado velho)
+  if(appConfig.arquivados && appConfig.arquivados[n]){ appConfig.arquivados[n].del=1; appConfig.arquivados[n].tsm=Date.now(); }
   salvarConfig();
   renderStatusColunas();
   toast('“'+nome+'” restaurado para Contato Realizado','info');
@@ -3474,6 +3534,7 @@ function purgarArquivadosPorStatus(){
   let mudou=false;
   Object.keys(appConfig.arquivados).forEach(norm=>{
     const it=appConfig.arquivados[norm];
+    if(it && it.del) return;   // já removido (soft delete): não reprocessa
     const nomeArq=(it&&it.nome)||norm;
     // descobre o MOTIVO de sair do "Template Enviado":
     //  • 'progrediu' = status virou "Em tratativa"/"Fechado" → tira do Template Enviado E da carteira
@@ -3490,8 +3551,9 @@ function purgarArquivadosPorStatus(){
       else if(st==='semretorno') motivo='semretorno'; // "Sem Retorno" → tira do Template Enviado (mantém carteira)
     });
     if(motivo){
-      delete appConfig.arquivados[norm];
-      if(motivo==='progrediu' && appConfig.carteira) delete appConfig.carteira[norm]; // só a progressão tira da carteira
+      // soft delete carimbado (nunca delete): decisão vence merges com estado velho
+      if(appConfig.arquivados[norm]){ appConfig.arquivados[norm].del=1; appConfig.arquivados[norm].tsm=Date.now(); }
+      if(motivo==='progrediu' && appConfig.carteira){ delete appConfig.carteira[norm]; uvCarimbarCarteira(norm, '', 1); } // só a progressão tira da carteira
       mudou=true;
     }
   });
@@ -7822,6 +7884,19 @@ function excluirNotaUI(id){
             appConfig.ausenciasProgramadas=apM;
             try{ localStorage.setItem('uv_config', JSON.stringify(appConfig)); }catch(e){}
             if(typeof window.renderAusProg==='function') window.renderAusProg();
+          }
+        }
+      }catch(e){}
+      // CARTEIRA + ARQUIVADOS: mescla a versão da nuvem (carimbo mais recente vence)
+      // e redesenha o Kanban se algo mudou — evita estado defasado neste PC.
+      try{
+        if(typeof window.uvMesclarCarteiraArq==='function' && (c.carteira||c.carteiraOps||c.arquivados)){
+          var _antesMc=JSON.stringify({a:appConfig.carteira||{},b:appConfig.arquivados||{}});
+          var _mcP=window.uvMesclarCarteiraArq(appConfig, c);
+          appConfig.carteira=_mcP.carteira; appConfig.carteiraOps=_mcP.carteiraOps; appConfig.arquivados=_mcP.arquivados;
+          if(JSON.stringify({a:appConfig.carteira,b:appConfig.arquivados})!==_antesMc){
+            try{ localStorage.setItem('uv_config', JSON.stringify(appConfig)); }catch(e){}
+            try{ if(typeof renderStatusColunas==='function') renderStatusColunas(); }catch(e){}
           }
         }
       }catch(e){}
