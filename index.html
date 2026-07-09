@@ -437,9 +437,13 @@ body:not(.dark) .ocp-sbtr-op:hover{background:#ffe9cf}
 .apr-cal-dia{height:30px;border:1px solid transparent;border-radius:7px;background:rgba(255,255,255,.05);color:#e8eef4;font-size:12px;font-weight:700;cursor:pointer;transition:all .12s}
 .apr-cal-dia:hover{background:rgba(10,156,240,.25)}
 .apr-cal-dia.sel{background:linear-gradient(180deg,#12b0ff,#0670d8);color:#fff;border-color:#7fe0ff;box-shadow:0 0 12px rgba(18,176,255,.9),inset 0 0 5px rgba(255,255,255,.5);font-weight:900;transform:scale(1.06)}
-.apr-cal-horas{display:flex;flex-direction:column;gap:7px;margin:11px 0 4px;border-top:1px solid rgba(255,255,255,.1);padding-top:11px}
-.apr-cal-hlbl{display:flex;align-items:center;justify-content:space-between;color:#fff;font-size:12.5px;font-weight:800}
-.apr-cal-time{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:8px;color:#fff;font-size:12.5px;font-weight:700;padding:6px 9px;outline:none;color-scheme:dark}
+.apr-cal-horas{display:flex;flex-direction:column;gap:9px;margin:11px 0 4px;border-top:1px solid rgba(255,255,255,.1);padding-top:11px}
+.apr-cal-hrow{display:flex;align-items:center;gap:8px}
+.apr-cal-hlbl{flex:0 0 46px;color:#fff;font-size:12.5px;font-weight:800}
+.apr-cal-time{flex:1 1 auto;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:8px;color:#fff;font-size:12.5px;font-weight:700;padding:6px 9px;outline:none;color-scheme:dark;cursor:pointer}
+.apr-cal-hok{flex:0 0 auto;width:34px;height:32px;border-radius:8px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);cursor:pointer;font-size:14px;line-height:1;transition:all .15s;filter:grayscale(.4) opacity(.75)}
+.apr-cal-hok:hover{background:rgba(18,176,255,.22);border-color:#12b0ff}
+.apr-cal-hok.ok{background:rgba(46,200,110,.25);border-color:#2ec86e;filter:none}
 .apr-cal-time:focus{border-color:#12b0ff}
 .apr-cal-acoes{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
 .apr-cal-limpar,.apr-cal-ok{padding:7px 16px;border-radius:8px;border:none;font-size:12.5px;font-weight:800;cursor:pointer;transition:all .15s}
@@ -1371,8 +1375,16 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
                 </div>
                 <div class="apr-cal-grid" id="aprCalGrid"></div>
                 <div class="apr-cal-horas">
-                  <label class="apr-cal-hlbl">Início: <input type="time" id="aprPickIni" class="apr-cal-time"></label>
-                  <label class="apr-cal-hlbl">Fim: <input type="time" id="aprPickFim" class="apr-cal-time"></label>
+                  <div class="apr-cal-hrow">
+                    <label class="apr-cal-hlbl">Início:</label>
+                    <input type="time" id="aprPickIni" class="apr-cal-time">
+                    <button type="button" class="apr-cal-hok" data-apr-hok="ini" title="Confirmar hora de início">☑️</button>
+                  </div>
+                  <div class="apr-cal-hrow">
+                    <label class="apr-cal-hlbl">Fim:</label>
+                    <input type="time" id="aprPickFim" class="apr-cal-time">
+                    <button type="button" class="apr-cal-hok" data-apr-hok="fim" title="Confirmar hora de término">☑️</button>
+                  </div>
                 </div>
                 <div class="apr-cal-acoes">
                   <button type="button" class="apr-cal-limpar" id="aprCalLimpar">Limpar</button>
@@ -1578,7 +1590,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v3·41 (FIX: nomes indo sozinhos para Contato Realizado — carteira e arquivados eram salvos SEM merge e um PC defasado ressuscitava estado velho ao importar CSV; agora toda operação é carimbada (carteiraOps) com merge por timestamp em salvar+carregar+polling, soft delete nos arquivados e migração automática do legado)" do cabeçalho), barra lateral vermelha e separador antes do compromisso); fontes em branco vivo; ordem bolinha - nome - data - hora - compromisso) em atendimento na bolinha vermelha e pergunta qual transferir; transferir libera o slot de origem) -->
+    <!-- build: HUB-v3·44 (correção real dos campos de hora: showPicker síncrono no clique direto do input (abre clicando em qualquer área) e listener wheel direto no elemento com passive:false + limiar maior — scroll agora desacelera de verdade), e scroll do mouse desacelerado para ajuste suave de hora/minuto) com merge por timestamp em salvar+carregar+polling, soft delete nos arquivados e migração automática do legado)" do cabeçalho), barra lateral vermelha e separador antes do compromisso); fontes em branco vivo; ordem bolinha - nome - data - hora - compromisso) em atendimento na bolinha vermelha e pergunta qual transferir; transferir libera o slot de origem) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -6616,15 +6628,19 @@ function excluirNotaUI(id){
     var id='ap'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
     m[id]={ atendente:(atendente||'').trim(), data:(data||'').trim(), hora:(hora||'').trim(), horaFim:(horaFim||'').trim(), compromisso:(comp||'').trim(), ts:Date.now(), del:0 };
     window.renderAusProg(); try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+    try{ aprSincronizarOcupacao(); }catch(e){}   // aplica na hora se já estiver dentro da janela
   }
   function ausProgUpd(id, atendente, data, hora, horaFim, comp){
     var m=ausProgStore(); if(!m[id]) return;
+    try{ aprReverterSeAtiva(id, m[id].atendente, m[id].compromisso); }catch(e){}   // desfaz o estado antigo
     m[id].atendente=(atendente||'').trim(); m[id].data=(data||'').trim(); m[id].hora=(hora||'').trim(); m[id].horaFim=(horaFim||'').trim(); m[id].compromisso=(comp||'').trim();
     m[id].ts=Date.now();
     window.renderAusProg(); try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+    try{ aprSincronizarOcupacao(); }catch(e){}   // reavalia pelo novo horário
   }
   function ausProgDel(id){
     var m=ausProgStore(); if(!m[id]) return;
+    try{ aprReverterSeAtiva(id, m[id].atendente, m[id].compromisso); }catch(e){}   // se estava ativa, libera o atendente
     m[id].del=1; m[id].ts=Date.now();   // marca deletado + carimba (não apaga: vence o merge)
     window.renderAusProg(); try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
   }
@@ -6680,11 +6696,13 @@ function excluirNotaUI(id){
     grid.innerHTML=html;
     var pi=document.getElementById('aprPickIni'); if(pi) pi.value=aprPick.hora||'';
     var pf=document.getElementById('aprPickFim'); if(pf) pf.value=aprPick.horaFim||'';
+    document.querySelectorAll('.apr-cal-hok').forEach(function(b){ b.classList.remove('ok'); b.textContent='☑️'; });
   }
   function aprDtAbrir(){
     var btn=document.getElementById('aprDtBtn'); if(!btn || btn.disabled) return;
     if(!aprPick.mes) aprPick.mes=aprPick.data ? new Date(aprPick.data+'T12:00') : new Date();
     var pop=document.getElementById('aprDtPop'); if(pop){ pop.hidden=false; aprCalRender(); }
+    try{ if(typeof window.aprLigarCamposHora==='function') window.aprLigarCamposHora(); }catch(e){}
   }
   function aprDtFechar(){ var p=document.getElementById('aprDtPop'); if(p) p.hidden=true; }
   function aprPickReset(){ aprPick={ data:'', hora:'', horaFim:'', mes:null }; aprDtSync(); aprDtFechar(); }
@@ -7399,6 +7417,52 @@ function excluirNotaUI(id){
     try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
   }
 
+  /* ===== SINCRONIZAÇÃO: Ausência Programada → Painel de Ocupação =====
+     Quando chega a data+hora de uma ausência programada, marca os 3 slots do atendente
+     como Ausente (vermelho) automaticamente. Ao passar o horário de término, volta a
+     verde. O marcador abaixo identifica que foi o AGENDAMENTO que colocou o Ausente —
+     a reversão só limpa se os 3 slots ainda estiverem com esse valor exato (não mexe
+     se alguém alterou manualmente no meio). Controle idempotente, por PC. */
+  function aprMarcadorProg(compromisso){ return '__AUSENTE__:📅 '+(compromisso||'ausência programada').toString().trim(); }
+  function aprOcupCtrl(){ try{ return JSON.parse(localStorage.getItem('uv_apr_ocup')||'{}')||{}; }catch(e){ return {}; } }
+  function aprOcupCtrlSet(m){ try{ localStorage.setItem('uv_apr_ocup', JSON.stringify(m||{})); }catch(e){} }
+  function aprSincronizarOcupacao(){
+    if(typeof ausProgLista!=='function') return;
+    var agora=Date.now(), ctrl=aprOcupCtrl(), mudou=false;
+    ausProgLista().forEach(function(e){
+      if(!e.atendente || !e.data || !e.hora) return;
+      var ini=new Date(e.data+'T'+e.hora+':00').getTime();
+      var fim=new Date(e.data+'T'+(e.horaFim||e.hora)+':00').getTime();
+      if(isNaN(ini)||isNaN(fim)) return;
+      var ativa=(agora>=ini && agora<fim), passou=(agora>=fim);
+      var estado=ctrl[e.id]||'pendente', marcador=aprMarcadorProg(e.compromisso);
+      if(ativa && estado!=='ativo'){
+        ocpDefinirTodosSlots(e.atendente, marcador);   // acende os 3 slots como Ausente
+        ctrl[e.id]='ativo'; mudou=true;
+      } else if(passou && estado==='ativo'){
+        // volta ao verde SÓ se os 3 slots ainda estão com o marcador (não foi mexido)
+        var o=ocpEstado(); var cli=(o.clientes&&o.clientes[e.atendente])||['','',''];
+        if(cli[0]===marcador && cli[1]===marcador && cli[2]===marcador) ocpDefinirTodosSlots(e.atendente, '');
+        ctrl[e.id]='encerrado'; mudou=true;
+      }
+    });
+    if(mudou) aprOcupCtrlSet(ctrl);
+  }
+  window.aprSincronizarOcupacao=aprSincronizarOcupacao;
+
+  // Ao editar/excluir uma ausência: reavalia. Se estava ATIVA e o atendente ainda
+  // está com o marcador programado, volta ao verde antes de reavaliar pelo novo horário.
+  function aprReverterSeAtiva(id, atendente, compromisso){
+    var ctrl=aprOcupCtrl();
+    if(ctrl[id]==='ativo' && atendente){
+      var o=ocpEstado(); var cli=(o.clientes&&o.clientes[atendente])||['','',''];
+      var marcador=aprMarcadorProg(compromisso);
+      if(cli[0]===marcador && cli[1]===marcador && cli[2]===marcador) ocpDefinirTodosSlots(atendente, '');
+    }
+    delete ctrl[id]; aprOcupCtrlSet(ctrl);
+  }
+  window.aprReverterSeAtiva=aprReverterSeAtiva;
+
   function ocpDefinirCliente(at, i, valor){
     var o=ocpEstado();
     if(!Array.isArray(o.clientes[at]) || o.clientes[at].length!==3) o.clientes[at]=['','',''];
@@ -7818,7 +7882,47 @@ function excluirNotaUI(id){
     else if(e.target && e.target.id==='aprPickIni'){ aprPick.hora=(e.target.value||''); aprDtSync(); }
     else if(e.target && e.target.id==='aprPickFim'){ aprPick.horaFim=(e.target.value||''); aprDtSync(); }
   });
-  // Cliques do seletor de data customizado (abrir, navegar mês, escolher dia, OK/Limpar)
+  // captura a hora em TEMPO REAL (input), sem precisar clicar fora do seletor
+  document.addEventListener('input', function(e){
+    if(e.target && e.target.id==='aprPickIni'){ aprPick.hora=(e.target.value||''); aprDtSync(); }
+    else if(e.target && e.target.id==='aprPickFim'){ aprPick.horaFim=(e.target.value||''); aprDtSync(); }
+  });
+  // Liga (uma vez por input) os comportamentos dos campos de hora:
+  //  • CLIQUE em qualquer parte → abre o seletor nativo (showPicker SÍNCRONO, senão o
+  //    navegador bloqueia por perda de ativação por gesto);
+  //  • SCROLL desacelerado → listener DIRETO no elemento com passive:false, que é o
+  //    único jeito confiável de bloquear o incremento rápido nativo do input time.
+  var aprWheelAcc=0, aprWheelAlvo=null;
+  function aprAjustarHora(input, secao, passo){
+    var p=(input.value||'00:00').split(':');
+    var hh=parseInt(p[0]||'0',10)||0, mm=parseInt(p[1]||'0',10)||0;
+    if(secao==='h') hh=(hh+passo+24)%24; else mm=(mm+passo+60)%60;
+    input.value=String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0');
+    input.dispatchEvent(new Event('input',{bubbles:true}));   // atualiza aprPick + resumo
+  }
+  function aprLigarCamposHora(){
+    ['aprPickIni','aprPickFim'].forEach(function(id){
+      var inp=document.getElementById(id); if(!inp || inp.__aprHooked) return;
+      inp.__aprHooked=1;
+      // clique em qualquer área → abre o seletor (síncrono!)
+      inp.addEventListener('click', function(){ try{ inp.showPicker && inp.showPicker(); }catch(_){} });
+      // scroll desacelerado (direto no elemento, não-passivo)
+      inp.addEventListener('wheel', function(e){
+        e.preventDefault(); e.stopPropagation();
+        if(aprWheelAlvo!==inp){ aprWheelAlvo=inp; aprWheelAcc=0; }
+        aprWheelAcc += e.deltaY;
+        var LIMIAR=90;                       // maior = mais devagar/suave
+        if(Math.abs(aprWheelAcc) < LIMIAR) return;
+        var dir = aprWheelAcc>0 ? -1 : 1;    // rolar para baixo diminui
+        aprWheelAcc=0;
+        var r=inp.getBoundingClientRect();
+        var secao=(e.clientX - r.left) < r.width*0.55 ? 'h' : 'm';   // esquerda=hora, direita=minuto
+        aprAjustarHora(inp, secao, dir);
+      }, {passive:false});
+    });
+  }
+  window.aprLigarCamposHora=aprLigarCamposHora;
+  // Cliques do seletor de data customizado (abrir, navegar mês, escolher dia, confirmar horas, OK/Limpar)
   document.addEventListener('click', function(e){
     if(!e.target || !e.target.closest) return;
     // abrir/fechar ao clicar no botão
@@ -7830,12 +7934,32 @@ function excluirNotaUI(id){
     // escolher um dia → destaca com cor forte
     var dia=e.target.closest('[data-apr-dia]');
     if(dia){ aprPick.data=dia.getAttribute('data-apr-dia'); aprCalRender(); aprDtSync(); return; }
-    // Limpar seleção
-    if(e.target.closest('#aprCalLimpar')){ aprPick.data=''; aprPick.hora=''; aprPick.horaFim=''; aprCalRender(); aprDtSync(); return; }
-    // OK → fecha o popover
-    if(e.target.closest('#aprCalOk')){ aprDtFechar(); return; }
-    // clique FORA do seletor → fecha
-    if(!e.target.closest('#aprDt')){ aprDtFechar(); }
+    // botão ☑️ de confirmar hora (início/fim) — grava o valor e dá feedback, SEM fechar o popover
+    var hok=e.target.closest('[data-apr-hok]');
+    if(hok){
+      var qual=hok.getAttribute('data-apr-hok');
+      var inp=document.getElementById(qual==='ini'?'aprPickIni':'aprPickFim');
+      if(inp){ if(qual==='ini') aprPick.hora=inp.value||''; else aprPick.horaFim=inp.value||''; }
+      hok.classList.add('ok'); hok.textContent='✅';
+      aprDtSync();
+      return;   // NÃO fecha — continua no seletor
+    }
+    // Limpar seleção (mantém o popover aberto)
+    if(e.target.closest('#aprCalLimpar')){
+      aprPick.data=''; aprPick.hora=''; aprPick.horaFim='';
+      var pi=document.getElementById('aprPickIni'); if(pi) pi.value='';
+      var pf=document.getElementById('aprPickFim'); if(pf) pf.value='';
+      document.querySelectorAll('.apr-cal-hok').forEach(function(b){ b.classList.remove('ok'); b.textContent='☑️'; });
+      aprCalRender(); aprDtSync(); return;
+    }
+    // OK GERAL → única forma de fechar o seletor. Garante que lê os valores atuais dos inputs.
+    if(e.target.closest('#aprCalOk')){
+      var i1=document.getElementById('aprPickIni'), i2=document.getElementById('aprPickFim');
+      if(i1) aprPick.hora=i1.value||''; if(i2) aprPick.horaFim=i2.value||'';
+      aprDtSync(); aprDtFechar(); return;
+    }
+    // (removido) clicar fora NÃO fecha mais o seletor — evita sair sem querer ao
+    // interagir com o seletor nativo de hora; só o botão OK ou o próprio campo fecham.
   });
 
   // ===== RESET AUTOMÁTICO À MEIA-NOITE =====
@@ -7946,7 +8070,9 @@ function excluirNotaUI(id){
   }, 1000);
 
   // primeira pintura: se este PC fez o 1º sorteio do dia, grava na nuvem na hora
-  function ini(){ try{ if(window.renderOcupacao()){ if(typeof salvarConfig==='function') salvarConfig(); } }catch(e){} try{ if(typeof window.renderAusProg==='function') window.renderAusProg(); }catch(e){} }
+  function ini(){ try{ if(window.renderOcupacao()){ if(typeof salvarConfig==='function') salvarConfig(); } }catch(e){} try{ if(typeof window.renderAusProg==='function') window.renderAusProg(); }catch(e){} try{ aprSincronizarOcupacao(); }catch(e){} }
+  // relógio: a cada 60s verifica se alguma ausência programada entrou/saiu da janela
+  try{ setInterval(function(){ try{ aprSincronizarOcupacao(); }catch(e){} }, 60000); }catch(e){}
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', ini);
   else ini();
 })();
