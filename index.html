@@ -409,6 +409,7 @@ body:not(.dark) .ocp-reab-pax input{background:#fff;color:#1A2733;border-color:#
 .ocp-confirm.ocp-sbtr p b{color:#ffb15a}
 .ocp-sbtr-lista{display:flex;flex-direction:column;gap:8px;margin:0 0 16px}
 .ocp-sbtr-op{padding:11px 12px;border-radius:9px;border:1px solid rgba(240,150,30,.45);background:rgba(240,150,30,.12);color:#ffd9a8;font-size:13.5px;font-weight:800;cursor:pointer;transition:all .15s;text-align:center}
+.ocp-sbtr-obs{display:block;margin-top:2px;font-size:11px;font-weight:600;color:#e8c79c;opacity:.85}
 .ocp-sbtr-op:hover{background:rgba(240,150,30,.24);border-color:rgba(240,150,30,.7);box-shadow:0 0 10px rgba(240,150,30,.35)}
 .ocp-sbtr-outro{background:rgba(255,255,255,.1);color:#cfe0f0}
 .ocp-sbtr-outro:hover{background:rgba(255,255,255,.18)}
@@ -1577,7 +1578,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v3·37 (Ocupação dos Atendentes: removido o texto "3 vermelhos = passa a vez (novo sorteio)" do cabeçalho), barra lateral vermelha e separador antes do compromisso); fontes em branco vivo; ordem bolinha - nome - data - hora - compromisso) em atendimento na bolinha vermelha e pergunta qual transferir; transferir libera o slot de origem) -->
+    <!-- build: HUB-v3·40 (efeito reverso do Stand By: clicar numa bolinha verde com clientes no Stand By pergunta se quer puxar algum de volta ao atendimento; ao confirmar vira vermelha com o nome embaixo e sai da fila do Stand By)" do cabeçalho), barra lateral vermelha e separador antes do compromisso); fontes em branco vivo; ordem bolinha - nome - data - hora - compromisso) em atendimento na bolinha vermelha e pergunta qual transferir; transferir libera o slot de origem) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -2507,6 +2508,13 @@ async function importarStatusHotel(file){
     toast('Relatório atualizado na nuvem: '+rows.length+' contatos ✅','ok');
   }catch(e){ toast('Salvo no aparelho, mas falhou enviar à nuvem (verifique conexão)','err'); }
   renderStatusColunas();
+  // REFORÇO pós-importação (o travamento acontecia exatamente aqui): religa a
+  // rolagem do Kanban e recalcula o thumb da barra. Idempotente — se já estiver
+  // tudo ligado, não duplica nada; se algum re-render matou os nós, ressuscita.
+  requestAnimationFrame(function(){
+    try{ if(typeof window.setupKanbanScroll==='function') window.setupKanbanScroll(); }catch(e){}
+    try{ if(typeof window.__kbUpdateThumb==='function') window.__kbUpdateThumb(); }catch(e){}
+  });
 }
 
 // carrega o relatório: cache local primeiro, depois a versão da nuvem
@@ -4076,6 +4084,11 @@ function aplicarWecannPorParticipante(){
 }
 function renderDisponibilidade(){
   const el=$('#estoqueCard'); if(!el) return;
+  // Este render RECRIA todo o HTML do painel — inclusive os nós do Kanban (colunas
+  // e barra superior). Guardamos a posição de rolagem para restaurar depois e, no
+  // final, religamos os eventos de rolagem (senão os nós novos nascem "mortos").
+  const _kbAntes=document.getElementById('shCols');
+  const _kbScrollAntes=_kbAntes?_kbAntes.scrollLeft:0;
   // o cálculo é sempre derivado dos vouchers salvos (nunca para); aqui só controlamos a exibição
   if(!appConfig.estoqueVisivel){ el.style.display='none'; return; }
   const colsDisp=HOTEIS_ESTOQUE.map(cfg=>{
@@ -4281,6 +4294,15 @@ function renderDisponibilidade(){
   el.querySelectorAll('.est-dot').forEach(d=> d.onclick=()=>irParaVisao(+d.dataset.v));
   aplicarSeta();
   renderStatusColunas();
+  // RELIGA a rolagem do Kanban nos nós recém-criados e restaura a posição onde
+  // o usuário estava (correção do travamento após CSV/auto-refresh/polling).
+  requestAnimationFrame(function(){
+    try{
+      var _kb=document.getElementById('shCols');
+      if(_kb && _kbScrollAntes) _kb.scrollLeft=_kbScrollAntes;
+      if(typeof window.setupKanbanScroll==='function') window.setupKanbanScroll();
+    }catch(e){}
+  });
   el.style.display='block';
   // após o layout assentar, ajusta a fonte para preencher exatamente cada coluna
   requestAnimationFrame(()=>{ ajustarFonteEstoque(); ajustarAlturaCarrossel(); });
@@ -5099,7 +5121,7 @@ init();
     try{ localStorage.setItem('uv_hub_screen',scr); }catch(e){}
   };
   /* Kanban: barra de rolagem em cima (sincronizada) + arrastar com o mouse */
-  var kbCols=null,kbTrack=null,kbThumb=null,kbDown=false,kbMoved=false,kbStartX=0,kbStartScroll=0,kbWired=false,kbElWired=false,kbRO=null;
+  var kbCols=null,kbTrack=null,kbThumb=null,kbDown=false,kbMoved=false,kbStartX=0,kbStartScroll=0,kbWired=false,kbRO=null;
   var kbThDown=false,kbThStartX=0,kbThStartLeft=0;
   function kbUpdateThumb(){
     if(!kbCols||!kbTrack||!kbThumb) return;
@@ -5111,26 +5133,48 @@ init();
     kbThumb.style.width=thumbW+'px'; kbThumb.style.left=Math.max(0,Math.min(range,left))+'px';
   }
   window.__kbUpdateThumb=kbUpdateThumb;
+  // Exposta no window: renderDisponibilidade() e o auto-refresh (IIFEs separados)
+  // precisam religar a rolagem após recriar o HTML do Kanban. Antes, a checagem
+  // "typeof setupKanbanScroll" fora deste IIFE dava sempre undefined e NUNCA religava.
+  window.setupKanbanScroll=setupKanbanScroll;
   function setupKanbanScroll(){
     kbCols=document.getElementById('shCols'); kbTrack=document.getElementById('shScrollTop'); kbThumb=document.getElementById('shScrollTopInner');
     if(!kbCols||!kbTrack||!kbThumb) return;
     kbUpdateThumb();
     kbCols.onscroll=function(){ kbUpdateThumb(); };
     if(window.ResizeObserver){ try{ if(kbRO) kbRO.disconnect(); kbRO=new ResizeObserver(kbUpdateThumb); kbRO.observe(kbCols); }catch(e){} }
-    if(!kbElWired){ kbElWired=true;
-    // arrastar o thumb da barra
-    kbThumb.addEventListener('mousedown', function(e){ e.preventDefault(); e.stopPropagation(); kbThDown=true; kbThStartX=e.pageX; kbThStartLeft=parseFloat(kbThumb.style.left)||0; kbThumb.classList.add('dragging'); });
-    // clicar na trilha pula até o ponto
-    kbTrack.addEventListener('mousedown', function(e){ if(e.target===kbThumb) return; var r=kbTrack.getBoundingClientRect(); var tw=kbThumb.offsetWidth; var range=kbTrack.clientWidth-tw; var x=Math.max(0,Math.min(range, e.clientX-r.left-tw/2)); var maxScroll=kbCols.scrollWidth-kbCols.clientWidth; kbCols.scrollLeft= range>0? x/range*maxScroll:0; kbUpdateThumb(); });
-    // arrastar as próprias colunas
-    kbCols.addEventListener('mousedown', function(e){
-      if(e.target.closest('input,button,select,textarea,a,label,[data-acao],[data-sel],[data-rkvoucher],[data-rkvend]')) return;
-      kbDown=true; kbMoved=false; kbStartX=e.pageX; kbStartScroll=kbCols.scrollLeft;
-    });
-    kbCols.addEventListener('click', function(e){ if(kbMoved){ e.stopPropagation(); e.preventDefault(); kbMoved=false; } }, true);
+    /* CORREÇÃO DO TRAVAMENTO DA ROLAGEM: a marcação de "já liguei os eventos" era
+       um flag GLOBAL (kbElWired). Mas renderDisponibilidade() recria o HTML inteiro
+       do painel (CSV importado, auto-refresh de 10 min, polling da lista...), e os
+       nós NOVOS nasciam SEM listeners — com o flag global travado em true, nunca
+       religava: barra superior e arraste ficavam MORTOS até o F5. Agora a marcação
+       vive NO PRÓPRIO ELEMENTO (data-kb-wired): elemento recriado = religa na hora. */
+    if(kbThumb.getAttribute('data-kb-wired')!=='1'){ kbThumb.setAttribute('data-kb-wired','1');
+      // arrastar o thumb da barra
+      kbThumb.addEventListener('mousedown', function(e){ e.preventDefault(); e.stopPropagation(); kbThDown=true; kbThStartX=e.pageX; kbThStartLeft=parseFloat(kbThumb.style.left)||0; kbThumb.classList.add('dragging'); });
+    }
+    if(kbTrack.getAttribute('data-kb-wired')!=='1'){ kbTrack.setAttribute('data-kb-wired','1');
+      // clicar na trilha pula até o ponto
+      kbTrack.addEventListener('mousedown', function(e){ if(e.target===kbThumb) return; var r=kbTrack.getBoundingClientRect(); var tw=kbThumb.offsetWidth; var range=kbTrack.clientWidth-tw; var x=Math.max(0,Math.min(range, e.clientX-r.left-tw/2)); var maxScroll=kbCols.scrollWidth-kbCols.clientWidth; kbCols.scrollLeft= range>0? x/range*maxScroll:0; kbUpdateThumb(); });
+    }
+    if(kbCols.getAttribute('data-kb-wired')!=='1'){ kbCols.setAttribute('data-kb-wired','1');
+      // arrastar as próprias colunas
+      kbCols.addEventListener('mousedown', function(e){
+        if(e.target.closest('input,button,select,textarea,a,label,[data-acao],[data-sel],[data-rkvoucher],[data-rkvend]')) return;
+        kbDown=true; kbMoved=false; kbStartX=e.pageX; kbStartScroll=kbCols.scrollLeft;
+      });
+      kbCols.addEventListener('click', function(e){ if(kbMoved){ e.stopPropagation(); e.preventDefault(); kbMoved=false; } }, true);
     }
     if(!kbWired){
       kbWired=true;
+      // BLINDAGEM FINAL (auto-cura no clique): se QUALQUER caminho recriar os nós do
+      // Kanban sem religar, o primeiro mousedown na área detecta o nó "órfão"
+      // (sem data-kb-wired) e religa na hora — captura roda antes dos handlers.
+      document.addEventListener('mousedown', function(e){
+        if(!e.target || !e.target.closest) return;
+        var alvo=e.target.closest('#shCols,#shScrollTop,#shScrollTopInner');
+        if(alvo && alvo.getAttribute('data-kb-wired')!=='1'){ setupKanbanScroll(); }
+      }, true);
       // função única que ZERA qualquer estado de arraste preso (auto-cura).
       // É a correção central do "trava e não deixa rolar": se o mouse for solto
       // FORA da janela (o mouseup se perde) ou você trocar de aba no meio do
@@ -6395,6 +6439,81 @@ function excluirNotaUI(id){
     return out;
   }
 
+  /* ===== EFEITO REVERSO DO STAND BY: puxar um cliente de volta ao atendimento ===== */
+  // Vira um slot VERDE em VERMELHO replicando fielmente o ramo "virouVermelho" do
+  // clique no LED (carimba modificação + timer, faz o fim-de-fila e o resorteio se
+  // for o atendente da vez). Usado quando se puxa alguém do Stand By ou ao escolher
+  // "novo atendimento" no modal reverso.
+  function ocpVirarVermelhoSlot(at, i){
+    var o=ocpEstado();
+    if(!o.slots[at] || isNaN(i)) return;
+    if(!Array.isArray(o.slots[at])   || o.slots[at].length!==3)   o.slots[at]=[0,0,0];
+    if(!Array.isArray(o.mods[at])    || o.mods[at].length!==3)    o.mods[at]=[0,0,0];
+    if(!Array.isArray(o.inicios[at]) || o.inicios[at].length!==3) o.inicios[at]=[0,0,0];
+    if(o.slots[at][i]) return;   // já está vermelho: nada a fazer
+    var souDaVez=(o.atual===at);
+    o.slots[at][i]=1;
+    o.mods[at][i]=Date.now();
+    o.inicios[at][i]=Date.now();
+    var forcarSorteio=false;
+    if(OCP_SORTEAVEIS.indexOf(at)>=0){
+      if(!Array.isArray(o.pool)) o.pool=OCP_SORTEAVEIS.slice();
+      o.pool=o.pool.filter(function(n){ return n!==at; });
+      o.pool.push(at);
+      if(souDaVez){ o.atual=null; forcarSorteio=true; }
+    }
+    window.renderOcupacao(forcarSorteio);
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+  }
+
+  // Puxa a entrada `id` do Stand By de volta ao slot `i`: vira vermelho, remove do
+  // Stand By e define o cliente (passando pelo caminho canônico ocpDefinirCliente,
+  // que cuida do anti-burla/continuação). Resultado: bolinha vermelha com o nome
+  // embaixo, igual ao fluxo normal de atendimento.
+  function ocpPuxarDoStandby(at, i, id){
+    var ent=ocpStandbyGet(at, id); if(!ent) return;
+    var nome=(ent.cliente||'').toString().trim();
+    ocpVirarVermelhoSlot(at, i);      // vira vermelho + fila/sorteio
+    ocpStandbyDel(at, id);            // sai do Stand By
+    if(nome) ocpDefinirCliente(at, i, nome);   // grava o cliente (anti-burla/continuação)
+  }
+
+  // Modal reverso: lista os clientes do Stand By do atendente e pergunta se quer
+  // trazer algum de volta, ou seguir com um novo atendimento.
+  function ocpAbrirModalPuxarStandby(at, i){
+    var lista=ocpStandbyLista(at);
+    if(!lista.length){ ocpVirarVermelhoSlot(at, i); return; }   // sem stand by: vira vermelho normal
+    try{ if(typeof ocpFecharModal==='function') ocpFecharModal(); }catch(e){}
+    var botoes=lista.map(function(e){
+      var obs=e.obs?'<span class="ocp-sbtr-obs">'+ocpEsc(e.obs)+'</span>':'';
+      return '<button type="button" class="ocp-sbtr-op" data-puxar-id="'+e.id+'">🟠 '+ocpEsc(e.cliente)+obs+'</button>';
+    }).join('');
+    var bg=document.createElement('div'); bg.className='ocp-confirm-bg'; bg.id='ocpPuxarModal';
+    bg.innerHTML=
+      '<div class="ocp-confirm ocp-sbtr">'+
+        '<h4>🟠 Puxar do Stand By</h4>'+
+        '<p>Há cliente(s) no Stand By de <b>'+ocpEsc(at)+'</b>. Deseja trazer algum de volta para o atendimento?</p>'+
+        '<div class="ocp-sbtr-lista">'+botoes+'</div>'+
+        '<div class="ocp-confirm-btns">'+
+          '<button type="button" class="ocp-sbtr-outro" id="ocpPuxarNovo">Não, novo atendimento</button>'+
+          '<button type="button" class="ocp-confirm-nao" id="ocpPuxarCancelar">Cancelar</button>'+
+        '</div>'+
+      '</div>';
+    document.body.appendChild(bg);
+    function fechar(){ if(bg.parentNode) bg.parentNode.removeChild(bg); }
+    bg.addEventListener('click', function(ev){ if(ev.target===bg) fechar(); });
+    var bc=document.getElementById('ocpPuxarCancelar'); if(bc) bc.onclick=fechar;   // cancela: bolinha continua verde
+    var bn=document.getElementById('ocpPuxarNovo'); if(bn) bn.onclick=function(){ fechar(); ocpVirarVermelhoSlot(at, i); };   // segue normal
+    var lst=bg.querySelector('.ocp-sbtr-lista');
+    if(lst) lst.addEventListener('click', function(ev){
+      var b=ev.target.closest ? ev.target.closest('[data-puxar-id]') : null;
+      if(!b) return;
+      var id=b.getAttribute('data-puxar-id');
+      fechar();
+      ocpPuxarDoStandby(at, i, id);
+    });
+  }
+
   // Libera o slot vermelho de ORIGEM ao transferir um cliente para o Stand By: o slot
   // volta a VERDE, o cliente sai da ocupação ativa e o timer zera. Espelha o mesmo
   // cuidado do clique no LED (carimba a "última vez visto" do cliente p/ anti-burla e
@@ -7496,6 +7615,14 @@ function excluirNotaUI(id){
     if(o.slots[at][i] && _ehIndispOuAusente){
       ocpDefinirTodosSlots(at, '');   // já redesenha e salva
       return;
+    }
+    // EFEITO REVERSO DO STAND BY: clicou numa bolinha VERDE e há cliente(s) no Stand By
+    // deste atendente → antes de virar vermelho, pergunta se quer PUXAR alguém de volta
+    // ao atendimento. Se puxar, a bolinha fica vermelha com o nome embaixo (igual ao
+    // fluxo normal). Se escolher "novo atendimento", segue o comportamento padrão.
+    if(!o.slots[at][i] && ocpStandbyLista(at).length){
+      ocpAbrirModalPuxarStandby(at, i);
+      return;   // o virar-vermelho acontece dentro do modal, após a escolha
     }
     var eraLivre = !o.slots[at][i];
     o.slots[at][i]=o.slots[at][i]?0:1;   // alterna livre ⇄ ocupado
