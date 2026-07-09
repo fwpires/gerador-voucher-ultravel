@@ -404,6 +404,72 @@ body:not(.dark) .ocp-reab-pax input{background:#fff;color:#1A2733;border-color:#
 .ocp-confirm-nao:hover{background:rgba(255,255,255,.18)}
 .ocp-confirm-sim{background:linear-gradient(180deg,#e02222,#a51010);color:#fff}
 .ocp-confirm-sim:hover{background:linear-gradient(180deg,#f02b2b,#c01414);box-shadow:0 0 12px rgba(255,61,61,.6)}
+/* Mini-modal "transferir para Stand By": borda laranja + botões de cliente em atendimento */
+.ocp-confirm.ocp-sbtr{border-color:rgba(240,150,30,.5)}
+.ocp-confirm.ocp-sbtr p b{color:#ffb15a}
+.ocp-sbtr-lista{display:flex;flex-direction:column;gap:8px;margin:0 0 16px}
+.ocp-sbtr-op{padding:11px 12px;border-radius:9px;border:1px solid rgba(240,150,30,.45);background:rgba(240,150,30,.12);color:#ffd9a8;font-size:13.5px;font-weight:800;cursor:pointer;transition:all .15s;text-align:center}
+.ocp-sbtr-op:hover{background:rgba(240,150,30,.24);border-color:rgba(240,150,30,.7);box-shadow:0 0 10px rgba(240,150,30,.35)}
+.ocp-sbtr-outro{background:rgba(255,255,255,.1);color:#cfe0f0}
+.ocp-sbtr-outro:hover{background:rgba(255,255,255,.18)}
+body:not(.dark) .ocp-sbtr-op{background:#FFF3E3;border-color:#F0C79A;color:#8A5314}
+body:not(.dark) .ocp-sbtr-op:hover{background:#ffe9cf}
+/* ===== AUSÊNCIA PROGRAMADA (painel do Dashboard, abaixo da Ocupação) ===== */
+.apr-card{margin-top:14px}
+.apr-form{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:2px 0 14px}
+.apr-inp{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);border-radius:9px;color:#E8EEF4;font-size:13px;font-weight:600;padding:9px 11px;outline:none;transition:border-color .15s}
+.apr-inp:focus{border-color:#0a9cf0}
+.apr-atend{flex:0 0 auto;min-width:160px;cursor:pointer}
+/* Seletor de data/hora customizado (calendário + Início/Fim embutidos) */
+.apr-dt{position:relative;flex:0 0 auto}
+.apr-dt-btn{min-width:210px;text-align:left;cursor:pointer;color:#8ba0b6;font-weight:600}
+.apr-dt-btn.has{color:#fff;font-weight:800}
+.apr-dt-btn:disabled{opacity:.45;cursor:not-allowed}
+.apr-dt-pop{position:absolute;top:calc(100% + 6px);left:0;z-index:60;width:270px;background:#141c26;border:1px solid rgba(255,255,255,.16);border-radius:12px;box-shadow:0 14px 40px rgba(0,0,0,.55);padding:12px}
+.apr-cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.apr-cal-mes{color:#fff;font-size:13.5px;font-weight:800;text-transform:capitalize}
+.apr-cal-nav{width:28px;height:28px;border-radius:7px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:#cfe0f0;font-size:12px;cursor:pointer;transition:all .15s}
+.apr-cal-nav:hover{background:rgba(255,255,255,.14)}
+.apr-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.apr-cal-dow{text-align:center;color:#8ba0b6;font-size:10.5px;font-weight:800;padding:3px 0}
+.apr-cal-vazio{height:30px}
+.apr-cal-dia{height:30px;border:1px solid transparent;border-radius:7px;background:rgba(255,255,255,.05);color:#e8eef4;font-size:12px;font-weight:700;cursor:pointer;transition:all .12s}
+.apr-cal-dia:hover{background:rgba(10,156,240,.25)}
+.apr-cal-dia.sel{background:linear-gradient(180deg,#12b0ff,#0670d8);color:#fff;border-color:#7fe0ff;box-shadow:0 0 12px rgba(18,176,255,.9),inset 0 0 5px rgba(255,255,255,.5);font-weight:900;transform:scale(1.06)}
+.apr-cal-horas{display:flex;flex-direction:column;gap:7px;margin:11px 0 4px;border-top:1px solid rgba(255,255,255,.1);padding-top:11px}
+.apr-cal-hlbl{display:flex;align-items:center;justify-content:space-between;color:#fff;font-size:12.5px;font-weight:800}
+.apr-cal-time{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:8px;color:#fff;font-size:12.5px;font-weight:700;padding:6px 9px;outline:none;color-scheme:dark}
+.apr-cal-time:focus{border-color:#12b0ff}
+.apr-cal-acoes{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
+.apr-cal-limpar,.apr-cal-ok{padding:7px 16px;border-radius:8px;border:none;font-size:12.5px;font-weight:800;cursor:pointer;transition:all .15s}
+.apr-cal-limpar{background:rgba(255,255,255,.09);color:#cfe0f0}
+.apr-cal-limpar:hover{background:rgba(255,255,255,.17)}
+.apr-cal-ok{background:linear-gradient(180deg,#12b0ff,#0670d8);color:#fff}
+.apr-cal-ok:hover{box-shadow:0 0 12px rgba(18,176,255,.6)}
+.apr-inp:disabled{opacity:.45;cursor:not-allowed}
+.apr-comp{flex:1 1 220px;min-width:150px}
+.apr-btn-salvar{flex:0 0 auto;padding:9px 20px;border-radius:9px;border:none;background:linear-gradient(180deg,#0a9cf0,#0678c8);color:#fff;font-size:13px;font-weight:800;cursor:pointer;transition:all .15s}
+.apr-btn-salvar:hover{background:linear-gradient(180deg,#28abff,#0a86d8);box-shadow:0 0 12px rgba(10,156,240,.5)}
+.apr-lista{display:flex;flex-direction:column;gap:8px}
+.apr-vazio{color:#8ba0b6;font-size:12.5px;font-style:italic;padding:4px 2px}
+.apr-item{display:flex;align-items:center;gap:9px;background:linear-gradient(90deg,rgba(255,61,61,.07),rgba(255,255,255,.04));border:1px solid rgba(255,61,61,.28);border-left:3px solid #ff3d3d;border-radius:10px;padding:9px 12px}
+.apr-item.passado{opacity:.6;background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.12);border-left-color:#7a8698}
+.apr-led{width:15px;height:15px;border-radius:50%;flex:0 0 auto;border:2px solid rgba(255,255,255,.22);background:radial-gradient(circle at 32% 28%, #ffd0d0 0%, #ff3d3d 45%, #b60d0d 100%);animation:ocpPulseR 1.1s ease-in-out infinite}
+.apr-item.passado .apr-led{animation:none;background:#7a8698;box-shadow:none;border-color:rgba(255,255,255,.15)}
+.apr-chip{display:inline-flex;align-items:center;gap:5px;flex:0 0 auto;color:#fff;font-size:12.5px;font-weight:700;white-space:nowrap;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:7px;padding:4px 9px}
+.apr-chip .apr-ic{font-size:11px;opacity:.85}
+.apr-nome{font-weight:800;background:rgba(10,156,240,.16);border-color:rgba(10,156,240,.36)}
+.apr-data{background:rgba(150,110,240,.16);border-color:rgba(150,110,240,.36)}
+.apr-hora{background:rgba(240,150,30,.15);border-color:rgba(240,150,30,.36)}
+.apr-comp-txt{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:6px;color:#fff;font-size:12.5px;font-weight:600;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.13);border-radius:7px;padding:5px 10px}
+.apr-comp-txt .apr-ic{font-size:11px;opacity:.8;flex:0 0 auto}
+.apr-comp-val{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.apr-acoes{flex:0 0 auto;display:flex;gap:6px;margin-left:auto}
+.apr-ed,.apr-del{width:30px;height:30px;border-radius:8px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:#cfe0f0;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.apr-ed:hover{background:rgba(10,156,240,.25);border-color:#0a9cf0}
+.apr-del:hover{background:rgba(224,34,34,.28);border-color:#e02222}
+body:not(.dark) .apr-inp{background:#fff;border-color:#C4D3E4;color:#22364a}
+body:not(.dark) .apr-item{background:#fff;border-color:#F0B4B4}
 .ocp-cli-item.meulivre::before{content:"⭐ ";font-size:11px}
 .ocp-modal-vazio{text-align:center;color:#8BA4BF;font-size:13px;padding:18px 8px}
 .ocp-modal-ft{display:flex;gap:8px;padding:12px 18px;border-top:1px solid rgba(255,255,255,.08)}
@@ -1201,7 +1267,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
 }
 </style>
 </head>
-<body>
+<body class="dark">
 <!-- ===== TOPBAR ===== -->
 <header class="topbar">
   <div class="topbar-inner">
@@ -1217,9 +1283,6 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
       <button class="btn btn-green" id="btnSalvar">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Salvar
-      </button>
-      <button class="btn btn-ghost" id="btnDark" title="Alternar modo noturno" style="padding:10px 13px">
-        <svg id="iconDark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
       <div class="cloud cloud-square" id="cloud"><span class="dot"></span><span id="cloudTxt">Conectando…</span></div>
       <button class="btn btn-primary" id="btnImprimir">
@@ -1287,9 +1350,39 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
         </div>
         <div class="dash-cards" id="dashCards"></div>
         <div class="dash-card ocp-card">
-          <div class="dash-card-t">🚦 Ocupação dos Atendentes<span class="ocp-hint">verde = livre &nbsp;·&nbsp; vermelho = ocupado &nbsp;·&nbsp; 3 vermelhos = passa a vez (novo sorteio)</span></div>
+          <div class="dash-card-t">🚦 Ocupação dos Atendentes<span class="ocp-hint">verde = livre &nbsp;·&nbsp; vermelho = ocupado</span></div>
           <div class="ocp-vez-bar" id="ocpVezBar"></div>
           <div class="ocp-grid" id="ocpGrid"></div>
+        </div>
+        <div class="dash-card apr-card">
+          <div class="dash-card-t">📅 Ausência Programada<span class="ocp-hint">informe a data, o horário e o compromisso — visível a todos os atendentes</span></div>
+          <div class="apr-form">
+            <select id="aprAtendente" class="apr-inp apr-atend" title="Atendente (obrigatório)">
+              <option value="">Selecione o atendente…</option>
+            </select>
+            <div class="apr-dt" id="aprDt">
+              <button type="button" class="apr-inp apr-dt-btn" id="aprDtBtn" disabled>Selecione a data e hora</button>
+              <div class="apr-dt-pop" id="aprDtPop" hidden>
+                <div class="apr-cal-head">
+                  <button type="button" class="apr-cal-nav" data-apr-nav="-1" title="Mês anterior">◀</button>
+                  <span class="apr-cal-mes" id="aprCalMes"></span>
+                  <button type="button" class="apr-cal-nav" data-apr-nav="1" title="Próximo mês">▶</button>
+                </div>
+                <div class="apr-cal-grid" id="aprCalGrid"></div>
+                <div class="apr-cal-horas">
+                  <label class="apr-cal-hlbl">Início: <input type="time" id="aprPickIni" class="apr-cal-time"></label>
+                  <label class="apr-cal-hlbl">Fim: <input type="time" id="aprPickFim" class="apr-cal-time"></label>
+                </div>
+                <div class="apr-cal-acoes">
+                  <button type="button" class="apr-cal-limpar" id="aprCalLimpar">Limpar</button>
+                  <button type="button" class="apr-cal-ok" id="aprCalOk">OK</button>
+                </div>
+              </div>
+            </div>
+            <input type="text" id="aprComp" class="apr-inp apr-comp" placeholder="Compromisso (ex.: consulta médica, reunião externa, curso...)" maxlength="140" autocomplete="off">
+            <button type="button" class="apr-btn-salvar" id="aprSalvar">Salvar</button>
+          </div>
+          <div class="apr-lista" id="aprLista"></div>
         </div>
         <div class="dash-grid">
           <div class="dash-card"><div class="dash-card-t">🥧 Vouchers por tipo de serviço</div><div class="dash-canvas"><canvas id="chTipo"></canvas></div></div>
@@ -1484,7 +1577,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v3·24 (anti-burla do timer: tempo gruda na dupla atendente+cliente — reiniciar retoma o tempo, conta reinícios, selo visível a todos + reabertura com "Qual o Pax da vez?") -->
+    <!-- build: HUB-v3·37 (Ocupação dos Atendentes: removido o texto "3 vermelhos = passa a vez (novo sorteio)" do cabeçalho), barra lateral vermelha e separador antes do compromisso); fontes em branco vivo; ordem bolinha - nome - data - hora - compromisso) em atendimento na bolinha vermelha e pergunta qual transferir; transferir libera o slot de origem) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -2070,6 +2163,16 @@ async function carregarConfig(){
         });
         appConfig.ocupacaoStandby=_mSb;
       }
+      // AUSÊNCIA PROGRAMADA: mapa plano id→{data,hora,compromisso,ts,del}. Une local+nuvem
+      // por id — vence sempre o carimbo (ts) mais recente. Não reseta diariamente.
+      {
+        var _apA=(local.ausenciasProgramadas&&typeof local.ausenciasProgramadas==='object')?local.ausenciasProgramadas:{};
+        var _apB=(c.ausenciasProgramadas&&typeof c.ausenciasProgramadas==='object')?c.ausenciasProgramadas:{};
+        var _mAp={}, _apIds={};
+        Object.keys(_apA).forEach(function(k){_apIds[k]=1;}); Object.keys(_apB).forEach(function(k){_apIds[k]=1;});
+        Object.keys(_apIds).forEach(function(id){ var ea=_apA[id], eb=_apB[id]; _mAp[id]=(ea&&eb)?(((ea.ts||0)>=(eb.ts||0))?ea:eb):(ea||eb); });
+        appConfig.ausenciasProgramadas=_mAp;
+      }
       localStorage.setItem('uv_config',JSON.stringify(appConfig));
     }
   }catch(e){}
@@ -2132,6 +2235,15 @@ async function salvarConfig(){
         sbOut[at]=mo;
       });
       appConfig.ocupacaoStandby=sbOut;
+    }
+    // AUSÊNCIA PROGRAMADA: une nuvem+local por id (carimbo ts mais recente vence)
+    {
+      var apCloud=(cloud.ausenciasProgramadas&&typeof cloud.ausenciasProgramadas==='object')?cloud.ausenciasProgramadas:{};
+      var apLocal=(appConfig.ausenciasProgramadas&&typeof appConfig.ausenciasProgramadas==='object')?appConfig.ausenciasProgramadas:{};
+      var apOut={}, apIds={};
+      Object.keys(apCloud).forEach(function(k){apIds[k]=1;}); Object.keys(apLocal).forEach(function(k){apIds[k]=1;});
+      Object.keys(apIds).forEach(function(id){ var ea=apCloud[id], eb=apLocal[id]; apOut[id]=(ea&&eb)?(((ea.ts||0)>=(eb.ts||0))?ea:eb):(ea||eb); });
+      appConfig.ausenciasProgramadas=apOut;
     }
     // quem já virou "Nome cadastrado" (está em voucherResolvido) não fica no vermelho
     Object.keys(appConfig.voucherResolvido).forEach(k=>{ if(appConfig.semCadastroWecann[k]) delete appConfig.semCadastroWecann[k]; });
@@ -4846,28 +4958,17 @@ function confirmDirty(){
   return true;
 }
 
-/* ===== DARK MODE ===== */
-const DARK_KEY = 'uv_dark_mode';
-const SOL_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke-linecap="round"/></svg>';
-const LUA_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-
-function aplicarDark(dark) {
-  document.body.classList.toggle('dark', dark);
-  $('#btnDark').innerHTML = dark ? SOL_SVG : LUA_SVG;
-  $('#btnDark').title = dark ? 'Modo claro' : 'Modo noturno';
+/* ===== MODO ESCURO FIXO =====
+   O sistema opera SEMPRE em modo escuro. A alternância para o modo claro
+   e o botão correspondente foram removidos. */
+function aplicarDark() {
+  document.body.classList.add('dark');
 }
 
 function initDark() {
-  const salvo = localStorage.getItem(DARK_KEY);
-  const dark = salvo !== null ? salvo === 'true' : window.matchMedia('(prefers-color-scheme: dark)').matches;
-  aplicarDark(dark);
+  aplicarDark();
 }
 
-$('#btnDark').onclick = () => {
-  const dark = !document.body.classList.contains('dark');
-  localStorage.setItem(DARK_KEY, dark);
-  aplicarDark(dark);
-};
 { const _be=$('#btnEstoque'); if(_be) _be.onclick = toggleEstoque; }
 // Conciliação & Pastas: clicar no nome abre a edição do voucher
 document.addEventListener('click', function(e){
@@ -5887,6 +5988,7 @@ function excluirNotaUI(id){
 
   window.renderDashboard=function(){
     try{ if(typeof renderOcupacao==='function') renderOcupacao(); }catch(e){}
+    try{ if(typeof window.renderAusProg==='function') window.renderAusProg(); }catch(e){}
     if(typeof Chart==='undefined') return;
     var vs=(typeof savedCache!=='undefined'&&savedCache)?savedCache:[];
     var tc=themeColors();
@@ -6275,6 +6377,177 @@ function excluirNotaUI(id){
     try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
   }
 
+  // Lista os clientes REAIS em atendimento agora (bolinhas VERMELHAS com nome de
+  // cliente) de um atendente. Exclui os estados especiais Indisponível/Interno/Ausente,
+  // que NÃO são clientes. Retorna [{i, cliente}, ...] na ordem dos slots.
+  function ocpClientesEmAtendimento(at){
+    var o=ocpEstado();
+    var s=(o.slots&&o.slots[at])||[0,0,0];
+    var c=(o.clientes&&o.clientes[at])||['','',''];
+    var out=[];
+    for(var i=0;i<3;i++){
+      var nome=(c[i]||'').toString();
+      var real = s[i] && nome &&
+                 nome!=='__INDISPONIVEL__' && nome!=='__INTERNO__' &&
+                 nome.indexOf('__AUSENTE__')!==0;
+      if(real) out.push({ i:i, cliente:nome });
+    }
+    return out;
+  }
+
+  // Libera o slot vermelho de ORIGEM ao transferir um cliente para o Stand By: o slot
+  // volta a VERDE, o cliente sai da ocupação ativa e o timer zera. Espelha o mesmo
+  // cuidado do clique no LED (carimba a "última vez visto" do cliente p/ anti-burla e
+  // o timestamp de modificação do slot p/ vencer o merge multi-PC). NÃO chama render
+  // aqui — quem transfere chama ocpStandbyAdd logo em seguida, que já redesenha e salva.
+  function ocpLiberarSlotTransfer(at, i){
+    var o=ocpEstado();
+    if(!Array.isArray(o.slots[at]) || !o.slots[at][i]) return;   // só libera se estiver vermelho
+    if(!Array.isArray(o.clientes[at]) || o.clientes[at].length!==3) o.clientes[at]=['','',''];
+    if(!Array.isArray(o.mods[at])     || o.mods[at].length!==3)     o.mods[at]=[0,0,0];
+    if(!Array.isArray(o.inicios[at])  || o.inicios[at].length!==3)  o.inicios[at]=[0,0,0];
+    // anti-burla: carimba "última vez visto" do cliente que estava aqui
+    var _ch=ocpChaveCli(o.clientes[at][i]);
+    if(_ch){ var _H=ocpHistStore(at); if(_H[_ch]){ _H[_ch].ult=Date.now(); _H[_ch].ts=Date.now(); } }
+    o.slots[at][i]=0;         // vira verde (livre)
+    o.clientes[at][i]='';     // sai do atendimento ativo
+    o.inicios[at][i]=0;       // zera o timer
+    o.mods[at][i]=Date.now(); // carimba → esta ação vence o merge
+  }
+
+  /* ===== AUSÊNCIA PROGRAMADA =====
+     Compromissos futuros que QUALQUER pessoa registra (data + hora + descrição livre).
+     Guardado em appConfig.ausenciasProgramadas = { id:{data,hora,compromisso,ts,del}, ... }.
+     NÃO reseta diariamente — some só quando alguém edita/exclui. O carimbo ts garante
+     que a ação mais recente vença o merge entre PCs (mesma lógica do Stand By). */
+  function ausProgStore(){
+    if(!appConfig.ausenciasProgramadas || typeof appConfig.ausenciasProgramadas!=='object') appConfig.ausenciasProgramadas={};
+    return appConfig.ausenciasProgramadas;
+  }
+  function ausProgLista(){
+    var m=ausProgStore();
+    return Object.keys(m).map(function(id){ var e=m[id]||{}; return {id:id, atendente:e.atendente||'', data:e.data||'', hora:e.hora||'', horaFim:e.horaFim||'', compromisso:e.compromisso||'', ts:e.ts||0, del:e.del?1:0}; })
+      .filter(function(e){ return !e.del && (e.data||e.hora||e.compromisso); })
+      .sort(function(a,b){ return (a.data+' '+a.hora).localeCompare(b.data+' '+b.hora); });   // mais próximo primeiro
+  }
+  function ausProgAdd(atendente, data, hora, horaFim, comp){
+    var m=ausProgStore();
+    var id='ap'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+    m[id]={ atendente:(atendente||'').trim(), data:(data||'').trim(), hora:(hora||'').trim(), horaFim:(horaFim||'').trim(), compromisso:(comp||'').trim(), ts:Date.now(), del:0 };
+    window.renderAusProg(); try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+  }
+  function ausProgUpd(id, atendente, data, hora, horaFim, comp){
+    var m=ausProgStore(); if(!m[id]) return;
+    m[id].atendente=(atendente||'').trim(); m[id].data=(data||'').trim(); m[id].hora=(hora||'').trim(); m[id].horaFim=(horaFim||'').trim(); m[id].compromisso=(comp||'').trim();
+    m[id].ts=Date.now();
+    window.renderAusProg(); try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+  }
+  function ausProgDel(id){
+    var m=ausProgStore(); if(!m[id]) return;
+    m[id].del=1; m[id].ts=Date.now();   // marca deletado + carimba (não apaga: vence o merge)
+    window.renderAusProg(); try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+  }
+  function ausProgFmtQuando(data, hora, horaFim){
+    return ausProgFmtData(data)+(ausProgFmtHora(hora,horaFim)?' · '+ausProgFmtHora(hora,horaFim):'');
+  }
+  function ausProgFmtData(data){
+    if(!data) return '—';
+    var p=data.split('-'); return (p.length===3)?(p[2]+'/'+p[1]+'/'+p[0].slice(2)):data;
+  }
+  function ausProgFmtHora(hora, horaFim){
+    if(!hora) return '';
+    return hora + (horaFim ? '–'+horaFim : '');
+  }
+  function ausProgPassado(data, hora, horaFim){
+    if(!data) return false;
+    var ref=(horaFim||hora||'23:59');   // o período só termina na hora de FIM
+    var dt=new Date(data+'T'+ref+':00');
+    return !isNaN(dt.getTime()) && dt.getTime() < Date.now();
+  }
+  var aprEditId=null;   // id do compromisso em edição (ou null = criando novo)
+
+  // ----- Seletor de data/hora customizado (calendário + Início/Fim embutidos) -----
+  var aprPick={ data:'', hora:'', horaFim:'', mes:null };   // seleção corrente do picker
+  var APR_MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  var APR_DOW=['D','S','T','Q','Q','S','S'];
+
+  // Atualiza o texto do botão do seletor com o resumo da seleção (ou o placeholder).
+  function aprDtSync(){
+    var btn=document.getElementById('aprDtBtn'); if(!btn) return;
+    if(aprPick.data){
+      var h=ausProgFmtHora(aprPick.hora, aprPick.horaFim);
+      btn.textContent=ausProgFmtData(aprPick.data)+(h?' · '+h:'');
+      btn.classList.add('has');
+    } else { btn.textContent='Selecione a data e hora'; btn.classList.remove('has'); }
+  }
+  // Desenha o calendário do mês em visão, destacando o dia selecionado (cor forte).
+  function aprCalRender(){
+    var grid=document.getElementById('aprCalGrid'); if(!grid) return;
+    var base=aprPick.mes || (aprPick.data ? new Date(aprPick.data+'T12:00') : new Date());
+    var ano=base.getFullYear(), mes=base.getMonth();
+    var lblMes=document.getElementById('aprCalMes'); if(lblMes) lblMes.textContent=APR_MESES[mes]+' '+ano;
+    var inicioSemana=new Date(ano,mes,1).getDay();
+    var diasNoMes=new Date(ano,mes+1,0).getDate();
+    var html='';
+    APR_DOW.forEach(function(d){ html+='<span class="apr-cal-dow">'+d+'</span>'; });
+    for(var i=0;i<inicioSemana;i++) html+='<span class="apr-cal-vazio"></span>';
+    for(var dia=1;dia<=diasNoMes;dia++){
+      var iso=ano+'-'+String(mes+1).padStart(2,'0')+'-'+String(dia).padStart(2,'0');
+      var sel=(iso===aprPick.data);
+      html+='<button type="button" class="apr-cal-dia'+(sel?' sel':'')+'" data-apr-dia="'+iso+'">'+dia+'</button>';
+    }
+    grid.innerHTML=html;
+    var pi=document.getElementById('aprPickIni'); if(pi) pi.value=aprPick.hora||'';
+    var pf=document.getElementById('aprPickFim'); if(pf) pf.value=aprPick.horaFim||'';
+  }
+  function aprDtAbrir(){
+    var btn=document.getElementById('aprDtBtn'); if(!btn || btn.disabled) return;
+    if(!aprPick.mes) aprPick.mes=aprPick.data ? new Date(aprPick.data+'T12:00') : new Date();
+    var pop=document.getElementById('aprDtPop'); if(pop){ pop.hidden=false; aprCalRender(); }
+  }
+  function aprDtFechar(){ var p=document.getElementById('aprDtPop'); if(p) p.hidden=true; }
+  function aprPickReset(){ aprPick={ data:'', hora:'', horaFim:'', mes:null }; aprDtSync(); aprDtFechar(); }
+
+
+  function aprPopularAtendentes(){
+    var sel=document.getElementById('aprAtendente'); if(!sel) return;
+    if(sel.getAttribute('data-pop')==='1') return;
+    var opts='<option value="">Selecione o atendente…</option>';
+    OCP_ATENDENTES.forEach(function(a){ opts+='<option value="'+ocpEsc(a)+'">'+ocpEsc(a)+'</option>'; });
+    sel.innerHTML=opts; sel.setAttribute('data-pop','1');
+  }
+  // Atendente é OBRIGATÓRIO: só com ele selecionado o seletor de data/hora é liberado.
+  function aprSyncEnable(){
+    var sel=document.getElementById('aprAtendente'), btn=document.getElementById('aprDtBtn');
+    if(!sel||!btn) return;
+    var ok=!!(sel.value||'').trim();
+    btn.disabled=!ok;
+    if(ok){ sel.style.borderColor=''; }
+    else { aprPickReset(); }   // trava: limpa a seleção e volta ao placeholder
+  }
+
+  window.renderAusProg=function(){
+    aprPopularAtendentes();
+    var el=document.getElementById('aprLista'); if(!el) return;
+    var lista=ausProgLista();
+    if(!lista.length){ el.innerHTML='<div class="apr-vazio">Nenhuma ausência programada. Preencha acima e clique em Salvar.</div>'; return; }
+    el.innerHTML=lista.map(function(e){
+      var passado=ausProgPassado(e.data, e.hora, e.horaFim);
+      var hora=ausProgFmtHora(e.hora,e.horaFim);
+      return '<div class="apr-item'+(passado?' passado':'')+'">'+
+        '<span class="apr-led" title="'+(passado?'compromisso já passou':'ausência programada')+'"></span>'+
+        (e.atendente?'<span class="apr-chip apr-nome"><span class="apr-ic">👤</span>'+ocpEsc(e.atendente)+'</span>':'')+
+        '<span class="apr-chip apr-data"><span class="apr-ic">📅</span>'+ocpEsc(ausProgFmtData(e.data))+'</span>'+
+        (hora?'<span class="apr-chip apr-hora"><span class="apr-ic">⏰</span>'+ocpEsc(hora)+'</span>':'')+
+        '<span class="apr-comp-txt" title="'+ocpEsc(e.compromisso)+'"><span class="apr-ic">📝</span><span class="apr-comp-val">'+ocpEsc(e.compromisso||'(sem descrição)')+'</span></span>'+
+        '<span class="apr-acoes">'+
+          '<button type="button" class="apr-ed" data-apr-ed="'+e.id+'" title="Editar">✎</button>'+
+          '<button type="button" class="apr-del" data-apr-del="'+e.id+'" title="Excluir">🗑</button>'+
+        '</span>'+
+      '</div>';
+    }).join('');
+  };
+
   function ocpHoje(){
     var d=new Date();
     return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
@@ -6644,7 +6917,8 @@ function excluirNotaUI(id){
     // automaticamente (exclusividade mútua garantida pela estrutura).
     var chkIndisp=document.getElementById('ocpIndispChk');
     if(chkIndisp) chkIndisp.onchange=function(){
-      ocpDefinirCliente(at, i, chkIndisp.checked ? '__INDISPONIVEL__' : '');
+      // Indisponível representa a PESSOA inteira → preenche/limpa os 3 slots de uma vez.
+      ocpDefinirTodosSlots(at, chkIndisp.checked ? '__INDISPONIVEL__' : '');
       ocpFecharModal();
     };
 
@@ -6672,7 +6946,7 @@ function excluirNotaUI(id){
       }else{
         // desmarcou Ausente: se havia um estado ausente salvo, limpa
         if(motivoWrap) motivoWrap.classList.remove('aberto');
-        if(atualSel.indexOf('__AUSENTE__')===0){ ocpDefinirCliente(at, i, ''); ocpFecharModal(); }
+        if(atualSel.indexOf('__AUSENTE__')===0){ ocpDefinirTodosSlots(at, ''); ocpFecharModal(); }
       }
     };
 
@@ -6688,7 +6962,8 @@ function excluirNotaUI(id){
         motivoInput.placeholder='⚠ Digite o motivo para marcar como Ausente';
         return;
       }
-      ocpDefinirCliente(at, i, '__AUSENTE__:'+motivo);
+      // Ausente representa a PESSOA inteira → preenche os 3 slots de uma vez.
+      ocpDefinirTodosSlots(at, '__AUSENTE__:'+motivo);
       ocpFecharModal();
     }
     var btnMotivoOk=document.getElementById('ocpMotivoOk');
@@ -6912,6 +7187,37 @@ function excluirNotaUI(id){
     return 'ok';
   }
 
+  // Aplica um estado que representa a PESSOA INTEIRA (Indisponível ou Ausente) — ou o
+  // esvaziamento dela — aos TRÊS slots do atendente de uma só vez. Diferente de
+  // ocpDefinirCliente (que mexe em 1 slot), esta função:
+  //  • valor sentinela ('__INDISPONIVEL__' ou '__AUSENTE__:motivo') → deixa os 3 slots
+  //    VERMELHOS e grava a sentinela nos 3;
+  //  • valor vazio ('')                                            → deixa os 3 VERDES e limpa.
+  // Carimba o timestamp de modificação nos 3 slots, então esta ação vence o merge
+  // multi-PC (a mais recente sempre ganha), igual às demais.
+  function ocpDefinirTodosSlots(at, valor){
+    var o=ocpEstado();
+    var v=(valor||'').trim();
+    var vermelho=!!v;                 // com sentinela → 3 vermelhos; vazio → 3 verdes
+    if(!Array.isArray(o.slots[at])    || o.slots[at].length!==3)    o.slots[at]=[0,0,0];
+    if(!Array.isArray(o.clientes[at]) || o.clientes[at].length!==3) o.clientes[at]=['','',''];
+    if(!Array.isArray(o.mods[at])     || o.mods[at].length!==3)     o.mods[at]=[0,0,0];
+    if(!Array.isArray(o.inicios[at])  || o.inicios[at].length!==3)  o.inicios[at]=[0,0,0];
+    var agora=Date.now();
+    for(var j=0;j<3;j++){
+      o.slots[at][j]    = vermelho ? 1 : 0;
+      o.clientes[at][j] = vermelho ? v : '';
+      // Indisponível/Ausente não contam tempo, mas mantemos um início coerente ao
+      // acender o slot; ao apagar (verde) zeramos, como no clique normal do LED.
+      o.inicios[at][j]  = vermelho ? (o.inicios[at][j] || agora) : 0;
+      o.mods[at][j]     = agora;     // carimba os 3 → esta ação vence o merge
+      // ao esvaziar, libera também os nomes livres daquele slot (regra do verde)
+      if(!vermelho && Array.isArray(o.livres[at]) && Array.isArray(o.livres[at][j])) o.livres[at][j]=[];
+    }
+    window.renderOcupacao();
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+  }
+
   function ocpDefinirCliente(at, i, valor){
     var o=ocpEstado();
     if(!Array.isArray(o.clientes[at]) || o.clientes[at].length!==3) o.clientes[at]=['','',''];
@@ -7103,10 +7409,60 @@ function excluirNotaUI(id){
     bg.addEventListener('click', function(ev){ if(ev.target===bg) ocpFecharModal(); });
   }
 
+  /* Fluxo do "+" do Stand By: ANTES de abrir o seletor, verifica se o atendente tem
+     cliente(s) em atendimento (bolinha vermelha). Se tiver, pergunta se deseja
+     TRANSFERIR um deles — reconhecendo o cliente automaticamente. Se houver mais de um,
+     lista todos e deixa escolher qual. Se não houver nenhum, abre o seletor normal. */
+  function ocpStandbyNovo(at){
+    var emat = ocpClientesEmAtendimento(at);
+    if(!emat.length){ ocpAbrirModalStandby(at, null); return; }   // nada em atendimento → seletor normal
+
+    ocpFecharModal();
+    var umSo = (emat.length===1);
+    var sub = umSo
+      ? '<b>'+ocpEsc(emat[0].cliente)+'</b> está em atendimento agora. Deseja transferi-lo para o Stand By ou selecionar outro?'
+      : 'Estes clientes estão em atendimento agora. Escolha qual transferir para o Stand By:';
+    var botoes = emat.map(function(e){
+      return '<button type="button" class="ocp-sbtr-op" data-sbtr-i="'+e.i+'" data-sbtr-cli="'+ocpEsc(e.cliente)+'">👤 '+ocpEsc(e.cliente)+'</button>';
+    }).join('');
+
+    var bg=document.createElement('div'); bg.className='ocp-confirm-bg'; bg.id='ocpSbEscolhaModal';
+    bg.innerHTML=
+      '<div class="ocp-confirm ocp-sbtr">'+
+        '<h4>🟠 Transferir para Stand By</h4>'+
+        '<p>'+sub+'</p>'+
+        '<div class="ocp-sbtr-lista">'+botoes+'</div>'+
+        '<div class="ocp-confirm-btns">'+
+          '<button type="button" class="ocp-sbtr-outro" id="ocpSbtrOutro">Selecionar outro</button>'+
+          '<button type="button" class="ocp-confirm-nao" id="ocpSbtrCancelar">Cancelar</button>'+
+        '</div>'+
+      '</div>';
+    document.body.appendChild(bg);
+
+    function fechar(){ if(bg.parentNode) bg.parentNode.removeChild(bg); }
+    bg.addEventListener('click', function(ev){ if(ev.target===bg) fechar(); });
+    var bc=document.getElementById('ocpSbtrCancelar'); if(bc) bc.onclick=fechar;
+    var bo=document.getElementById('ocpSbtrOutro'); if(bo) bo.onclick=function(){ fechar(); ocpAbrirModalStandby(at, null); };
+    // escolher um cliente da lista → abre o modal do stand by já pré-selecionado (modo transferência)
+    var lista=bg.querySelector('.ocp-sbtr-lista');
+    if(lista) lista.addEventListener('click', function(ev){
+      var b=ev.target.closest ? ev.target.closest('[data-sbtr-i]') : null;
+      if(!b) return;
+      var i=parseInt(b.getAttribute('data-sbtr-i'),10);
+      var cli=b.getAttribute('data-sbtr-cli');
+      fechar();
+      // TRANSFERÊNCIA DIRETA: libera a bolinha vermelha de origem e joga o cliente no
+      // Stand By na hora, sem abrir o seletor de nomes. (A observação pode ser adicionada
+      // depois clicando na bolinha laranja.) ocpStandbyAdd já redesenha e salva.
+      ocpLiberarSlotTransfer(at, i);
+      ocpStandbyAdd(at, cli, '');
+    });
+  }
+
   // clique no "+" do Stand By ou num cliente laranja → abre o modal do stand by
   document.addEventListener('click', function(e){
     var add=e.target && e.target.closest ? e.target.closest('.ocp-sb-add') : null;
-    if(add){ e.stopPropagation(); var a1=add.getAttribute('data-ocp-sb-at'); if(a1) ocpAbrirModalStandby(a1, null); return; }
+    if(add){ e.stopPropagation(); var a1=add.getAttribute('data-ocp-sb-at'); if(a1) ocpStandbyNovo(a1); return; }
     var btn=e.target && e.target.closest ? e.target.closest('.ocp-sb-btn') : null;
     if(btn){ e.stopPropagation(); var a2=btn.getAttribute('data-ocp-sb-at'), id=btn.getAttribute('data-ocp-sb-id'); if(a2&&id) ocpAbrirModalStandby(a2, id); return; }
   });
@@ -7130,6 +7486,17 @@ function excluirNotaUI(id){
     var i=parseInt(b.getAttribute('data-ocp-i'),10);
     var o=ocpEstado();
     if(!o.slots[at] || isNaN(i)) return;
+    // EFEITO REVERSO: se esta bolinha está VERMELHA por causa de Indisponível/Ausente
+    // (estado que representa a PESSOA inteira, preenchido nos 3 slots de uma vez),
+    // clicar em QUALQUER uma das três já libera as TRÊS de volta para verde — em vez
+    // do toggle normal de 1 slot só. Não se aplica a Gestão Interna nem a um vermelho
+    // comum de atendimento, que continuam sendo tirados um a um.
+    var _cliAtual=(o.clientes[at] && o.clientes[at][i]) ? o.clientes[at][i] : '';
+    var _ehIndispOuAusente = (_cliAtual==='__INDISPONIVEL__' || _cliAtual.indexOf('__AUSENTE__')===0);
+    if(o.slots[at][i] && _ehIndispOuAusente){
+      ocpDefinirTodosSlots(at, '');   // já redesenha e salva
+      return;
+    }
     var eraLivre = !o.slots[at][i];
     o.slots[at][i]=o.slots[at][i]?0:1;   // alterna livre ⇄ ocupado
     // CARIMBO DE MODIFICAÇÃO: registra QUANDO este slot mudou, para o merge entre
@@ -7185,6 +7552,103 @@ function excluirNotaUI(id){
     try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(err){}
   });
 
+  // ===== HANDLERS DA AUSÊNCIA PROGRAMADA (delegação global) =====
+  document.addEventListener('click', function(e){
+    // SALVAR (novo compromisso OU confirmar edição)
+    var sv=e.target && e.target.closest ? e.target.closest('#aprSalvar') : null;
+    if(sv){
+      e.preventDefault();
+      var seln=document.getElementById('aprAtendente'), btnDt=document.getElementById('aprDtBtn'), ci=document.getElementById('aprComp');
+      var atendente=(seln&&seln.value||'').trim();
+      var data=aprPick.data||'', hora=aprPick.hora||'', horaFim=aprPick.horaFim||'';
+      var comp=(ci&&(ci.value||'').trim())||'';
+      if(!atendente && !data && !comp) return;         // nada preenchido → ignora
+      if(!atendente){ if(seln){ try{seln.focus();}catch(_){} seln.style.borderColor='#ff5252'; } return; }  // atendente obrigatório
+      if(!data){ if(btnDt && !btnDt.disabled){ try{btnDt.focus();}catch(_){} btnDt.style.borderColor='#ff5252'; aprDtAbrir(); } return; } // data obrigatória
+      if(!hora){ aprDtAbrir(); var _pi=document.getElementById('aprPickIni'); if(_pi){ try{_pi.focus();}catch(_){} } return; } // início obrigatório
+      if(!horaFim){ aprDtAbrir(); var _pf=document.getElementById('aprPickFim'); if(_pf){ try{_pf.focus();}catch(_){} } return; } // fim obrigatório
+      if(hora && horaFim && horaFim<=hora){ aprDtAbrir(); var _pf2=document.getElementById('aprPickFim'); if(_pf2){ try{_pf2.focus();}catch(_){} } return; } // fim depois do início
+      if(!comp){ if(ci){ try{ci.focus();}catch(_){} ci.style.borderColor='#ff5252'; } return; }               // compromisso obrigatório
+      if(aprEditId){ ausProgUpd(aprEditId, atendente, data, hora, horaFim, comp); aprEditId=null; }
+      else { ausProgAdd(atendente, data, hora, horaFim, comp); }
+      // limpa o formulário e re-trava o seletor
+      if(seln){ seln.value=''; seln.style.borderColor=''; }
+      if(btnDt){ btnDt.style.borderColor=''; btnDt.disabled=true; }
+      aprPickReset();
+      if(ci){ ci.value=''; ci.style.borderColor=''; }
+      if(sv) sv.textContent='Salvar';
+      return;
+    }
+    // EDITAR → carrega os valores de volta no formulário (entra em modo edição)
+    var ed=e.target && e.target.closest ? e.target.closest('[data-apr-ed]') : null;
+    if(ed){
+      var id=ed.getAttribute('data-apr-ed'); var it=ausProgStore()[id]; if(!it) return;
+      var sel2=document.getElementById('aprAtendente'), ci2=document.getElementById('aprComp');
+      if(sel2){ aprPopularAtendentes(); sel2.value=it.atendente||''; }
+      aprSyncEnable();   // libera o seletor de data/hora se houver atendente
+      aprPick={ data:it.data||'', hora:it.hora||'', horaFim:it.horaFim||'', mes: it.data?new Date(it.data+'T12:00'):new Date() };
+      aprDtSync();
+      if(ci2) ci2.value=it.compromisso||'';
+      aprEditId=id;
+      var sb2=document.getElementById('aprSalvar'); if(sb2) sb2.textContent='Atualizar';
+      try{ (ci2||sel2).focus(); }catch(_){}
+      try{ sel2.scrollIntoView({block:'center',behavior:'smooth'}); }catch(_){}
+      return;
+    }
+    // EXCLUIR → pede confirmação (reaproveita o modal de confirmação padrão)
+    var dl=e.target && e.target.closest ? e.target.closest('[data-apr-del]') : null;
+    if(dl){
+      var id2=dl.getAttribute('data-apr-del'); var it2=ausProgStore()[id2]; if(!it2) return;
+      var cbg=document.createElement('div'); cbg.className='ocp-confirm-bg';
+      cbg.innerHTML='<div class="ocp-confirm"><h4>Excluir ausência</h4><p>Excluir o compromisso de <b>'+ocpEsc(ausProgFmtQuando(it2.data,it2.hora,it2.horaFim))+'</b>? Vale para todos os computadores.</p><div class="ocp-confirm-btns"><button type="button" class="ocp-confirm-nao">Cancelar</button><button type="button" class="ocp-confirm-sim">Excluir</button></div></div>';
+      document.body.appendChild(cbg);
+      function fechar(){ if(cbg.parentNode) cbg.parentNode.removeChild(cbg); }
+      cbg.addEventListener('click', function(ev){ if(ev.target===cbg) fechar(); });
+      cbg.querySelector('.ocp-confirm-nao').onclick=fechar;
+      cbg.querySelector('.ocp-confirm-sim').onclick=function(){
+        ausProgDel(id2);
+        if(aprEditId===id2){ aprEditId=null; var sb3=document.getElementById('aprSalvar'); if(sb3) sb3.textContent='Salvar';
+          var _s=document.getElementById('aprAtendente'); if(_s) _s.value='';
+          var _b=document.getElementById('aprDtBtn'); if(_b) _b.disabled=true;
+          aprPickReset();
+          var _c=document.getElementById('aprComp'); if(_c) _c.value=''; }
+        fechar();
+      };
+      return;
+    }
+  });
+  // Enter no campo de compromisso salva direto
+  document.addEventListener('keydown', function(e){
+    if(e.key==='Enter' && e.target && e.target.id==='aprComp'){
+      e.preventDefault(); var b=document.getElementById('aprSalvar'); if(b) b.click();
+    }
+  });
+  // Selecionar o atendente libera o seletor de data/hora
+  document.addEventListener('change', function(e){
+    if(e.target && e.target.id==='aprAtendente'){ aprSyncEnable(); }
+    else if(e.target && e.target.id==='aprPickIni'){ aprPick.hora=(e.target.value||''); aprDtSync(); }
+    else if(e.target && e.target.id==='aprPickFim'){ aprPick.horaFim=(e.target.value||''); aprDtSync(); }
+  });
+  // Cliques do seletor de data customizado (abrir, navegar mês, escolher dia, OK/Limpar)
+  document.addEventListener('click', function(e){
+    if(!e.target || !e.target.closest) return;
+    // abrir/fechar ao clicar no botão
+    var btn=e.target.closest('#aprDtBtn');
+    if(btn){ var pop=document.getElementById('aprDtPop'); if(pop && pop.hidden) aprDtAbrir(); else aprDtFechar(); return; }
+    // navegar de mês
+    var nav=e.target.closest('[data-apr-nav]');
+    if(nav){ var base=aprPick.mes||new Date(); aprPick.mes=new Date(base.getFullYear(), base.getMonth()+parseInt(nav.getAttribute('data-apr-nav'),10), 1); aprCalRender(); return; }
+    // escolher um dia → destaca com cor forte
+    var dia=e.target.closest('[data-apr-dia]');
+    if(dia){ aprPick.data=dia.getAttribute('data-apr-dia'); aprCalRender(); aprDtSync(); return; }
+    // Limpar seleção
+    if(e.target.closest('#aprCalLimpar')){ aprPick.data=''; aprPick.hora=''; aprPick.horaFim=''; aprCalRender(); aprDtSync(); return; }
+    // OK → fecha o popover
+    if(e.target.closest('#aprCalOk')){ aprDtFechar(); return; }
+    // clique FORA do seletor → fecha
+    if(!e.target.closest('#aprDt')){ aprDtFechar(); }
+  });
+
   // ===== RESET AUTOMÁTICO À MEIA-NOITE =====
   // Verifica a cada 20s se a data mudou (virou meia-noite). Funciona mesmo que
   // o usuário esteja em OUTRA tela (não precisa estar no Dashboard olhando):
@@ -7217,6 +7681,23 @@ function excluirNotaUI(id){
       if(typeof api!=='function') return;
       var c=await api('/api/config');
       if(!c || typeof c!=='object') return;
+      // AUSÊNCIA PROGRAMADA: mescla a versão da nuvem (carimbo mais recente vence) e
+      // re-renderiza se mudou algo. Feito ANTES dos returns da ocupação — as ausências
+      // não dependem do estado do dia, então sincronizam sempre.
+      try{
+        var apN=(c.ausenciasProgramadas&&typeof c.ausenciasProgramadas==='object')?c.ausenciasProgramadas:null;
+        if(apN){
+          var apL=(appConfig.ausenciasProgramadas&&typeof appConfig.ausenciasProgramadas==='object')?appConfig.ausenciasProgramadas:{};
+          var antes=JSON.stringify(apL), apM={}, apKs={};
+          Object.keys(apN).forEach(function(k){apKs[k]=1;}); Object.keys(apL).forEach(function(k){apKs[k]=1;});
+          Object.keys(apKs).forEach(function(id){ var ea=apN[id], eb=apL[id]; apM[id]=(ea&&eb)?(((ea.ts||0)>=(eb.ts||0))?ea:eb):(ea||eb); });
+          if(JSON.stringify(apM)!==antes){
+            appConfig.ausenciasProgramadas=apM;
+            try{ localStorage.setItem('uv_config', JSON.stringify(appConfig)); }catch(e){}
+            if(typeof window.renderAusProg==='function') window.renderAusProg();
+          }
+        }
+      }catch(e){}
       var nuvem=c.ocupacaoAtendentes;
       if(!nuvem || typeof nuvem!=='object') return;
       if(nuvem.data!==ocpHoje()) return;   // estado de outro dia na nuvem: ignora (reset local vale)
@@ -7263,7 +7744,7 @@ function excluirNotaUI(id){
   }, 1000);
 
   // primeira pintura: se este PC fez o 1º sorteio do dia, grava na nuvem na hora
-  function ini(){ try{ if(window.renderOcupacao()){ if(typeof salvarConfig==='function') salvarConfig(); } }catch(e){} }
+  function ini(){ try{ if(window.renderOcupacao()){ if(typeof salvarConfig==='function') salvarConfig(); } }catch(e){} try{ if(typeof window.renderAusProg==='function') window.renderAusProg(); }catch(e){} }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', ini);
   else ini();
 })();
