@@ -473,6 +473,9 @@ body:not(.dark) .ocp-sbtr-op:hover{background:#ffe9cf}
 body:not(.dark) .apr-inp{background:#fff;border-color:#C4D3E4;color:#22364a}
 body:not(.dark) .apr-item{background:#fff;border-color:#F0B4B4}
 /* ===== CABEÇA DE REDE ===== */
+.nav-ic-cd{display:inline-flex;align-items:center;justify-content:center}
+.nav-ic-cd svg{filter:drop-shadow(0 0 3px rgba(255,190,0,.9)) drop-shadow(0 0 6px rgba(255,170,0,.5))}
+.nav-item.active .nav-ic-cd svg{filter:drop-shadow(0 0 4px rgba(255,200,0,1)) drop-shadow(0 0 9px rgba(255,175,0,.65))}
 .nav-ic-cr{display:inline-flex;align-items:center;justify-content:center}
 .nav-ic-cr svg{filter:drop-shadow(0 0 3px rgba(255,130,0,.95)) drop-shadow(0 0 7px rgba(255,110,0,.55))}
 .nav-item.active .nav-ic-cr svg{filter:drop-shadow(0 0 4px rgba(255,150,20,1)) drop-shadow(0 0 9px rgba(255,120,0,.7))}
@@ -1403,6 +1406,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
   <div class="hub-shell">
     <aside class="hub-sidebar" id="hubSidebar">
       <nav>
+        <button class="nav-item" data-screen="controldesk"><span class="nav-ic nav-ic-cd"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#FFD400" stroke-width="1.7" stroke-linecap="round"><line x1="6" y1="3" x2="6" y2="21"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="18" y1="3" x2="18" y2="21"/><rect x="3.4" y="7.5" width="5.2" height="3" rx="1.3" fill="#FFD400" stroke="none"/><rect x="9.4" y="13" width="5.2" height="3" rx="1.3" fill="#FFD400" stroke="none"/><rect x="15.4" y="5.5" width="5.2" height="3" rx="1.3" fill="#FFD400" stroke="none"/></svg></span><span>Control Desk</span></button>
         <button class="nav-item" data-screen="dashboard"><span class="nav-ic">📊</span><span>Dashboard</span></button>
 
         <button class="nav-item open" data-screen="gerador" data-tree="gerador"><span class="nav-ic">🧾</span><span>Gerador de Voucher</span><b class="nav-caret">▾</b></button>
@@ -1443,47 +1447,6 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
           <span class="dash-sub" id="dashSub">Visão geral dos vouchers salvos</span>
         </div>
         <div class="dash-cards" id="dashCards"></div>
-        <div class="dash-card ocp-card">
-          <div class="dash-card-t">🚦 Ocupação dos Atendentes<span class="ocp-hint">verde = livre &nbsp;·&nbsp; vermelho = ocupado</span></div>
-          <div class="ocp-vez-bar" id="ocpVezBar"></div>
-          <div class="ocp-grid" id="ocpGrid"></div>
-        </div>
-        <div class="dash-card apr-card">
-          <div class="dash-card-t">📅 Ausência Programada<span class="ocp-hint">informe a data, o horário e o compromisso — visível a todos os atendentes</span></div>
-          <div class="apr-form">
-            <select id="aprAtendente" class="apr-inp apr-atend" title="Atendente (obrigatório)">
-              <option value="">Selecione o atendente…</option>
-            </select>
-            <div class="apr-dt" id="aprDt">
-              <button type="button" class="apr-inp apr-dt-btn" id="aprDtBtn" disabled>Selecione a data e hora</button>
-              <div class="apr-dt-pop" id="aprDtPop" hidden>
-                <div class="apr-cal-head">
-                  <button type="button" class="apr-cal-nav" data-apr-nav="-1" title="Mês anterior">◀</button>
-                  <span class="apr-cal-mes" id="aprCalMes"></span>
-                  <button type="button" class="apr-cal-nav" data-apr-nav="1" title="Próximo mês">▶</button>
-                </div>
-                <div class="apr-cal-grid" id="aprCalGrid"></div>
-                <div class="apr-cal-horas">
-                  <div class="apr-cal-hrow">
-                    <label class="apr-cal-hlbl">Início:</label>
-                    <input type="time" id="aprPickIni" class="apr-cal-time">
-                  </div>
-                  <div class="apr-cal-hrow">
-                    <label class="apr-cal-hlbl">Fim:</label>
-                    <input type="time" id="aprPickFim" class="apr-cal-time">
-                  </div>
-                </div>
-                <div class="apr-cal-acoes">
-                  <button type="button" class="apr-cal-limpar" id="aprCalLimpar">Limpar</button>
-                  <button type="button" class="apr-cal-ok" id="aprCalOk">OK</button>
-                </div>
-              </div>
-            </div>
-            <input type="text" id="aprComp" class="apr-inp apr-comp" placeholder="Compromisso (ex.: consulta médica, reunião externa, curso...)" maxlength="140" autocomplete="off">
-            <button type="button" class="apr-btn-salvar" id="aprSalvar">Salvar</button>
-          </div>
-          <div class="apr-lista" id="aprLista"></div>
-        </div>
         <div class="dash-grid">
           <div class="dash-card"><div class="dash-card-t">🥧 Vouchers por tipo de serviço</div><div class="dash-canvas"><canvas id="chTipo"></canvas></div></div>
           <div class="dash-card"><div class="dash-card-t">🍩 Vouchers por hotel (WeCann)</div><div class="dash-canvas"><canvas id="chHotel"></canvas><span class="dash-total-hotel" id="totalHotelWecann"></span></div></div>
@@ -1677,7 +1640,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v3·54 (escala de plantões protegida por senha: todos veem, mas a edição/salvar exige a senha 2167 via botão Editar escala que destrava os campos): tela com os 35 clientes do PDF, tudo editável inline (cliente, situação, contato, responsável), busca, filtro por responsável com contagem, badges de status coloridos e cores do sistema; sincronizado entre PCs por timestamp); regra de fim de semana — sexta, sábado e domingo usam o nome do sábado do PDF (sex/dom readonly, edita-se no sábado); destaque rosa nos 3 dias) já grava a seleção; campos Início e Fim ficam mais limpos) + blur para matar o incremento nativo — velocidade lenta e previsível em mouse e trackpad) e listener wheel direto no elemento com passive:false + limiar maior — scroll agora desacelera de verdade), e scroll do mouse desacelerado para ajuste suave de hora/minuto) com merge por timestamp em salvar+carregar+polling, soft delete nos arquivados e migração automática do legado)" do cabeçalho), barra lateral vermelha e separador antes do compromisso); fontes em branco vivo; ordem bolinha - nome - data - hora - compromisso) em atendimento na bolinha vermelha e pergunta qual transferir; transferir libera o slot de origem) -->
+    <!-- build: HUB-v3·57 (ícone Control Desk: faders verticais de mesa de controle em amarelo âmbar #FFD400 bem evidente, glow âmbar puro): Ocupação dos Atendentes + Ausência Programada movidas do dashboard para lá, IDÊNTICAS em layout e funções; render religado na navegação, no auto-refresh e no sync multi-PC; Control Desk agora é a tela inicial do sistema): tela com os 35 clientes do PDF, tudo editável inline (cliente, situação, contato, responsável), busca, filtro por responsável com contagem, badges de status coloridos e cores do sistema; sincronizado entre PCs por timestamp); regra de fim de semana — sexta, sábado e domingo usam o nome do sábado do PDF (sex/dom readonly, edita-se no sábado); destaque rosa nos 3 dias) já grava a seleção; campos Início e Fim ficam mais limpos) + blur para matar o incremento nativo — velocidade lenta e previsível em mouse e trackpad) e listener wheel direto no elemento com passive:false + limiar maior — scroll agora desacelera de verdade), e scroll do mouse desacelerado para ajuste suave de hora/minuto) com merge por timestamp em salvar+carregar+polling, soft delete nos arquivados e migração automática do legado)" do cabeçalho), barra lateral vermelha e separador antes do compromisso); fontes em branco vivo; ordem bolinha - nome - data - hora - compromisso) em atendimento na bolinha vermelha e pergunta qual transferir; transferir libera o slot de origem) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -1708,6 +1671,55 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
       </section>
       <section class="screen" id="scr-addgrupo">
         <div class="scr-soon"><div class="si">➕</div><h2>Adicionar grupo</h2><p>Em breve: criação de novos grupos.</p></div>
+      </section>
+      <section class="screen" id="scr-controldesk">
+        <div class="dash-head">
+          <h1 class="dash-title">🎛️ Control Desk</h1>
+          <span class="dash-sub">Ocupação dos atendentes e ausências programadas em tempo real</span>
+        </div>
+        <div class="dash-cards-cd">
+        <div class="dash-card ocp-card">
+          <div class="dash-card-t">🚦 Ocupação dos Atendentes<span class="ocp-hint">verde = livre &nbsp;·&nbsp; vermelho = ocupado</span></div>
+          <div class="ocp-vez-bar" id="ocpVezBar"></div>
+          <div class="ocp-grid" id="ocpGrid"></div>
+        </div>
+        <div class="dash-card apr-card">
+          <div class="dash-card-t">📅 Ausência Programada<span class="ocp-hint">informe a data, o horário e o compromisso — visível a todos os atendentes</span></div>
+          <div class="apr-form">
+            <select id="aprAtendente" class="apr-inp apr-atend" title="Atendente (obrigatório)">
+              <option value="">Selecione o atendente…</option>
+            </select>
+            <div class="apr-dt" id="aprDt">
+              <button type="button" class="apr-inp apr-dt-btn" id="aprDtBtn" disabled>Selecione a data e hora</button>
+              <div class="apr-dt-pop" id="aprDtPop" hidden>
+                <div class="apr-cal-head">
+                  <button type="button" class="apr-cal-nav" data-apr-nav="-1" title="Mês anterior">◀</button>
+                  <span class="apr-cal-mes" id="aprCalMes"></span>
+                  <button type="button" class="apr-cal-nav" data-apr-nav="1" title="Próximo mês">▶</button>
+                </div>
+                <div class="apr-cal-grid" id="aprCalGrid"></div>
+                <div class="apr-cal-horas">
+                  <div class="apr-cal-hrow">
+                    <label class="apr-cal-hlbl">Início:</label>
+                    <input type="time" id="aprPickIni" class="apr-cal-time">
+                  </div>
+                  <div class="apr-cal-hrow">
+                    <label class="apr-cal-hlbl">Fim:</label>
+                    <input type="time" id="aprPickFim" class="apr-cal-time">
+                  </div>
+                </div>
+                <div class="apr-cal-acoes">
+                  <button type="button" class="apr-cal-limpar" id="aprCalLimpar">Limpar</button>
+                  <button type="button" class="apr-cal-ok" id="aprCalOk">OK</button>
+                </div>
+              </div>
+            </div>
+            <input type="text" id="aprComp" class="apr-inp apr-comp" placeholder="Compromisso (ex.: consulta médica, reunião externa, curso...)" maxlength="140" autocomplete="off">
+            <button type="button" class="apr-btn-salvar" id="aprSalvar">Salvar</button>
+          </div>
+          <div class="apr-lista" id="aprLista"></div>
+        </div>
+        </div>
       </section>
       <section class="screen" id="scr-cabeca">
         <div id="cabecaWrap"></div>
@@ -4762,6 +4774,7 @@ function renderSaved(list){
   });
   renderPaginacao(totalPaginas, filt.length);
   try{ var _ds=document.getElementById('scr-dashboard'); if(_ds && _ds.classList.contains('active') && typeof renderDashboard==='function') renderDashboard(); }catch(e){}
+  try{ var _cd=document.getElementById('scr-controldesk'); if(_cd && _cd.classList.contains('active') && typeof window.renderControlDesk==='function') window.renderControlDesk(); }catch(e){}
 }
 
 /* ===== PAGINAÇÃO ===== */
@@ -5302,6 +5315,7 @@ init();
     } else {
       show('scr-'+scr);
       if(scr==='dashboard' && typeof renderDashboard==='function') renderDashboard(); // desenha os gráficos na hora (dados locais), sem esperar a nuvem
+      if(scr==='controldesk' && typeof window.renderControlDesk==='function') window.renderControlDesk();
       if(scr==='cabeca' && typeof window.renderCabecaRede==='function') window.renderCabecaRede();
     }
     document.querySelectorAll('#hubSidebar .nav-item').forEach(function(n){
@@ -5428,7 +5442,7 @@ init();
       if(tree){ if(scr) openTree(tree); else toggleTree(tree); } // navega → garante aberto; só árvore → alterna
       if(scr) window.hubGoScreen(scr);
     });
-    window.hubGoScreen('dashboard'); // o sistema sempre abre no Dashboard
+    window.hubGoScreen('controldesk'); // o sistema sempre abre no Control Desk
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init);
   else init();
@@ -6218,6 +6232,14 @@ function excluirNotaUI(id){
     var svgFinal='<svg viewBox="0 0 '+LARGURA+' '+altura+'" width="100%" style="max-width:100%;display:block">'+svg+'</svg>';
     el.innerHTML=svgFinal;
   }
+
+  // Control Desk: aciona a Ocupação dos Atendentes + Ausência Programada (movidas do
+  // dashboard). Usa as mesmas funções globais — nada da lógica mudou, só o local.
+  window.renderControlDesk=function(){
+    try{ if(typeof renderOcupacao==='function') renderOcupacao(); }catch(e){}
+    try{ if(typeof window.renderAusProg==='function') window.renderAusProg(); }catch(e){}
+    try{ if(typeof window.aprSincronizarOcupacao==='function') window.aprSincronizarOcupacao(); }catch(e){}
+  };
 
   window.renderDashboard=function(){
     try{ if(typeof renderOcupacao==='function') renderOcupacao(); }catch(e){}
@@ -8381,6 +8403,8 @@ function excluirNotaUI(id){
     try{
       if(id==='scr-dashboard'){
         if(typeof renderDashboard==='function') renderDashboard();
+      } else if(id==='scr-controldesk'){
+        if(typeof window.renderControlDesk==='function') window.renderControlDesk();
       } else if(id==='scr-wecann'){
         // descobre qual visão do WeCann está ativa e redesenha o que for pertinente
         if(typeof renderDisponibilidade==='function') renderDisponibilidade();
