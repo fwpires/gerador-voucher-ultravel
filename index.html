@@ -473,6 +473,9 @@ body:not(.dark) .ocp-sbtr-op:hover{background:#ffe9cf}
 body:not(.dark) .apr-inp{background:#fff;border-color:#C4D3E4;color:#22364a}
 body:not(.dark) .apr-item{background:#fff;border-color:#F0B4B4}
 /* ===== CABEÇA DE REDE ===== */
+.nav-ic-cr{display:inline-flex;align-items:center;justify-content:center}
+.nav-ic-cr svg{filter:drop-shadow(0 0 3px rgba(255,130,0,.95)) drop-shadow(0 0 7px rgba(255,110,0,.55))}
+.nav-item.active .nav-ic-cr svg{filter:drop-shadow(0 0 4px rgba(255,150,20,1)) drop-shadow(0 0 9px rgba(255,120,0,.7))}
 .cr-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px}
 .cr-title{font-size:22px;font-weight:900;color:var(--texto);display:flex;align-items:center;gap:10px;margin:0}
 .cr-title .cr-ic{font-size:24px}
@@ -575,6 +578,21 @@ body.dark .cr-sit.st-contato{color:#ffb15a}
 .esc-salvar{padding:9px 22px;border-radius:9px;border:none;background:linear-gradient(180deg,#12b0ff,#0670d8);color:#fff;font-size:13px;font-weight:800;cursor:pointer;transition:all .15s}
 .esc-salvar:hover{box-shadow:0 0 14px rgba(18,176,255,.55)}
 .esc-salvar.saved{background:linear-gradient(180deg,#2ec86e,#1a9c50)}
+.esc-editar{background:rgba(255,255,255,.1)!important;color:#cfe0f0!important}
+.esc-editar:hover{background:rgba(255,255,255,.18)!important;box-shadow:none!important}
+.esc-pin-bg{position:absolute;inset:0;z-index:20;background:rgba(4,10,18,.7);display:flex;align-items:center;justify-content:center;padding:20px}
+.esc-pin{width:100%;max-width:300px;background:#141c26;border:1px solid rgba(255,255,255,.16);border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.6);padding:18px}
+.esc-pin h4{margin:0 0 6px;color:#fff;font-size:15px;font-weight:900}
+.esc-pin p{margin:0 0 12px;color:#8ba0b6;font-size:12.5px}
+.esc-pin input{width:100%;box-sizing:border-box;padding:10px 12px;border-radius:9px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:#fff;font-size:15px;font-weight:800;letter-spacing:3px;text-align:center;outline:none}
+.esc-pin input:focus{border-color:#12b0ff}
+.esc-pin-erro{color:#ff7676;font-size:12px;font-weight:700;min-height:16px;margin-top:6px;text-align:center}
+.esc-pin-btns{display:flex;gap:8px;margin-top:10px}
+.esc-pin-cancel,.esc-pin-ok{flex:1;padding:9px;border-radius:9px;border:none;font-size:13px;font-weight:800;cursor:pointer;transition:all .15s}
+.esc-pin-cancel{background:rgba(255,255,255,.1);color:#cfe0f0}
+.esc-pin-cancel:hover{background:rgba(255,255,255,.18)}
+.esc-pin-ok{background:linear-gradient(180deg,#12b0ff,#0670d8);color:#fff}
+.esc-pin-ok:hover{box-shadow:0 0 12px rgba(18,176,255,.6)}
 .ocp-plantao-nome{color:#4db6ff;font-size:13px;font-weight:800;letter-spacing:.3px;text-shadow:0 0 8px rgba(77,182,255,.5)}
 .ocp-vez-bar.ocp-todos-ocupados{background:rgba(255,61,61,.09);border-color:rgba(255,61,61,.45)}
 .ocp-todos-msg{color:#ff4d4d;font-size:15px;letter-spacing:.3px;animation:ocpVezGlowR 1.3s ease-in-out infinite}
@@ -1392,7 +1410,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
           <button class="nav-item nav-sub" data-screen="vouchers"><span>Vouchers Salvos</span></button>
         </div>
 
-        <button class="nav-item" data-screen="cabeca"><span class="nav-ic">🕸️</span><span>Cabeça de Rede</span></button>
+        <button class="nav-item" data-screen="cabeca"><span class="nav-ic nav-ic-cr"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#ff7d1a" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12L12 2M12 12L19 5M12 12L22 12M12 12L19 19M12 12L12 22M12 12L5 19M12 12L2 12M12 12L5 5"/><path d="M12 7.5L15.2 8.8L16.5 12L15.2 15.2L12 16.5L8.8 15.2L7.5 12L8.8 8.8Z"/><path d="M12 4.5L17.3 6.7L19.5 12L17.3 17.3L12 19.5L6.7 17.3L4.5 12L6.7 6.7Z"/></svg></span><span>Cabeça de Rede</span></button>
 
         <div class="nav-cat">Painel de Controle</div>
 
@@ -1659,7 +1677,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v3·52 (nova pasta Cabeça de Rede no menu (acima de Painel de Controle): tela com os 35 clientes do PDF, tudo editável inline (cliente, situação, contato, responsável), busca, filtro por responsável com contagem, badges de status coloridos e cores do sistema; sincronizado entre PCs por timestamp); regra de fim de semana — sexta, sábado e domingo usam o nome do sábado do PDF (sex/dom readonly, edita-se no sábado); destaque rosa nos 3 dias) já grava a seleção; campos Início e Fim ficam mais limpos) + blur para matar o incremento nativo — velocidade lenta e previsível em mouse e trackpad) e listener wheel direto no elemento com passive:false + limiar maior — scroll agora desacelera de verdade), e scroll do mouse desacelerado para ajuste suave de hora/minuto) com merge por timestamp em salvar+carregar+polling, soft delete nos arquivados e migração automática do legado)" do cabeçalho), barra lateral vermelha e separador antes do compromisso); fontes em branco vivo; ordem bolinha - nome - data - hora - compromisso) em atendimento na bolinha vermelha e pergunta qual transferir; transferir libera o slot de origem) -->
+    <!-- build: HUB-v3·54 (escala de plantões protegida por senha: todos veem, mas a edição/salvar exige a senha 2167 via botão Editar escala que destrava os campos): tela com os 35 clientes do PDF, tudo editável inline (cliente, situação, contato, responsável), busca, filtro por responsável com contagem, badges de status coloridos e cores do sistema; sincronizado entre PCs por timestamp); regra de fim de semana — sexta, sábado e domingo usam o nome do sábado do PDF (sex/dom readonly, edita-se no sábado); destaque rosa nos 3 dias) já grava a seleção; campos Início e Fim ficam mais limpos) + blur para matar o incremento nativo — velocidade lenta e previsível em mouse e trackpad) e listener wheel direto no elemento com passive:false + limiar maior — scroll agora desacelera de verdade), e scroll do mouse desacelerado para ajuste suave de hora/minuto) com merge por timestamp em salvar+carregar+polling, soft delete nos arquivados e migração automática do legado)" do cabeçalho), barra lateral vermelha e separador antes do compromisso); fontes em branco vivo; ordem bolinha - nome - data - hora - compromisso) em atendimento na bolinha vermelha e pergunta qual transferir; transferir libera o slot de origem) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -6899,11 +6917,12 @@ function excluirNotaUI(id){
         var dow=new Date(iso+'T12:00').getDay();
         var nome=escalaResolve(iso);   // fim de semana já vem com o nome do sábado
         var fds=(dow===0||dow===5||dow===6);
-        var travado=(dow===5||dow===0);   // sexta e domingo SEGUEM o sábado (não editáveis)
+        var travadoFds=(dow===5||dow===0);   // sexta e domingo SEGUEM o sábado (sempre readonly)
         var cls='esc-linha'+(iso===hoje?' hoje':'')+(fds?' fds':'');
+        var titulo=travadoFds?'Segue o plantonista do sábado — edite no sábado':'🔒 Clique em “Editar escala” e informe a senha para liberar';
         linhas+='<div class="'+cls+'">'+
           '<span class="esc-dia">'+String(d).padStart(2,'0')+'/'+String(m+1).padStart(2,'0')+' <span class="esc-dow">'+dows[dow]+'</span></span>'+
-          '<input type="text" class="esc-inp'+(travado?' esc-inp-lock':'')+'" data-esc-data="'+iso+'" value="'+ocpEsc(nome)+'" '+(travado?'readonly title="Segue o plantonista do sábado — edite no sábado"':'placeholder="— sem plantão —"')+' autocomplete="off">'+
+          '<input type="text" class="esc-inp esc-inp-lock" data-esc-fds="'+(travadoFds?1:0)+'" data-esc-data="'+iso+'" value="'+ocpEsc(nome)+'" readonly title="'+titulo+'" placeholder="— sem plantão —" autocomplete="off">'+
         '</div>';
       }
       htmlMeses+='<div class="esc-mes"><div class="esc-mes-t">'+meses[m]+' '+ano+'</div>'+linhas+'</div>';
@@ -6914,13 +6933,50 @@ function excluirNotaUI(id){
         '<div class="esc-head"><span class="esc-title">📅 Escala de Plantões '+ano+'</span><button type="button" class="esc-x" id="escFechar" title="Fechar">✕</button></div>'+
         '<div class="esc-sub">Edite o nome do plantonista de cada dia. Deixe em branco os dias sem plantão.</div>'+
         '<div class="esc-body">'+htmlMeses+'</div>'+
-        '<div class="esc-foot"><span class="esc-hint">As alterações valem para todos os computadores.</span><button type="button" class="esc-salvar" id="escSalvar">Salvar alterações</button></div>'+
+        '<div class="esc-foot"><span class="esc-hint">🔒 Edição protegida por senha · vale para todos os computadores.</span>'+
+          '<button type="button" class="esc-salvar esc-editar" id="escEditar">🔒 Editar escala</button>'+
+          '<button type="button" class="esc-salvar" id="escSalvar" style="display:none">Salvar alterações</button>'+
+        '</div>'+
       '</div>';
     document.body.appendChild(bg);
     function fechar(){ if(bg.parentNode) bg.parentNode.removeChild(bg); }
     bg.addEventListener('click', function(ev){ if(ev.target===bg) fechar(); });
     var bx=document.getElementById('escFechar'); if(bx) bx.onclick=fechar;
     setTimeout(function(){ var h=bg.querySelector('.esc-linha.hoje'); if(h) h.scrollIntoView({block:'center'}); }, 40);
+
+    // ===== PROTEÇÃO POR SENHA: todos veem, mas só edita quem tem a senha =====
+    var ESC_SENHA='2167';
+    function escDestravar(){
+      bg.querySelectorAll('.esc-inp').forEach(function(inp){
+        if(inp.getAttribute('data-esc-fds')==='1') return;   // sexta/domingo seguem o sábado
+        inp.readOnly=false; inp.classList.remove('esc-inp-lock');
+        inp.title='';
+      });
+      var be=document.getElementById('escEditar'); if(be) be.style.display='none';
+      var bsv=document.getElementById('escSalvar'); if(bsv) bsv.style.display='';
+      var sub=bg.querySelector('.esc-sub'); if(sub) sub.textContent='✏️ Edição liberada. Altere os nomes e clique em Salvar. Sexta e domingo seguem o sábado.';
+    }
+    var be=document.getElementById('escEditar');
+    if(be) be.onclick=function(){
+      var pin=document.createElement('div'); pin.className='esc-pin-bg';
+      pin.innerHTML='<div class="esc-pin"><h4>🔒 Editar escala</h4><p>Digite a senha para liberar a edição:</p>'+
+        '<input type="password" id="escPinInp" inputmode="numeric" autocomplete="off" placeholder="Senha">'+
+        '<div class="esc-pin-erro" id="escPinErro"></div>'+
+        '<div class="esc-pin-btns"><button type="button" class="esc-pin-cancel" id="escPinCancel">Cancelar</button><button type="button" class="esc-pin-ok" id="escPinOk">Liberar</button></div></div>';
+      bg.appendChild(pin);
+      var inp=document.getElementById('escPinInp'), erro=document.getElementById('escPinErro');
+      setTimeout(function(){ try{ inp.focus(); }catch(e){} }, 20);
+      function fecharPin(){ if(pin.parentNode) pin.parentNode.removeChild(pin); }
+      function tentar(){
+        if((inp.value||'').trim()===ESC_SENHA){ fecharPin(); escDestravar(); }
+        else { erro.textContent='Senha incorreta.'; inp.style.borderColor='#ff5252'; inp.value=''; try{ inp.focus(); }catch(e){} }
+      }
+      pin.addEventListener('click', function(ev){ if(ev.target===pin) fecharPin(); });
+      document.getElementById('escPinCancel').onclick=fecharPin;
+      document.getElementById('escPinOk').onclick=tentar;
+      inp.onkeydown=function(k){ if(k.key==='Enter') tentar(); };
+      inp.oninput=function(){ inp.style.borderColor=''; erro.textContent=''; };
+    };
     var bs=document.getElementById('escSalvar');
     if(bs) bs.onclick=function(){
       var n=0;
