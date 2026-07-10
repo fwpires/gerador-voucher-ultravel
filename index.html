@@ -1590,7 +1590,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v3·45 (scroll dos campos de hora bem mais lento: limiar de desaceleração 90 → 260) e listener wheel direto no elemento com passive:false + limiar maior — scroll agora desacelera de verdade), e scroll do mouse desacelerado para ajuste suave de hora/minuto) com merge por timestamp em salvar+carregar+polling, soft delete nos arquivados e migração automática do legado)" do cabeçalho), barra lateral vermelha e separador antes do compromisso); fontes em branco vivo; ordem bolinha - nome - data - hora - compromisso) em atendimento na bolinha vermelha e pergunta qual transferir; transferir libera o slot de origem) -->
+    <!-- build: HUB-v3·46 (scroll dos campos de hora: nova abordagem por tempo (throttle 320ms) + blur para matar o incremento nativo — velocidade lenta e previsível em mouse e trackpad) e listener wheel direto no elemento com passive:false + limiar maior — scroll agora desacelera de verdade), e scroll do mouse desacelerado para ajuste suave de hora/minuto) com merge por timestamp em salvar+carregar+polling, soft delete nos arquivados e migração automática do legado)" do cabeçalho), barra lateral vermelha e separador antes do compromisso); fontes em branco vivo; ordem bolinha - nome - data - hora - compromisso) em atendimento na bolinha vermelha e pergunta qual transferir; transferir libera o slot de origem) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -7892,7 +7892,7 @@ function excluirNotaUI(id){
   //    navegador bloqueia por perda de ativação por gesto);
   //  • SCROLL desacelerado → listener DIRETO no elemento com passive:false, que é o
   //    único jeito confiável de bloquear o incremento rápido nativo do input time.
-  var aprWheelAcc=0, aprWheelAlvo=null;
+  var aprWheelLast=0;
   function aprAjustarHora(input, secao, passo){
     var p=(input.value||'00:00').split(':');
     var hh=parseInt(p[0]||'0',10)||0, mm=parseInt(p[1]||'0',10)||0;
@@ -7906,15 +7906,16 @@ function excluirNotaUI(id){
       inp.__aprHooked=1;
       // clique em qualquer área → abre o seletor (síncrono!)
       inp.addEventListener('click', function(){ try{ inp.showPicker && inp.showPicker(); }catch(_){} });
-      // scroll desacelerado (direto no elemento, não-passivo)
+      // SCROLL LENTO e PREVISÍVEL: throttle POR TEMPO (independe de mouse/trackpad) +
+      // blur para matar o incremento nativo do input (que só ocorre com o campo focado).
       inp.addEventListener('wheel', function(e){
         e.preventDefault(); e.stopPropagation();
-        if(aprWheelAlvo!==inp){ aprWheelAlvo=inp; aprWheelAcc=0; }
-        aprWheelAcc += e.deltaY;
-        var LIMIAR=260;                      // maior = mais devagar/suave
-        if(Math.abs(aprWheelAcc) < LIMIAR) return;
-        var dir = aprWheelAcc>0 ? -1 : 1;    // rolar para baixo diminui
-        aprWheelAcc=0;
+        try{ inp.blur(); }catch(_){}                 // remove o foco → sem troca nativa
+        var agora=Date.now();
+        var INTERVALO=320;                           // ms mínimos entre passos (maior = mais lento)
+        if(agora - aprWheelLast < INTERVALO) return; // ignora a rolagem rápida no meio
+        aprWheelLast=agora;
+        var dir = e.deltaY>0 ? -1 : 1;               // rolar para baixo diminui
         var r=inp.getBoundingClientRect();
         var secao=(e.clientX - r.left) < r.width*0.55 ? 'h' : 'm';   // esquerda=hora, direita=minuto
         aprAjustarHora(inp, secao, dir);
