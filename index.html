@@ -1641,7 +1641,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v3·58 (ícone do Control Desk trocado por balão de chat colorido (gradiente cônico arco-íris + bolha branca com 3 pontos) no menu e no cabeçalho do painel): Ocupação dos Atendentes + Ausência Programada movidas do dashboard para lá, IDÊNTICAS em layout e funções; render religado na navegação, no auto-refresh e no sync multi-PC; Control Desk agora é a tela inicial do sistema): tela com os 35 clientes do PDF, tudo editável inline (cliente, situação, contato, responsável), busca, filtro por responsável com contagem, badges de status coloridos e cores do sistema; sincronizado entre PCs por timestamp); regra de fim de semana — sexta, sábado e domingo usam o nome do sábado do PDF (sex/dom readonly, edita-se no sábado); destaque rosa nos 3 dias) já grava a seleção; campos Início e Fim ficam mais limpos) + blur para matar o incremento nativo — velocidade lenta e previsível em mouse e trackpad) e listener wheel direto no elemento com passive:false + limiar maior — scroll agora desacelera de verdade), e scroll do mouse desacelerado para ajuste suave de hora/minuto) com merge por timestamp em salvar+carregar+polling, soft delete nos arquivados e migração automática do legado)" do cabeçalho), barra lateral vermelha e separador antes do compromisso); fontes em branco vivo; ordem bolinha - nome - data - hora - compromisso) em atendimento na bolinha vermelha e pergunta qual transferir; transferir libera o slot de origem) -->
+    <!-- build: HUB-v3·59 (FIX ausência não marcava as bolinhas: sincronização agora é idempotente pelo ESTADO REAL das bolinhas, não mais por flag em localStorage que dessincronizava; reaplica sozinha se a janela está ativa; verificação a cada 30s) no menu e no cabeçalho do painel): Ocupação dos Atendentes + Ausência Programada movidas do dashboard para lá, IDÊNTICAS em layout e funções; render religado na navegação, no auto-refresh e no sync multi-PC; Control Desk agora é a tela inicial do sistema): tela com os 35 clientes do PDF, tudo editável inline (cliente, situação, contato, responsável), busca, filtro por responsável com contagem, badges de status coloridos e cores do sistema; sincronizado entre PCs por timestamp); regra de fim de semana — sexta, sábado e domingo usam o nome do sábado do PDF (sex/dom readonly, edita-se no sábado); destaque rosa nos 3 dias) já grava a seleção; campos Início e Fim ficam mais limpos) + blur para matar o incremento nativo — velocidade lenta e previsível em mouse e trackpad) e listener wheel direto no elemento com passive:false + limiar maior — scroll agora desacelera de verdade), e scroll do mouse desacelerado para ajuste suave de hora/minuto) com merge por timestamp em salvar+carregar+polling, soft delete nos arquivados e migração automática do legado)" do cabeçalho), barra lateral vermelha e separador antes do compromisso); fontes em branco vivo; ordem bolinha - nome - data - hora - compromisso) em atendimento na bolinha vermelha e pergunta qual transferir; transferir libera o slot de origem) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -7687,42 +7687,39 @@ function excluirNotaUI(id){
      a reversão só limpa se os 3 slots ainda estiverem com esse valor exato (não mexe
      se alguém alterou manualmente no meio). Controle idempotente, por PC. */
   function aprMarcadorProg(compromisso){ return '__AUSENTE__:📅 '+(compromisso||'ausência programada').toString().trim(); }
-  function aprOcupCtrl(){ try{ return JSON.parse(localStorage.getItem('uv_apr_ocup')||'{}')||{}; }catch(e){ return {}; } }
-  function aprOcupCtrlSet(m){ try{ localStorage.setItem('uv_apr_ocup', JSON.stringify(m||{})); }catch(e){} }
+
+  // Sincroniza ausências programadas → bolinhas de ocupação. IDEMPOTENTE PELO ESTADO
+  // REAL: não depende de flag em localStorage (que dessincronizava e deixava de marcar).
+  // Regra: janela ativa + bolinhas ainda NÃO marcadas com o marcador → marca as 3.
+  //        janela já passou + bolinhas ainda marcadas por ela → volta as 3 ao verde.
   function aprSincronizarOcupacao(){
     if(typeof ausProgLista!=='function') return;
-    var agora=Date.now(), ctrl=aprOcupCtrl(), mudou=false;
+    var agora=Date.now(), o=ocpEstado();
     ausProgLista().forEach(function(e){
       if(!e.atendente || !e.data || !e.hora) return;
       var ini=new Date(e.data+'T'+e.hora+':00').getTime();
       var fim=new Date(e.data+'T'+(e.horaFim||e.hora)+':00').getTime();
       if(isNaN(ini)||isNaN(fim)) return;
       var ativa=(agora>=ini && agora<fim), passou=(agora>=fim);
-      var estado=ctrl[e.id]||'pendente', marcador=aprMarcadorProg(e.compromisso);
-      if(ativa && estado!=='ativo'){
+      var marcador=aprMarcadorProg(e.compromisso);
+      var cli=(o.clientes && o.clientes[e.atendente]) || ['','',''];
+      var jaMarcado = (cli[0]===marcador && cli[1]===marcador && cli[2]===marcador);
+      if(ativa && !jaMarcado){
         ocpDefinirTodosSlots(e.atendente, marcador);   // acende os 3 slots como Ausente
-        ctrl[e.id]='ativo'; mudou=true;
-      } else if(passou && estado==='ativo'){
-        // volta ao verde SÓ se os 3 slots ainda estão com o marcador (não foi mexido)
-        var o=ocpEstado(); var cli=(o.clientes&&o.clientes[e.atendente])||['','',''];
-        if(cli[0]===marcador && cli[1]===marcador && cli[2]===marcador) ocpDefinirTodosSlots(e.atendente, '');
-        ctrl[e.id]='encerrado'; mudou=true;
+      } else if(passou && jaMarcado){
+        ocpDefinirTodosSlots(e.atendente, '');          // volta ao verde ao terminar
       }
     });
-    if(mudou) aprOcupCtrlSet(ctrl);
   }
   window.aprSincronizarOcupacao=aprSincronizarOcupacao;
 
-  // Ao editar/excluir uma ausência: reavalia. Se estava ATIVA e o atendente ainda
-  // está com o marcador programado, volta ao verde antes de reavaliar pelo novo horário.
+  // Ao editar/excluir uma ausência: se as bolinhas do atendente ainda estão com o
+  // marcador daquela ausência, volta ao verde (a sync reavalia pelo novo horário depois).
   function aprReverterSeAtiva(id, atendente, compromisso){
-    var ctrl=aprOcupCtrl();
-    if(ctrl[id]==='ativo' && atendente){
-      var o=ocpEstado(); var cli=(o.clientes&&o.clientes[atendente])||['','',''];
-      var marcador=aprMarcadorProg(compromisso);
-      if(cli[0]===marcador && cli[1]===marcador && cli[2]===marcador) ocpDefinirTodosSlots(atendente, '');
-    }
-    delete ctrl[id]; aprOcupCtrlSet(ctrl);
+    if(!atendente) return;
+    var o=ocpEstado(), cli=(o.clientes && o.clientes[atendente]) || ['','',''];
+    var marcador=aprMarcadorProg(compromisso);
+    if(cli[0]===marcador && cli[1]===marcador && cli[2]===marcador) ocpDefinirTodosSlots(atendente, '');
   }
   window.aprReverterSeAtiva=aprReverterSeAtiva;
 
@@ -8338,7 +8335,7 @@ function excluirNotaUI(id){
   // primeira pintura: se este PC fez o 1º sorteio do dia, grava na nuvem na hora
   function ini(){ try{ if(window.renderOcupacao()){ if(typeof salvarConfig==='function') salvarConfig(); } }catch(e){} try{ if(typeof window.renderAusProg==='function') window.renderAusProg(); }catch(e){} try{ aprSincronizarOcupacao(); }catch(e){} }
   // relógio: a cada 60s verifica se alguma ausência programada entrou/saiu da janela
-  try{ setInterval(function(){ try{ aprSincronizarOcupacao(); }catch(e){} }, 60000); }catch(e){}
+  try{ setInterval(function(){ try{ aprSincronizarOcupacao(); }catch(e){} }, 30000); }catch(e){}
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', ini);
   else ini();
 })();
