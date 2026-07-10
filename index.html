@@ -472,6 +472,46 @@ body:not(.dark) .ocp-sbtr-op:hover{background:#ffe9cf}
 .apr-del:hover{background:rgba(224,34,34,.28);border-color:#e02222}
 body:not(.dark) .apr-inp{background:#fff;border-color:#C4D3E4;color:#22364a}
 body:not(.dark) .apr-item{background:#fff;border-color:#F0B4B4}
+/* ===== CABEÇA DE REDE ===== */
+.cr-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+.cr-title{font-size:22px;font-weight:900;color:var(--texto);display:flex;align-items:center;gap:10px;margin:0}
+.cr-title .cr-ic{font-size:24px}
+.cr-sub{color:var(--texto-suave);font-size:13px;margin-top:3px}
+.cr-add{padding:10px 18px;border-radius:10px;border:none;background:linear-gradient(180deg,var(--azul),var(--azul-escuro));color:#fff;font-size:13.5px;font-weight:800;cursor:pointer;transition:all .15s;white-space:nowrap}
+.cr-add:hover{box-shadow:0 4px 16px rgba(0,93,170,.45);transform:translateY(-1px)}
+.cr-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.cr-busca{flex:1 1 240px;min-width:180px;background:var(--azul-claro);border:1px solid var(--borda);border-radius:10px;color:var(--texto);font-size:13px;font-weight:600;padding:10px 13px;outline:none}
+.cr-busca:focus{border-color:var(--azul)}
+.cr-chips{display:flex;gap:7px;flex-wrap:wrap}
+.cr-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:20px;font-size:12px;font-weight:800;cursor:pointer;border:1.5px solid transparent;transition:all .15s;opacity:.62}
+.cr-chip:hover{opacity:1}
+.cr-chip.on{opacity:1;box-shadow:0 0 0 2px rgba(255,255,255,.15) inset}
+.cr-chip .cr-chip-n{background:rgba(0,0,0,.22);border-radius:10px;padding:0 6px;font-size:11px}
+.cr-grid{display:flex;flex-direction:column;gap:9px}
+.cr-row{display:grid;grid-template-columns:1.7fr 1.15fr 1.15fr 128px 34px;gap:9px;align-items:center;background:var(--cartao,#fff);border:1px solid var(--borda);border-left:4px solid var(--azul);border-radius:12px;padding:10px 12px;transition:all .15s}
+.cr-row:hover{border-color:var(--borda-forte);box-shadow:0 3px 12px rgba(0,0,0,.12)}
+.cr-row-head{display:grid;grid-template-columns:1.7fr 1.15fr 1.15fr 128px 34px;gap:9px;padding:2px 14px;font-size:11px;font-weight:800;color:var(--texto-fraco);text-transform:uppercase;letter-spacing:.5px}
+.cr-inp{width:100%;box-sizing:border-box;background:transparent;border:1px solid transparent;border-radius:8px;color:var(--texto);font-size:13px;font-weight:700;padding:7px 9px;outline:none;transition:all .15s}
+.cr-inp:hover{background:var(--azul-claro)}
+.cr-inp:focus{background:var(--azul-claro);border-color:var(--azul)}
+.cr-cli{font-weight:800}
+.cr-sit{font-weight:700}
+.cr-sel{width:100%;box-sizing:border-box;border:none;border-radius:8px;font-size:12px;font-weight:800;padding:7px 8px;outline:none;cursor:pointer;color:#fff}
+.cr-del{width:34px;height:34px;border-radius:9px;border:1px solid var(--borda);background:transparent;color:var(--texto-suave);font-size:15px;cursor:pointer;transition:all .15s}
+.cr-del:hover{background:rgba(224,34,34,.15);border-color:#e02222;color:#e02222}
+.cr-vazio{color:var(--texto-suave);font-size:13px;font-style:italic;padding:24px;text-align:center}
+/* badges de situação (auto-cor pelo texto) */
+.cr-sit.st-ativo{color:#1a9c50}
+.cr-sit.st-prosp{color:#0a7bd0}
+.cr-sit.st-contato{color:#d98a1a}
+body.dark .cr-row{background:rgba(255,255,255,.04)}
+body.dark .cr-inp{color:#E8EEF4}
+body.dark .cr-inp:hover,body.dark .cr-inp:focus{background:rgba(255,255,255,.08)}
+body.dark .cr-busca{background:rgba(255,255,255,.06);color:#E8EEF4}
+body.dark .cr-sit.st-ativo{color:#3ddb85}
+body.dark .cr-sit.st-prosp{color:#4db6ff}
+body.dark .cr-sit.st-contato{color:#ffb15a}
+@media(max-width:720px){.cr-row,.cr-row-head{grid-template-columns:1fr 1fr;gap:7px}.cr-row-head{display:none}}
 .ocp-cli-item.meulivre::before{content:"⭐ ";font-size:11px}
 .ocp-modal-vazio{text-align:center;color:#8BA4BF;font-size:13px;padding:18px 8px}
 .ocp-modal-ft{display:flex;gap:8px;padding:12px 18px;border-top:1px solid rgba(255,255,255,.08)}
@@ -520,12 +560,16 @@ body:not(.dark) .apr-item{background:#fff;border-color:#F0B4B4}
 .esc-linha{display:flex;align-items:center;gap:10px;padding:5px 8px;border-radius:8px}
 .esc-linha:hover{background:rgba(255,255,255,.04)}
 .esc-linha.hoje{background:rgba(0,150,230,.14);border:1px solid rgba(0,180,255,.4)}
-.esc-linha.fds .esc-dia{color:#8ba0b6}
+.esc-linha.fds{background:rgba(255,90,160,.13);border:1px solid rgba(255,90,160,.32)}
+.esc-linha.fds .esc-dia{color:#ff9ec9}
+.esc-linha.fds .esc-dow{color:#ff7db5}
+.esc-linha.fds.hoje{background:rgba(255,90,160,.2);border-color:rgba(255,120,180,.6)}
 .esc-dia{flex:0 0 118px;color:#e8eef4;font-size:12.5px;font-weight:700}
 .esc-dow{color:#8ba0b6;font-weight:600}
 .esc-inp{flex:1 1 auto;min-width:0;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:7px;color:#fff;font-size:12.5px;font-weight:700;padding:6px 9px;outline:none}
 .esc-inp:focus{border-color:#12b0ff;background:rgba(255,255,255,.1)}
 .esc-inp::placeholder{color:#5f7488;font-weight:500}
+.esc-inp-lock{opacity:.72;cursor:not-allowed;background:rgba(255,255,255,.03)}
 .esc-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 20px;border-top:1px solid rgba(255,255,255,.1)}
 .esc-hint{color:#8ba0b6;font-size:11.5px}
 .esc-salvar{padding:9px 22px;border-radius:9px;border:none;background:linear-gradient(180deg,#12b0ff,#0670d8);color:#fff;font-size:13px;font-weight:800;cursor:pointer;transition:all .15s}
@@ -1348,6 +1392,8 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
           <button class="nav-item nav-sub" data-screen="vouchers"><span>Vouchers Salvos</span></button>
         </div>
 
+        <button class="nav-item" data-screen="cabeca"><span class="nav-ic">🕸️</span><span>Cabeça de Rede</span></button>
+
         <div class="nav-cat">Painel de Controle</div>
 
         <button class="nav-item open" data-tree="eventos"><span class="nav-ic">📅</span><span>Eventos</span><b class="nav-caret">▾</b></button>
@@ -1613,7 +1659,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v3·49 (badge do plantonista agora é clicável e abre a tela da Escala de Plantões 2026 completa, dia a dia por mês, com edição de nomes/datas sincronizada entre PCs por timestamp; rola até o dia de hoje) já grava a seleção; campos Início e Fim ficam mais limpos) + blur para matar o incremento nativo — velocidade lenta e previsível em mouse e trackpad) e listener wheel direto no elemento com passive:false + limiar maior — scroll agora desacelera de verdade), e scroll do mouse desacelerado para ajuste suave de hora/minuto) com merge por timestamp em salvar+carregar+polling, soft delete nos arquivados e migração automática do legado)" do cabeçalho), barra lateral vermelha e separador antes do compromisso); fontes em branco vivo; ordem bolinha - nome - data - hora - compromisso) em atendimento na bolinha vermelha e pergunta qual transferir; transferir libera o slot de origem) -->
+    <!-- build: HUB-v3·52 (nova pasta Cabeça de Rede no menu (acima de Painel de Controle): tela com os 35 clientes do PDF, tudo editável inline (cliente, situação, contato, responsável), busca, filtro por responsável com contagem, badges de status coloridos e cores do sistema; sincronizado entre PCs por timestamp); regra de fim de semana — sexta, sábado e domingo usam o nome do sábado do PDF (sex/dom readonly, edita-se no sábado); destaque rosa nos 3 dias) já grava a seleção; campos Início e Fim ficam mais limpos) + blur para matar o incremento nativo — velocidade lenta e previsível em mouse e trackpad) e listener wheel direto no elemento com passive:false + limiar maior — scroll agora desacelera de verdade), e scroll do mouse desacelerado para ajuste suave de hora/minuto) com merge por timestamp em salvar+carregar+polling, soft delete nos arquivados e migração automática do legado)" do cabeçalho), barra lateral vermelha e separador antes do compromisso); fontes em branco vivo; ordem bolinha - nome - data - hora - compromisso) em atendimento na bolinha vermelha e pergunta qual transferir; transferir libera o slot de origem) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -1644,6 +1690,9 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
       </section>
       <section class="screen" id="scr-addgrupo">
         <div class="scr-soon"><div class="si">➕</div><h2>Adicionar grupo</h2><p>Em breve: criação de novos grupos.</p></div>
+      </section>
+      <section class="screen" id="scr-cabeca">
+        <div id="cabecaWrap"></div>
       </section>
 
     </div>
@@ -2176,6 +2225,10 @@ async function carregarConfig(){
         Object.keys(esKk).forEach(function(k){ var a=esCl[k], b=esLo[k]; esOu[k]=(a&&b)?(((a.ts||0)>=(b.ts||0))?a:b):(a||b); });
         appConfig.escalaPlantao=esOu;
       }
+      // CABEÇA DE REDE: merge por carimbo (edição mais recente vence)
+      if(typeof window.crMergeMaps==='function'){
+        appConfig.cabecaRede=window.crMergeMaps(local.cabecaRede, c.cabecaRede);
+      }
       // PROTEÇÃO DO PAINEL DE OCUPAÇÃO: se já havia estado local de ocupação, mescla
       // com o da nuvem em vez de deixar o spread acima simplesmente sobrescrevê-lo.
       // (o merge só existe após o IIFE de ocupação carregar; a guarda evita erro)
@@ -2310,6 +2363,10 @@ async function salvarConfig(){
       var esO={}, esK={}; Object.keys(esC).forEach(function(k){esK[k]=1;}); Object.keys(esL).forEach(function(k){esK[k]=1;});
       Object.keys(esK).forEach(function(k){ var a=esC[k], b=esL[k]; esO[k]=(a&&b)?(((a.ts||0)>=(b.ts||0))?a:b):(a||b); });
       appConfig.escalaPlantao=esO;
+    }
+    // CABEÇA DE REDE: merge por carimbo (edição mais recente vence)
+    if(typeof window.crMergeMaps==='function'){
+      appConfig.cabecaRede=window.crMergeMaps(appConfig.cabecaRede, cloud.cabecaRede);
     }
     // quem já virou "Nome cadastrado" (está em voucherResolvido) não fica no vermelho
     Object.keys(appConfig.voucherResolvido).forEach(k=>{ if(appConfig.semCadastroWecann[k]) delete appConfig.semCadastroWecann[k]; });
@@ -5227,6 +5284,7 @@ init();
     } else {
       show('scr-'+scr);
       if(scr==='dashboard' && typeof renderDashboard==='function') renderDashboard(); // desenha os gráficos na hora (dados locais), sem esperar a nuvem
+      if(scr==='cabeca' && typeof window.renderCabecaRede==='function') window.renderCabecaRede();
     }
     document.querySelectorAll('#hubSidebar .nav-item').forEach(function(n){
       n.classList.toggle('active', n.getAttribute('data-screen')===scr);
@@ -6805,9 +6863,24 @@ function excluirNotaUI(id){
   }
   window.escalaMap=escalaMap; window.escalaSet=escalaSet;
 
-  // retorna o nome do plantonista do DIA ATUAL (ou '' se o dia não tem plantão na escala)
+  function escalaAddDias(iso, n){
+    var d=new Date(iso+'T12:00'); d.setDate(d.getDate()+n);
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
+  // Resolve o plantonista de uma data aplicando a REGRA DE FIM DE SEMANA:
+  // sexta, sábado e domingo usam SEMPRE o nome que está no SÁBADO daquela semana.
+  function escalaResolve(data){
+    var m=escalaMap(), dow=new Date(data+'T12:00').getDay();
+    if(dow===6) return m[data]||'';                          // sábado: ele mesmo
+    if(dow===5){ var s1=escalaAddDias(data,1); return m[s1]||m[data]||''; }   // sexta → sábado (dia seguinte)
+    if(dow===0){ var s2=escalaAddDias(data,-1); return m[s2]||m[data]||''; }  // domingo → sábado (dia anterior)
+    return m[data]||'';
+  }
+  window.escalaResolve=escalaResolve;
+
+  // retorna o nome do plantonista do DIA ATUAL (fim de semana resolve pelo sábado)
   function ocpPlantonistaHoje(){
-    try{ var n=escalaMap()[ocpHoje()]; return (typeof n==='string' && n.trim()) ? n.trim() : ''; }
+    try{ var n=escalaResolve(ocpHoje()); return (typeof n==='string' && n.trim()) ? n.trim() : ''; }
     catch(e){ return ''; }
   }
 
@@ -6824,11 +6897,13 @@ function excluirNotaUI(id){
       for(var d=1;d<=dias;d++){
         var iso=ano+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
         var dow=new Date(iso+'T12:00').getDay();
-        var nome=mapa[iso]||'';
-        var cls='esc-linha'+(iso===hoje?' hoje':'')+((dow===0||dow===6)?' fds':'');
+        var nome=escalaResolve(iso);   // fim de semana já vem com o nome do sábado
+        var fds=(dow===0||dow===5||dow===6);
+        var travado=(dow===5||dow===0);   // sexta e domingo SEGUEM o sábado (não editáveis)
+        var cls='esc-linha'+(iso===hoje?' hoje':'')+(fds?' fds':'');
         linhas+='<div class="'+cls+'">'+
           '<span class="esc-dia">'+String(d).padStart(2,'0')+'/'+String(m+1).padStart(2,'0')+' <span class="esc-dow">'+dows[dow]+'</span></span>'+
-          '<input type="text" class="esc-inp" data-esc-data="'+iso+'" value="'+ocpEsc(nome)+'" placeholder="— sem plantão —" autocomplete="off">'+
+          '<input type="text" class="esc-inp'+(travado?' esc-inp-lock':'')+'" data-esc-data="'+iso+'" value="'+ocpEsc(nome)+'" '+(travado?'readonly title="Segue o plantonista do sábado — edite no sábado"':'placeholder="— sem plantão —"')+' autocomplete="off">'+
         '</div>';
       }
       htmlMeses+='<div class="esc-mes"><div class="esc-mes-t">'+meses[m]+' '+ano+'</div>'+linhas+'</div>';
@@ -6848,10 +6923,11 @@ function excluirNotaUI(id){
     setTimeout(function(){ var h=bg.querySelector('.esc-linha.hoje'); if(h) h.scrollIntoView({block:'center'}); }, 40);
     var bs=document.getElementById('escSalvar');
     if(bs) bs.onclick=function(){
-      var atual=escalaMap(), n=0;
+      var n=0;
       bg.querySelectorAll('.esc-inp').forEach(function(inp){
-        var data=inp.getAttribute('data-esc-data'), novo=(inp.value||'').trim(), velho=(atual[data]||'');
-        if(novo!==velho){ escalaSet(data, novo); n++; }
+        if(inp.readOnly) return;   // sexta/domingo espelham o sábado — não gravam
+        var data=inp.getAttribute('data-esc-data'), novo=(inp.value||'').trim(), mostrado=(escalaResolve(data)||'');
+        if(novo!==mostrado){ escalaSet(data, novo); n++; }   // só grava o que o usuário realmente mudou
       });
       try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
       try{ window.renderOcupacao(); }catch(e){}
@@ -7052,8 +7128,8 @@ function excluirNotaUI(id){
       // lado direito: plantonista do dia (só aparece se houver plantão hoje na escala)
       var plant=ocpPlantonistaHoje();
       var direita = plant
-        ? '<span class="ocp-plantao ocp-plantao-btn" data-abrir-escala="1" title="Ver e editar a escala completa">📅 Plantonista: <b class="ocp-plantao-nome">'+ocpEsc(plant)+'</b> <span class="ocp-plantao-mais">›</span></span>'
-        : '<span class="ocp-plantao ocp-plantao-btn" data-abrir-escala="1" title="Ver e editar a escala completa">📅 <b class="ocp-plantao-nome">Escala de plantões</b> <span class="ocp-plantao-mais">›</span></span>';
+        ? '<span class="ocp-plantao ocp-plantao-btn" data-abrir-escala="1" title="Ver e editar a escala completa do ano">📅 Plantonista: <b class="ocp-plantao-nome">'+ocpEsc(plant)+'</b> <span class="ocp-plantao-mais">›</span></span>'
+        : '';
       if(o.atual){
         barra.className='ocp-vez-bar';
         barra.innerHTML='<span class="ocp-vez-lado">🎯 Atendente da vez: <b class="ocp-vez-nome">'+ocpEsc(o.atual)+'</b></span>'+direita;
@@ -7598,9 +7674,9 @@ function excluirNotaUI(id){
     bg.innerHTML=
       '<div class="ocp-confirm ocp-reab">'+
         '<h4>🔁 Cliente já atendido hoje</h4>'+
-        '<p>Você já atendeu <b>'+ocpEsc(cliente)+'</b> hoje. É a <b>continuação</b> do mesmo caso ou um <b>novo atendimento</b>?</p>'+
-        '<div class="ocp-reab-pax" id="ocpReabPaxWrap" style="display:none">'+
-          '<label>Qual o Pax da vez?</label>'+
+        '<p>Você já atendeu <b>'+ocpEsc(cliente)+'</b> hoje. Informe o <b>Pax da vez</b> para prosseguir e escolha continuação ou novo atendimento.</p>'+
+        '<div class="ocp-reab-pax" id="ocpReabPaxWrap">'+
+          '<label>Qual o Pax da vez? <span style="color:#ff7676">*</span></label>'+
           '<input type="text" id="ocpReabPax" placeholder="Nome do passageiro/pessoa atendida agora" autocomplete="off">'+
         '</div>'+
         '<div class="ocp-confirm-btns">'+
@@ -7612,26 +7688,33 @@ function excluirNotaUI(id){
     function fechar(){ if(bg.parentNode) bg.parentNode.removeChild(bg); }
     function finalizar(){ window.renderOcupacao(); try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){} }
     var o=ocpEstado(); var H=ocpHistStore(at); var h=H[ch]||{}; var agora=Date.now();
-    // Continuação: retoma o tempo acumulado (não zera, não conta reabertura)
+    var paxInp=document.getElementById('ocpReabPax');
+    // O nome do Pax é OBRIGATÓRIO para prosseguir em qualquer caminho (anti-burla).
+    function exigePax(){
+      var pax=(paxInp.value||'').trim();
+      if(!pax){ try{paxInp.focus();}catch(e){} paxInp.style.borderColor='#ff5252'; return null; }
+      return pax;
+    }
+    if(paxInp){ paxInp.oninput=function(){ paxInp.style.borderColor=''; }; setTimeout(function(){ try{paxInp.focus();}catch(e){} },20); }
+    // Continuação: retoma o tempo acumulado (não zera, não conta reabertura) — exige o Pax
     document.getElementById('ocpReabCont').onclick=function(){
+      var pax=exigePax(); if(!pax) return;
       if(!Array.isArray(o.inicios[at])||o.inicios[at].length!==3) o.inicios[at]=[0,0,0];
       o.inicios[at][i] = h.ini || o.inicios[at][i] || agora;
-      h.ini = o.inicios[at][i]; h.ult = agora; h.ts = agora; H[ch]=h;
+      h.ini = o.inicios[at][i]; h.ult = agora; h.ts = agora; h.pax = pax; H[ch]=h;
       fechar(); finalizar();
     };
-    // Novo atendimento: exige o Pax → timer fresco + conta reabertura legítima
-    var paxWrap=document.getElementById('ocpReabPaxWrap'), paxInp=document.getElementById('ocpReabPax'), btnNovo=document.getElementById('ocpReabNovo');
-    btnNovo.onclick=function(){
-      if(paxWrap.style.display==='none'){ paxWrap.style.display='block'; btnNovo.textContent='✅ Confirmar novo'; setTimeout(function(){ try{paxInp.focus();}catch(e){} },20); return; }
-      var pax=(paxInp.value||'').trim();
-      if(!pax){ try{paxInp.focus();}catch(e){} paxInp.style.borderColor='#ff5252'; return; }
+    // Novo atendimento: timer fresco + conta reabertura legítima — também exige o Pax
+    document.getElementById('ocpReabNovo').onclick=function(){
+      var pax=exigePax(); if(!pax) return;
       if(!Array.isArray(o.inicios[at])||o.inicios[at].length!==3) o.inicios[at]=[0,0,0];
       o.inicios[at][i]=agora;
       h.ini=agora; h.ult=agora; h.rea=(h.rea||0)+1; h.pax=pax; h.ts=agora; H[ch]=h;
       fechar(); finalizar();
     };
-    if(paxInp) paxInp.onkeydown=function(k){ if(k.key==='Enter') btnNovo.click(); };
-    bg.addEventListener('click', function(e){ if(e.target===bg){ /* fora → assume continuação (não zera) */ document.getElementById('ocpReabCont').click(); } });
+    if(paxInp) paxInp.onkeydown=function(k){ if(k.key==='Enter') document.getElementById('ocpReabNovo').click(); };
+    // clicar FORA não fecha mais — o Pax é obrigatório; apenas destaca o campo
+    bg.addEventListener('click', function(e){ if(e.target===bg){ try{paxInp.focus();}catch(_){} paxInp.style.borderColor='#ff5252'; } });
   }
 
   // clique nos botões "+"/"Cliente" → abre o seletor (delegação global)
@@ -8308,6 +8391,167 @@ function excluirNotaUI(id){
   }
 
   setInterval(verificar, CHECAGEM);
+})();
+</script>
+<script>
+/* ===== CABEÇA DE REDE — carteira de clientes por responsável (editável + sincronizada) ===== */
+(function(){
+  // SEED: dados iniciais (do PDF). Ficam como base fixa; as edições do usuário em
+  // appConfig.cabecaRede {id:{cliente,situacao,contato,rede,ts,del}} sobrepõem e
+  // sincronizam entre PCs por timestamp.
+  var CR_SEED=[
+    {id:'cr01',cliente:'NG CARD (MEU SAQUE MEIOS DE PAGAMENTOS LTDA) - VMA',situacao:'ATIVO',contato:'GRUPO - WHATSAPP',rede:'ANA'},
+    {id:'cr02',cliente:'PLATAFORMA DIGITAL',situacao:'ATIVO',contato:'',rede:'DIEGO'},
+    {id:'cr03',cliente:'INGRID - FRANCISCO LIDERANÇA',situacao:'ATIVO',contato:'',rede:'DIEGO'},
+    {id:'cr04',cliente:'PALAVRA VIVA',situacao:'ATIVO',contato:'',rede:'DIEGO'},
+    {id:'cr05',cliente:'O BOM SAMARITANO',situacao:'ATIVO',contato:'',rede:'DIEGO'},
+    {id:'cr06',cliente:'BISTEK',situacao:'ATIVO',contato:'',rede:'DIEGO'},
+    {id:'cr07',cliente:'ACADEMIA DE PREGADORES',situacao:'ATIVO',contato:'',rede:'DIEGO'},
+    {id:'cr08',cliente:'PRISCILA RODOVALHO',situacao:'ATIVO',contato:'',rede:'DIEGO'},
+    {id:'cr09',cliente:'SARA MACEIO',situacao:'ULTIMO CONTATO - 19/08/2025',contato:'',rede:'DIEGO'},
+    {id:'cr10',cliente:'SNT NACIONAL',situacao:'PROSPECÇÃO',contato:'',rede:'DIEGO'},
+    {id:'cr11',cliente:'MAXPAN',situacao:'ATIVO',contato:'',rede:'LETICIA'},
+    {id:'cr12',cliente:'VALLORA',situacao:'ATIVO',contato:'E-MAIL',rede:'LETICIA'},
+    {id:'cr13',cliente:'CLINT',situacao:'ATIVO',contato:'????',rede:'LETICIA'},
+    {id:'cr14',cliente:'SARA SERRARIA',situacao:'ATIVO',contato:'',rede:'LETICIA'},
+    {id:'cr15',cliente:'TAYA TECH',situacao:'ATIVO',contato:'',rede:'LETICIA'},
+    {id:'cr16',cliente:'REINO CHURCH',situacao:'ATIVO',contato:'',rede:'LETICIA'},
+    {id:'cr17',cliente:'DIGILAB',situacao:'ATIVO',contato:'WHATSAPP',rede:'GHABI'},
+    {id:'cr18',cliente:'NEURONIOS - VMA',situacao:'ATIVO',contato:'',rede:'JU'},
+    {id:'cr19',cliente:'HOCTA/PROSPER',situacao:'ULTIMO CONTATO - 17/09/2025',contato:'GRUPO - WHATSAPP',rede:'LETICIA'},
+    {id:'cr20',cliente:'REALI',situacao:'ATIVO',contato:'GRUPO - WHATSAPP',rede:'LETICIA'},
+    {id:'cr21',cliente:'CENTRAL DO AVIVAMENTO (Ministerio Central do Avivamento)',situacao:'ATIVO',contato:'GRUPO - WHATSAPP',rede:'ISRAEL'},
+    {id:'cr22',cliente:'CEAP',situacao:'ATIVO',contato:'GRUPO - WHATSAPP',rede:'ISRAEL'},
+    {id:'cr23',cliente:'PITZ',situacao:'ATIVO',contato:'GRUPO - WHATSAPP',rede:'VINI'},
+    {id:'cr24',cliente:'SARA FLORIPA',situacao:'ATIVO',contato:'',rede:'NANDO'},
+    {id:'cr25',cliente:'BLAZE COMEX',situacao:'ULTIMO CONTATO - 22/04/2025',contato:'',rede:'NANDO'},
+    {id:'cr26',cliente:'NOVO SAQUE',situacao:'ATIVO',contato:'',rede:'NANDO'},
+    {id:'cr27',cliente:'LIDERANÇA SERVIÇOS',situacao:'ATIVO',contato:'E-MAIL',rede:'VINI'},
+    {id:'cr28',cliente:'DATA RUDDER',situacao:'ATIVO',contato:'E-MAIL',rede:'VINI'},
+    {id:'cr29',cliente:'CREDFRANCO (ITS SOLUCOES LTDA) - VMA',situacao:'ATIVO',contato:'GRUPO - WHATSAPP',rede:'VINI'},
+    {id:'cr30',cliente:'AMF PROMOTORA',situacao:'ATIVO',contato:'E-MAIL',rede:'VINI'},
+    {id:'cr31',cliente:'NOVA PROMOTORA',situacao:'ATIVO',contato:'GRUPO - WHATSAPP',rede:'VINI'},
+    {id:'cr32',cliente:'ELEMENTS',situacao:'ATIVO',contato:'GRUPO - WHATSAPP',rede:'RAEL'},
+    {id:'cr33',cliente:'TERRAPLEIN',situacao:'ATIVO',contato:'GRUPO - WHATSAPP',rede:'RAEL'},
+    {id:'cr34',cliente:'UNICA PROMOTORA',situacao:'ATIVO',contato:'GRUPO / TRELLO',rede:'VINI'},
+    {id:'cr35',cliente:'ICRED',situacao:'ATIVO',contato:'GRUPO - WHATSAPP',rede:'JU'}
+  ];
+  var CR_PALETA=['#005DAA','#0a9cf0','#1a9c50','#d98a1a','#8e44c9','#c0392b','#16a085','#e0518b','#5563c1','#c98a00'];
+  function crCorRede(nome){
+    var s=(nome||'?').toUpperCase(), h=0; for(var i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0;
+    return CR_PALETA[h % CR_PALETA.length];
+  }
+  function crEsc(s){ return (s||'').toString().replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+
+  function crBase(){
+    var base={}; CR_SEED.forEach(function(e){ base[e.id]={id:e.id,cliente:e.cliente,situacao:e.situacao,contato:e.contato,rede:e.rede}; });
+    var ed=(appConfig.cabecaRede && typeof appConfig.cabecaRede==='object') ? appConfig.cabecaRede : {};
+    Object.keys(ed).forEach(function(id){ var e=ed[id]; if(!e) return; if(e.del){ delete base[id]; } else { base[id]={id:id,cliente:e.cliente||'',situacao:e.situacao||'',contato:e.contato||'',rede:e.rede||''}; } });
+    return base;
+  }
+  function crLista(){ var b=crBase(); return Object.keys(b).map(function(k){ return b[k]; }); }
+  function crSetObj(id, obj){
+    if(!appConfig.cabecaRede || typeof appConfig.cabecaRede!=='object') appConfig.cabecaRede={};
+    var atual=crBase()[id]||{cliente:'',situacao:'',contato:'',rede:''};
+    appConfig.cabecaRede[id]={ cliente:(obj.cliente!==undefined?obj.cliente:atual.cliente)||'', situacao:(obj.situacao!==undefined?obj.situacao:atual.situacao)||'', contato:(obj.contato!==undefined?obj.contato:atual.contato)||'', rede:(obj.rede!==undefined?obj.rede:atual.rede)||'', ts:Date.now(), del:0 };
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+  }
+  function crAdd(){
+    if(!appConfig.cabecaRede || typeof appConfig.cabecaRede!=='object') appConfig.cabecaRede={};
+    var id='crx'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+    appConfig.cabecaRede[id]={cliente:'',situacao:'ATIVO',contato:'',rede:'',ts:Date.now(),del:0};
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+    crFocarNovo=id; renderCabecaRede();
+  }
+  function crDel(id){
+    if(!appConfig.cabecaRede || typeof appConfig.cabecaRede!=='object') appConfig.cabecaRede={};
+    appConfig.cabecaRede[id]={del:1, ts:Date.now()};
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+    renderCabecaRede();
+  }
+  window.crMergeMaps=function(a,b){
+    a=a||{}; b=b||{}; var out={}, ks={};
+    Object.keys(a).forEach(function(k){ks[k]=1;}); Object.keys(b).forEach(function(k){ks[k]=1;});
+    Object.keys(ks).forEach(function(k){ var x=a[k], y=b[k]; out[k]=(x&&y)?(((x.ts||0)>=(y.ts||0))?x:y):(x||y); });
+    return out;
+  };
+
+  var crFiltro='', crBuscaTxt='', crFocarNovo=null;
+  function crSituClasse(s){ var t=(s||'').toUpperCase(); if(t.indexOf('ATIVO')>=0) return 'st-ativo'; if(t.indexOf('PROSPEC')>=0) return 'st-prosp'; if(t.indexOf('CONTATO')>=0) return 'st-contato'; return ''; }
+
+  window.renderCabecaRede=function(){
+    var wrap=document.getElementById('cabecaWrap'); if(!wrap) return;
+    var todos=crLista();
+    // redes existentes + contagem
+    var contagem={}; todos.forEach(function(e){ var r=(e.rede||'—').toUpperCase(); contagem[r]=(contagem[r]||0)+1; });
+    var redes=Object.keys(contagem).sort();
+    // filtro + busca
+    var lista=todos.filter(function(e){
+      if(crFiltro && (e.rede||'—').toUpperCase()!==crFiltro) return false;
+      if(crBuscaTxt){ var q=crBuscaTxt.toLowerCase(); if((e.cliente+' '+e.situacao+' '+e.contato+' '+e.rede).toLowerCase().indexOf(q)<0) return false; }
+      return true;
+    }).sort(function(a,b){ return (a.rede||'').localeCompare(b.rede||'') || (a.cliente||'').localeCompare(b.cliente||''); });
+
+    var chips=redes.map(function(r){
+      var cor=crCorRede(r), on=(crFiltro===r);
+      return '<button type="button" class="cr-chip'+(on?' on':'')+'" data-cr-filtro="'+crEsc(r)+'" style="background:'+cor+'22;border-color:'+cor+';color:'+cor+'">'+crEsc(r)+' <span class="cr-chip-n">'+contagem[r]+'</span></button>';
+    }).join('');
+
+    var linhas = lista.length ? lista.map(function(e){
+      var cor=crCorRede(e.rede);
+      var opts=['ANA','DIEGO','LETICIA','GHABI','JU','ISRAEL','VINI','NANDO','RAEL'];
+      if(e.rede && opts.indexOf((e.rede||'').toUpperCase())<0) opts.push((e.rede||'').toUpperCase());
+      var selOpts='<option value="">—</option>'+opts.map(function(o){ return '<option value="'+crEsc(o)+'"'+(((e.rede||'').toUpperCase()===o)?' selected':'')+'>'+crEsc(o)+'</option>'; }).join('');
+      return '<div class="cr-row" style="border-left-color:'+cor+'">'+
+        '<input class="cr-inp cr-cli" value="'+crEsc(e.cliente)+'" data-cr-id="'+e.id+'" data-cr-campo="cliente" placeholder="Nome do cliente">'+
+        '<input class="cr-inp cr-sit '+crSituClasse(e.situacao)+'" value="'+crEsc(e.situacao)+'" data-cr-id="'+e.id+'" data-cr-campo="situacao" placeholder="Situação">'+
+        '<input class="cr-inp" value="'+crEsc(e.contato)+'" data-cr-id="'+e.id+'" data-cr-campo="contato" placeholder="Forma de contato">'+
+        '<select class="cr-sel" data-cr-id="'+e.id+'" data-cr-campo="rede" style="background:'+cor+'">'+selOpts+'</select>'+
+        '<button type="button" class="cr-del" data-cr-del="'+e.id+'" title="Excluir">🗑</button>'+
+      '</div>';
+    }).join('') : '<div class="cr-vazio">Nenhum cliente encontrado com esse filtro.</div>';
+
+    wrap.innerHTML=
+      '<div class="cr-head">'+
+        '<div><h2 class="cr-title"><span class="cr-ic">🕸️</span> Cabeça de Rede</h2>'+
+          '<div class="cr-sub">'+todos.length+' clientes · '+redes.length+' responsáveis · clique em qualquer campo para editar</div></div>'+
+        '<button type="button" class="cr-add" id="crAdd">＋ Adicionar cliente</button>'+
+      '</div>'+
+      '<div class="cr-toolbar">'+
+        '<input type="text" class="cr-busca" id="crBusca" placeholder="🔎 Buscar cliente, situação, contato..." value="'+crEsc(crBuscaTxt)+'">'+
+        '<div class="cr-chips">'+
+          '<button type="button" class="cr-chip'+(crFiltro===''?' on':'')+'" data-cr-filtro="" style="background:var(--azul)22;border-color:var(--azul);color:var(--azul)">Todos <span class="cr-chip-n">'+todos.length+'</span></button>'+
+          chips+
+        '</div>'+
+      '</div>'+
+      '<div class="cr-row-head"><span>Cliente</span><span>Situação</span><span>Forma de contato</span><span>Cabeça de Rede</span><span></span></div>'+
+      '<div class="cr-grid">'+linhas+'</div>';
+
+    // refoca no campo do cliente recém-adicionado
+    if(crFocarNovo){ var nv=wrap.querySelector('[data-cr-id="'+crFocarNovo+'"][data-cr-campo="cliente"]'); if(nv){ try{ nv.focus(); }catch(e){} } crFocarNovo=null; }
+    var bq=document.getElementById('crBusca'); if(bq && crBuscaTxt){ try{ bq.focus(); bq.setSelectionRange(bq.value.length,bq.value.length); }catch(e){} }
+  };
+
+  // edição inline: grava ao sair do campo (change) e re-renderiza no select (troca a cor)
+  document.addEventListener('change', function(e){
+    var t=e.target;
+    if(t && t.getAttribute && t.getAttribute('data-cr-id')){
+      var id=t.getAttribute('data-cr-id'), campo=t.getAttribute('data-cr-campo'), val=t.value;
+      var obj={}; obj[campo]=val; crSetObj(id, obj);
+      if(campo==='rede' || campo==='situacao') renderCabecaRede();   // atualiza cor/badge
+    }
+  });
+  document.addEventListener('click', function(e){
+    if(!e.target || !e.target.closest) return;
+    if(e.target.closest('#crAdd')){ crAdd(); return; }
+    var del=e.target.closest('[data-cr-del]');
+    if(del){ crDel(del.getAttribute('data-cr-del')); return; }
+    var chip=e.target.closest('[data-cr-filtro]');
+    if(chip){ crFiltro=chip.getAttribute('data-cr-filtro'); renderCabecaRede(); return; }
+  });
+  document.addEventListener('input', function(e){
+    if(e.target && e.target.id==='crBusca'){ crBuscaTxt=e.target.value; renderCabecaRede(); }
+  });
 })();
 </script>
 </body>
