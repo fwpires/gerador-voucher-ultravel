@@ -611,6 +611,39 @@ body.dark .mx-cal-btn{color:#2ee0b8}
   0%,100%{box-shadow:0 0 6px 1px rgba(255,61,61,.8),0 0 13px 4px rgba(255,61,61,.4),inset 0 0 4px rgba(255,255,255,.45)}
   50%{box-shadow:0 0 11px 3px rgba(255,61,61,1),0 0 22px 8px rgba(255,61,61,.6),inset 0 0 6px rgba(255,255,255,.65)}
 }
+/* ===== Notificações de cobrança do Control Desk (build HUB-v3·79) =====
+   Caixa vermelha LED neon PISCANDO para pendências; botão verde LED neon FIXO
+   (sem piscar) para o "Verificado" da regra de 24h. Não mexe em nada do dark
+   mode existente — só classes novas. */
+@keyframes cdNotifBlink{
+  0%,100%{ box-shadow:0 0 6px rgba(255,51,68,.55), 0 0 18px rgba(255,51,68,.35), inset 0 0 8px rgba(255,51,68,.12); border-color:rgba(255,51,68,.95); }
+  50%    { box-shadow:0 0 2px rgba(255,51,68,.25), 0 0 6px rgba(255,51,68,.15), inset 0 0 3px rgba(255,51,68,.05); border-color:rgba(255,51,68,.45); }
+}
+.cd-notifs{ display:flex; flex-direction:column; gap:10px; margin:4px 0 10px; }
+.cd-notifs:empty{ display:none; }
+.cd-notif{
+  display:flex; align-items:center; gap:14px;
+  background:rgba(255,51,68,.07);
+  border:1.5px solid rgba(255,51,68,.9);
+  border-radius:12px; padding:12px 14px;
+  animation:cdNotifBlink 1.15s ease-in-out infinite;
+}
+.cd-notif-txt{ flex:1; min-width:0; color:#FFE3E7; font-size:.86rem; line-height:1.45; }
+.cd-notif-txt b{ color:#FFF; }
+.cd-notif-tit{
+  color:#FF4D5E; font-weight:800; letter-spacing:.4px; font-size:.95rem;
+  text-shadow:0 0 8px rgba(255,51,68,.65); margin-bottom:3px;
+}
+.cd-notif-btn{
+  flex:0 0 auto; cursor:pointer; white-space:nowrap;
+  background:rgba(53,208,127,.12); color:#5BE0A8;
+  border:1.5px solid rgba(53,208,127,.9); border-radius:10px;
+  padding:9px 16px; font-weight:700; font-size:.85rem;
+  box-shadow:0 0 8px rgba(53,208,127,.45), inset 0 0 6px rgba(53,208,127,.12);
+  transition:background .15s, color .15s, transform .1s;
+}
+.cd-notif-btn:hover{ background:#35D07F; color:#0A1929; transform:translateY(-1px); }
+
 /* Banner do sorteio "Atendente da vez" */
 .ocp-vez-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;background:rgba(255,196,0,.09);border:1px solid rgba(255,196,0,.4);border-radius:10px;padding:10px 14px;margin:8px 2px 10px;font-size:14px;font-weight:700;color:#E8EEF4}
 .ocp-vez-lado{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
@@ -1741,7 +1774,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v3·75 (revertido: menu lateral voltou a ter a barra de rolagem própria (max-height + overflow-y), como era antes do build 74) — agora fica sempre totalmente aberto, mostrando todos os itens de uma vez, mantendo o comportamento fixo/sticky ao rolar a página); merge multi-PC deduplica por ts+cli+pax; o Pax aparece na linha do histórico de atendimentos), atualiza junto da Ocupação; redesenho neon: tubo escuro com líquido luminoso que enche conforme a contagem, gradiente vivo por faixa (ciano→verde-água→lima→âmbar→magenta) com glow, número em destaque no bulbo, carinha neon mantida acompanhando o nível; teto de escala dinâmico), ignorando sentinelas e toques <1s; persistência permanente em appConfig.ocpHistorico com merge multi-PC por união de eventos), seletor "seu nome", ranking geral e termômetros do dia, e reconhecimento como vendedora nos vouchers; já constava na Ocupação) quando qualquer lado já vive na era dos carimbos (kanbanSelo); auditoria central: todo nome que ENTRAR na carteira via merge é registrado no log (abertura/salvar/poll), e as 4 ações manuais (trazer/devolver/arquivar/restaurar) também logam; poll ganhou cura ativa da nuvem); seed dos 40 clientes preservado); lixeira agora abre modal de confirmação antes de excluir; título do painel trocado de "Matriz Comercial" para "Fornecedor"), busca e sincronização multi-PC por timestamp) no menu e no cabeçalho do painel): Ocupação dos Atendentes + Ausência Programada movidas do dashboard para lá, IDÊNTICAS em layout e funções; render religado na navegação, no auto-refresh e no sync multi-PC; Control Desk agora é a tela inicial do sistema): tela com os 35 clientes do PDF, tudo editável inline (cliente, situação, contato, responsável), busca, filtro por responsável com contagem, badges de status coloridos e cores do sistema; sincronizado entre PCs por timestamp); regra de fim de semana — sexta, sábado e domingo usam o nome do sábado do PDF (sex/dom readonly, edita-se no sábado); destaque rosa nos 3 dias) já grava a seleção; campos Início e Fim ficam mais limpos) + blur para matar o incremento nativo — velocidade lenta e previsível em mouse e trackpad) e listener wheel direto no elemento com passive:false + limiar maior — scroll agora desacelera de verdade), e scroll do mouse desacelerado para ajuste suave de hora/minuto) com merge por timestamp em salvar+carregar+polling, soft delete nos arquivados e migração automática do legado)" do cabeçalho), barra lateral vermelha e separador antes do compromisso); fontes em branco vivo; ordem bolinha - nome - data - hora - compromisso) em atendimento na bolinha vermelha e pergunta qual transferir; transferir libera o slot de origem) -->
+    <!-- build: HUB-v3·79 (NOVO: Notificações de Cobrança no Control Desk — caixa vermelha LED neon piscando entre "Ocupação dos Atendentes" e o "Atendente da vez", com duas regras automáticas: (1) REGRA 6h — nomes na carteira/Contato Realizado há mais de 6 horas sem baixa disparam "⚠️ ATENÇÃO, [ATENDENTE]!" com a contagem X só dos vencidos; sem botão — a notificação some sozinha quando todos forem baixados, manual ou pela automação do CSV; usa o carimbo ts do carteiraOps que já existia; (2) REGRA 24h — nomes com status "Em Tratativa" há mais de 24 horas disparam notificação com botão verde LED neon fixo "✓ Verificado" que silencia o grupo por 24h e reinicia a contagem (appConfig.notifVerificado, clique mais recente vence no merge); relógio de tratativa novo em appConfig.tratativaTs {ts,del} com seed inicial ts:0 para nomes legados (disparam imediatamente, decisão do Nando); agente do CSV reconhecido entre os atendentes (match primeiro+último nome) → notificação nominal com contagem; agente vazio/não reconhecido → "⚠️ ATENÇÃO, EQUIPE!" listando os NOMES dos clientes; merge multi-PC nos dois caminhos (abertura+salvar) via uvMesclarNotifs; tick de 60s mantém a caixa atualizada; logs notif_verificado); NOVO: limpeza automática da carteira por progressão — quem está em "Em Tratativa" ou "Fechado" no CSV agora NÃO pode existir em mais nenhum lugar do Kanban; cobre o caso que faltava — nome esquecido em Contato Realizado sem nunca ter passado por Template Enviado — removendo da carteira automaticamente (sem arquivar em Template Enviado, já que progredir não é a mesma coisa que template enviado), com log próprio kanban_limpeza_carteira, rodando a cada render — protege também contra drift de sincronização entre PCs, não só importação de CSV); AJUSTE na automação "Contato Feito": agora o CSV sempre prevalece — se o nome estiver na carteira de um atendente NO MOMENTO da importação (mesmo se foi restaurado manualmente após um Template Enviado anterior) e o CSV disser "Contato Feito", o sistema arquiva de novo automaticamente; antes, uma restauração manual bloqueava a automação até o próximo clique manual, agora não bloqueia mais — o CSV desatualizado é o sinal para corrigir o CSV, não para o Hub ignorá-lo); NOVO: automação "Contato Feito" → Template Enviado — se o CSV importado diz que um nome já teve "Contato Feito" E esse mesmo nome estava em branco no CSV anterior (Fazer contato OU Contato Realizado), o sistema arquiva sozinho em Template Enviado/Conciliação, preservando o atendente, com o mesmo carimbo anti-ressurreição do botão manual, log próprio (kanban_auto_template) e toast de resumo em lote; se o nome chegou de fora já com Contato Feito, nada muda — só a pasta azul, como sempre); revertido: menu lateral voltou a ter a barra de rolagem própria (max-height + overflow-y), como era antes do build 74) — agora fica sempre totalmente aberto, mostrando todos os itens de uma vez, mantendo o comportamento fixo/sticky ao rolar a página); merge multi-PC deduplica por ts+cli+pax; o Pax aparece na linha do histórico de atendimentos), atualiza junto da Ocupação; redesenho neon: tubo escuro com líquido luminoso que enche conforme a contagem, gradiente vivo por faixa (ciano→verde-água→lima→âmbar→magenta) com glow, número em destaque no bulbo, carinha neon mantida acompanhando o nível; teto de escala dinâmico), ignorando sentinelas e toques <1s; persistência permanente em appConfig.ocpHistorico com merge multi-PC por união de eventos), seletor "seu nome", ranking geral e termômetros do dia, e reconhecimento como vendedora nos vouchers; já constava na Ocupação) quando qualquer lado já vive na era dos carimbos (kanbanSelo); auditoria central: todo nome que ENTRAR na carteira via merge é registrado no log (abertura/salvar/poll), e as 4 ações manuais (trazer/devolver/arquivar/restaurar) também logam; poll ganhou cura ativa da nuvem); seed dos 40 clientes preservado); lixeira agora abre modal de confirmação antes de excluir; título do painel trocado de "Matriz Comercial" para "Fornecedor"), busca e sincronização multi-PC por timestamp) no menu e no cabeçalho do painel): Ocupação dos Atendentes + Ausência Programada movidas do dashboard para lá, IDÊNTICAS em layout e funções; render religado na navegação, no auto-refresh e no sync multi-PC; Control Desk agora é a tela inicial do sistema): tela com os 35 clientes do PDF, tudo editável inline (cliente, situação, contato, responsável), busca, filtro por responsável com contagem, badges de status coloridos e cores do sistema; sincronizado entre PCs por timestamp); regra de fim de semana — sexta, sábado e domingo usam o nome do sábado do PDF (sex/dom readonly, edita-se no sábado); destaque rosa nos 3 dias) já grava a seleção; campos Início e Fim ficam mais limpos) + blur para matar o incremento nativo — velocidade lenta e previsível em mouse e trackpad) e listener wheel direto no elemento com passive:false + limiar maior — scroll agora desacelera de verdade), e scroll do mouse desacelerado para ajuste suave de hora/minuto) com merge por timestamp em salvar+carregar+polling, soft delete nos arquivados e migração automática do legado)" do cabeçalho), barra lateral vermelha e separador antes do compromisso); fontes em branco vivo; ordem bolinha - nome - data - hora - compromisso) em atendimento na bolinha vermelha e pergunta qual transferir; transferir libera o slot de origem) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -1781,6 +1814,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
         <div class="dash-cards-cd">
         <div class="dash-card ocp-card">
           <div class="dash-card-t">🚦 Ocupação dos Atendentes<span class="ocp-hint">verde = livre &nbsp;·&nbsp; vermelho = ocupado</span></div>
+          <div class="cd-notifs" id="cdNotifs"></div>
           <div class="ocp-vez-bar" id="ocpVezBar"></div>
           <div class="ocp-grid" id="ocpGrid"></div>
         </div>
@@ -2361,6 +2395,11 @@ async function carregarConfig(){
         appConfig.carteira=_mcL.carteira; appConfig.carteiraOps=_mcL.carteiraOps; appConfig.arquivados=_mcL.arquivados; appConfig.kanbanSelo=_mcL.kanbanSelo;
         if(typeof uvAuditarMergeCarteira==='function') uvAuditarMergeCarteira(_cartAntesL, _mcL.carteira, 'abertura');
       }
+      // NOTIFICAÇÕES DO CONTROL DESK: merge do relógio de tratativa + silêncios "Verificado"
+      if(typeof uvMesclarNotifs==='function'){
+        var _mnL=uvMesclarNotifs(local, c);
+        appConfig.tratativaTs=_mnL.tratativaTs; appConfig.tratativaSeloSeed=_mnL.tratativaSeloSeed; appConfig.notifVerificado=_mnL.notifVerificado;
+      }
       // ESCALA DE PLANTÕES: merge por carimbo (edição mais recente vence)
       {
         var esCl=(c.escalaPlantao&&typeof c.escalaPlantao==='object')?c.escalaPlantao:{};
@@ -2510,6 +2549,11 @@ async function salvarConfig(){
       var _mc=uvMesclarCarteiraArq(appConfig, cloud);
       appConfig.carteira=_mc.carteira; appConfig.carteiraOps=_mc.carteiraOps; appConfig.arquivados=_mc.arquivados; appConfig.kanbanSelo=_mc.kanbanSelo;
       if(typeof uvAuditarMergeCarteira==='function') uvAuditarMergeCarteira(_cartAntesS, _mc.carteira, 'salvar');
+    }
+    // NOTIFICAÇÕES DO CONTROL DESK: merge do relógio de tratativa + silêncios "Verificado"
+    if(typeof uvMesclarNotifs==='function'){
+      var _mnS=uvMesclarNotifs(appConfig, cloud);
+      appConfig.tratativaTs=_mnS.tratativaTs; appConfig.tratativaSeloSeed=_mnS.tratativaSeloSeed; appConfig.notifVerificado=_mnS.notifVerificado;
     }
     // ESCALA DE PLANTÕES: merge por carimbo (edição mais recente vence)
     {
@@ -2768,6 +2812,14 @@ async function importarStatusHotel(file){
   if(!parsed.statusOk){ toast('❌ Não encontrei a coluna "Status Hotel" no CSV. Importação cancelada para não classificar todo mundo errado.','err'); return; }
   const rows=parsed.rows;
   if(!rows.length){ toast('CSV vazio ou em formato inesperado','err'); return; }
+  // ===== snapshot do CSV ANTERIOR (antes de sobrescrever) — usado só pela automação abaixo =====
+  // Guarda, por nome normalizado, o status que a pessoa tinha no CSV anterior a este import.
+  // "Em branco" (contato) cobre TANTO quem estava em "Fazer contato" QUANTO quem já tinha
+  // sido puxado por um atendente e estava em "Contato Realizado" — as duas colunas nascem
+  // do mesmo status em branco, só se diferenciam por estar (ou não) na carteira.
+  const _oldRows=(statusHotelData && Array.isArray(statusHotelData.rows)) ? statusHotelData.rows : [];
+  const _statusAntesMap={};
+  _oldRows.forEach(r=>{ const k=normNome(r.nome); if(k) _statusAntesMap[k]=normStatusHotel(r.statusRaw); });
   statusHotelData={ rows, importadoEm:new Date().toISOString(), __idReservaOk: !!parsed.idReservaOk };
   localStorage.setItem('uv_statushotel', JSON.stringify(statusHotelData));
   // avisa se a coluna ID Reserva (conciliação por quarto) não foi encontrada
@@ -2779,7 +2831,36 @@ async function importarStatusHotel(file){
     try{ localStorage.setItem('uv_config',JSON.stringify(appConfig)); }catch(e){}
     salvarConfig();
   }
+  // ===== AUTOMAÇÃO "Contato Feito" → Template Enviado (build HUB-v3·77) =====
+  // Regra (O CSV É O MANDANTE — sempre prevalece): se o CSV NOVO diz que o nome
+  // está com status "Contato Feito" e, ANTES desta importação, esse nome estava
+  // em uma coluna "ativa" — (1) status em branco no CSV anterior (Fazer contato
+  // OU Contato Realizado, que partem do mesmo status vazio) OU (2) presente na
+  // carteira de algum atendente NESTE EXATO MOMENTO (cobre também quem foi
+  // RESTAURADO manualmente para "Contato Realizado" enquanto o CSV mais recente
+  // já dizia "Contato Feito" sem mudança) — o sistema arquiva sozinho em Template
+  // Enviado. Isso é proposital: se o CSV afirma "Contato Feito", a automação NUNCA
+  // deixa o nome parado em Contato Realizado só porque alguém restaurou — o CSV
+  // sempre vence. Se estiver errado, o sinal é você corrigir o status no CSV,
+  // não o Hub ignorar o CSV.
+  // Se o nome chegou "de fora" já com Contato Feito (nunca esteve em branco no
+  // Hub e nunca foi puxado por ninguém), NADA muda: continua só na pasta azul.
+  let _autoQtd=0;
+  {
+    const _carteiraAntes={...(appConfig.carteira||{})}; // foto da carteira ANTES de qualquer arquivamento deste lote
+    const _jaVisto=new Set();
+    rows.forEach(r=>{
+      if(normStatusHotel(r.statusRaw)!=='contatofeito') return;
+      const k=normNome(r.nome); if(!k || _jaVisto.has(k)) return;
+      _jaVisto.add(k);
+      const eraBrancoAntes=_statusAntesMap[k]==='contato';       // estava em Fazer contato/Contato Realizado (via CSV anterior)
+      const estaNaCarteiraAgora=!!_carteiraAntes[k];              // está com atendente AGORA (inclui restaurado manualmente)
+      if((eraBrancoAntes || estaNaCarteiraAgora) && arquivarContatoAuto(r.nome)) _autoQtd++;
+    });
+  }
+  if(_autoQtd>0) salvarConfig();
   renderStatusColunas();
+  if(_autoQtd>0) toast('🔄 '+_autoQtd+' contato(s) movido(s) automaticamente para Template Enviado (Conciliação) ✅','ok');
   // resumo da classificação na hora (transparência: você confere se bateu com o esperado)
   const cnt={fechado:0,tratativa:0,contato:0,contatofeito:0,erro:0,recusado:0};
   rows.forEach(r=>{ const k=normStatusHotel(r.statusRaw); if(cnt[k]!=null) cnt[k]++; });
@@ -3817,6 +3898,26 @@ function arquivarContato(nome){
   try{ logRemoto('kanban_arquivar', '"'+nome+'" marcado como Template Enviado', { nome: nome, atendente: at }); }catch(e){}
 }
 
+// ===== AUTOMAÇÃO "Contato Feito" (build HUB-v3·76) =====
+// Mesma ação do botão manual "✓ Template Enviado" (arquivarContato), mas disparada
+// SOZINHA pela importação do CSV — usada quando o próprio CSV confirma que o
+// contato já foi feito de verdade. NÃO faz toast individual (o resumo vem em lote
+// no final da importação) e NÃO chama renderStatusColunas() a cada nome (quem
+// chama renderiza uma vez só, no fim do lote, por performance).
+// Idempotente: se o nome já está arquivado (e não foi restaurado), não faz nada —
+// evita duplicar carimbo/log ao processar o mesmo CSV mais de uma vez.
+function arquivarContatoAuto(nome){
+  const n=normNome(nome); if(!n) return false;
+  if(arquivadosMap()[n]) return false; // já está em Template Enviado: nada a fazer
+  if(!appConfig.arquivados || typeof appConfig.arquivados!=='object') appConfig.arquivados={};
+  const at=(appConfig.carteira||{})[n]||'';
+  appConfig.arquivados[n]={ nome, atendente:at, ts:new Date().toISOString(), tsm:Date.now(), del:0 };
+  if(appConfig.carteira) delete appConfig.carteira[n]; // sai da coluna "Contato Realizado", se estava lá
+  uvCarimbarCarteira(n, at, 1);   // mesmo carimbo anti-ressurreição do fluxo manual
+  try{ logRemoto('kanban_auto_template', '"'+nome+'" movido AUTOMATICAMENTE para Template Enviado (CSV: Contato Feito)', { nome: nome, atendente: at }); }catch(e){}
+  return true;
+}
+
 // tira dos Arquivados e devolve para "Contato Realizado" (mesmo atendente)
 function restaurarArquivado(nome){
   const n=normNome(nome); if(!n) return;
@@ -3865,6 +3966,190 @@ function purgarArquivadosPorStatus(){
   });
   return mudou;
 }
+
+// LIMPEZA DA CARTEIRA POR PROGRESSÃO (build HUB-v3·78) — regra: quem está em
+// "Em Tratativa" ou "Fechado" no CSV NÃO PODE existir em mais nenhum lugar do
+// Kanban. purgarArquivadosPorStatus() (acima) já cobria quem tinha sido
+// ARQUIVADO em Template Enviado. Esta função cobre o caso que faltava: nome
+// esquecido na carteira (Contato Realizado) — sem NUNCA ter passado por
+// Template Enviado — cujo status no CSV virou "Em Tratativa"/"Fechado". A
+// tela já mostrava esse nome certo na coluna "Em Tratativa" (a busca de coluna
+// usa o status do CSV, não a carteira), mas o registro em appConfig.carteira
+// ficava preso pra sempre, como dado fantasma. Aqui ele é removido — SEM ir
+// para o Template Enviado (progredir para tratativa/fechado não significa que
+// um template foi enviado; são coisas diferentes).
+function purgarCarteiraPorStatus(){
+  if(!appConfig.carteira || typeof appConfig.carteira!=='object') return false;
+  const rows=(statusHotelData&&statusHotelData.rows)||[];
+  const statusPorNome={};
+  rows.forEach(r=>{ const k=normNome(r.nome); if(k && !(k in statusPorNome)) statusPorNome[k]=normStatusHotel(r.statusRaw); });
+  let mudou=false;
+  Object.keys(appConfig.carteira).forEach(norm=>{
+    const st=statusPorNome[norm];
+    if(st==='tratativa' || st==='fechado'){
+      delete appConfig.carteira[norm];
+      uvCarimbarCarteira(norm, '', 1);   // mesmo carimbo anti-ressurreição do resto do fluxo
+      mudou=true;
+      try{ logRemoto('kanban_limpeza_carteira', '"'+norm+'" removido da carteira automaticamente — progrediu para '+(st==='tratativa'?'Em Tratativa':'Fechado')+' sem ter passado por Template Enviado', { nome: norm, status: st }); }catch(e){}
+    }
+  });
+  return mudou;
+}
+
+/* ===== NOTIFICAÇÕES DE COBRANÇA DO CONTROL DESK (build HUB-v3·79) =====
+   Duas regras de cobrança automática, exibidas entre o título "Ocupação dos
+   Atendentes" e a barra do "Atendente da vez":
+
+   REGRA 6h  — nomes na carteira (Contato Realizado) há mais de 6 horas sem
+               baixa. O relógio JÁ EXISTE: é o carimbo ts de carteiraOps,
+               gravado na nuvem quando o nome é atribuído (build ·75). A
+               notificação some SOZINHA quando todos os nomes vencidos forem
+               baixados — manualmente (botão Template Enviado) ou pela
+               automação do CSV (builds ·77/·78). SEM botão.
+
+   REGRA 24h — nomes com status "Em Tratativa" há mais de 24 horas. O CSV não
+               diz QUANDO cada nome entrou em tratativa, então rastreamos aqui:
+               appConfig.tratativaTs guarda {ts,del} por nome (primeiro
+               avistamento; del quando sai do status). SEED: na primeira vez
+               que o rastreador roda, TODOS os nomes já em tratativa ganham
+               ts:0 — disparam imediatamente (decisão do Nando: legado entra
+               na regra na hora). Botão VERDE "Verificado": silencia o grupo
+               por 24 horas (appConfig.notifVerificado, sincronizado) e a
+               contagem do silêncio reinicia a cada clique.
+
+   Agrupamento da regra 24h: se a coluna "Agente" do CSV bater com um dos 10
+   atendentes (match primeiro+último nome), a notificação é NOMINAL com a
+   contagem X. Se o agente vier vazio/não reconhecido, os nomes caem num grupo
+   coletivo "ATENÇÃO, EQUIPE!" que LISTA os nomes dos clientes (decisão do
+   Nando enquanto valida se os agentes do CSV batem com os atendentes). */
+
+// rastreia entrada/saída do status "Em Tratativa" (retorna true se algo mudou)
+function uvRastrearTratativa(){
+  const rows=(statusHotelData&&statusHotelData.rows)||[];
+  if(!rows.length) return false;                    // sem CSV carregado: não mexe em nada
+  if(!appConfig.tratativaTs || typeof appConfig.tratativaTs!=='object') appConfig.tratativaTs={};
+  const T=appConfig.tratativaTs;
+  const seedJaFeito=!!(appConfig.tratativaSeloSeed && appConfig.tratativaSeloSeed.ts);
+  const emTrat=new Set();
+  rows.forEach(r=>{ if(normStatusHotel(r.statusRaw)==='tratativa'){ const k=normNome(r.nome); if(k) emTrat.add(k); } });
+  let mudou=false;
+  // quem tinha entrada viva mas saiu de tratativa → soft delete carimbado
+  Object.keys(T).forEach(k=>{ const it=T[k]; if(it && !it.del && !emTrat.has(k)){ T[k]={ts:Date.now(), del:1}; mudou=true; } });
+  // quem está em tratativa e não tem entrada viva → cria (seed inicial = ts:0, dispara já)
+  emTrat.forEach(k=>{ const it=T[k]; if(!it || it.del){ T[k]={ts:(seedJaFeito?Date.now():0), del:0}; mudou=true; } });
+  if(!seedJaFeito){ appConfig.tratativaSeloSeed={ts:Date.now()}; mudou=true; }
+  return mudou;
+}
+
+// merge multi-PC dos dados das notificações (chamado na abertura e no salvar)
+function uvMesclarNotifs(a, b){
+  a=a||{}; b=b||{};
+  // tratativaTs: por nome, a entrada com MAIOR ts vence (a operação mais recente
+  // — avistamento novo ou saída — sempre prevalece, igual ao padrão da carteira)
+  const ta=(a.tratativaTs&&typeof a.tratativaTs==='object')?a.tratativaTs:{};
+  const tb=(b.tratativaTs&&typeof b.tratativaTs==='object')?b.tratativaTs:{};
+  const T={}, ks={};
+  Object.keys(ta).forEach(k=>{ks[k]=1;}); Object.keys(tb).forEach(k=>{ks[k]=1;});
+  Object.keys(ks).forEach(k=>{ const x=ta[k], y=tb[k]; T[k]=(x&&y)?(((x.ts||0)>=(y.ts||0))?x:y):(x||y); });
+  // selo do seed: se qualquer lado já fez, vale o MAIS ANTIGO (primeiro seed)
+  const sa=a.tratativaSeloSeed, sb=b.tratativaSeloSeed;
+  const S=(sa&&sb)?(((sa.ts||0)<=(sb.ts||0))?sa:sb):(sa||sb||null);
+  // notifVerificado: por chave, o clique MAIS RECENTE vence
+  const va=(a.notifVerificado&&typeof a.notifVerificado==='object')?a.notifVerificado:{};
+  const vb=(b.notifVerificado&&typeof b.notifVerificado==='object')?b.notifVerificado:{};
+  const V={}, vk={};
+  Object.keys(va).forEach(k=>{vk[k]=1;}); Object.keys(vb).forEach(k=>{vk[k]=1;});
+  Object.keys(vk).forEach(k=>{ V[k]=Math.max(va[k]||0, vb[k]||0); });
+  return { tratativaTs:T, tratativaSeloSeed:S, notifVerificado:V };
+}
+try{ window.uvMesclarNotifs=uvMesclarNotifs; }catch(e){}
+
+// clique no botão verde "Verificado": silencia o grupo por 24h e reinicia a contagem
+function cdVerificado(chave){
+  if(!chave) return;
+  if(!appConfig.notifVerificado || typeof appConfig.notifVerificado!=='object') appConfig.notifVerificado={};
+  appConfig.notifVerificado[chave]=Date.now();
+  salvarConfig();
+  renderCdNotifs();
+  const rot=(chave==='__equipe__')?'Equipe':chave;
+  toast('Verificado ✅ — a notificação de "'+rot+'" fica silenciada por 24 horas','ok');
+  try{ logRemoto('notif_verificado', 'Notificação "Em Tratativa" de '+rot+' marcada como Verificada (silêncio de 24h)', { chave: chave }); }catch(e){}
+}
+try{ window.cdVerificado=cdVerificado; }catch(e){}
+
+// monta as notificações no Control Desk
+function renderCdNotifs(){
+  const box=document.getElementById('cdNotifs'); if(!box) return;
+  const now=Date.now();
+  const H6=6*3600*1000, H24=24*3600*1000;
+  const html=[];
+
+  // ===== REGRA 6h: carteira (Contato Realizado) vencida =====
+  const cart=carteiraMap(); const ops=(appConfig.carteiraOps||{});
+  const porAt={};
+  Object.keys(cart).forEach(n=>{
+    const at=cart[n]||''; if(!at) return;
+    const op=ops[n]; const ts=(op && typeof op.ts==='number')?op.ts:0; // sem carimbo (legado) = vencido
+    if(now-ts>H6) porAt[at]=(porAt[at]||0)+1;
+  });
+  Object.keys(porAt).sort((x,y)=>x.localeCompare(y,'pt-BR')).forEach(at=>{
+    const x=porAt[at];
+    const frase = x===1 ? 'Consta <b>1</b> cliente aguardando' : 'Constam <b>'+x+'</b> clientes aguardando';
+    html.push('<div class="cd-notif">'
+      +'<div class="cd-notif-txt">'
+      +'<div class="cd-notif-tit">⚠️ ATENÇÃO, '+esc(at.toUpperCase())+'!</div>'
+      +'<div>Você possui tarefas pendentes.</div>'
+      +'<div>'+frase+' o seu contato no Kanban.</div>'
+      +'<div>Caso essa ação já tenha sido realizada, clique no botão “Template Enviado” pra atualizar o status.</div>'
+      +'</div></div>');
+  });
+
+  // ===== REGRA 24h: "Em Tratativa" vencida =====
+  const rows=(statusHotelData&&statusHotelData.rows)||[];
+  const T=(appConfig.tratativaTs||{});
+  const ver=(appConfig.notifVerificado||{});
+  const grupos={}; const vistos=new Set();
+  rows.forEach(r=>{
+    if(normStatusHotel(r.statusRaw)!=='tratativa') return;
+    const k=normNome(r.nome); if(!k || vistos.has(k)) return; vistos.add(k);
+    const it=T[k]; if(!it || it.del) return;                 // sem relógio ainda: não cobra
+    if(now-(it.ts||0)<=H24) return;                          // ainda dentro das 24h
+    let atd='';
+    const ag=(r.agente||'').trim();
+    if(ag){ for(const a of ATENDENTES){ if(umNomeBateEstrito(ag, a)){ atd=a; break; } } }
+    const chave=atd||'__equipe__';
+    (grupos[chave]=grupos[chave]||[]).push(r.nome);
+  });
+  Object.keys(grupos).sort((x,y)=>{
+    if(x==='__equipe__') return 1; if(y==='__equipe__') return -1;  // equipe por último
+    return x.localeCompare(y,'pt-BR');
+  }).forEach(ch=>{
+    if(now-(ver[ch]||0)<=H24) return;                        // silenciado pelo Verificado
+    const nomes=grupos[ch];
+    const tit = ch==='__equipe__' ? '⚠️ ATENÇÃO, EQUIPE!' : '⚠️ ATENÇÃO, '+esc(ch.toUpperCase())+'!';
+    const corpo = ch==='__equipe__'
+      ? 'Os nomes <b>'+nomes.map(esc).join(', ')+'</b> constam há mais de 24 horas com status “Em Tratativa”.'
+      : (nomes.length===1 ? 'Consta <b>1</b> cliente' : 'Constam <b>'+nomes.length+'</b> clientes')+' há mais de 24 horas com status “Em Tratativa”.';
+    html.push('<div class="cd-notif">'
+      +'<div class="cd-notif-txt">'
+      +'<div class="cd-notif-tit">'+tit+'</div>'
+      +'<div>'+corpo+'</div>'
+      +'<div>Dê continuidade às negociações e atualize o status de cada atendimento no sistema.</div>'
+      +'<div>Caso essa ação já tenha sido realizada, clique no botão “Verificado” ao lado.</div>'
+      +'</div>'
+      +'<button class="cd-notif-btn" data-cdver="'+esc(ch)+'">✓ Verificado</button>'
+      +'</div>');
+  });
+
+  box.innerHTML=html.join('');
+  // clique do Verificado (via propriedade — não empilha listener a cada render)
+  box.onclick=(e)=>{ const b=e.target.closest('[data-cdver]'); if(b) cdVerificado(b.getAttribute('data-cdver')); };
+}
+try{ window.renderCdNotifs=renderCdNotifs; }catch(e){}
+
+// relógio de 1 minuto: mantém as notificações atualizadas com o passar do tempo
+// (as regras são baseadas em horas — sem isso, a caixa só atualizaria em re-renders)
+setInterval(function(){ try{ renderCdNotifs(); }catch(e){} }, 60000);
 
 function toggleArquivados(){ shArquivAberto=!shArquivAberto; renderArquivados(); requestAnimationFrame(ajustarAlturaCarrossel); }
 
@@ -4135,6 +4420,9 @@ function renderStatusColunas(){
   // AUTO-EXCLUSÃO dos Arquivados: quem foi arquivado mas agora tem status preenchido
   // no CSV (saiu de "em branco" → virou "Em tratativa"/"Fechado") é apagado em definitivo.
   if(purgarArquivadosPorStatus()) salvarConfig();
+  if(purgarCarteiraPorStatus()) salvarConfig();
+  if(uvRastrearTratativa()) salvarConfig();   // relógio do "Em Tratativa" (notificações do Control Desk)
+  try{ renderCdNotifs(); }catch(e){}          // atualiza as notificações sempre que o Kanban re-renderiza
   const termo=_normE(shBusca||'').trim();
   const vSet=nomesDeVouchers();
   const cart=carteiraMap();
@@ -6427,6 +6715,7 @@ function excluirNotaUI(id){
   // dashboard). Usa as mesmas funções globais — nada da lógica mudou, só o local.
   window.renderControlDesk=function(){
     try{ if(typeof renderOcupacao==='function') renderOcupacao(); }catch(e){}
+    try{ if(typeof window.renderCdNotifs==='function') window.renderCdNotifs(); }catch(e){}
     try{ if(typeof window.renderAusProg==='function') window.renderAusProg(); }catch(e){}
     try{ if(typeof window.aprSincronizarOcupacao==='function') window.aprSincronizarOcupacao(); }catch(e){}
     try{ if(typeof desenhaTermometros==='function') desenhaTermometros(); }catch(e){}
