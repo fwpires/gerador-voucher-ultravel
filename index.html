@@ -680,6 +680,45 @@ body.dark .mx-cal-btn{color:#2ee0b8}
 .ocp-vez-bar.ocp-todos-ocupados .ocp-vez-lado{display:flex;align-items:center}
 /* Destaque dourado no quadro do atendente sorteado */
 .ocp-box{position:relative}
+/* ícone de histórico no canto inferior direito do card */
+.ocp-hist-btn{position:absolute;bottom:7px;right:8px;width:26px;height:26px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);color:#9fb3c4;cursor:pointer;transition:background .15s,color .15s,border-color .15s;z-index:3}
+.ocp-hist-btn:hover{background:rgba(46,199,165,.16);color:#2ec7a5;border-color:#2ec7a5}
+body:not(.dark) .ocp-hist-btn{background:#F1F5F9;border-color:#E4EAF1;color:#5a7085}
+body:not(.dark) .ocp-hist-btn:hover{background:#e3f7f1;color:#1f9e83;border-color:#2ec7a5}
+/* modal do histórico */
+.ocph-bg{position:fixed;inset:0;background:rgba(6,12,17,.72);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px;z-index:9200}
+.ocph-modal{background:#16232F;border:1px solid #243849;border-radius:16px;width:100%;max-width:560px;max-height:86vh;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.5)}
+body:not(.dark) .ocph-modal{background:#fff;border-color:#E4EAF1}
+.ocph-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:18px 22px 14px;border-bottom:1px solid #243849}
+body:not(.dark) .ocph-head{border-color:#EEF2F7}
+.ocph-head h3{margin:0;font-size:1.1rem;font-weight:700;color:#E6EEF3}
+body:not(.dark) .ocph-head h3{color:#16324a}
+.ocph-head .ocph-sub{color:#8CA3B3;font-size:.8rem;margin-top:3px}
+.ocph-x{background:none;border:none;color:#8CA3B3;font-size:1.5rem;cursor:pointer;line-height:1;padding:0 4px}
+.ocph-x:hover{color:#E6EEF3}
+.ocph-body{padding:8px 14px 18px;overflow:auto}
+.ocph-dia{margin-top:14px}
+.ocph-dia:first-child{margin-top:6px}
+.ocph-dia-tit{position:sticky;top:0;background:#16232F;color:#2ec7a5;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.7px;padding:6px 8px;border-bottom:1px solid #243849;z-index:1}
+body:not(.dark) .ocph-dia-tit{background:#fff;border-color:#EEF2F7;color:#1f9e83}
+.ocph-row{display:grid;grid-template-columns:52px 1fr auto;gap:10px;align-items:center;padding:9px 8px;border-radius:9px}
+.ocph-row:hover{background:rgba(255,255,255,.04)}
+body:not(.dark) .ocph-row:hover{background:#F5F8FB}
+.ocph-hora{color:#8CA3B3;font-size:.82rem;font-variant-numeric:tabular-nums}
+.ocph-cli{color:#E6EEF3;font-size:.92rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ocph-pax{display:block;font-weight:500;font-size:.76rem;color:#8CA3B3;margin-top:1px}
+body:not(.dark) .ocph-pax{color:#7089a0}
+body:not(.dark) .ocph-cli{color:#16324a}
+.ocph-dur{color:#cfe8e0;font-size:.82rem;background:#0d2a24;border:1px solid #1f9e83;border-radius:20px;padding:3px 10px;white-space:nowrap;font-variant-numeric:tabular-nums}
+body:not(.dark) .ocph-dur{background:#e3f7f1;border-color:#8fd9c7;color:#1f7a66}
+.ocph-vazio{text-align:center;color:#8CA3B3;padding:38px 20px;font-size:.9rem}
+.ocph-foot{padding:12px 22px 16px;border-top:1px solid #243849;display:flex;justify-content:space-between;align-items:center;gap:12px}
+body:not(.dark) .ocph-foot{border-color:#EEF2F7}
+.ocph-total{color:#8CA3B3;font-size:.82rem}
+.ocph-total b{color:#E6EEF3}
+body:not(.dark) .ocph-total b{color:#16324a}
+.ocph-fechar{background:#2ec7a5;border:none;color:#08131a;border-radius:9px;padding:9px 18px;cursor:pointer;font-weight:700;font-size:.9rem}
+.ocph-fechar:hover{background:#28b394}
 .ocp-box.ocp-vez{border:1px solid #FFC400;animation:ocpVezBorda 1.6s ease-in-out infinite}
 .ocp-vez-selo{position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:#FFC400;color:#231a00;font-size:10px;font-weight:900;letter-spacing:.5px;padding:2px 8px;border-radius:99px;box-shadow:0 0 10px rgba(255,196,0,.7);white-space:nowrap}
 @keyframes ocpVezGlow{0%,100%{text-shadow:0 0 8px rgba(255,196,0,.45)}50%{text-shadow:0 0 16px rgba(255,196,0,.95)}}
@@ -723,11 +762,16 @@ body:not(.dark) .ocp-sb{border-top-color:#E4EAF1}
 body:not(.dark) .ocp-sb-tit{color:#475569}
 body:not(.dark) .ocp-sb-add{background:rgba(20,45,70,.05);border-color:rgba(20,45,70,.35);color:#64748B}
 body:not(.dark) .ocp-sb-add:hover{background:rgba(20,45,70,.1);border-color:#64748B;color:#334155}
-.termo-box{flex:1;display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end;justify-content:flex-start;padding:10px 4px;min-height:230px;overflow-x:auto}
+.termo-box{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;justify-content:center;padding:16px 8px 10px;min-height:210px}
 .termo-vazio{color:var(--texto-fraco);font-size:13px;padding:20px 4px}
-.termo-item{display:flex;flex-direction:column;align-items:center;gap:4px;width:88px;flex:0 0 auto}
+.termo-item{display:flex;flex-direction:column;align-items:center;gap:6px;width:76px;flex:0 0 auto;padding:8px 4px 6px;border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01));border:1px solid rgba(255,255,255,.06);transition:transform .18s ease,border-color .18s ease,background .18s ease}
+.termo-item:hover{transform:translateY(-3px);border-color:rgba(46,199,165,.35);background:linear-gradient(180deg,rgba(46,199,165,.08),rgba(255,255,255,.01))}
 .termo-item svg{display:block;margin:0 auto}
-.termo-nome{font-size:12px;color:var(--texto-fraco);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;max-width:104px}
+.termo-nome{font-size:11.5px;font-weight:700;color:#aebfce;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;max-width:74px;letter-spacing:.2px}
+body:not(.dark) .termo-item{background:linear-gradient(180deg,#F7FAFD,#FFFFFF);border-color:#E4EAF1}
+body:not(.dark) .termo-item:hover{border-color:rgba(46,199,165,.45)}
+body:not(.dark) .termo-nome{color:#5a7085}
+.termo-card .dash-card-t{margin-bottom:2px}
 /* ===== Equalizador "Vouchers por dia da semana" (largura total) ===== */
 .dash-grid-eq{margin-top:16px;display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
 .eq-box{padding:14px 10px;min-height:280px;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center, rgba(0,120,192,.10), rgba(15,25,35,.20));border:1px solid var(--borda);border-radius:10px}
@@ -1538,16 +1582,6 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
             </div>
             <div class="gauge-box"><div id="gaugeDia"></div></div>
           </div>
-          <div class="dash-card dash-hoje-card">
-            <div class="dash-card-t">🌡️ Termômetro do Dia
-              <span class="dash-nav">
-                <button type="button" class="dash-nav-btn" onclick="navTermoDia(-1)" title="Dia anterior">◀</button>
-                <span class="dash-nav-lbl" id="navTermoLbl">Hoje</span>
-                <button type="button" class="dash-nav-btn" id="navTermoNext" onclick="navTermoDia(1)" title="Próximo dia" disabled>▶</button>
-              </span>
-            </div>
-            <div class="termo-box" id="termoDia"></div>
-          </div>
         </div>
         <div class="dash-grid dash-grid-eq">
           <div class="dash-card">
@@ -1617,6 +1651,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
             <option>Maria Eduarda</option>
             <option>Fernando Pires</option>
             <option>Ana Maria</option>
+            <option>Juliana Lupo</option>
             <option>Hynaê Teston</option>
             <option>Mayara Marcelli</option>
           </select>
@@ -1712,7 +1747,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v3·66 (Cliente virou editável: botões Adicionar, Editar e Excluir por cliente; exclusão com modal de confirmação; edições/novos/exclusões salvos em appConfig.clientesCorp com merge por carimbo (persiste local+nuvem, multi-PC); seed dos 40 clientes preservado); lixeira agora abre modal de confirmação antes de excluir; título do painel trocado de "Matriz Comercial" para "Fornecedor"), busca e sincronização multi-PC por timestamp) no menu e no cabeçalho do painel): Ocupação dos Atendentes + Ausência Programada movidas do dashboard para lá, IDÊNTICAS em layout e funções; render religado na navegação, no auto-refresh e no sync multi-PC; Control Desk agora é a tela inicial do sistema): tela com os 35 clientes do PDF, tudo editável inline (cliente, situação, contato, responsável), busca, filtro por responsável com contagem, badges de status coloridos e cores do sistema; sincronizado entre PCs por timestamp); regra de fim de semana — sexta, sábado e domingo usam o nome do sábado do PDF (sex/dom readonly, edita-se no sábado); destaque rosa nos 3 dias) já grava a seleção; campos Início e Fim ficam mais limpos) + blur para matar o incremento nativo — velocidade lenta e previsível em mouse e trackpad) e listener wheel direto no elemento com passive:false + limiar maior — scroll agora desacelera de verdade), e scroll do mouse desacelerado para ajuste suave de hora/minuto) com merge por timestamp em salvar+carregar+polling, soft delete nos arquivados e migração automática do legado)" do cabeçalho), barra lateral vermelha e separador antes do compromisso); fontes em branco vivo; ordem bolinha - nome - data - hora - compromisso) em atendimento na bolinha vermelha e pergunta qual transferir; transferir libera o slot de origem) -->
+    <!-- build: HUB-v3·71 (Termômetro: cliente repetido passa a contar como atendimentos SEPARADOS quando o Pax solicitado é diferente. A sessão do histórico agora grava o Pax; a contagem de "clientes marcados hoje" distingue por cliente+Pax (Pax normalizado sem acento/caixa; mesmo cliente+mesmo Pax ou sem Pax não duplica); merge multi-PC deduplica por ts+cli+pax; o Pax aparece na linha do histórico de atendimentos), atualiza junto da Ocupação; redesenho neon: tubo escuro com líquido luminoso que enche conforme a contagem, gradiente vivo por faixa (ciano→verde-água→lima→âmbar→magenta) com glow, número em destaque no bulbo, carinha neon mantida acompanhando o nível; teto de escala dinâmico), ignorando sentinelas e toques <1s; persistência permanente em appConfig.ocpHistorico com merge multi-PC por união de eventos), seletor "seu nome", ranking geral e termômetros do dia, e reconhecimento como vendedora nos vouchers; já constava na Ocupação) quando qualquer lado já vive na era dos carimbos (kanbanSelo); auditoria central: todo nome que ENTRAR na carteira via merge é registrado no log (abertura/salvar/poll), e as 4 ações manuais (trazer/devolver/arquivar/restaurar) também logam; poll ganhou cura ativa da nuvem); seed dos 40 clientes preservado); lixeira agora abre modal de confirmação antes de excluir; título do painel trocado de "Matriz Comercial" para "Fornecedor"), busca e sincronização multi-PC por timestamp) no menu e no cabeçalho do painel): Ocupação dos Atendentes + Ausência Programada movidas do dashboard para lá, IDÊNTICAS em layout e funções; render religado na navegação, no auto-refresh e no sync multi-PC; Control Desk agora é a tela inicial do sistema): tela com os 35 clientes do PDF, tudo editável inline (cliente, situação, contato, responsável), busca, filtro por responsável com contagem, badges de status coloridos e cores do sistema; sincronizado entre PCs por timestamp); regra de fim de semana — sexta, sábado e domingo usam o nome do sábado do PDF (sex/dom readonly, edita-se no sábado); destaque rosa nos 3 dias) já grava a seleção; campos Início e Fim ficam mais limpos) + blur para matar o incremento nativo — velocidade lenta e previsível em mouse e trackpad) e listener wheel direto no elemento com passive:false + limiar maior — scroll agora desacelera de verdade), e scroll do mouse desacelerado para ajuste suave de hora/minuto) com merge por timestamp em salvar+carregar+polling, soft delete nos arquivados e migração automática do legado)" do cabeçalho), barra lateral vermelha e separador antes do compromisso); fontes em branco vivo; ordem bolinha - nome - data - hora - compromisso) em atendimento na bolinha vermelha e pergunta qual transferir; transferir libera o slot de origem) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -1754,6 +1789,10 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
           <div class="dash-card-t">🚦 Ocupação dos Atendentes<span class="ocp-hint">verde = livre &nbsp;·&nbsp; vermelho = ocupado</span></div>
           <div class="ocp-vez-bar" id="ocpVezBar"></div>
           <div class="ocp-grid" id="ocpGrid"></div>
+        </div>
+        <div class="dash-card termo-card">
+          <div class="dash-card-t">🌡️ Termômetro do Dia<span class="ocp-hint">clientes marcados hoje por atendente</span></div>
+          <div class="termo-box" id="termoDia"></div>
         </div>
         <div class="dash-card apr-card">
           <div class="dash-card-t">📅 Ausência Programada<span class="ocp-hint">informe a data, o horário e o compromisso — visível a todos os atendentes</span></div>
@@ -2323,8 +2362,10 @@ async function carregarConfig(){
       // Sem isso, o spread acima deixava a nuvem sobrescrever cegamente — e um estado
       // velho em qualquer lado ressuscitava nomes em "Contato Realizado".
       if(typeof uvMesclarCarteiraArq==='function'){
+        var _cartAntesL={...(appConfig.carteira||{})};
         var _mcL=uvMesclarCarteiraArq(local, c);
-        appConfig.carteira=_mcL.carteira; appConfig.carteiraOps=_mcL.carteiraOps; appConfig.arquivados=_mcL.arquivados;
+        appConfig.carteira=_mcL.carteira; appConfig.carteiraOps=_mcL.carteiraOps; appConfig.arquivados=_mcL.arquivados; appConfig.kanbanSelo=_mcL.kanbanSelo;
+        if(typeof uvAuditarMergeCarteira==='function') uvAuditarMergeCarteira(_cartAntesL, _mcL.carteira, 'abertura');
       }
       // ESCALA DE PLANTÕES: merge por carimbo (edição mais recente vence)
       {
@@ -2343,6 +2384,9 @@ async function carregarConfig(){
       }
       if(typeof window.clMergeMaps==='function'){
         appConfig.clientesCorp=window.clMergeMaps(local.clientesCorp, c.clientesCorp);
+      }
+      if(typeof window.ocpMesclarHistorico==='function'){
+        appConfig.ocpHistorico=window.ocpMesclarHistorico(local.ocpHistorico, c.ocpHistorico);
       }
       // PROTEÇÃO DO PAINEL DE OCUPAÇÃO: se já havia estado local de ocupação, mescla
       // com o da nuvem em vez de deixar o spread acima simplesmente sobrescrevê-lo.
@@ -2468,8 +2512,10 @@ async function salvarConfig(){
     // Corrige a ressurreição de nomes: um PC defasado NÃO reenvia carteira velha —
     // a operação mais recente (trazer/devolver/arquivar/restaurar) SEMPRE vence.
     if(typeof uvMesclarCarteiraArq==='function'){
+      var _cartAntesS={...(appConfig.carteira||{})};
       var _mc=uvMesclarCarteiraArq(appConfig, cloud);
-      appConfig.carteira=_mc.carteira; appConfig.carteiraOps=_mc.carteiraOps; appConfig.arquivados=_mc.arquivados;
+      appConfig.carteira=_mc.carteira; appConfig.carteiraOps=_mc.carteiraOps; appConfig.arquivados=_mc.arquivados; appConfig.kanbanSelo=_mc.kanbanSelo;
+      if(typeof uvAuditarMergeCarteira==='function') uvAuditarMergeCarteira(_cartAntesS, _mc.carteira, 'salvar');
     }
     // ESCALA DE PLANTÕES: merge por carimbo (edição mais recente vence)
     {
@@ -2488,6 +2534,9 @@ async function salvarConfig(){
     }
     if(typeof window.clMergeMaps==='function'){
       appConfig.clientesCorp=window.clMergeMaps(appConfig.clientesCorp, cloud.clientesCorp);
+    }
+    if(typeof window.ocpMesclarHistorico==='function'){
+      appConfig.ocpHistorico=window.ocpMesclarHistorico(appConfig.ocpHistorico, cloud.ocpHistorico);
     }
     // quem já virou "Nome cadastrado" (está em voucherResolvido) não fica no vermelho
     Object.keys(appConfig.voucherResolvido).forEach(k=>{ if(appConfig.semCadastroWecann[k]) delete appConfig.semCadastroWecann[k]; });
@@ -2950,7 +2999,7 @@ function nomeBateVoucherEstrito(nome, setNomes){
   return false;
 }
 // lista fixa de atendentes (espelha o select de cadastro de voucher)
-const ATENDENTES=['Eduardo Vinícius','Ghabriella Bressan','Letícia Rosa','Diego Oliveira','Liliane Gaspar','Israel Hespanhol','Maria Eduarda','Fernando Pires','Ana Maria','Hynaê Teston','Mayara Marcelli'];
+const ATENDENTES=['Eduardo Vinícius','Ghabriella Bressan','Letícia Rosa','Diego Oliveira','Liliane Gaspar','Israel Hespanhol','Maria Eduarda','Fernando Pires','Ana Maria','Juliana Lupo','Hynaê Teston','Mayara Marcelli'];
 // Chaves (primeiro nome + último sobrenome) dos VENDEDORES/ATENDENTES.
 // REGRA DE OURO: o nome de um vendedor NUNCA é contabilizado como hóspede/passageiro/pessoa.
 const _vendedorKeys=new Set(ATENDENTES.map(chaveNome).filter(Boolean));
@@ -3637,14 +3686,27 @@ function carteiraMap(){ return (appConfig.carteira && typeof appConfig.carteira=
 function uvCarimbarCarteira(n, at, del){
   if(!appConfig.carteiraOps || typeof appConfig.carteiraOps!=='object') appConfig.carteiraOps={};
   appConfig.carteiraOps[n]={ at:(at||''), ts:Date.now(), del:del?1:0 };
+  // selo de geração: marca que ESTE config já vive na era dos carimbos.
+  // Usado no merge para recusar "ecos" de configs velhos (nomes sem carimbo).
+  appConfig.kanbanSelo={ ts:Date.now() };
 }
 function uvMesclarCarteiraArq(base, outro){
   base=base||{}; outro=outro||{};
-  // 1) migração do legado: nomes na carteira sem entrada em ops ganham ts:0 (perdem
-  //    para qualquer decisão carimbada); arquivados sem tsm herdam a data ISO antiga.
+  // A migração de legado (nomes na carteira sem carimbo → ts:0) SÓ é permitida quando
+  // NENHUM dos dois lados conhece a era dos carimbos (config genuinamente antigo).
+  // Se qualquer lado já tem carimbos ou o selo, um nome de carteira SEM carimbo é um
+  // ECO VELHO (build antigo/aba defasada que salvou por cima) e é DESCARTADO — era
+  // exatamente isso que ressuscitava nomes em "Contato Realizado" após importar CSV.
+  var eraCarimbos = !!( (base.carteiraOps && Object.keys(base.carteiraOps).length) ||
+                        (outro.carteiraOps && Object.keys(outro.carteiraOps).length) ||
+                        base.kanbanSelo || outro.kanbanSelo );
+  // 1) migração do legado (condicionada): nomes na carteira sem entrada em ops ganham ts:0
+  //    (perdem para qualquer decisão carimbada); arquivados sem tsm herdam a data ISO antiga.
   function migrar(cfg){
     var ops={...(cfg.carteiraOps||{})};
-    Object.keys(cfg.carteira||{}).forEach(function(n){ if(!ops[n]) ops[n]={at:cfg.carteira[n]||'', ts:0, del:0}; });
+    if(!eraCarimbos){
+      Object.keys(cfg.carteira||{}).forEach(function(n){ if(!ops[n]) ops[n]={at:cfg.carteira[n]||'', ts:0, del:0}; });
+    }
     var arq={}; Object.keys(cfg.arquivados||{}).forEach(function(n){
       var it=cfg.arquivados[n]||{}; arq[n]={...it, tsm:(typeof it.tsm==='number'?it.tsm:(Date.parse(it.ts||'')||0)), del:it.del?1:0};
     });
@@ -3661,8 +3723,24 @@ function uvMesclarCarteiraArq(base, outro){
   // 3) a carteira é RECONSTRUÍDA a partir das operações vivas (del:0)
   var cart={};
   Object.keys(ops).forEach(function(n){ var e=ops[n]; if(e && !e.del && e.at) cart[n]=e.at; });
-  return { carteira:cart, carteiraOps:ops, arquivados:arq };
+  // selo de geração: mantém o mais novo dos dois lados
+  var seloA=(base.kanbanSelo&&base.kanbanSelo.ts)||0, seloB=(outro.kanbanSelo&&outro.kanbanSelo.ts)||0;
+  var selo={ ts: Math.max(seloA, seloB) || Date.now() };
+  return { carteira:cart, carteiraOps:ops, arquivados:arq, kanbanSelo:selo };
 }
+// AUDITORIA: compara a carteira antes/depois de um merge e devolve os nomes que ENTRARAM.
+// Se algo entrar por merge (sem ação manual), o log central registra — rastreio garantido.
+function uvAuditarMergeCarteira(antes, depois, origem){
+  try{
+    var a=antes||{}, d=depois||{}, entraram=[];
+    Object.keys(d).forEach(function(n){ if(!(n in a)) entraram.push(n+' → '+d[n]); });
+    if(entraram.length && typeof logRemoto==='function'){
+      logRemoto('kanban_auditoria', 'Merge ('+origem+') reintroduziu '+entraram.length+' nome(s) na carteira', { origem: origem, nomes: entraram.slice(0,60) });
+    }
+    return entraram;
+  }catch(e){ return []; }
+}
+try{ window.uvAuditarMergeCarteira=uvAuditarMergeCarteira; }catch(e){}
 try{ window.uvMesclarCarteiraArq=uvMesclarCarteiraArq; }catch(e){}
 
 // status EFETIVO = o mais avançado entre: CSV, carteira (→Contato Realizado), voucher (→Fechado)
@@ -3701,11 +3779,13 @@ function trazerParaCarteira(){
   if(!atendente){ toast('Selecione "Sou:" (seu nome) antes de trazer','err'); if(sel) sel.focus(); return; }
   if(!shSelecionados.size){ toast('Marque ao menos um contato na coluna "Fazer contato"','err'); return; }
   if(!appConfig.carteira || typeof appConfig.carteira!=='object') appConfig.carteira={};
+  const nomes=[...shSelecionados];
   let n=0; shSelecionados.forEach(nm=>{ appConfig.carteira[nm]=atendente; uvCarimbarCarteira(nm, atendente, 0); n++; });
   shSelecionados.clear();
   salvarConfig();
   renderStatusColunas();
   toast(n+' contato(s) na carteira de '+atendente+' ✅','ok');
+  try{ logRemoto('kanban_trazer', n+' contato(s) puxado(s) para a carteira de '+atendente, { atendente: atendente, nomes: nomes }); }catch(e){}
 }
 // devolve um contato da carteira de volta para "Fazer contato"
 function devolverContato(nome){
@@ -3718,6 +3798,7 @@ function devolverContato(nome){
   salvarConfig();
   renderStatusColunas();
   toast('Contato devolvido para "Fazer contato"','info');
+  try{ logRemoto('kanban_devolver', '"'+nome+'" devolvido para Fazer contato', { nome: nome, atendenteAnterior: atual }); }catch(e){}
 }
 
 /* ===== PASTA "ARQUIVADOS" (Contato Feito) ===== */
@@ -3739,6 +3820,7 @@ function arquivarContato(nome){
   salvarConfig();
   renderStatusColunas();
   toast('“'+nome+'” movido para Template Enviado ✅','ok');
+  try{ logRemoto('kanban_arquivar', '"'+nome+'" marcado como Template Enviado', { nome: nome, atendente: at }); }catch(e){}
 }
 
 // tira dos Arquivados e devolve para "Contato Realizado" (mesmo atendente)
@@ -3753,6 +3835,7 @@ function restaurarArquivado(nome){
   salvarConfig();
   renderStatusColunas();
   toast('“'+nome+'” restaurado para Contato Realizado','info');
+  try{ logRemoto('kanban_restaurar', '"'+nome+'" restaurado dos Arquivados para Contato Realizado', { nome: nome, atendente: (it&&it.atendente)||'' }); }catch(e){}
 }
 
 // EXCLUSÃO DEFINITIVA: quem está arquivado mas, no CSV atual, já não está mais "em branco"
@@ -6091,8 +6174,6 @@ function excluirNotaUI(id){
   window.navTermoDia=function(delta){
     offsetTermoDia+=delta;
     if(offsetTermoDia>0) offsetTermoDia=0;
-    var r=_vendasDoDia(offsetTermoDia);
-    try{ desenhaTermometros(r.porVend); }catch(e){}
     var lbl=document.getElementById('navTermoLbl'); if(lbl) lbl.textContent=_rotuloDia(offsetTermoDia);
     var btnNext=document.getElementById('navTermoNext'); if(btnNext) btnNext.disabled=(offsetTermoDia>=0);
   };
@@ -6178,68 +6259,90 @@ function excluirNotaUI(id){
      Coluna com degradê FIXO (vermelho na base → verde no topo), igual à foto.
      O que muda é o NÍVEL do preenchimento e qual das 5 carinhas coloridas fica
      acesa ao lado. As carinhas são desenhadas em SVG com as cores exatas da imagem. */
-  // desenha uma carinha colorida (SVG) num dado x,y e raio, com expressão por nível
-  function carinhaSVG(x, y, raio, nivel, ativa){
-    // cores exatas inspiradas na imagem
-    var cores=['#E23B34','#F2913A','#F2C233','#9BD13F','#4CB53F']; // 0=verm 1=lar 2=amar 3=verdeClaro 4=verde
-    var cor=cores[nivel];
-    var op=ativa?1:0.30;
-    // boca por nível: 0 muito triste, 1 triste, 2 neutra, 3 sorriso, 4 muito feliz
+  // desenha uma carinha NEON (SVG) — traço luminoso, expressão por nível (0..4)
+  function carinhaSVG(x, y, raio, nivel, cor){
     var boca;
-    if(nivel===0)      boca='<path d="M'+(x-raio*0.42)+' '+(y+raio*0.55)+' Q'+x+' '+(y+raio*0.10)+' '+(x+raio*0.42)+' '+(y+raio*0.55)+'" stroke="#5a1210" stroke-width="'+(raio*0.16)+'" fill="none" stroke-linecap="round"/>';
-    else if(nivel===1) boca='<path d="M'+(x-raio*0.40)+' '+(y+raio*0.50)+' Q'+x+' '+(y+raio*0.22)+' '+(x+raio*0.40)+' '+(y+raio*0.50)+'" stroke="#6b3410" stroke-width="'+(raio*0.15)+'" fill="none" stroke-linecap="round"/>';
-    else if(nivel===2) boca='<line x1="'+(x-raio*0.40)+'" y1="'+(y+raio*0.42)+'" x2="'+(x+raio*0.40)+'" y2="'+(y+raio*0.42)+'" stroke="#6b5410" stroke-width="'+(raio*0.15)+'" stroke-linecap="round"/>';
-    else if(nivel===3) boca='<path d="M'+(x-raio*0.42)+' '+(y+raio*0.30)+' Q'+x+' '+(y+raio*0.66)+' '+(x+raio*0.42)+' '+(y+raio*0.30)+'" stroke="#3a5610" stroke-width="'+(raio*0.15)+'" fill="none" stroke-linecap="round"/>';
-    else               boca='<path d="M'+(x-raio*0.48)+' '+(y+raio*0.22)+' Q'+x+' '+(y+raio*0.78)+' '+(x+raio*0.48)+' '+(y+raio*0.22)+' Z" fill="#1f4510"/>';
-    var ro=raio*0.16, ry=y-raio*0.20;
-    var olhos='<circle cx="'+(x-raio*0.34)+'" cy="'+ry+'" r="'+ro+'" fill="#3a2010"/><circle cx="'+(x+raio*0.34)+'" cy="'+ry+'" r="'+ro+'" fill="#3a2010"/>';
-    return '<g opacity="'+op+'"><circle cx="'+x+'" cy="'+y+'" r="'+raio+'" fill="'+cor+'" stroke="rgba(0,0,0,.12)" stroke-width="1.5"/>'+olhos+boca+'</g>';
+    var sw=raio*0.16;
+    if(nivel<=0)      boca='<path d="M'+(x-raio*0.42)+' '+(y+raio*0.52)+' Q'+x+' '+(y+raio*0.08)+' '+(x+raio*0.42)+' '+(y+raio*0.52)+'" stroke="'+cor+'" stroke-width="'+sw+'" fill="none" stroke-linecap="round"/>';
+    else if(nivel===1)boca='<path d="M'+(x-raio*0.40)+' '+(y+raio*0.48)+' Q'+x+' '+(y+raio*0.22)+' '+(x+raio*0.40)+' '+(y+raio*0.48)+'" stroke="'+cor+'" stroke-width="'+sw+'" fill="none" stroke-linecap="round"/>';
+    else if(nivel===2)boca='<line x1="'+(x-raio*0.40)+'" y1="'+(y+raio*0.40)+'" x2="'+(x+raio*0.40)+'" y2="'+(y+raio*0.40)+'" stroke="'+cor+'" stroke-width="'+sw+'" stroke-linecap="round"/>';
+    else if(nivel===3)boca='<path d="M'+(x-raio*0.42)+' '+(y+raio*0.28)+' Q'+x+' '+(y+raio*0.64)+' '+(x+raio*0.42)+' '+(y+raio*0.28)+'" stroke="'+cor+'" stroke-width="'+sw+'" fill="none" stroke-linecap="round"/>';
+    else              boca='<path d="M'+(x-raio*0.46)+' '+(y+raio*0.20)+' Q'+x+' '+(y+raio*0.74)+' '+(x+raio*0.46)+' '+(y+raio*0.20)+'" stroke="'+cor+'" stroke-width="'+sw+'" fill="none" stroke-linecap="round"/>';
+    var ro=raio*0.15, ry=y-raio*0.22;
+    var olhos='<circle cx="'+(x-raio*0.32)+'" cy="'+ry+'" r="'+ro+'" fill="'+cor+'"/><circle cx="'+(x+raio*0.32)+'" cy="'+ry+'" r="'+ro+'" fill="'+cor+'"/>';
+    return '<g>'+olhos+boca+'</g>';
   }
+
+  /* ===== TERMÔMETROS NEON — CLIENTES MARCADOS HOJE POR ATENDENTE =====
+     Tubo escuro com líquido neon que ENCHE conforme a contagem do dia. Cor do
+     líquido evolui por faixa (ciano→verde→lima→âmbar→magenta), com glow. Número
+     grande em destaque no bulbo e carinha neon acompanhando o nível. */
   function desenhaTermometros(mapaHoje){
     var box=document.getElementById('termoDia'); if(!box) return;
-    var TETO=10;
-    // TODOS os atendentes sempre visíveis (mesmo com 0 vendas), ordenados por vendas
-    var lista=(typeof ATENDENTES!=='undefined'?ATENDENTES.slice():Object.keys(mapaHoje))
-      .map(function(nome){ return { nome:nome, n:(mapaHoje[nome]||0) }; })
-      .sort(function(a,b){ return b.n-a.n; });
+    // fonte da contagem: clientes marcados hoje (Ocupação). Fallback para o mapa recebido.
+    var mapa = (typeof window.ocpClientesMarcadosHoje==='function') ? window.ocpClientesMarcadosHoje() : (mapaHoje||{});
+    var lista=(typeof ATENDENTES!=='undefined'?ATENDENTES.slice():Object.keys(mapa))
+      .map(function(nome){ return { nome:nome, n:(mapa[nome]||0) }; })
+      .sort(function(a,b){ return b.n-a.n || a.nome.localeCompare(b.nome,'pt-BR'); });
     if(!lista.length){ box.innerHTML='<div class="termo-vazio">Nenhum atendente cadastrado.</div>'; return; }
-    box.innerHTML=lista.map(function(x){
+    // teto dinâmico: cresce de 6 em 6 conforme o maior valor (escala sempre confortável)
+    var maxN=lista.reduce(function(m,x){ return Math.max(m,x.n); },0);
+    var TETO=Math.max(6, Math.ceil((maxN+1)/6)*6);
+    // paleta neon por faixa de preenchimento (0..1)
+    function faixaCor(frac){
+      if(frac<=0)     return {c1:'#2b3a4a',c2:'#37506a',glow:'rgba(90,130,170,.0)',lvl:0}; // vazio: apagado
+      if(frac<0.25)   return {c1:'#22d3ee',c2:'#0ea5b7',glow:'rgba(34,211,238,.65)',lvl:1}; // ciano
+      if(frac<0.5)    return {c1:'#34e5b0',c2:'#12b48a',glow:'rgba(52,229,176,.65)',lvl:2}; // verde-água
+      if(frac<0.75)   return {c1:'#a3e635',c2:'#65c81f',glow:'rgba(163,230,53,.62)',lvl:3}; // lima
+      if(frac<1)      return {c1:'#fbbf24',c2:'#f59e0b',glow:'rgba(251,191,36,.62)',lvl:4}; // âmbar
+      return             {c1:'#f472d0',c2:'#e0518b',glow:'rgba(244,114,208,.7)',lvl:4};     // magenta (teto batido)
+    }
+    box.innerHTML=lista.map(function(x, idx){
+      var frac=Math.max(0, Math.min(1, x.n/TETO));
+      var col=faixaCor(frac);
       // geometria do tubo
-      var yTopo=14, yBase=150, alturaTubo=yBase-yTopo;
-      // nível da carinha ativa (0=base vermelho .. 4=topo verde) — SÓ a carinha se move
-      var faixaAtual = x.n<=1?0:(x.n<=3?1:(x.n<=5?2:(x.n<=8?3:4)));
-      var yCaras=[140,110,80,50,20];   // posição vertical de cada carinha (baixo→topo)
-      var carinhasSVG='';
-      for(var i=0;i<5;i++){ carinhasSVG+=carinhaSVG(90, yCaras[i], (i===faixaAtual?15:10), i, i===faixaAtual); }
+      var yTopo=16, yBase=150, alturaTubo=yBase-yTopo;   // trilho
+      var hLiq=Math.round(alturaTubo*frac);              // altura do líquido
+      var yLiq=yBase-hLiq;                               // topo do líquido
+      var uid=(idx)+'_'+Math.random().toString(36).slice(2,7);
       var primeiro=(x.nome||'').split(' ')[0];
-      // gradiente ÚNICO por item (id único para não conflitar)
-      var gid='termoGrad'+i+'_'+Math.random().toString(36).slice(2,7);
-      return '<div class="termo-item" title="'+safeEsc(x.nome)+': '+x.n+' venda(s) hoje">'+
-        '<svg viewBox="0 0 120 224" width="100%" style="max-width:92px">'+
-          '<defs><linearGradient id="'+gid+'" x1="0" y1="1" x2="0" y2="0">'+
-            '<stop offset="0%" stop-color="#E8352B"/>'+     /* base vermelho */
-            '<stop offset="28%" stop-color="#F26A2E"/>'+    /* laranja */
-            '<stop offset="50%" stop-color="#F2C233"/>'+    /* amarelo */
-            '<stop offset="74%" stop-color="#9BD13F"/>'+    /* verde claro */
-            '<stop offset="100%" stop-color="#3FBF3F"/>'+   /* verde topo */
-          '</linearGradient></defs>'+
-          // trilho do tubo (fundo)
-          '<rect x="30" y="'+yTopo+'" width="20" height="'+(alturaTubo+8)+'" rx="10" fill="rgba(255,255,255,.06)" stroke="rgba(255,255,255,.16)" stroke-width="1.5"/>'+
-          // TUBO SEMPRE CHEIO: degradê completo do topo à base (não sobe/desce)
-          '<rect x="33" y="'+yTopo+'" width="14" height="'+alturaTubo+'" rx="7" fill="url(#'+gid+')"/>'+
-          // BULBO sempre VERMELHO fixo (como na imagem)
-          '<circle cx="40" cy="178" r="22" fill="#E8352B"/>'+
-          // conexão do bulbo com a base do tubo (vermelha, para dar continuidade)
-          '<rect x="33" y="150" width="14" height="16" fill="#E8352B"/>'+
-          // marquinhas da escala
-          '<g stroke="rgba(255,255,255,.30)" stroke-width="1.5">'+
-            '<line x1="52" y1="30" x2="60" y2="30"/><line x1="52" y1="60" x2="60" y2="60"/>'+
-            '<line x1="52" y1="90" x2="60" y2="90"/><line x1="52" y1="120" x2="60" y2="120"/>'+
+      var temLiq=hLiq>2;
+      // carinha neon no topo do líquido (ou no bulbo se vazio)
+      var yCara=temLiq ? Math.max(yTopo+12, yLiq+2) : 150;
+      var caraCor=frac<=0?'#5b7186':'#ffffff';
+      var cara=carinhaSVG(40, yCara, 11, col.lvl, caraCor);
+      return '<div class="termo-item" title="'+safeEsc(x.nome)+': '+x.n+' cliente(s) marcado(s) hoje">'+
+        '<svg viewBox="0 0 80 214" width="100%" style="max-width:74px;overflow:visible">'+
+          '<defs>'+
+            '<linearGradient id="gL'+uid+'" x1="0" y1="1" x2="0" y2="0">'+
+              '<stop offset="0%" stop-color="'+col.c2+'"/><stop offset="100%" stop-color="'+col.c1+'"/>'+
+            '</linearGradient>'+
+            '<filter id="gW'+uid+'" x="-70%" y="-70%" width="240%" height="240%">'+
+              '<feGaussianBlur stdDeviation="3.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>'+
+            '</filter>'+
+          '</defs>'+
+          // trilho (tubo escuro)
+          '<rect x="28" y="'+yTopo+'" width="24" height="'+(alturaTubo+10)+'" rx="12" fill="rgba(10,20,30,.55)" stroke="rgba(255,255,255,.10)" stroke-width="1.5"/>'+
+          // marcas de escala (sutis)
+          '<g stroke="rgba(255,255,255,.12)" stroke-width="1.5" stroke-linecap="round">'+
+            '<line x1="54" y1="'+(yTopo+alturaTubo*0.25)+'" x2="59" y2="'+(yTopo+alturaTubo*0.25)+'"/>'+
+            '<line x1="54" y1="'+(yTopo+alturaTubo*0.5)+'" x2="59" y2="'+(yTopo+alturaTubo*0.5)+'"/>'+
+            '<line x1="54" y1="'+(yTopo+alturaTubo*0.75)+'" x2="59" y2="'+(yTopo+alturaTubo*0.75)+'"/>'+
           '</g>'+
-          carinhasSVG+
-          // NOME do vendedor — centralizado EXATAMENTE sob o tubo (x=40 = centro do tubo/bulbo)
-          '<text x="40" y="216" fill="#98A6BC" font-size="13" font-weight="700" text-anchor="middle">'+safeEsc(primeiro)+'</text>'+
+          // líquido neon (com glow)
+          (temLiq
+            ? '<g filter="url(#gW'+uid+')"><rect x="31" y="'+yLiq+'" width="18" height="'+hLiq+'" rx="9" fill="url(#gL'+uid+')"/>'+
+              '<rect x="34" y="'+yLiq+'" width="4" height="'+hLiq+'" rx="2" fill="rgba(255,255,255,.35)"/></g>'
+            : '')+
+          // bulbo
+          '<circle cx="40" cy="176" r="21" fill="rgba(10,20,30,.55)" stroke="rgba(255,255,255,.10)" stroke-width="1.5"/>'+
+          '<circle cx="40" cy="176" r="16" fill="'+(frac<=0?'#22303f':'url(#gL'+uid+')')+'"'+(frac>0?' filter="url(#gW'+uid+')"':'')+'/>'+
+          // número em destaque dentro do bulbo
+          '<text x="40" y="181" text-anchor="middle" font-size="17" font-weight="800" fill="'+(frac<=0?'#6b8199':'#08131a')+'">'+x.n+'</text>'+
+          // carinha neon
+          '<g'+(frac>0?' filter="url(#gW'+uid+')"':'')+' opacity="'+(frac<=0?0.5:1)+'">'+cara+'</g>'+
         '</svg>'+
+        '<div class="termo-nome" title="'+safeEsc(x.nome)+'">'+safeEsc(primeiro)+'</div>'+
       '</div>';
     }).join('');
   }
@@ -6332,6 +6435,7 @@ function excluirNotaUI(id){
     try{ if(typeof renderOcupacao==='function') renderOcupacao(); }catch(e){}
     try{ if(typeof window.renderAusProg==='function') window.renderAusProg(); }catch(e){}
     try{ if(typeof window.aprSincronizarOcupacao==='function') window.aprSincronizarOcupacao(); }catch(e){}
+    try{ if(typeof desenhaTermometros==='function') desenhaTermometros(); }catch(e){}
   };
 
   window.renderDashboard=function(){
@@ -6394,7 +6498,6 @@ function excluirNotaUI(id){
     // ao (re)renderizar o Dashboard, volta os indicadores para HOJE / semana atual
     offsetVolumeDia=0; offsetTermoDia=0; offsetVouchersSemana=0;
     try{ desenhaVelocimetro(vendasHoje); }catch(e){}
-    try{ desenhaTermometros(vendasHojePorVend); }catch(e){}
     try{ desenhaEqualizador(porDia); }catch(e){}
     // sincroniza os rótulos e o estado dos botões "próximo" (desabilitados no presente)
     try{
@@ -7392,8 +7495,13 @@ function excluirNotaUI(id){
                }).join('')+
                '<button type="button" class="ocp-sb-add" data-ocp-sb-at="'+ocpEsc(a)+'" title="Adicionar cliente em Stand By">+</button>'+
              '</div></div>'+
+             '<button type="button" class="ocp-hist-btn" data-ocp-hist-at="'+ocpEsc(a)+'" title="Histórico de atendimentos de '+ocpEsc(a)+'" aria-label="Histórico de atendimentos">'+
+               '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l3 2"/></svg>'+
+             '</button>'+
              '</div>';
     }).join('');
+    // mantém os termômetros (clientes marcados hoje) em sincronia com a Ocupação
+    try{ if(document.getElementById('termoDia') && typeof desenhaTermometros==='function') desenhaTermometros(); }catch(e){}
     return mudouSorteio;
   };
 
@@ -7716,6 +7824,170 @@ function excluirNotaUI(id){
   }
   function ocpHistStore(at){ var o=ocpEstado(); if(!o.histCliente[at] || typeof o.histCliente[at]!=='object') o.histCliente[at]={}; return o.histCliente[at]; }
 
+  /* ===== HISTÓRICO DE ATENDIMENTOS (permanente, fora do reset diário) =====
+     Guardado em appConfig.ocpHistorico { atendente: [ {ts, cli, dur}, ... ] }.
+     Cada sessão CONCLUÍDA (quando um slot com cliente real é liberado/trocado)
+     grava uma entrada: ts=quando terminou, cli=nome do cliente, dur=ms atendidos.
+     É PERMANENTE (não some no reset diário) e sincroniza entre PCs por união
+     de eventos (chave ts+cli) — nunca duplica nem perde. */
+  var OCP_HIST_MAX=500; // por atendente, mantém as últimas 500 sessões
+  function ocpHistoricoMapa(){
+    if(typeof appConfig!=='object' || !appConfig) return {};
+    if(!appConfig.ocpHistorico || typeof appConfig.ocpHistorico!=='object') appConfig.ocpHistorico={};
+    return appConfig.ocpHistorico;
+  }
+  // CONTAGEM DO TERMÔMETRO: quantos clientes DISTINTOS cada atendente marcou HOJE.
+  // Soma o histórico concluído de hoje + os clientes reais ativos nos slots agora
+  // (para o número subir na hora que marca, não só ao finalizar). Distintos por
+  // chave de cliente, por atendente. Retorna { atendente: quantidade }.
+  window.ocpClientesMarcadosHoje=function(){
+    var out={};
+    try{
+      var hoje=(typeof ocpHoje==='function')?ocpHoje():null;
+      function mesmoDiaLocal(ts){
+        if(!hoje) return true;
+        var d=new Date(ts), p2=function(n){return String(n).padStart(2,'0');};
+        return (d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate()))===hoje;
+      }
+      var setPorAt={};
+      // normaliza o Pax para servir de chave (sem acento/caixa). Vazio = sem Pax informado.
+      function _paxKey(p){ return (p||'').toString().trim() ? ocpChaveNome(p) : ''; }
+      // 1) histórico concluído de HOJE — conta DISTINTOS por cliente+Pax:
+      //    o mesmo cliente atendido para Pax DIFERENTES conta como atendimentos separados.
+      var H=ocpHistoricoMapa();
+      Object.keys(H).forEach(function(at){
+        (Array.isArray(H[at])?H[at]:[]).forEach(function(e){
+          if(!e||!e.ts||!mesmoDiaLocal(e.ts)) return;
+          var ch=ocpChaveCli(e.cli); if(!ch) return;
+          var chave=ch+'|'+_paxKey(e.pax);
+          (setPorAt[at]=setPorAt[at]||{})[chave]=1;
+        });
+      });
+      // 2) clientes reais ATIVOS agora nos slots — usa o Pax vigente (histCliente) na chave
+      var o=(typeof ocpEstado==='function')?ocpEstado():null;
+      if(o && o.clientes){
+        Object.keys(o.clientes).forEach(function(at){
+          (o.clientes[at]||[]).forEach(function(nome){
+            var ch=ocpChaveCli(nome); if(!ch) return;
+            var pax=''; try{ var _hc=(o.histCliente||{})[at]; if(_hc && _hc[ch]) pax=_hc[ch].pax||''; }catch(e){}
+            var chave=ch+'|'+_paxKey(pax);
+            (setPorAt[at]=setPorAt[at]||{})[chave]=1;
+          });
+        });
+      }
+      Object.keys(setPorAt).forEach(function(at){ out[at]=Object.keys(setPorAt[at]).length; });
+    }catch(e){}
+    return out;
+  };
+  // MERGE multi-PC do histórico: união de eventos por atendente. Chave = ts|cli
+  // (o mesmo atendimento não duplica); mantém as últimas OCP_HIST_MAX por atendente.
+  window.ocpMesclarHistorico=function(a,b){
+    a=(a&&typeof a==='object')?a:{}; b=(b&&typeof b==='object')?b:{};
+    var out={}, ats={};
+    Object.keys(a).forEach(function(k){ats[k]=1;}); Object.keys(b).forEach(function(k){ats[k]=1;});
+    Object.keys(ats).forEach(function(at){
+      var la=Array.isArray(a[at])?a[at]:[], lb=Array.isArray(b[at])?b[at]:[];
+      var vistos={}, uni=[];
+      la.concat(lb).forEach(function(e){
+        if(!e || !e.ts) return;
+        var k=e.ts+'|'+((e.cli||'')+'')+'|'+((e.pax||'')+'');
+        if(vistos[k]) return; vistos[k]=1; uni.push(e);
+      });
+      uni.sort(function(x,y){ return (y.ts||0)-(x.ts||0); });
+      if(uni.length>500) uni=uni.slice(0,500);
+      out[at]=uni;
+    });
+    return out;
+  };
+  function ocpRegistrarAtendimento(at, nomeCli, iniMs){
+    try{
+      var ch=ocpChaveCli(nomeCli); if(!ch) return;      // sentinela/vazio não gera histórico
+      if(!iniMs || iniMs<=0) return;                    // sem início válido não há duração
+      var fim=Date.now(); var dur=fim-iniMs; if(dur<1000) return; // ignora toques acidentais (<1s)
+      // PAX vigente do par atendente+cliente (informado no modal de reabertura). Vazio quando
+      // é o 1º atendimento do cliente no dia (não passou pelo modal que pede o Pax).
+      var pax='';
+      try{ var _hc=(ocpEstado().histCliente||{})[at]; if(_hc && _hc[ch]) pax=(_hc[ch].pax||'').toString().trim(); }catch(e){}
+      var H=ocpHistoricoMapa();
+      if(!Array.isArray(H[at])) H[at]=[];
+      H[at].unshift({ ts:fim, cli:(nomeCli||'').toString().trim(), dur:dur, pax:pax });
+      if(H[at].length>OCP_HIST_MAX) H[at]=H[at].slice(0, OCP_HIST_MAX);
+    }catch(e){}
+  }
+  // duração amigável: "1h 23min", "12min 05s" ou "45s"
+  function ocpHistDur(ms){
+    if(!ms||ms<0) ms=0;
+    var tot=Math.floor(ms/1000), h=Math.floor(tot/3600), m=Math.floor((tot%3600)/60), s=tot%60;
+    var p2=function(n){ return String(n).padStart(2,'0'); };
+    if(h>0) return h+'h '+p2(m)+'min';
+    if(m>0) return m+'min '+p2(s)+'s';
+    return s+'s';
+  }
+  // rótulo de data amigável a partir de um timestamp (ex.: "quarta, 09/07/2026")
+  function ocpHistDataRot(ts){
+    var d=new Date(ts);
+    var dias=['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
+    var p2=function(n){ return String(n).padStart(2,'0'); };
+    var hoje=new Date(); var ontem=new Date(hoje.getTime()-86400000);
+    function mesmoDia(a,b){ return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate(); }
+    var base=p2(d.getDate())+'/'+p2(d.getMonth()+1)+'/'+d.getFullYear();
+    if(mesmoDia(d,hoje)) return 'Hoje · '+base;
+    if(mesmoDia(d,ontem)) return 'Ontem · '+base;
+    return dias[d.getDay()]+' · '+base;
+  }
+  function ocpHistHora(ts){ var d=new Date(ts); var p2=function(n){return String(n).padStart(2,'0');}; return p2(d.getHours())+':'+p2(d.getMinutes()); }
+  function ocpFecharHist(){ var bg=document.getElementById('ocpHistModal'); if(bg&&bg.parentNode) bg.parentNode.removeChild(bg); }
+  function ocpAbrirHistorico(at){
+    ocpFecharHist();
+    var H=ocpHistoricoMapa();
+    var lista=Array.isArray(H[at])?H[at].slice():[];
+    lista.sort(function(a,b){ return (b.ts||0)-(a.ts||0); }); // mais recente primeiro
+    // agrupa por dia (rótulo de data)
+    var grupos=[], idx={};
+    lista.forEach(function(e){
+      var rot=ocpHistDataRot(e.ts);
+      if(idx[rot]===undefined){ idx[rot]=grupos.length; grupos.push({rot:rot, itens:[]}); }
+      grupos[idx[rot]].itens.push(e);
+    });
+    var totalMs=0; lista.forEach(function(e){ totalMs+=(e.dur||0); });
+    var corpo = grupos.length ? grupos.map(function(g){
+      var linhas=g.itens.map(function(e){
+        var paxTxt=(e.pax||'').toString().trim();
+        var cliHtml='<span class="ocph-cli" title="'+ocpEsc(e.cli||'')+(paxTxt?(' · Pax: '+ocpEsc(paxTxt)):'')+'">'+ocpEsc(e.cli||'(sem nome)')+
+          (paxTxt?'<span class="ocph-pax">Pax: '+ocpEsc(paxTxt)+'</span>':'')+'</span>';
+        return '<div class="ocph-row">'+
+          '<span class="ocph-hora">'+ocpHistHora(e.ts)+'</span>'+
+          cliHtml+
+          '<span class="ocph-dur">'+ocpHistDur(e.dur)+'</span>'+
+        '</div>';
+      }).join('');
+      return '<div class="ocph-dia"><div class="ocph-dia-tit">'+ocpEsc(g.rot)+' ('+g.itens.length+')</div>'+linhas+'</div>';
+    }).join('') : '<div class="ocph-vazio">Nenhum atendimento registrado ainda.<br>O histórico é preenchido automaticamente quando um atendimento é finalizado.</div>';
+
+    var bg=document.createElement('div');
+    bg.className='ocph-bg'; bg.id='ocpHistModal';
+    bg.innerHTML=
+      '<div class="ocph-modal">'+
+        '<div class="ocph-head"><div><h3>🕘 Histórico de atendimentos</h3>'+
+          '<div class="ocph-sub">'+ocpEsc(at)+' · '+lista.length+' atendimento'+(lista.length===1?'':'s')+'</div></div>'+
+          '<button type="button" class="ocph-x" id="ocpHistX">&times;</button></div>'+
+        '<div class="ocph-body">'+corpo+'</div>'+
+        '<div class="ocph-foot"><span class="ocph-total">Tempo total: <b>'+ocpHistDur(totalMs)+'</b></span>'+
+          '<button type="button" class="ocph-fechar" id="ocpHistFechar">Fechar</button></div>'+
+      '</div>';
+    document.body.appendChild(bg);
+    bg.addEventListener('click', function(e){ if(e.target===bg) ocpFecharHist(); });
+    var x=document.getElementById('ocpHistX'); if(x) x.onclick=ocpFecharHist;
+    var f=document.getElementById('ocpHistFechar'); if(f) f.onclick=ocpFecharHist;
+  }
+  // clique no ícone de histórico do card
+  document.addEventListener('click', function(e){
+    var b=e.target && e.target.closest ? e.target.closest('[data-ocp-hist-at]') : null;
+    if(!b) return;
+    ocpAbrirHistorico(b.getAttribute('data-ocp-hist-at'));
+  });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') ocpFecharHist(); });
+
   // aplica o timer certo ao pôr um cliente num slot. Retorna:
   //  'ask'    → passou da tolerância: precisa perguntar (continuação/novo com Pax)
   //  'ok'     → resolvido (fresco ou continuação automática)
@@ -7818,7 +8090,15 @@ function excluirNotaUI(id){
   function ocpDefinirCliente(at, i, valor){
     var o=ocpEstado();
     if(!Array.isArray(o.clientes[at]) || o.clientes[at].length!==3) o.clientes[at]=['','',''];
-    o.clientes[at][i]=(valor||'').trim();
+    // HISTÓRICO: se o slot tinha um cliente REAL e agora está sendo esvaziado (ou trocado
+    // por outro cliente/sentinela), a sessão terminou → grava data/hora/cliente/duração.
+    var antes=(o.clientes[at][i]||'').trim();
+    var novo=(valor||'').trim();
+    if(antes && ocpChaveCli(antes) && antes!==novo){
+      var iniAnt=(Array.isArray(o.inicios[at]) && o.inicios[at][i]) ? o.inicios[at][i] : 0;
+      ocpRegistrarAtendimento(at, antes, iniAnt);
+    }
+    o.clientes[at][i]=novo;
     // carimba a modificação deste slot (marcar/limpar cliente ou Interno/Indisp/Ausente)
     if(!Array.isArray(o.mods[at]) || o.mods[at].length!==3) o.mods[at]=[0,0,0];
     o.mods[at][i]=Date.now();
@@ -8110,6 +8390,8 @@ function excluirNotaUI(id){
       return;   // o virar-vermelho acontece dentro do modal, após a escolha
     }
     var eraLivre = !o.slots[at][i];
+    // captura o início REAL do slot ANTES de qualquer zeragem (para o histórico de duração)
+    var _iniFimReal = (Array.isArray(o.inicios[at]) && o.inicios[at][i]) ? o.inicios[at][i] : 0;
     o.slots[at][i]=o.slots[at][i]?0:1;   // alterna livre ⇄ ocupado
     // CARIMBO DE MODIFICAÇÃO: registra QUANDO este slot mudou, para o merge entre
     // PCs saber que esta ação é a mais recente (e não deixar a nuvem antiga desfazê-la).
@@ -8126,6 +8408,12 @@ function excluirNotaUI(id){
     // o atendimento terminou, então a seleção de cliente não faz mais sentido.
     if(!Array.isArray(o.clientes[at]) || o.clientes[at].length!==3) o.clientes[at]=['','',''];
     if(!virouVermelho){
+      // HISTÓRICO: o atendimento terminou aqui → grava data/hora/cliente/duração
+      // (antes de limpar o cliente do slot). Só conta cliente real, com início válido.
+      var _nomeFim=(o.clientes[at][i]||'').trim();
+      if(_nomeFim && ocpChaveCli(_nomeFim)){
+        ocpRegistrarAtendimento(at, _nomeFim, _iniFimReal);
+      }
       // ANTI-BURLA: ao LIBERAR, carimba a "última vez visto" do cliente que estava
       // aqui. É esse carimbo que abre a janela de tolerância: se o mesmo cliente for
       // reaberto em poucos minutos, o timer RETOMA (não zera) e conta o reinício.
@@ -8371,12 +8659,21 @@ function excluirNotaUI(id){
       try{
         if(typeof window.uvMesclarCarteiraArq==='function' && (c.carteira||c.carteiraOps||c.arquivados)){
           var _antesMc=JSON.stringify({a:appConfig.carteira||{},b:appConfig.arquivados||{}});
+          var _cartAntesP={...(appConfig.carteira||{})};
           var _mcP=window.uvMesclarCarteiraArq(appConfig, c);
-          appConfig.carteira=_mcP.carteira; appConfig.carteiraOps=_mcP.carteiraOps; appConfig.arquivados=_mcP.arquivados;
+          appConfig.carteira=_mcP.carteira; appConfig.carteiraOps=_mcP.carteiraOps; appConfig.arquivados=_mcP.arquivados; appConfig.kanbanSelo=_mcP.kanbanSelo;
+          if(typeof window.uvAuditarMergeCarteira==='function') window.uvAuditarMergeCarteira(_cartAntesP, _mcP.carteira, 'poll');
           if(JSON.stringify({a:appConfig.carteira,b:appConfig.arquivados})!==_antesMc){
             try{ localStorage.setItem('uv_config', JSON.stringify(appConfig)); }catch(e){}
             try{ if(typeof renderStatusColunas==='function') renderStatusColunas(); }catch(e){}
           }
+          // CURA ATIVA: se a nuvem está DIFERENTE do resultado do merge (ex.: um build
+          // antigo salvou estado velho por cima), re-salva imediatamente o estado
+          // correto — encurta a janela em que outro PC poderia adotar o estado ruim.
+          try{
+            var _nuvemCart=JSON.stringify({a:c.carteira||{},b:c.arquivados||{}});
+            if(_nuvemCart!==JSON.stringify({a:appConfig.carteira,b:appConfig.arquivados}) && typeof salvarConfig==='function') salvarConfig();
+          }catch(e){}
         }
       }catch(e){}
       var nuvem=c.ocupacaoAtendentes;
