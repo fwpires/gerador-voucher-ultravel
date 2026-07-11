@@ -1485,6 +1485,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
         <button class="nav-item open" data-tree="matriz"><span class="nav-ic nav-ic-mx"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#2ec7a5" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="9.5" x2="21" y2="9.5"/><line x1="9" y1="9.5" x2="9" y2="20"/><line x1="15" y1="9.5" x2="15" y2="20"/></svg></span><span>Matriz Comercial</span><b class="nav-caret">▾</b></button>
         <div class="nav-children show" data-tree-body="matriz">
           <button class="nav-item nav-sub" data-screen="matriz"><span>Fornecedor</span></button>
+          <button class="nav-item nav-sub" data-screen="cliente"><span>Cliente</span></button>
         </div>
 
         <div class="nav-cat">Painel de Controle</div>
@@ -1711,7 +1712,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v3·63 (Matriz Comercial virou pasta com subpasta "Fornecedor" que abre o painel; painel scr-matriz mantido idêntico, só a navegação mudou), busca e sincronização multi-PC por timestamp) no menu e no cabeçalho do painel): Ocupação dos Atendentes + Ausência Programada movidas do dashboard para lá, IDÊNTICAS em layout e funções; render religado na navegação, no auto-refresh e no sync multi-PC; Control Desk agora é a tela inicial do sistema): tela com os 35 clientes do PDF, tudo editável inline (cliente, situação, contato, responsável), busca, filtro por responsável com contagem, badges de status coloridos e cores do sistema; sincronizado entre PCs por timestamp); regra de fim de semana — sexta, sábado e domingo usam o nome do sábado do PDF (sex/dom readonly, edita-se no sábado); destaque rosa nos 3 dias) já grava a seleção; campos Início e Fim ficam mais limpos) + blur para matar o incremento nativo — velocidade lenta e previsível em mouse e trackpad) e listener wheel direto no elemento com passive:false + limiar maior — scroll agora desacelera de verdade), e scroll do mouse desacelerado para ajuste suave de hora/minuto) com merge por timestamp em salvar+carregar+polling, soft delete nos arquivados e migração automática do legado)" do cabeçalho), barra lateral vermelha e separador antes do compromisso); fontes em branco vivo; ordem bolinha - nome - data - hora - compromisso) em atendimento na bolinha vermelha e pergunta qual transferir; transferir libera o slot de origem) -->
+    <!-- build: HUB-v3·66 (Cliente virou editável: botões Adicionar, Editar e Excluir por cliente; exclusão com modal de confirmação; edições/novos/exclusões salvos em appConfig.clientesCorp com merge por carimbo (persiste local+nuvem, multi-PC); seed dos 40 clientes preservado); lixeira agora abre modal de confirmação antes de excluir; título do painel trocado de "Matriz Comercial" para "Fornecedor"), busca e sincronização multi-PC por timestamp) no menu e no cabeçalho do painel): Ocupação dos Atendentes + Ausência Programada movidas do dashboard para lá, IDÊNTICAS em layout e funções; render religado na navegação, no auto-refresh e no sync multi-PC; Control Desk agora é a tela inicial do sistema): tela com os 35 clientes do PDF, tudo editável inline (cliente, situação, contato, responsável), busca, filtro por responsável com contagem, badges de status coloridos e cores do sistema; sincronizado entre PCs por timestamp); regra de fim de semana — sexta, sábado e domingo usam o nome do sábado do PDF (sex/dom readonly, edita-se no sábado); destaque rosa nos 3 dias) já grava a seleção; campos Início e Fim ficam mais limpos) + blur para matar o incremento nativo — velocidade lenta e previsível em mouse e trackpad) e listener wheel direto no elemento com passive:false + limiar maior — scroll agora desacelera de verdade), e scroll do mouse desacelerado para ajuste suave de hora/minuto) com merge por timestamp em salvar+carregar+polling, soft delete nos arquivados e migração automática do legado)" do cabeçalho), barra lateral vermelha e separador antes do compromisso); fontes em branco vivo; ordem bolinha - nome - data - hora - compromisso) em atendimento na bolinha vermelha e pergunta qual transferir; transferir libera o slot de origem) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -1797,6 +1798,10 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
       </section>
       <section class="screen" id="scr-matriz">
         <div id="matrizWrap"></div>
+      </section>
+
+      <section class="screen" id="scr-cliente">
+        <div id="clienteWrap"></div>
       </section>
 
     </div>
@@ -2336,6 +2341,9 @@ async function carregarConfig(){
       if(typeof window.mxMergeMaps==='function'){
         appConfig.matrizComercial=window.mxMergeMaps(local.matrizComercial, c.matrizComercial);
       }
+      if(typeof window.clMergeMaps==='function'){
+        appConfig.clientesCorp=window.clMergeMaps(local.clientesCorp, c.clientesCorp);
+      }
       // PROTEÇÃO DO PAINEL DE OCUPAÇÃO: se já havia estado local de ocupação, mescla
       // com o da nuvem em vez de deixar o spread acima simplesmente sobrescrevê-lo.
       // (o merge só existe após o IIFE de ocupação carregar; a guarda evita erro)
@@ -2477,6 +2485,9 @@ async function salvarConfig(){
     }
     if(typeof window.mxMergeMaps==='function'){
       appConfig.matrizComercial=window.mxMergeMaps(appConfig.matrizComercial, cloud.matrizComercial);
+    }
+    if(typeof window.clMergeMaps==='function'){
+      appConfig.clientesCorp=window.clMergeMaps(appConfig.clientesCorp, cloud.clientesCorp);
     }
     // quem já virou "Nome cadastrado" (está em voucherResolvido) não fica no vermelho
     Object.keys(appConfig.voucherResolvido).forEach(k=>{ if(appConfig.semCadastroWecann[k]) delete appConfig.semCadastroWecann[k]; });
@@ -5398,6 +5409,7 @@ init();
       if(scr==='controldesk' && typeof window.renderControlDesk==='function') window.renderControlDesk();
       if(scr==='cabeca' && typeof window.renderCabecaRede==='function') window.renderCabecaRede();
       if(scr==='matriz' && typeof window.renderMatriz==='function') window.renderMatriz();
+      if(scr==='cliente' && typeof window.renderCliente==='function') window.renderCliente();
     }
     document.querySelectorAll('#hubSidebar .nav-item').forEach(function(n){
       n.classList.toggle('active', n.getAttribute('data-screen')===scr);
@@ -8796,7 +8808,8 @@ function excluirNotaUI(id){
     var coms=''; COMS.forEach(function(c){ if(f[c[0]]) coms+='<span class="mx-com '+c[2]+'">'+c[3]+' '+c[1]+' '+mxEsc(f[c[0]])+'</span>'; });
     var obs = f.obs ? '<div class="mx-obs"><span class="mx-oi">⚠️</span><span>'+mxEsc(f.obs)+'</span></div>' : '';
     var calBtn = (f.cal&&f.cal.length) ? '<button type="button" class="mx-cal-btn" data-mx-cal="'+f.id+'">📅 Calendário ('+f.cal.length+')</button>' : '';
-    return '<div class="mx-card">'+
+    var arrastavel = !mxBusca; // só permite arrastar quando não há busca ativa (senão a ordem salva ficaria incompleta)
+    return '<div class="mx-card'+(arrastavel?' mx-arrastavel':'')+'"'+(arrastavel?' draggable="true"':'')+' data-mx-id="'+f.id+'">'+
       '<div class="mx-card-top"><div class="mx-nome">'+mxEsc(f.nome||'(sem nome)')+'</div>'+tag+'</div>'+
       (f.venc?'<div class="mx-venc"><span class="mx-vi">📅</span><span>'+mxEsc(f.venc)+'</span></div>':'')+
       (coms?'<div class="mx-coms">'+coms+'</div>':'')+
@@ -8805,16 +8818,84 @@ function excluirNotaUI(id){
     '</div>';
   }
 
+  // ---- Ordem personalizada (salva em appConfig.matrizOrdem, persiste na nuvem) ----
+  function mxOrdenar(lista){
+    var ord = (typeof appConfig==='object' && appConfig && Array.isArray(appConfig.matrizOrdem)) ? appConfig.matrizOrdem : [];
+    var pos={}; ord.forEach(function(id,i){ pos[id]=i; });
+    return lista.slice().sort(function(a,b){
+      var pa=(a.id in pos)?pos[a.id]:9990, pb=(b.id in pos)?pos[b.id]:9990;
+      if(pa!==pb) return pa-pb;
+      return (a.nome||'').localeCompare(b.nome||''); // fornecedores ainda sem posição definida: alfabético ao final
+    });
+  }
+  function mxSalvarOrdem(){
+    var grid=document.querySelector('#matrizWrap .mx-grid'); if(!grid) return;
+    var ids=[].slice.call(grid.querySelectorAll('.mx-card[data-mx-id]')).map(function(c){ return c.getAttribute('data-mx-id'); }).filter(Boolean);
+    if(!ids.length) return;
+    if(typeof appConfig!=='object' || !appConfig) return;
+    appConfig.matrizOrdem = ids;
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+  }
+
+  // ---- Arrastar & soltar para reordenar os cards ----
+  var mxDragEl=null;
+  function mxDragAfter(grid, x, y){
+    var els=[].slice.call(grid.querySelectorAll('.mx-card[data-mx-id]:not(.mx-dragging)'));
+    for(var i=0;i<els.length;i++){
+      var b=els[i].getBoundingClientRect();
+      var cy=b.top+b.height/2, cx=b.left+b.width/2;
+      var mesmaLinha = Math.abs(y-cy) < b.height/2;
+      if( y < cy - b.height/2 || (mesmaLinha && x < cx) ) return els[i];
+    }
+    return null;
+  }
+  document.addEventListener('dragstart', function(e){
+    var card=e.target && e.target.closest && e.target.closest('#matrizWrap .mx-card[draggable="true"]');
+    if(!card) return;
+    if(e.target.closest('button')){ e.preventDefault(); return; } // clicar num botão nunca inicia arraste
+    mxDragEl=card; card.classList.add('mx-dragging');
+    try{ e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('text/plain', card.getAttribute('data-mx-id')||''); }catch(_){}
+  });
+  document.addEventListener('dragover', function(e){
+    if(!mxDragEl) return;
+    var grid=e.target && e.target.closest && e.target.closest('#matrizWrap .mx-grid'); if(!grid) return;
+    e.preventDefault();
+    try{ e.dataTransfer.dropEffect='move'; }catch(_){}
+    var ref=mxDragAfter(grid, e.clientX, e.clientY);
+    if(ref) grid.insertBefore(mxDragEl, ref); else grid.appendChild(mxDragEl);
+  });
+  document.addEventListener('drop', function(e){ if(mxDragEl){ e.preventDefault(); } });
+  document.addEventListener('dragend', function(){
+    if(!mxDragEl) return;
+    mxDragEl.classList.remove('mx-dragging'); mxDragEl=null;
+    mxSalvarOrdem(); // grava a nova ordem para sempre (persiste local + nuvem)
+  });
+
+  // ---- Confirmação antes de excluir (nunca exclui direto) ----
+  function mxConfirmarExclusao(id){
+    var f=mxGet(id)||{};
+    var bg=document.createElement('div'); bg.className='mx-bg'; bg.id='mxDelModal';
+    bg.innerHTML=
+      '<div class="mx-modal mx-modal-sm"><div class="mx-mhead"><span class="mx-mtitle">🗑 Excluir fornecedor</span><button type="button" class="mx-x" id="mxDelX">✕</button></div>'+
+      '<div class="mx-mbody"><p style="margin:0;line-height:1.55;color:#E6EEF3">Tem certeza que deseja excluir <b>'+mxEsc(f.nome||'este fornecedor')+'</b>?<br><span style="color:#8CA3B3;font-size:.88rem">Esta ação não pode ser desfeita.</span></p></div>'+
+      '<div class="mx-mfoot"><button type="button" class="mx-cancel" id="mxDelCancel">Cancelar</button><button type="button" class="mx-save mx-danger" id="mxDelOk">Excluir</button></div></div>';
+    document.body.appendChild(bg);
+    function fechar(){ if(bg.parentNode) bg.parentNode.removeChild(bg); }
+    bg.addEventListener('click', function(e){ if(e.target===bg) fechar(); });
+    document.getElementById('mxDelX').onclick=fechar;
+    document.getElementById('mxDelCancel').onclick=fechar;
+    document.getElementById('mxDelOk').onclick=function(){ fechar(); mxDel(id); };
+  }
+
   window.renderMatriz=function(){
     var wrap=document.getElementById('matrizWrap'); if(!wrap) return;
     var todos=mxLista();
     var q=mxBusca.toLowerCase();
-    var lista=todos.filter(function(f){ return !q || (f.nome+' '+f.venc+' '+f.obs+' '+f.tipo).toLowerCase().indexOf(q)>=0; })
-      .sort(function(a,b){ return (a.nome||'').localeCompare(b.nome||''); });
+    var lista=mxOrdenar(todos.filter(function(f){ return !q || (f.nome+' '+f.venc+' '+f.obs+' '+f.tipo).toLowerCase().indexOf(q)>=0; }));
     var cards = lista.length ? lista.map(mxCardHtml).join('') : '<div class="mx-vazio">Nenhum fornecedor encontrado.</div>';
     wrap.innerHTML=
       '<div class="mx-head">'+
-        '<div><h2 class="mx-title">📊 Matriz Comercial</h2><div class="mx-sub">'+todos.length+' fornecedores · vencimentos e comissões · clique em ✏️ para editar</div></div>'+
+        '<div><h2 class="mx-title">📊 Fornecedor</h2><div class="mx-sub">'+todos.length+' fornecedores · vencimentos e comissões · '+(mxBusca?'limpe a busca para reordenar':'arraste os cards para reordenar')+' · ✏️ para editar</div></div>'+
         '<button type="button" class="mx-add" id="mxAdd">＋ Adicionar fornecedor</button>'+
       '</div>'+
       '<input type="text" class="mx-busca" id="mxBusca" placeholder="🔎 Buscar fornecedor, regra de vencimento..." value="'+mxEsc(mxBusca)+'">'+
@@ -8882,12 +8963,245 @@ function excluirNotaUI(id){
     if(e.target.closest('#mxAdd')){ mxAdd(); return; }
     var ed=e.target.closest('[data-mx-ed]'); if(ed){ mxEditar(ed.getAttribute('data-mx-ed')); return; }
     var cal=e.target.closest('[data-mx-cal]'); if(cal){ mxCalendario(cal.getAttribute('data-mx-cal')); return; }
-    var del=e.target.closest('[data-mx-del]'); if(del){ mxDel(del.getAttribute('data-mx-del')); return; }
+    var del=e.target.closest('[data-mx-del]'); if(del){ mxConfirmarExclusao(del.getAttribute('data-mx-del')); return; }
   });
   document.addEventListener('input', function(e){
     if(e.target && e.target.id==='mxBusca'){ mxBusca=e.target.value; renderMatriz(); }
   });
 })();
 </script>
+
+<!-- ===== SUBPASTA CLIENTE (Matriz Comercial) — painel de regras de faturamento ===== -->
+<style>
+  #scr-cliente .cl-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+  #scr-cliente .cl-add{background:#2ec7a5;color:#08131a;border:none;border-radius:10px;padding:10px 15px;font-size:.9rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .15s}
+  #scr-cliente .cl-add:hover{background:#28b394}
+  #scr-cliente .cl-title{font-size:1.25rem;font-weight:700;margin:0;color:#E6EEF3}
+  #scr-cliente .cl-sub{color:#8CA3B3;font-size:.82rem;margin-top:3px}
+  #scr-cliente .cl-busca{width:100%;background:#16232F;border:1px solid #243849;border-radius:11px;color:#E6EEF3;padding:12px 14px;font-size:.95rem;outline:none;margin-bottom:14px;transition:border .15s}
+  #scr-cliente .cl-busca:focus{border-color:#2ec7a5}
+  #scr-cliente .cl-colhead{display:grid;grid-template-columns:1fr 1.25fr 132px;gap:14px;padding:0 18px 8px;color:#8CA3B3;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.7px}
+  #scr-cliente .cl-colhead .r{text-align:right}
+  #scr-cliente .cl-list{display:flex;flex-direction:column;gap:8px}
+  #scr-cliente .cl-row{display:grid;grid-template-columns:1fr 1.25fr 132px;gap:14px;align-items:center;background:#16232F;border:1px solid #243849;border-radius:12px;padding:13px 18px;transition:border .15s}
+  #scr-cliente .cl-row:hover{border-color:#33586b}
+  #scr-cliente .cl-nome{font-weight:650;font-size:1rem;line-height:1.25;color:#E6EEF3}
+  #scr-cliente .cl-regra{color:#cfe8e0;font-size:.9rem;line-height:1.4;white-space:pre-line}
+  #scr-cliente .cl-tag{display:inline-block;background:rgba(240,165,74,.12);color:#f0a54a;border:1px solid rgba(240,165,74,.32);font-size:.76rem;padding:3px 11px;border-radius:20px}
+  #scr-cliente .cl-det{justify-self:end;display:flex;gap:6px;align-items:center}
+  #scr-cliente .cl-det button{border-radius:9px;padding:7px 9px;font-size:.85rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;min-width:34px;transition:background .15s,border-color .15s}
+  #scr-cliente .cl-b-ver{background:#0d2a24;color:#2ec7a5;border:1px solid #1f9e83}
+  #scr-cliente .cl-b-ver:hover{background:#123a32}
+  #scr-cliente .cl-b-ver:disabled{opacity:.32;cursor:default;color:#8CA3B3;border-color:#243849;background:transparent}
+  #scr-cliente .cl-b-ed{background:#16232F;color:#E6EEF3;border:1px solid #243849}
+  #scr-cliente .cl-b-ed:hover{background:#1e3040;border-color:#33586b}
+  #scr-cliente .cl-b-del{background:#16232F;color:#E6EEF3;border:1px solid #243849}
+  #scr-cliente .cl-b-del:hover{background:#3a1d1d;border-color:#c0392b}
+  #scr-cliente .cl-vazio{text-align:center;color:#8CA3B3;padding:40px;font-size:.9rem}
+  /* Modal de edição / novo cadastro */
+  .cl-mbody .cl-efield{display:flex;flex-direction:column;gap:5px}
+  .cl-mbody .cl-efield label{color:#2ec7a5;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.7px}
+  .cl-mbody .cl-efield input,.cl-mbody .cl-efield textarea{background:#0F1923;border:1px solid #243849;border-radius:9px;color:#E6EEF3;padding:10px 12px;font-size:.9rem;font-family:inherit;line-height:1.45;outline:none;transition:border .15s}
+  .cl-mbody .cl-efield input:focus,.cl-mbody .cl-efield textarea:focus{border-color:#2ec7a5}
+  .cl-mbody .cl-efield textarea{min-height:64px;resize:vertical}
+  .cl-mfoot{display:flex;justify-content:flex-end;gap:10px;padding:14px 22px 20px;border-top:1px solid #243849}
+  .cl-cancel{background:transparent;border:1px solid #243849;color:#8CA3B3;border-radius:9px;padding:9px 16px;cursor:pointer;font-size:.9rem}
+  .cl-cancel:hover{color:#E6EEF3;border-color:#33586b}
+  .cl-savebtn{background:#2ec7a5;border:none;color:#08131a;border-radius:9px;padding:9px 18px;cursor:pointer;font-weight:700;font-size:.9rem}
+  .cl-savebtn:hover{background:#28b394}
+  .cl-savebtn.cl-danger{background:#c0392b;color:#fff}
+  .cl-savebtn.cl-danger:hover{background:#a93226}
+  .cl-ov{position:fixed;inset:0;background:rgba(6,12,17,.72);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;padding:20px;z-index:9000}
+  .cl-ov.on{display:flex}
+  .cl-modal{background:#16232F;border:1px solid #243849;border-radius:16px;width:100%;max-width:540px;max-height:86vh;overflow:auto;box-shadow:0 24px 60px rgba(0,0,0,.5)}
+  .cl-mhead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:20px 22px 14px;border-bottom:1px solid #243849;position:sticky;top:0;background:#16232F}
+  .cl-mhead h2{font-size:1.12rem;font-weight:700;color:#E6EEF3;margin:0}
+  .cl-mhead .cl-x{background:none;border:none;color:#8CA3B3;font-size:1.5rem;cursor:pointer;line-height:1;padding:0 4px}
+  .cl-mhead .cl-x:hover{color:#E6EEF3}
+  .cl-mbody{padding:18px 22px 24px;display:flex;flex-direction:column;gap:15px}
+  .cl-fld .cl-lbl{color:#2ec7a5;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px}
+  .cl-fld .cl-val{color:#E6EEF3;font-size:.92rem;line-height:1.5;white-space:pre-line}
+  .cl-fld.cl-regrabox{background:#0d2a24;border:1px solid #1f9e83;border-radius:11px;padding:13px 15px}
+  .cl-fld.cl-regrabox .cl-val{color:#d7f2ea}
+</style>
+<script>
+(function(){
+  var CL_DADOS = [{"nome": "Academia de Pregadores", "contato": "Moisés 48 9104-1453", "atendimento": "", "instrucoes": "", "regra": "", "rentabilidade": "", "outras": ""}, {"nome": "AMF Promotora", "contato": "Marcia 48 98447669", "atendimento": "", "instrucoes": "atraves dos emails - administrativo@amfpromotora.com; contasapagar@amfpromotora.com - Pgto via PIX - watts - 48 99917-6270", "regra": "", "rentabilidade": "", "outras": ""}, {"nome": "Banco C6", "contato": "Ju 11 98804-9104", "atendimento": "", "instrucoes": "", "regra": "", "rentabilidade": "", "outras": ""}, {"nome": "Bevicred", "contato": "Loan 18 981371717/Vinicius 18 98137-1566", "atendimento": "Grupo de trabalho no whatsapp, solicitante Vinícius", "instrucoes": "através do email supervisao.contasapagar@bevioficial.com.br", "regra": "01 ao último dia do mês, fatura dia 05, vencimento dia 10.", "rentabilidade": "aéreo e hotel preço confiança (emitir onde for mais barato)", "outras": ""}, {"nome": "Bistek", "contato": "Mariana 48 8432-2932", "atendimento": "Através da Mariana +55 48 8432-2932", "instrucoes": "através do email mariana.ronchi@bistek.com.br", "regra": "5 dias corridos", "rentabilidade": "", "outras": ""}, {"nome": "CEAP Brasil", "contato": "Erik 48 8492-7985/ Gabriela 48 99807-0696", "atendimento": "", "instrucoes": "", "regra": "", "rentabilidade": "", "outras": ""}, {"nome": "Central do Avivamento", "contato": "Roberta 21 97197-1641", "atendimento": "", "instrucoes": "c/ Roberta  - 21 97197-1641", "regra": "Vencimento 10 dias pós venda.", "rentabilidade": "", "outras": ""}, {"nome": "Cia do Crédito", "contato": "Leila Viana -  22 99939-1253", "atendimento": "", "instrucoes": "atraves do email: rh@ciadocredito.com.br - Leila Viana/ c/ cópia para: despesa@ciadocredito.com.br", "regra": "", "rentabilidade": "", "outras": ""}, {"nome": "Clint", "contato": "Leandro - 48 9157-7975", "atendimento": "", "instrucoes": "Enviar fatura + pix, para Leandro, via chat", "regra": "", "rentabilidade": "", "outras": ""}, {"nome": "Criminal Player", "contato": "Janaine - 48 9102-7403", "atendimento": "Grupo whatsapp", "instrucoes": "através do email: jananecchioeventos@gmail.com - fatura + boleto", "regra": "Vencimento 15 dias pós venda. Ou no cartão deles parcelado: 5330 2070 0256 0648 - Val 04/27 - Cod 587 (ANA CAROLINA ROSSKAMP) / CPF: 806.142.569-68", "rentabilidade": "", "outras": ""}, {"nome": "Credfranco - VMA", "contato": "Elaine +5531999844232", "atendimento": "Grupo whatsapp", "instrucoes": "Emails de envio: elaine.alves@credifranco.com.br/ contasapagar@credifranco.com.br \nEnvio de cobranca, Regra: email individual, para cada passagem emitida. \nAssunto: Its Soluções e o nome do passageiro.", "regra": "01 a 10 vence dia 25\n11 a 19 vence dia 05\n20 ao ultimo dia do mes vence dia 15", "rentabilidade": "Normalmente ela mesma vai enviar print do nosso proprio site, se nao enviar, pdf confiança. tenha sensibilidade", "outras": ""}, {"nome": "Credvix", "contato": "", "atendimento": "", "instrucoes": "", "regra": "Vencimento 10 dias pós venda.", "rentabilidade": "", "outras": ""}, {"nome": "Cuju - Rogon Technologies GMBH", "contato": "Vinicius - 47 997836587", "atendimento": "", "instrucoes": "email em Ingles, valores em Euro + arquivo orientacao pagto EURO -  invoice@rogontechnologies.com; thaiany.klarmann@rogontechnologies.com;lascasas.vinicius@gmail.com", "regra": "IMPORTANTE: SÓ PROGRAMAR PGTOS P/ AS TERCAS E QUINTAS, CONFIRMANDO COM O SOLICIANTE QUAL MELHOR DATA (TERÇA SEGUINTE OU QUINTA SEGUINTE)", "rentabilidade": "", "outras": ""}, {"nome": "Data Rudder", "contato": "Bárbara 48 9855-8070", "atendimento": "", "instrucoes": "anexar faturas na planilha de controle interna - forma de pagamento: Pix", "regra": "Emissoes até o 15 de cada mes, venc. 25 do mes seguinte. (Enviar a venda imediatamente para dar tempo de entrar no fluxo atual)", "rentabilidade": "", "outras": ""}, {"nome": "Destra", "contato": "", "atendimento": "", "instrucoes": "A cobrança será sempre com a Juliana, da Destra, por email: juliana.monteiro@somosdestra.com", "regra": "", "rentabilidade": "", "outras": ""}, {"nome": "GREENCARE PHARMA (Empresa patrocinadora do WeCann)", "contato": "Sabrina Albertoni (mkt e eventos) - 11 98292-1816", "atendimento": "", "instrucoes": "Sabrina Albertoni - 11 98292-1816/ sabrina.albertoni@greencarepharma.com.br/ nomes de passageiros/ hospedes nao podem constar na fatura: excluir da fatura (viajante e nome, demais infos ok)", "regra": "Combinados: Hospedagem evento WeCann: pagamento faturado p/ 20. Passagens Aéreas/ hotelaria outros eventos: * Faturamento com prazo de até 07 dias. * Alternativamente, emissão com parcelamento diretamente na companhia aérea utilizando cartão corporativo ou cartão do passageiro.", "rentabilidade": "", "outras": ""}, {"nome": "Hocta", "contato": "", "atendimento": "Grupo whatsapp", "instrucoes": "", "regra": "", "rentabilidade": "", "outras": ""}, {"nome": "Icred - VMA", "contato": "", "atendimento": "", "instrucoes": "fatura p/ Juliana Lupo", "regra": "", "rentabilidade": "", "outras": ""}, {"nome": "Lev Negócios", "contato": "Gisele Antunes 16 97407-1432", "atendimento": "Eles compram com o próprio cartão de crédito, possuem acesso a Confiança", "instrucoes": "quando faturado, enviar para facilities@levnegocios.com.br", "regra": "01 ao último dia do mês, fatura dia 05, vencimento dia 10.", "rentabilidade": "aéreo e hotel preço confiança (emitir onde for mais barato)", "outras": ""}, {"nome": "Liderança Serviços", "contato": "Natan 48 9923-2953", "atendimento": "email: grupoadm@lideranca.com.br", "instrucoes": "Natan 48 9923-2953 - enviar para o email natan.jacob@lideranca.com.br", "regra": "01 ao último dia do mês, fatura dia 05, vencimento dia 10 (mes seguinte). Pagamento via pix.", "rentabilidade": "aéreo e hotel preço confiança (emitir onde for mais barato)", "outras": "Sempre que a Ingrydd for a solicitante o centro de custo será 456"}, {"nome": "Making", "contato": "Gabriel 48 9102-2653", "atendimento": "", "instrucoes": "", "regra": "", "rentabilidade": "", "outras": ""}, {"nome": "Maxpan", "contato": "Nisandra 48 99115292", "atendimento": "", "instrucoes": "Enviar o e-mail com a fatura e boleto/ financeiro@maxpan.com.br", "regra": "Vencimento 7 dias após a emissão(BOLETO)", "rentabilidade": "", "outras": ""}, {"nome": "MAXIPAY SOLUCOES EM PAGAMENTOS LTDA (antiga Connect People)", "contato": "", "atendimento": "", "instrucoes": "Nicole (+55 31 8425-3744)", "regra": "", "rentabilidade": "", "outras": ""}, {"nome": "Neurônios - VMA", "contato": "Luca 31 9492-2741", "atendimento": "", "instrucoes": "", "regra": "", "rentabilidade": "", "outras": ""}, {"nome": "NG Card - VMA", "contato": "Rose 11 98791-8852", "atendimento": "Grupo de trabalho no whatsapp, solicitante Rose", "instrucoes": "através do whatsapp da Rose +55 11 98791-8852", "regra": "Emissoes de 01 a 10, vencem dia 25 do mesmo mês\nEmissoes de 11 a 20, vencem 05 do mês seguinte\nEmissoes de 21 ao ultimo dia do mes, vencem 15 do mês seguinte", "rentabilidade": "consulta de preço no site da cia aérea (nacional)\nconfiança (internacional\nemissão normalmente na Oner ou com milhas para obter melhor rentabilidade.", "outras": ""}, {"nome": "Nova Promotora", "contato": "Aline Cruz 48 8500-8112", "atendimento": "Grupo de trabalho no whatsapp, solicitantes: Aline e Dinho", "instrucoes": "através do email: financeiro@novapromotora.com", "regra": "fatura no dia seguinte à venda, vencimento 7 dias após a emissão.", "rentabilidade": "aéreo e hotel preço confiança (emitir onde for mais barato)", "outras": ""}, {"nome": "Novo Saque", "contato": "Israel 48 9848-7165", "atendimento": "", "instrucoes": "Felipe watts (48 9187-6910)/ financeiro@novosaque.com.br", "regra": "", "rentabilidade": "", "outras": ""}, {"nome": "O Bom Samaritano", "contato": "Jackson 48 9173-4411", "atendimento": "", "instrucoes": "", "regra": "", "rentabilidade": "", "outras": ""}, {"nome": "Palavra Viva", "contato": "Lucas 48 9950-9700", "atendimento": "", "instrucoes": "c/ Ademar watts (48 9698-2929)", "regra": "Vencimento cada dia 10", "rentabilidade": "", "outras": ""}, {"nome": "Peg Card - VMA", "contato": "Ana Teresa  91 8916-0504", "atendimento": "Grupo de trabalho no whatsapp, solicitante Ana Teresa", "instrucoes": "através do whatsapp da Ana Teresa +55 91 8916-0504", "regra": "Emissoes de 01 a 10, vencem dia 20 do mês seguinte\nEmissoes de 11 a 20, vencem 30 do mês seguinte\nEmissoes de 21 ao ultimo dia do mes, vencem 10 do mês subsequente", "rentabilidade": "consulta de preço no site da cia aérea (nacional)\nconfiança (internacional\nemissão normalmente na Oner ou com milhas para obter melhor rentabilidade.", "outras": ""}, {"nome": "PH BRASIL PROMOTORA DE VENDAS LTDA - PH NEGÓCIOS - VMA", "contato": "", "atendimento": "", "instrucoes": "fatura p/ Juliana Lupo", "regra": "", "rentabilidade": "", "outras": ""}, {"nome": "PZ Empreendimentos", "contato": "Jordania", "atendimento": "", "instrucoes": "contasapagar@pzempreendimentos.com.br / +55 83 8629-2204 (Jordania Parque)", "regra": "Vencimento 10 dias pos venda, considerando esses vencimentos dia: 10, 15, 20, 25 e 30. Enviar a venda imediatamente pois precisam de 10/15 dias para programar pagamento.", "rentabilidade": "", "outras": ""}, {"nome": "Reali Promotora", "contato": "Silvia 85 9758-0624", "atendimento": "", "instrucoes": "Enviar Link para pagto no grupo whatsapp. contato: Kilvia - administrativo: (85)99809-0038/ Faturado conforme aprovacao do Diego até reativarem cartao deles.", "regra": "Enviar imediatamente o link de pagamento da Stone após a emissão/ faturar se autorizado pelo Diego, fatura + pix.", "rentabilidade": "Para o produto Rodoviário colocar entre 40 à 50% de comissão em cima do valor final (Quero Passagem e Clickbus)", "outras": ""}, {"nome": "Reino Church", "contato": "Eduardo  47 9694-0608", "atendimento": "", "instrucoes": "Direto c/ Diego ou confirmar se envia p/ Watts - Janaina -  +55 47 9731-4880 / fatura + Pix", "regra": "", "rentabilidade": "", "outras": ""}, {"nome": "SNT Floripa - COMUNIDADE EVANGELICA SARA NOSSA TERRA DE FLORIANOPOLIS", "contato": "", "atendimento": "", "instrucoes": "Watts Bispo Jose - 55 48 9919-8505 - Fatura + boleto (separados)", "regra": "", "rentabilidade": "", "outras": ""}, {"nome": "Sara Serraria", "contato": "", "atendimento": "", "instrucoes": "C/ Pr Guilherme Figueiredo - +55 48 99150-9905 (fatura+boleto+nota fiscal)", "regra": "", "rentabilidade": "", "outras": ""}, {"nome": "Taya Tech", "contato": "", "atendimento": "", "instrucoes": "atraves dos emails: financeiro@taya.com.br; matheus.almeida@taya.com.br  - confirmar se precisarao de boleto c/ Matheus Almeida - Watts +55 48 9188-0818 - Faturas + boleto (unificado)", "regra": "", "rentabilidade": "", "outras": ""}, {"nome": "TERRAPLEIN LTDA", "contato": "Roger Willian - Terraplein\n+55 48 9957-8649", "atendimento": "", "instrucoes": "faturas + boleto -  cobrança  - compras@terraplein.com/ fiscal@terraplein.com - \nRoger Willian - Terraplein\n+55 48 9957-8649", "regra": "Faturado para 28 dias - acordo é de 28 dias para pagamento.", "rentabilidade": "", "outras": ""}, {"nome": "Única Promotora", "contato": "Karla 31 9650-9309", "atendimento": "", "instrucoes": "", "regra": "", "rentabilidade": "", "outras": ""}, {"nome": "Vallora", "contato": "Indianara 48 9951-4973", "atendimento": "", "instrucoes": "Enviar o e-mail com a fatura e boleto unificado para: isadora.santos@vallorabeneficios.com.br; indianara.buratto@vallorabeneficios.com.br; aline.rech@vallorabeneficios.com.br; financeiro@vallorabeneficios.com.br", "regra": "Faturamento 15 dias após a emissão", "rentabilidade": "", "outras": ""}];
+  var clBusca='';
+  var CL_CAMPOS=['nome','contato','atendimento','instrucoes','regra','rentabilidade','outras'];
+  function clEsc(s){return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function clEscA(s){return clEsc(s).replace(/"/g,'&quot;');}
+  function clExtra(c){return !!(c.contato||c.atendimento||c.instrucoes||c.rentabilidade||c.outras);}
+
+  // Base efetiva = seed (CL_DADOS) + edições/exclusões salvas em appConfig.clientesCorp
+  function clBase(){
+    var base={};
+    CL_DADOS.forEach(function(e,i){ var id='cl'+String(i+1).padStart(3,'0'); base[id]=JSON.parse(JSON.stringify(e)); base[id].id=id; });
+    var ed=(typeof appConfig==='object'&&appConfig&&appConfig.clientesCorp&&typeof appConfig.clientesCorp==='object')?appConfig.clientesCorp:{};
+    Object.keys(ed).forEach(function(id){ var e=ed[id]; if(!e) return;
+      if(e.del){ delete base[id]; return; }
+      var alvo=base[id]||{id:id};
+      CL_CAMPOS.forEach(function(k){ if(e[k]!==undefined) alvo[k]=e[k]; });
+      alvo.id=id; base[id]=alvo;
+    });
+    return base;
+  }
+  function clLista(){ var b=clBase(); return Object.keys(b).map(function(k){ return b[k]; }); }
+  function clGet(id){ return clBase()[id]||null; }
+  function clSetObj(id,obj){
+    if(typeof appConfig!=='object'||!appConfig) return;
+    if(!appConfig.clientesCorp||typeof appConfig.clientesCorp!=='object') appConfig.clientesCorp={};
+    var atual=clGet(id)||{}; var novo={ts:Date.now(),del:0};
+    CL_CAMPOS.forEach(function(k){ novo[k]=(obj[k]!==undefined?obj[k]:(atual[k]||'')); });
+    appConfig.clientesCorp[id]=novo;
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+  }
+  function clAdd(){
+    if(typeof appConfig!=='object'||!appConfig) return;
+    if(!appConfig.clientesCorp||typeof appConfig.clientesCorp!=='object') appConfig.clientesCorp={};
+    var id='clx'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+    appConfig.clientesCorp[id]={nome:'',contato:'',atendimento:'',instrucoes:'',regra:'',rentabilidade:'',outras:'',ts:Date.now(),del:0};
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+    window.renderCliente(); clEditar(id);
+  }
+  function clDel(id){
+    if(typeof appConfig!=='object'||!appConfig) return;
+    if(!appConfig.clientesCorp||typeof appConfig.clientesCorp!=='object') appConfig.clientesCorp={};
+    appConfig.clientesCorp[id]={del:1,ts:Date.now()};
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+    window.renderCliente();
+  }
+  // merge por carimbo (multi-PC): a edição mais recente vence; soft-delete nunca ressuscita
+  window.clMergeMaps=function(a,b){
+    a=a||{}; b=b||{}; var out={}, ks={};
+    Object.keys(a).forEach(function(k){ks[k]=1;}); Object.keys(b).forEach(function(k){ks[k]=1;});
+    Object.keys(ks).forEach(function(k){ var x=a[k], y=b[k]; out[k]=(x&&y)?(((x.ts||0)>=(y.ts||0))?x:y):(x||y); });
+    return out;
+  };
+
+  window.renderCliente=function(){
+    var wrap=document.getElementById('clienteWrap'); if(!wrap) return;
+    var todos=clLista();
+    var q=clBusca.toLowerCase().trim();
+    var arr=todos.filter(function(c){ return !q || ((c.nome||'')+' '+(c.regra||'')).toLowerCase().indexOf(q)>=0; })
+                 .sort(function(a,b){ return (a.nome||'').localeCompare(b.nome||'','pt-BR'); });
+    var linhas = arr.length ? arr.map(function(c){
+      var regra = c.regra
+        ? '<div class="cl-regra">'+clEsc(c.regra)+'</div>'
+        : '<div class="cl-regra"><span class="cl-tag">A combinar</span></div>';
+      var verBtn = clExtra(c)
+        ? '<button type="button" class="cl-b-ver" data-cl-ver="'+c.id+'" title="Ver detalhes"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></button>'
+        : '<button type="button" class="cl-b-ver" disabled>—</button>';
+      var acoes = verBtn +
+        '<button type="button" class="cl-b-ed" data-cl-ed="'+c.id+'" title="Editar">✏️</button>'+
+        '<button type="button" class="cl-b-del" data-cl-del="'+c.id+'" title="Excluir">🗑</button>';
+      return '<div class="cl-row"><div class="cl-nome">'+clEsc(c.nome||'(sem nome)')+'</div>'+regra+'<div class="cl-det">'+acoes+'</div></div>';
+    }).join('') : '<div class="cl-vazio">Nenhum cliente encontrado. Clique em “＋ Adicionar cliente”.</div>';
+    wrap.innerHTML=
+      '<div class="cl-head"><div><h2 class="cl-title">👥 Cliente</h2>'+
+        '<div class="cl-sub">'+todos.length+' clientes · nome e regra de faturamento · ✏️ editar · 🗑 excluir</div></div>'+
+        '<button type="button" class="cl-add" id="clAdd">＋ Adicionar cliente</button></div>'+
+      '<input type="text" class="cl-busca" id="clBusca" placeholder="🔎 Buscar cliente ou regra de faturamento..." value="'+clEscA(clBusca)+'">'+
+      '<div class="cl-colhead"><span>Cliente</span><span>Regra de faturamento</span><span class="r">Ações</span></div>'+
+      '<div class="cl-list">'+linhas+'</div>';
+    var bq=document.getElementById('clBusca'); if(bq && clBusca){ try{ bq.focus(); bq.setSelectionRange(bq.value.length,bq.value.length); }catch(e){} }
+  };
+
+  function clFld(lbl,val,box){
+    if(!val) return '';
+    return '<div class="cl-fld'+(box?' cl-regrabox':'')+'"><div class="cl-lbl">'+lbl+'</div><div class="cl-val">'+clEsc(val)+'</div></div>';
+  }
+  function clAbre(id){
+    var c=clGet(id); if(!c) return;
+    var ov=document.getElementById('clOv');
+    var h='<div class="cl-mhead"><h2>'+clEsc(c.nome||'(sem nome)')+'</h2><button type="button" class="cl-x" id="clX">&times;</button></div><div class="cl-mbody">';
+    h+=clFld('Regra de faturamento', c.regra||'A combinar', true);
+    h+=clFld('Contato principal', c.contato);
+    h+=clFld('Forma de atendimento', c.atendimento);
+    h+=clFld('Instruções de envio de fatura/cobrança', c.instrucoes);
+    h+=clFld('Observações sobre rentabilidade', c.rentabilidade);
+    h+=clFld('Outras informações', c.outras);
+    h+='</div>';
+    document.getElementById('clModal').innerHTML=h;
+    ov.classList.add('on');
+    document.getElementById('clX').onclick=clFecha;
+  }
+  function clFecha(){ var ov=document.getElementById('clOv'); if(ov) ov.classList.remove('on'); }
+
+  // Modal de edição / novo cadastro
+  function clEditar(id){
+    var c=clGet(id)||{id:id};
+    var ov=document.getElementById('clOv');
+    function campoTxt(lbl,key,ph){ return '<div class="cl-efield"><label>'+lbl+'</label><input type="text" data-clf="'+key+'" value="'+clEscA(c[key]||'')+'" placeholder="'+clEscA(ph||'')+'" autocomplete="off"></div>'; }
+    function campoArea(lbl,key,ph){ return '<div class="cl-efield"><label>'+lbl+'</label><textarea data-clf="'+key+'" placeholder="'+clEscA(ph||'')+'">'+clEsc(c[key]||'')+'</textarea></div>'; }
+    var titulo = (c.nome&&c.nome.trim()) ? '✏️ Editar cliente' : '＋ Novo cliente';
+    var h='<div class="cl-mhead"><h2>'+titulo+'</h2><button type="button" class="cl-x" id="clEX">&times;</button></div><div class="cl-mbody">'+
+      campoTxt('Nome do cliente','nome','Nome do cliente')+
+      campoArea('Regra de faturamento','regra','Como e quando vence...')+
+      campoTxt('Contato principal','contato','Nome e whatsapp')+
+      campoArea('Forma de atendimento','atendimento','Grupo, e-mail, direto com...')+
+      campoArea('Instruções de envio de fatura/cobrança','instrucoes','E-mails, forma de pagamento...')+
+      campoArea('Observações sobre rentabilidade','rentabilidade','')+
+      campoArea('Outras informações','outras','')+
+      '</div>'+
+      '<div class="cl-mfoot"><button type="button" class="cl-cancel" id="clECancel">Cancelar</button><button type="button" class="cl-savebtn" id="clESave">Salvar</button></div>';
+    document.getElementById('clModal').innerHTML=h;
+    ov.classList.add('on');
+    document.getElementById('clEX').onclick=clFecha;
+    document.getElementById('clECancel').onclick=clFecha;
+    document.getElementById('clESave').onclick=function(){
+      var obj={}; document.getElementById('clModal').querySelectorAll('[data-clf]').forEach(function(el){ obj[el.getAttribute('data-clf')]=(el.value||'').trim(); });
+      clSetObj(id,obj); clFecha(); window.renderCliente();
+    };
+    var f=document.querySelector('#clModal [data-clf="nome"]'); if(f){ try{ f.focus(); }catch(e){} }
+  }
+
+  // Modal de confirmação de exclusão (nunca exclui direto)
+  function clConfirmarExclusao(id){
+    var c=clGet(id)||{};
+    var ov=document.getElementById('clOv');
+    var h='<div class="cl-mhead"><h2>🗑 Excluir cliente</h2><button type="button" class="cl-x" id="clDX">&times;</button></div>'+
+      '<div class="cl-mbody"><p style="margin:0;line-height:1.55;color:#E6EEF3">Tem certeza que deseja excluir <b>'+clEsc(c.nome||'este cliente')+'</b>?<br><span style="color:#8CA3B3;font-size:.88rem">Esta ação não pode ser desfeita.</span></p></div>'+
+      '<div class="cl-mfoot"><button type="button" class="cl-cancel" id="clDCancel">Cancelar</button><button type="button" class="cl-savebtn cl-danger" id="clDOk">Excluir</button></div>';
+    document.getElementById('clModal').innerHTML=h;
+    ov.classList.add('on');
+    document.getElementById('clDX').onclick=clFecha;
+    document.getElementById('clDCancel').onclick=clFecha;
+    document.getElementById('clDOk').onclick=function(){ clFecha(); clDel(id); };
+  }
+
+  document.addEventListener('click', function(e){
+    if(!e.target || !e.target.closest) return;
+    if(e.target.closest('#clAdd')){ clAdd(); return; }
+    var v=e.target.closest('[data-cl-ver]'); if(v){ clAbre(v.getAttribute('data-cl-ver')); return; }
+    var ed=e.target.closest('[data-cl-ed]'); if(ed){ clEditar(ed.getAttribute('data-cl-ed')); return; }
+    var del=e.target.closest('[data-cl-del]'); if(del){ clConfirmarExclusao(del.getAttribute('data-cl-del')); return; }
+  });
+  document.addEventListener('input', function(e){
+    if(e.target && e.target.id==='clBusca'){ clBusca=e.target.value; window.renderCliente(); }
+  });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') clFecha(); });
+
+  // Overlay do modal (criado uma vez, no fim do body)
+  if(!document.getElementById('clOv')){
+    var ov=document.createElement('div'); ov.className='cl-ov'; ov.id='clOv';
+    ov.innerHTML='<div class="cl-modal" id="clModal"></div>';
+    ov.addEventListener('click', function(e){ if(e.target===ov) clFecha(); });
+    document.body.appendChild(ov);
+  }
+})();
+</script>
+
+<style>
+  /* Reordenação por arrastar (Fornecedor) */
+  #scr-matriz .mx-arrastavel{cursor:grab}
+  #scr-matriz .mx-arrastavel:active{cursor:grabbing}
+  #scr-matriz .mx-card.mx-dragging{opacity:.45;outline:2px dashed #2ec7a5;outline-offset:2px;transform:scale(.99)}
+  #scr-matriz .mx-arrastavel .mx-card-top .mx-nome::before{content:"⠿ ";color:#5b7386;font-weight:400;letter-spacing:-1px}
+  /* Modal de confirmação de exclusão */
+  .mx-modal.mx-modal-sm{max-width:420px}
+  .mx-save.mx-danger{background:#c0392b;border-color:#a93226}
+  .mx-save.mx-danger:hover{background:#a93226}
+</style>
 </body>
 </html>
