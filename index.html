@@ -622,18 +622,35 @@ body.dark .mx-cal-btn{color:#2ee0b8}
 .cd-notifs{ display:flex; flex-direction:column; gap:10px; margin:4px 0 10px; }
 .cd-notifs:empty{ display:none; }
 .cd-notif{
-  display:flex; align-items:center; gap:14px;
+  display:flex; flex-direction:column; gap:0;
   background:rgba(255,51,68,.07);
   border:1.5px solid rgba(255,51,68,.9);
   border-radius:12px; padding:12px 14px;
   animation:cdNotifBlink 1.15s ease-in-out infinite;
 }
-.cd-notif-txt{ flex:1; min-width:0; color:#FFE3E7; font-size:.86rem; line-height:1.45; }
-.cd-notif-txt b{ color:#FFF; }
+/* título: "⚠️ ATENÇÃO, FULANO!" — a palavra ATENÇÃO em BRANCO e negrito */
 .cd-notif-tit{
   color:#FF4D5E; font-weight:800; letter-spacing:.4px; font-size:.95rem;
-  text-shadow:0 0 8px rgba(255,51,68,.65); margin-bottom:3px;
+  text-shadow:0 0 8px rgba(255,51,68,.65); margin-bottom:6px;
 }
+.cd-notif-tit .cd-atencao{
+  color:#FFFFFF; font-weight:900;
+  text-shadow:0 0 8px rgba(255,255,255,.55);
+}
+/* blocos internos: podem coexistir na MESMA caixa (contato em cima, tratativa embaixo) */
+.cd-bloco{ font-size:.86rem; line-height:1.45; }
+.cd-bloco b{ color:#FFF; }
+.cd-bloco-contato{ color:#FFE3E7; }
+/* bloco de baixo (Em Tratativa): fonte AMARELA, separado por uma linha sutil */
+.cd-bloco-tratativa{
+  color:#FFD84D;
+  margin-top:9px; padding-top:9px;
+  border-top:1px dashed rgba(255,216,77,.35);
+}
+.cd-bloco-tratativa b{ color:#FFF3C4; }
+.cd-bloco-linha{ display:flex; align-items:center; gap:14px; }
+.cd-bloco-txt{ flex:1; min-width:0; }
+.cd-diag{ margin-top:6px; opacity:.8; font-size:.8rem; }
 .cd-notif-btn{
   flex:0 0 auto; cursor:pointer; white-space:nowrap;
   background:rgba(53,208,127,.12); color:#5BE0A8;
@@ -1774,7 +1791,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v3·83 (apelido novo cadastrado: "Laura Teston"/"Laura" = Hynaê Teston, somando-se a "Rael" = Israel Hespanhol e "Ghabi" = Ghabriella Bressan no mapa AGENTE_APELIDOS); CORREÇÃO: apelidos na coluna Agente do CSV — os nomes em tratativa continuavam caindo no grupo EQUIPE porque o CSV traz APELIDOS ("Rael" = Israel Hespanhol, "Ghabi" = Ghabriella Bressan) que nenhuma regra automática de nome consegue deduzir (não há relação estrutural entre "Rael" e "Israel Hespanhol"); criado o mapa explícito AGENTE_APELIDOS como regra 0 do matcher (vence tudo, e funciona também quando o apelido vem com sobrenome: "Rael Hespanhol"); PARA ADICIONAR APELIDO NOVO basta acrescentar uma linha em AGENTE_APELIDOS no formato 'apelido minusculo sem acento':'Nome Completo'; AUTODIAGNÓSTICO: a caixa da notificação EQUIPE agora MOSTRA na tela exatamente como o CSV escreveu cada agente não reconhecido — não precisa mais abrir o console para descobrir apelidos novos (também disponível em window.__cdAgentesNaoReconhecidos)); CORREÇÃO na Regra 24h do Control Desk: os nomes em tratativa TÊM agente no CSV, mas todos caíam no grupo "EQUIPE" — a causa era o reuso de umNomeBateEstrito(), função feita para comparar HÓSPEDES, que recusa de propósito o match quando um lado tem só UM nome ("Ana" × "Ana Maria" → não casa, proteção contra homônimos entre clientes); só que a coluna "Agente" é um campo INTERNO da equipe e quase sempre traz só o PRIMEIRO nome ("Diego", "Fernando"), então todo agente de nome único caía em não-reconhecido; criado matcher dedicado uvAgenteParaAtendente() que casa por (1) igualdade exata, (2) nome completo com primeiro nome igual + sobrenome compartilhado, (3) primeiro nome sozinho — mas só quando esse primeiro nome for ÚNICO entre os 12 atendentes (se fosse ambíguo, recusa e manda pro grupo EQUIPE, nunca cobra a pessoa errada; verificado: nenhum dos 12 atendentes compartilha primeiro nome hoje, então o match é seguro); agentes realmente de fora da equipe continuam indo pro grupo EQUIPE listando os nomes; adicionado diagnóstico window.__cdAgentesNaoReconhecidos + console.info mostrando COMO o CSV escreveu cada agente não reconhecido); CORREÇÃO CRÍTICA na Regra 6h do Control Desk: a notificação estava contando direto de appConfig.carteira "cru", sem cruzar com quem REALMENTE aparece na coluna Contato Realizado — nomes que saíram do Kanban por qualquer motivo (linha removida do CSV, virou Recusado/Erro de Comunicação/Sem Retorno, ou passou a bater com voucher WeCann) ficavam "fantasmas" na carteira e inflavam a contagem sem aparecer em lugar nenhum na tela, causando o bug relatado — Diego notificado com 8 pendências sem ter nenhum contato visível; corrigido expondo grupos.realizado como fonte única de verdade (window.__kbRealizadoNomes), calculada pelo próprio renderStatusColunas logo antes de renderCdNotifs — a notificação agora NUNCA pode contar mais do que o que está de fato visível na tela); NOVO: Notificações de Cobrança no Control Desk — caixa vermelha LED neon piscando entre "Ocupação dos Atendentes" e o "Atendente da vez", com duas regras automáticas: (1) REGRA 6h — nomes na carteira/Contato Realizado há mais de 6 horas sem baixa disparam "⚠️ ATENÇÃO, [ATENDENTE]!" com a contagem X só dos vencidos; sem botão — a notificação some sozinha quando todos forem baixados, manual ou pela automação do CSV; usa o carimbo ts do carteiraOps que já existia; (2) REGRA 24h — nomes com status "Em Tratativa" há mais de 24 horas disparam notificação com botão verde LED neon fixo "✓ Verificado" que silencia o grupo por 24h e reinicia a contagem (appConfig.notifVerificado, clique mais recente vence no merge); relógio de tratativa novo em appConfig.tratativaTs {ts,del} com seed inicial ts:0 para nomes legados (disparam imediatamente, decisão do Nando); agente do CSV reconhecido entre os atendentes (match primeiro+último nome) → notificação nominal com contagem; agente vazio/não reconhecido → "⚠️ ATENÇÃO, EQUIPE!" listando os NOMES dos clientes; merge multi-PC nos dois caminhos (abertura+salvar) via uvMesclarNotifs; tick de 60s mantém a caixa atualizada; logs notif_verificado); NOVO: limpeza automática da carteira por progressão — quem está em "Em Tratativa" ou "Fechado" no CSV agora NÃO pode existir em mais nenhum lugar do Kanban; cobre o caso que faltava — nome esquecido em Contato Realizado sem nunca ter passado por Template Enviado — removendo da carteira automaticamente (sem arquivar em Template Enviado, já que progredir não é a mesma coisa que template enviado), com log próprio kanban_limpeza_carteira, rodando a cada render — protege também contra drift de sincronização entre PCs, não só importação de CSV); AJUSTE na automação "Contato Feito": agora o CSV sempre prevalece — se o nome estiver na carteira de um atendente NO MOMENTO da importação (mesmo se foi restaurado manualmente após um Template Enviado anterior) e o CSV disser "Contato Feito", o sistema arquiva de novo automaticamente; antes, uma restauração manual bloqueava a automação até o próximo clique manual, agora não bloqueia mais — o CSV desatualizado é o sinal para corrigir o CSV, não para o Hub ignorá-lo); NOVO: automação "Contato Feito" → Template Enviado — se o CSV importado diz que um nome já teve "Contato Feito" E esse mesmo nome estava em branco no CSV anterior (Fazer contato OU Contato Realizado), o sistema arquiva sozinho em Template Enviado/Conciliação, preservando o atendente, com o mesmo carimbo anti-ressurreição do botão manual, log próprio (kanban_auto_template) e toast de resumo em lote; se o nome chegou de fora já com Contato Feito, nada muda — só a pasta azul, como sempre); revertido: menu lateral voltou a ter a barra de rolagem própria (max-height + overflow-y), como era antes do build 74) — agora fica sempre totalmente aberto, mostrando todos os itens de uma vez, mantendo o comportamento fixo/sticky ao rolar a página); merge multi-PC deduplica por ts+cli+pax; o Pax aparece na linha do histórico de atendimentos), atualiza junto da Ocupação; redesenho neon: tubo escuro com líquido luminoso que enche conforme a contagem, gradiente vivo por faixa (ciano→verde-água→lima→âmbar→magenta) com glow, número em destaque no bulbo, carinha neon mantida acompanhando o nível; teto de escala dinâmico), ignorando sentinelas e toques <1s; persistência permanente em appConfig.ocpHistorico com merge multi-PC por união de eventos), seletor "seu nome", ranking geral e termômetros do dia, e reconhecimento como vendedora nos vouchers; já constava na Ocupação) quando qualquer lado já vive na era dos carimbos (kanbanSelo); auditoria central: todo nome que ENTRAR na carteira via merge é registrado no log (abertura/salvar/poll), e as 4 ações manuais (trazer/devolver/arquivar/restaurar) também logam; poll ganhou cura ativa da nuvem); seed dos 40 clientes preservado); lixeira agora abre modal de confirmação antes de excluir; título do painel trocado de "Matriz Comercial" para "Fornecedor"), busca e sincronização multi-PC por timestamp) no menu e no cabeçalho do painel): Ocupação dos Atendentes + Ausência Programada movidas do dashboard para lá, IDÊNTICAS em layout e funções; render religado na navegação, no auto-refresh e no sync multi-PC; Control Desk agora é a tela inicial do sistema): tela com os 35 clientes do PDF, tudo editável inline (cliente, situação, contato, responsável), busca, filtro por responsável com contagem, badges de status coloridos e cores do sistema; sincronizado entre PCs por timestamp); regra de fim de semana — sexta, sábado e domingo usam o nome do sábado do PDF (sex/dom readonly, edita-se no sábado); destaque rosa nos 3 dias) já grava a seleção; campos Início e Fim ficam mais limpos) + blur para matar o incremento nativo — velocidade lenta e previsível em mouse e trackpad) e listener wheel direto no elemento com passive:false + limiar maior — scroll agora desacelera de verdade), e scroll do mouse desacelerado para ajuste suave de hora/minuto) com merge por timestamp em salvar+carregar+polling, soft delete nos arquivados e migração automática do legado)" do cabeçalho), barra lateral vermelha e separador antes do compromisso); fontes em branco vivo; ordem bolinha - nome - data - hora - compromisso) em atendimento na bolinha vermelha e pergunta qual transferir; transferir libera o slot de origem) -->
+    <!-- build: HUB-v3·84 (VISUAL das notificações do Control Desk: (1) a palavra "ATENÇÃO" agora sai em BRANCO e negrito (classe .cd-atencao), destacada do resto do título que segue vermelho; (2) FUSÃO — quando o mesmo atendente tem AS DUAS pendências, elas passam a ocupar UM ÚNICO quadrado com um só título: em cima o bloco de "fazer contato / clicar em Template Enviado" e embaixo, separado por uma linha tracejada, o bloco de "Em Tratativa" com o botão Verificado dentro dele; antes eram duas caixas separadas com o título repetido; (3) o bloco de baixo (Em Tratativa) agora tem fonte AMARELA (#FFD84D) para diferenciar visualmente das duas cobranças; quem tem só uma das pendências continua com uma caixa de bloco único, e o grupo EQUIPE segue sempre por último); apelido novo cadastrado: "Laura Teston"/"Laura" = Hynaê Teston, somando-se a "Rael" = Israel Hespanhol e "Ghabi" = Ghabriella Bressan no mapa AGENTE_APELIDOS); CORREÇÃO: apelidos na coluna Agente do CSV — os nomes em tratativa continuavam caindo no grupo EQUIPE porque o CSV traz APELIDOS ("Rael" = Israel Hespanhol, "Ghabi" = Ghabriella Bressan) que nenhuma regra automática de nome consegue deduzir (não há relação estrutural entre "Rael" e "Israel Hespanhol"); criado o mapa explícito AGENTE_APELIDOS como regra 0 do matcher (vence tudo, e funciona também quando o apelido vem com sobrenome: "Rael Hespanhol"); PARA ADICIONAR APELIDO NOVO basta acrescentar uma linha em AGENTE_APELIDOS no formato 'apelido minusculo sem acento':'Nome Completo'; AUTODIAGNÓSTICO: a caixa da notificação EQUIPE agora MOSTRA na tela exatamente como o CSV escreveu cada agente não reconhecido — não precisa mais abrir o console para descobrir apelidos novos (também disponível em window.__cdAgentesNaoReconhecidos)); CORREÇÃO na Regra 24h do Control Desk: os nomes em tratativa TÊM agente no CSV, mas todos caíam no grupo "EQUIPE" — a causa era o reuso de umNomeBateEstrito(), função feita para comparar HÓSPEDES, que recusa de propósito o match quando um lado tem só UM nome ("Ana" × "Ana Maria" → não casa, proteção contra homônimos entre clientes); só que a coluna "Agente" é um campo INTERNO da equipe e quase sempre traz só o PRIMEIRO nome ("Diego", "Fernando"), então todo agente de nome único caía em não-reconhecido; criado matcher dedicado uvAgenteParaAtendente() que casa por (1) igualdade exata, (2) nome completo com primeiro nome igual + sobrenome compartilhado, (3) primeiro nome sozinho — mas só quando esse primeiro nome for ÚNICO entre os 12 atendentes (se fosse ambíguo, recusa e manda pro grupo EQUIPE, nunca cobra a pessoa errada; verificado: nenhum dos 12 atendentes compartilha primeiro nome hoje, então o match é seguro); agentes realmente de fora da equipe continuam indo pro grupo EQUIPE listando os nomes; adicionado diagnóstico window.__cdAgentesNaoReconhecidos + console.info mostrando COMO o CSV escreveu cada agente não reconhecido); CORREÇÃO CRÍTICA na Regra 6h do Control Desk: a notificação estava contando direto de appConfig.carteira "cru", sem cruzar com quem REALMENTE aparece na coluna Contato Realizado — nomes que saíram do Kanban por qualquer motivo (linha removida do CSV, virou Recusado/Erro de Comunicação/Sem Retorno, ou passou a bater com voucher WeCann) ficavam "fantasmas" na carteira e inflavam a contagem sem aparecer em lugar nenhum na tela, causando o bug relatado — Diego notificado com 8 pendências sem ter nenhum contato visível; corrigido expondo grupos.realizado como fonte única de verdade (window.__kbRealizadoNomes), calculada pelo próprio renderStatusColunas logo antes de renderCdNotifs — a notificação agora NUNCA pode contar mais do que o que está de fato visível na tela); NOVO: Notificações de Cobrança no Control Desk — caixa vermelha LED neon piscando entre "Ocupação dos Atendentes" e o "Atendente da vez", com duas regras automáticas: (1) REGRA 6h — nomes na carteira/Contato Realizado há mais de 6 horas sem baixa disparam "⚠️ ATENÇÃO, [ATENDENTE]!" com a contagem X só dos vencidos; sem botão — a notificação some sozinha quando todos forem baixados, manual ou pela automação do CSV; usa o carimbo ts do carteiraOps que já existia; (2) REGRA 24h — nomes com status "Em Tratativa" há mais de 24 horas disparam notificação com botão verde LED neon fixo "✓ Verificado" que silencia o grupo por 24h e reinicia a contagem (appConfig.notifVerificado, clique mais recente vence no merge); relógio de tratativa novo em appConfig.tratativaTs {ts,del} com seed inicial ts:0 para nomes legados (disparam imediatamente, decisão do Nando); agente do CSV reconhecido entre os atendentes (match primeiro+último nome) → notificação nominal com contagem; agente vazio/não reconhecido → "⚠️ ATENÇÃO, EQUIPE!" listando os NOMES dos clientes; merge multi-PC nos dois caminhos (abertura+salvar) via uvMesclarNotifs; tick de 60s mantém a caixa atualizada; logs notif_verificado); NOVO: limpeza automática da carteira por progressão — quem está em "Em Tratativa" ou "Fechado" no CSV agora NÃO pode existir em mais nenhum lugar do Kanban; cobre o caso que faltava — nome esquecido em Contato Realizado sem nunca ter passado por Template Enviado — removendo da carteira automaticamente (sem arquivar em Template Enviado, já que progredir não é a mesma coisa que template enviado), com log próprio kanban_limpeza_carteira, rodando a cada render — protege também contra drift de sincronização entre PCs, não só importação de CSV); AJUSTE na automação "Contato Feito": agora o CSV sempre prevalece — se o nome estiver na carteira de um atendente NO MOMENTO da importação (mesmo se foi restaurado manualmente após um Template Enviado anterior) e o CSV disser "Contato Feito", o sistema arquiva de novo automaticamente; antes, uma restauração manual bloqueava a automação até o próximo clique manual, agora não bloqueia mais — o CSV desatualizado é o sinal para corrigir o CSV, não para o Hub ignorá-lo); NOVO: automação "Contato Feito" → Template Enviado — se o CSV importado diz que um nome já teve "Contato Feito" E esse mesmo nome estava em branco no CSV anterior (Fazer contato OU Contato Realizado), o sistema arquiva sozinho em Template Enviado/Conciliação, preservando o atendente, com o mesmo carimbo anti-ressurreição do botão manual, log próprio (kanban_auto_template) e toast de resumo em lote; se o nome chegou de fora já com Contato Feito, nada muda — só a pasta azul, como sempre); revertido: menu lateral voltou a ter a barra de rolagem própria (max-height + overflow-y), como era antes do build 74) — agora fica sempre totalmente aberto, mostrando todos os itens de uma vez, mantendo o comportamento fixo/sticky ao rolar a página); merge multi-PC deduplica por ts+cli+pax; o Pax aparece na linha do histórico de atendimentos), atualiza junto da Ocupação; redesenho neon: tubo escuro com líquido luminoso que enche conforme a contagem, gradiente vivo por faixa (ciano→verde-água→lima→âmbar→magenta) com glow, número em destaque no bulbo, carinha neon mantida acompanhando o nível; teto de escala dinâmico), ignorando sentinelas e toques <1s; persistência permanente em appConfig.ocpHistorico com merge multi-PC por união de eventos), seletor "seu nome", ranking geral e termômetros do dia, e reconhecimento como vendedora nos vouchers; já constava na Ocupação) quando qualquer lado já vive na era dos carimbos (kanbanSelo); auditoria central: todo nome que ENTRAR na carteira via merge é registrado no log (abertura/salvar/poll), e as 4 ações manuais (trazer/devolver/arquivar/restaurar) também logam; poll ganhou cura ativa da nuvem); seed dos 40 clientes preservado); lixeira agora abre modal de confirmação antes de excluir; título do painel trocado de "Matriz Comercial" para "Fornecedor"), busca e sincronização multi-PC por timestamp) no menu e no cabeçalho do painel): Ocupação dos Atendentes + Ausência Programada movidas do dashboard para lá, IDÊNTICAS em layout e funções; render religado na navegação, no auto-refresh e no sync multi-PC; Control Desk agora é a tela inicial do sistema): tela com os 35 clientes do PDF, tudo editável inline (cliente, situação, contato, responsável), busca, filtro por responsável com contagem, badges de status coloridos e cores do sistema; sincronizado entre PCs por timestamp); regra de fim de semana — sexta, sábado e domingo usam o nome do sábado do PDF (sex/dom readonly, edita-se no sábado); destaque rosa nos 3 dias) já grava a seleção; campos Início e Fim ficam mais limpos) + blur para matar o incremento nativo — velocidade lenta e previsível em mouse e trackpad) e listener wheel direto no elemento com passive:false + limiar maior — scroll agora desacelera de verdade), e scroll do mouse desacelerado para ajuste suave de hora/minuto) com merge por timestamp em salvar+carregar+polling, soft delete nos arquivados e migração automática do legado)" do cabeçalho), barra lateral vermelha e separador antes do compromisso); fontes em branco vivo; ordem bolinha - nome - data - hora - compromisso) em atendimento na bolinha vermelha e pergunta qual transferir; transferir libera o slot de origem) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -4149,9 +4166,8 @@ function renderCdNotifs(){
   const box=document.getElementById('cdNotifs'); if(!box) return;
   const now=Date.now();
   const H6=6*3600*1000, H24=24*3600*1000;
-  const html=[];
 
-  // ===== REGRA 6h: carteira (Contato Realizado) vencida =====
+  // ===== COLETA 1 — REGRA 6h: carteira (Contato Realizado) vencida =====
   // IMPORTANTE: só conta quem está REALMENTE visível agora na coluna "Contato
   // Realizado" (window.__kbRealizadoNomes, preenchido pelo renderStatusColunas
   // logo antes de chamar esta função). NÃO usa appConfig.carteira "cru" — isso
@@ -4160,29 +4176,19 @@ function renderCdNotifs(){
   // registro na carteira ainda não tinha sido limpo.
   const cart=carteiraMap(); const ops=(appConfig.carteiraOps||{});
   const realizadoAtual=(window.__kbRealizadoNomes instanceof Set) ? window.__kbRealizadoNomes : new Set();
-  const porAt={};
+  const contato6h={};   // { atendente: qtd }
   realizadoAtual.forEach(n=>{
     const at=cart[n]||''; if(!at) return;
     const op=ops[n]; const ts=(op && typeof op.ts==='number')?op.ts:0; // sem carimbo (legado) = vencido
-    if(now-ts>H6) porAt[at]=(porAt[at]||0)+1;
-  });
-  Object.keys(porAt).sort((x,y)=>x.localeCompare(y,'pt-BR')).forEach(at=>{
-    const x=porAt[at];
-    const frase = x===1 ? 'Consta <b>1</b> cliente aguardando' : 'Constam <b>'+x+'</b> clientes aguardando';
-    html.push('<div class="cd-notif">'
-      +'<div class="cd-notif-txt">'
-      +'<div class="cd-notif-tit">⚠️ ATENÇÃO, '+esc(at.toUpperCase())+'!</div>'
-      +'<div>Você possui tarefas pendentes.</div>'
-      +'<div>'+frase+' o seu contato no Kanban.</div>'
-      +'<div>Caso essa ação já tenha sido realizada, clique no botão “Template Enviado” pra atualizar o status.</div>'
-      +'</div></div>');
+    if(now-ts>H6) contato6h[at]=(contato6h[at]||0)+1;
   });
 
-  // ===== REGRA 24h: "Em Tratativa" vencida =====
+  // ===== COLETA 2 — REGRA 24h: "Em Tratativa" vencida =====
   const rows=(statusHotelData&&statusHotelData.rows)||[];
   const T=(appConfig.tratativaTs||{});
   const ver=(appConfig.notifVerificado||{});
-  const grupos={}; const vistos=new Set();
+  const trat24h={};   // { atendente | '__equipe__': [nomes] }
+  const vistos=new Set();
   const agentesNaoReconhecidos=new Set();   // diagnóstico (ver console + window.__cdAgentesNaoReconhecidos)
   rows.forEach(r=>{
     if(normStatusHotel(r.statusRaw)!=='tratativa') return;
@@ -4194,34 +4200,64 @@ function renderCdNotifs(){
     if(ag) atd=uvAgenteParaAtendente(ag);
     if(ag && !atd) agentesNaoReconhecidos.add(ag);   // diagnóstico: como o CSV escreveu o agente
     const chave=atd||'__equipe__';
-    (grupos[chave]=grupos[chave]||[]).push(r.nome);
+    (trat24h[chave]=trat24h[chave]||[]).push(r.nome);
   });
-  Object.keys(grupos).sort((x,y)=>{
-    if(x==='__equipe__') return 1; if(y==='__equipe__') return -1;  // equipe por último
+  // aplica o silêncio de 24h do botão "Verificado" (por grupo)
+  Object.keys(trat24h).forEach(ch=>{ if(now-(ver[ch]||0)<=H24) delete trat24h[ch]; });
+
+  // ===== FUSÃO — uma ÚNICA caixa por atendente (build HUB-v3·84) =====
+  // Se a mesma pessoa tem as DUAS pendências, elas entram no MESMO quadrado:
+  // em cima o bloco de "fazer contato / Template Enviado" (texto padrão),
+  // embaixo o bloco de "Em Tratativa" (texto AMARELO) + o botão Verificado.
+  const chaves=new Set([...Object.keys(contato6h), ...Object.keys(trat24h)]);
+  const ordenadas=[...chaves].sort((x,y)=>{
+    if(x==='__equipe__') return 1; if(y==='__equipe__') return -1;  // equipe sempre por último
     return x.localeCompare(y,'pt-BR');
-  }).forEach(ch=>{
-    if(now-(ver[ch]||0)<=H24) return;                        // silenciado pelo Verificado
-    const nomes=grupos[ch];
-    const tit = ch==='__equipe__' ? '⚠️ ATENÇÃO, EQUIPE!' : '⚠️ ATENÇÃO, '+esc(ch.toUpperCase())+'!';
-    const corpo = ch==='__equipe__'
-      ? 'Os nomes <b>'+nomes.map(esc).join(', ')+'</b> constam há mais de 24 horas com status “Em Tratativa”.'
-      : (nomes.length===1 ? 'Consta <b>1</b> cliente' : 'Constam <b>'+nomes.length+'</b> clientes')+' há mais de 24 horas com status “Em Tratativa”.';
-    // AUTODIAGNÓSTICO: na caixa da EQUIPE, mostra COMO o CSV escreveu os agentes que
-    // o sistema não conseguiu reconhecer. Se for um apelido novo (ex: "Rael", "Ghabi"),
-    // é só me mandar essa linha que eu adiciono no mapa AGENTE_APELIDOS.
-    const diag = (ch==='__equipe__' && agentesNaoReconhecidos.size)
-      ? '<div style="margin-top:6px;opacity:.75;font-size:.8rem">🔎 Agente(s) não reconhecido(s) no CSV: <b>'+[...agentesNaoReconhecidos].map(esc).join(' · ')+'</b> — se for apelido de alguém da equipe, avise o Nando para cadastrar.</div>'
-      : '';
-    html.push('<div class="cd-notif">'
-      +'<div class="cd-notif-txt">'
-      +'<div class="cd-notif-tit">'+tit+'</div>'
-      +'<div>'+corpo+'</div>'
-      +'<div>Dê continuidade às negociações e atualize o status de cada atendimento no sistema.</div>'
-      +'<div>Caso essa ação já tenha sido realizada, clique no botão “Verificado” ao lado.</div>'
-      +diag
-      +'</div>'
-      +'<button class="cd-notif-btn" data-cdver="'+esc(ch)+'">✓ Verificado</button>'
-      +'</div>');
+  });
+
+  const html=ordenadas.map(ch=>{
+    const ehEquipe = ch==='__equipe__';
+    const qtd6 = contato6h[ch]||0;                 // '__equipe__' nunca tem regra 6h (a carteira sempre tem dono)
+    const nomes24 = trat24h[ch]||null;
+    const partes=[];
+
+    // BLOCO 1 (topo) — cobrança de contato / Template Enviado
+    if(qtd6>0){
+      const frase = qtd6===1 ? 'Consta <b>1</b> cliente aguardando' : 'Constam <b>'+qtd6+'</b> clientes aguardando';
+      partes.push('<div class="cd-bloco cd-bloco-contato">'
+        +'<div>Você possui tarefas pendentes.</div>'
+        +'<div>'+frase+' o seu contato no Kanban.</div>'
+        +'<div>Caso essa ação já tenha sido realizada, clique no botão “Template Enviado” pra atualizar o status.</div>'
+        +'</div>');
+    }
+
+    // BLOCO 2 (embaixo, AMARELO) — cobrança de negociação em tratativa + botão Verificado
+    if(nomes24){
+      const corpo = ehEquipe
+        ? 'Os nomes <b>'+nomes24.map(esc).join(', ')+'</b> constam há mais de 24 horas com status “Em Tratativa”.'
+        : (nomes24.length===1 ? 'Consta <b>1</b> cliente' : 'Constam <b>'+nomes24.length+'</b> clientes')+' há mais de 24 horas com status “Em Tratativa”.';
+      // AUTODIAGNÓSTICO: na caixa da EQUIPE, mostra COMO o CSV escreveu os agentes que
+      // o sistema não conseguiu reconhecer. Se for apelido novo, é só cadastrar em AGENTE_APELIDOS.
+      const diag = (ehEquipe && agentesNaoReconhecidos.size)
+        ? '<div class="cd-diag">🔎 Agente(s) não reconhecido(s) no CSV: <b>'+[...agentesNaoReconhecidos].map(esc).join(' · ')+'</b> — se for apelido de alguém da equipe, avise o Nando para cadastrar.</div>'
+        : '';
+      partes.push('<div class="cd-bloco cd-bloco-tratativa">'
+        +'<div class="cd-bloco-linha">'
+        +'<div class="cd-bloco-txt">'
+        +'<div>'+corpo+'</div>'
+        +'<div>Dê continuidade às negociações e atualize o status de cada atendimento no sistema.</div>'
+        +'<div>Caso essa ação já tenha sido realizada, clique no botão “Verificado” ao lado.</div>'
+        +diag
+        +'</div>'
+        +'<button class="cd-notif-btn" data-cdver="'+esc(ch)+'">✓ Verificado</button>'
+        +'</div></div>');
+    }
+
+    const alvo = ehEquipe ? 'EQUIPE' : esc(ch.toUpperCase());
+    return '<div class="cd-notif">'
+      +'<div class="cd-notif-tit">⚠️ <b class="cd-atencao">ATENÇÃO</b>, '+alvo+'!</div>'
+      +partes.join('')
+      +'</div>';
   });
 
   // DIAGNÓSTICO: se algum nome ainda cair no grupo EQUIPE, guarda COMO o agente veio
