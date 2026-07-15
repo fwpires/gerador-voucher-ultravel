@@ -1195,6 +1195,95 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .ntb-cor-ok:hover{background:var(--verde-escuro,#7ea315)}
 .ntb-cor-cancel{background:transparent;border:1px solid var(--borda);color:var(--texto-fraco);border-radius:8px;padding:7px 14px;font-weight:700;font-size:12.5px;cursor:pointer;font-family:inherit}
 .ntb-cor-cancel:hover{background:rgba(255,255,255,.05)}
+/* ============================================================
+   ===== MINHAS TAREFAS (·109) — área privada com post-its =====
+   ============================================================ */
+.mt-nav-lock{margin-left:auto;font-size:11px;opacity:.65}
+/* --- tela de cadeado --- */
+.mt-lock-wrap{display:flex;justify-content:center;padding:60px 16px}
+.mt-lock-card{width:100%;max-width:420px;background:var(--card,#141C26);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:30px 28px;box-shadow:0 18px 50px rgba(0,0,0,.45);text-align:center}
+.mt-lock-ic{font-size:44px;margin-bottom:6px}
+.mt-lock-tit{color:#fff;font-size:19px;font-weight:900;margin-bottom:4px}
+.mt-lock-sub{color:#8ba0b6;font-size:12.5px;margin-bottom:20px;line-height:1.45}
+.mt-lock-card select,.mt-lock-card input[type=password]{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);border-radius:10px;color:#E8EEF4;font-size:14px;font-weight:600;padding:11px 13px;outline:none;margin-bottom:12px;font-family:inherit}
+.mt-lock-card select:focus,.mt-lock-card input:focus{border-color:#0a9cf0}
+.mt-lock-btn{width:100%;background:linear-gradient(180deg,#12b0ff,#0670d8);color:#fff;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;transition:all .15s}
+.mt-lock-btn:hover{box-shadow:0 0 16px rgba(18,176,255,.55)}
+.mt-lock-btn:disabled{opacity:.4;cursor:not-allowed}
+.mt-lock-erro{color:#ff8686;font-size:12px;font-weight:700;min-height:16px;margin:-4px 0 8px}
+.mt-lock-links{margin-top:14px;font-size:11.5px}
+.mt-lock-links button{background:none;border:none;color:#6fa8d8;cursor:pointer;font-size:11.5px;text-decoration:underline;font-family:inherit}
+.mt-lock-novo{background:rgba(34,208,122,.1);border:1px solid rgba(34,208,122,.3);border-radius:9px;color:#7fe0b0;font-size:12px;font-weight:700;padding:9px;margin-bottom:12px;line-height:1.4}
+/* --- área destrancada --- */
+.mt-topo{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.mt-topo-quem{display:inline-flex;align-items:center;gap:8px;background:rgba(34,208,122,.1);border:1px solid rgba(34,208,122,.35);border-radius:10px;color:#8fe6bb;font-size:13px;font-weight:800;padding:8px 14px}
+.mt-btn{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);border-radius:10px;color:#E8EEF4;font-size:12.5px;font-weight:700;padding:9px 14px;cursor:pointer;font-family:inherit;transition:all .15s}
+.mt-btn:hover{background:rgba(255,255,255,.13)}
+.mt-btn-novo{background:linear-gradient(180deg,#12b0ff,#0670d8);border-color:transparent;color:#fff}
+.mt-btn-novo:hover{box-shadow:0 0 14px rgba(18,176,255,.5)}
+.mt-btn-lock{margin-left:auto}
+/* seletor de cor de post-it (popover) */
+.mt-corpop{position:absolute;z-index:10000;background:#141C26;border:1px solid rgba(255,255,255,.16);border-radius:14px;box-shadow:0 16px 44px rgba(0,0,0,.55);padding:14px;width:236px}
+.mt-corpop-tit{color:#fff;font-size:12.5px;font-weight:800;margin-bottom:10px}
+.mt-corpop-grade{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.mt-corpop-sw{aspect-ratio:1;border-radius:9px;border:2px solid rgba(0,0,0,.15);cursor:pointer;padding:0;transition:transform .12s;box-shadow:0 3px 8px rgba(0,0,0,.3)}
+.mt-corpop-sw:hover{transform:scale(1.1);outline:2px solid #12b0ff}
+/* --- quadro de madeira --- */
+.mt-board{position:relative;border-radius:18px;padding:34px 30px;min-height:420px;
+  background:
+    repeating-linear-gradient(90deg, rgba(0,0,0,.13) 0 2px, transparent 2px 148px),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.028) 0 3px, transparent 3px 9px),
+    repeating-linear-gradient(90deg, #9a7248 0 37px, #a67c50 37px 74px, #936b43 74px 111px, #a1774c 111px 148px),
+    linear-gradient(180deg,#a1774c,#8d6640);
+  box-shadow:inset 0 0 60px rgba(0,0,0,.35), inset 0 0 8px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+  border:1px solid rgba(0,0,0,.4)}
+.mt-board::before{content:'';position:absolute;inset:0;border-radius:18px;pointer-events:none;
+  background:repeating-linear-gradient(90deg, transparent 0 146px, rgba(0,0,0,.22) 146px 148px)}
+.mt-grid{position:relative;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:30px;z-index:1}
+.mt-vazio{position:relative;z-index:1;text-align:center;color:rgba(255,248,235,.85);font-size:14px;font-weight:700;padding:70px 20px;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+/* --- post-it --- */
+.mt-post{position:relative;--papel:#f5ef9e;background:var(--papel);border-radius:3px 3px 4px 3px;padding:13px 15px 16px;min-height:230px;color:#2c3038;display:flex;flex-direction:column;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.5) inset,
+    2px 3px 0 -1px rgba(0,0,0,.09),
+    3px 5px 0 -1.5px rgba(0,0,0,.07),
+    5px 8px 0 -2.5px rgba(0,0,0,.05),
+    6px 12px 22px rgba(0,0,0,.42);
+  transform:rotate(var(--giro,0deg));transition:transform .15s, box-shadow .15s}
+.mt-post:hover{transform:rotate(0deg) translateY(-3px);box-shadow:0 1px 0 rgba(255,255,255,.5) inset, 3px 5px 0 -1.5px rgba(0,0,0,.08), 8px 16px 30px rgba(0,0,0,.5)}
+.mt-post-data{font-size:9.5px;color:rgba(40,44,52,.55);font-weight:700;letter-spacing:.4px}
+.mt-post-tit{text-align:center;font-family:'Segoe Script','Bradley Hand','Comic Sans MS',cursive;font-size:21px;font-weight:700;color:#23262d;outline:none;min-height:30px;margin:-2px 0 8px;line-height:1.2}
+.mt-post-tit:empty:before{content:attr(data-ph);color:rgba(40,44,52,.35)}
+.mt-linhas{display:flex;flex-direction:column}
+.mt-linha{display:flex;align-items:flex-start;gap:8px;padding:3px 0}
+.mt-led{flex:0 0 15px;width:15px;height:15px;margin-top:3px;border-radius:3.5px;border:1.6px solid rgba(40,44,52,.55);cursor:pointer;padding:0;background:rgba(0,0,0,.07);box-shadow:inset 0 1px 2px rgba(0,0,0,.2);transition:all .15s;position:relative}
+.mt-led:hover{transform:scale(1.18);border-color:rgba(40,44,52,.85)}
+.mt-led.on{border-color:rgba(0,0,0,.35);background:var(--led);box-shadow:0 0 7px 1.5px var(--led), 0 0 2px var(--led), inset 0 0 3px rgba(255,255,255,.65)}
+.mt-txt{flex:1 1 auto;min-width:0;outline:none;font-size:13.5px;line-height:1.45;color:#2c3038;border-bottom:1.4px solid rgba(40,44,52,.4);padding:1px 2px 2px;min-height:21px;word-break:break-word}
+.mt-txt:empty:before{content:'…';color:rgba(40,44,52,.25)}
+.mt-txt:focus{border-bottom-color:rgba(20,110,220,.75);background:rgba(255,255,255,.28)}
+.mt-linha-x{flex:0 0 auto;width:16px;height:16px;margin-top:3px;border:none;background:none;color:rgba(40,44,52,.35);font-size:12px;line-height:1;cursor:pointer;padding:0;opacity:0;transition:opacity .15s}
+.mt-linha:hover .mt-linha-x{opacity:1}
+.mt-linha-x:hover{color:#c0392b}
+.mt-post-acoes{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:10px;opacity:0;transition:opacity .18s}
+.mt-post:hover .mt-post-acoes{opacity:1}
+.mt-post-acao{background:rgba(0,0,0,.08);border:1px solid rgba(0,0,0,.14);border-radius:7px;color:#3a3f48;font-size:11px;font-weight:700;padding:4px 9px;cursor:pointer;font-family:inherit}
+.mt-post-acao:hover{background:rgba(0,0,0,.16)}
+.mt-post-acao.mt-del:hover{background:#c0392b;color:#fff;border-color:#c0392b}
+.mt-addlinha{background:none;border:1.4px dashed rgba(40,44,52,.35);border-radius:7px;color:rgba(40,44,52,.55);font-size:11.5px;font-weight:800;padding:4px 10px;cursor:pointer;font-family:inherit;margin-top:7px;align-self:flex-start}
+.mt-addlinha:hover{border-color:rgba(40,44,52,.7);color:rgba(40,44,52,.85)}
+/* popover do LED */
+.mt-ledpop{position:absolute;z-index:10000;background:#141C26;border:1px solid rgba(255,255,255,.16);border-radius:12px;box-shadow:0 14px 40px rgba(0,0,0,.55);padding:11px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:172px}
+.mt-ledpop-sw{width:100%;aspect-ratio:1;border-radius:6px;border:2px solid rgba(0,0,0,.3);cursor:pointer;padding:0;background:var(--c);box-shadow:0 0 8px 1px var(--c), inset 0 0 4px rgba(255,255,255,.55);transition:transform .12s}
+.mt-ledpop-sw:hover{transform:scale(1.15);outline:2px solid #fff}
+.mt-ledpop-off{width:100%;aspect-ratio:1;border-radius:6px;border:2px solid rgba(255,255,255,.3);cursor:pointer;padding:0;background:#2a3542;color:#8ba0b6;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;font-family:inherit}
+.mt-ledpop-off:hover{transform:scale(1.1);outline:2px solid #fff}
+/* barra de formatação da área */
+.mt-toolbar-wrap{margin-bottom:14px}
+/* modo claro */
+body:not(.dark) .mt-lock-card{background:#fff;border-color:#C4D3E4}
+body:not(.dark) .mt-lock-tit{color:#22364a}
+body:not(.dark) .mt-lock-card select,body:not(.dark) .mt-lock-card input[type=password]{background:#fff;border-color:#C4D3E4;color:#22364a}
 .nota-toolbar .ntb-lbl{font-size:11px;color:var(--texto-fraco);margin-left:2px}
 .nota-acoes{margin:8px 0 4px}
 .nota-salvar{background:var(--verde);color:#1e2a05;border:none;border-radius:9px;padding:8px 14px;font-weight:700;font-size:12.5px;cursor:pointer;font-family:inherit}
@@ -1652,6 +1741,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
           <button class="nav-item nav-sub" data-screen="matriz"><span>Fornecedor</span></button>
           <button class="nav-item nav-sub" data-screen="cliente"><span>Cliente</span></button>
         </div>
+        <button class="nav-item" data-screen="tarefas"><span class="nav-ic">🗒️</span><span>Minhas Tarefas</span><span class="mt-nav-lock">🔒</span></button>
 
         <div class="nav-cat">Painel de Controle</div>
 
@@ -1865,7 +1955,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v3·108 (AUSÊNCIA PROGRAMADA — agora aceita PERÍODO de vários dias e horário por digitação livre. (1) PERÍODO MULTI-DIA: o modelo ganhou o campo dataFim (data de término); o calendário virou seletor de INTERVALO (1º clique = início em VERDE, 2º clique = fim em VERMELHO, dias no meio destacados); clicar antes do início recomeça a seleção; registros antigos sem dataFim assumem o mesmo dia (retrocompatível). (2) HORÁRIO LIVRE: os campos Início/Fim deixaram de ser input type=time e viraram campo de texto que aceita SÓ números — digita-se 4 dígitos seguidos (ex.: 1400) e o sistema insere sozinho os dois-pontos do meio → 14:00; no blur completa o que falta (9 → 09:00, 830 → 08:30); removida a máquina antiga de showPicker/scroll desses campos. (3) VALIDAÇÃO do fim depois do início compara o DATETIME COMPLETO (data+hora), então período que cruza a meia-noite ou vários dias valida certo. (4) SINCRONIZAÇÃO com a Ocupação e ausProgPassado usam o datetime real de início e fim. (5) LISTA e resumos mostram o intervalo — mesmo dia: 14:00-18:00; dias diferentes: dois chips início → fim. Sem mudança no Worker. ANTERIOR: KANBAN — BLINDAGEM DEFINITIVA do "✓ Template Enviado" (o clique continuava sendo desfeito após o ·106). DEPURAÇÃO PROFUNDA encontrou DUAS brechas reais: (1) RENDER OTIMISTA DO BOOT — carregarStatusHotel renderiza PRIMEIRO com o CSV do localStorage (pode estar velho/divergente) e as purgas rodavam nesse render criando soft-delete com carimbo tsm=AGORA, mais novo que o do clique, que então VENCIA o merge em todos os PCs (o rastreador já respeitava a flag uvCsvAutoritativo do ·86, mas as purgas NÃO); (2) WORKER/DO — mesclarEstadoVivo usava Object.assign para arquivados: patch de um PC defasado (ex.: build velho em cache) sempre vencia, mesmo com tsm mais antigo, regredindo o arquivado fresco no servidor. DEFESAS NOVAS: (a) uvCsvPodeDestruir() — purgas só rodam com CSV AUTORITATIVO do servidor e nunca com CSV mais velho que a marca sincronizada tratativaCsvTs; (b) ESCUDO PÓS-CLIQUE uvEscudoCliques — por 90s após o clique manual (ou automação), nenhum merge/purga reverte aquele nome, nem com carimbo mais novo; Restaurar/Devolver manuais limpam o escudo; tentativas bloqueadas são logadas (console + log central kanban_escudo); (c) merge 3-WAY no carregarConfig (localStorage ∪ memória ∪ nuvem) fecha a janela de ação ainda não persistida; (d) BADGE DE BUILD visível no canto inferior direito + console.info — para confirmar a versão que o navegador está de fato rodando (cache!); (e) window.uvDiag("nome") — dossiê completo do cliente no console: carteira, arquivado, carimbos, escudo, linhas do CSV que casam e últimos eventos; (f) WORKER v3 (worker_v3_do.js) — arquivados mesclados por tsm (mais novo vence, nunca regride) e carteira respeita a era dos carimbos (nome sem op não entra). ANTERIOR: KANBAN — CORREÇÃO do botão "✓ Template Enviado": clicar nele em "Contato Realizado" devolvia o nome para "Fazer contato" em vez de arquivar. CAUSA (reproduzida em teste): purgarArquivadosPorStatus roda em TODO render e a PRIMEIRA linha do CSV que "batesse" com o nome decidia sozinha — e o matcher estrito também casa DUPLICATAS ("Carlos Silva" × "Carlos Teste Silva") e HOMÔNIMOS PARCIAIS (1º nome + um sobrenome em comum); se essa OUTRA linha estivesse "Em tratativa"/"Fechado", o arquivado recém-criado era soft-deletado NO MESMO render do clique (e o motivo "progrediu" também apagava a carteira), então o nome — que segue EM BRANCO no CSV — reaparecia em "Fazer contato". CORREÇÕES: (1) match EXATO (normNome igual) tem prioridade ABSOLUTA na purga — existindo linha exata, só ela decide, duplicata/homônimo parecido não opina; (2) se QUALQUER linha candidata continua EM BRANCO no CSV, NÃO purga — o cliente ainda está no funil como arquivado; (3) mesma blindagem em purgarCarteiraPorStatus: nome repetido no CSV com uma linha em branco NÃO tem a carteira purgada pela linha duplicada em tratativa. Progressão LEGÍTIMA (a linha exata do cliente virou "Em Tratativa"/"Fechado") continua purgando normalmente — coberto por teste de regressão); ANTERIOR: TEMPO REAL: o Hub agora abre um WebSocket com o Durable Object do Worker (/api/live) e recebe as mudanças de outros PCs em MENOS DE 1 SEGUNDO, em qualquer tela — antes só no polling de 60s e só com o Dashboard aberto. O ENVIO continua sendo o salvarConfig() de sempre: o Worker repassa os campos vivos ao DO, que transmite a todos. O RECEBIMENTO mescla com as MESMAS funções já validadas (uvMesclarCarteiraArq, uvMesclarNotifs, ocpMesclarEstados) — nunca substitui cegamente, então ação local recém-feita não se perde. Reconexão automática com espera progressiva + ping de 30s; o polling de 60s CONTINUA ATIVO como rede de proteção. Re-render seletivo: só redesenha o que mudou); ANTERIOR: NOTIFICAÇÕES: nova REGRA 24h para o status "Contato Feito" (NOTIFICAÇÕES: nova REGRA 24h para o status "Contato Feito" — bloco AZUL no Control Desk com a mesma mensagem do bloco amarelo, só trocando "Em Tratativa" por "Contato Feito", e botão "✓ Verificado" próprio. Relógio independente em appConfig.cfeitoTs {ts,del,op} com guarda monótonica cfeitoCsvTs e selo cfeitoSeloSeed, espelhando toda a blindagem do relógio de tratativa (CSV atrasado ignorado, soft delete preservando ts, merge por "op"). SEED: todo nome hoje em "Contato Feito" entra com ts:0 e dispara na hora, mesma regra do Em Tratativa. O silêncio do Verificado usa CHAVE PRÓPRIA "cf::"+atendente — verificar a cobrança azul NÃO silencia a amarela); ANTERIOR: KANBAN: a coluna "Contato Feito" agora mostra o AGENTE do CSV (KANBAN: a coluna "Contato Feito" agora mostra o AGENTE do CSV embaixo de cada nome, no mesmo formato da coluna "Em tratativa" ("Ag.: Fulano"). Tecnicamente, colLista() ganhou um 5º parâmetro opcional metaFn — as outras colunas de lista (Recusados, Erro de Comunicação, Sem Retorno) seguem sem meta, sem nenhuma mudança); ANTERIOR: VISUAL: contorno CROMADO VIVO e FIXO (VISUAL: contorno CROMADO VIVO e FIXO — mesmo nível de intensidade do azul vivo do ·101, só trocando a cor, para a comparação ser justa. O cromado tem o pico de BRANCO PURO (#FFFFFF), que é o que dá a leitura de "metal polido" e é justamente o que ofuscava lá atrás — MAS naquela época ele estava PISCANDO; agora está PARADO, e a piscada era metade do problema. Se ainda pesar, existe o cromado SUAVIZADO (pico parando em #8E9BA6) pronto no preview); ANTERIOR: contorno no NÍVEL 1 (azul vivo) — gradiente #0A2E52 a #6FBAFF com halo mais presente (.42/.20). É o mais marcante dos três níveis, mas continua FIXO: o que ofuscava de verdade era a PISCADA somada ao pico de BRANCO PURO do cromado, e nenhum dos dois voltou. Combina com a chamada em branco macio do ·99); ANTERIOR: o contorno voltou ao NÍVEL 2 (azul suavizado) — gradiente #16324D a #5A89B6 e halo contido (.22/.12), fixo, sem piscar. O nível 3 (bem discreto) foi testado no ·98 e o nível 2 ficou melhor. Combina com a chamada em branco macio introduzida no ·99); ANTERIOR: a segunda parte da frase de impacto ("🚨 AÇÃO IMEDIATA NECESSÁRIA: TEM CLIENTES ABANDONADOS NO SEU PAINEL! NÃO IGNORE ESTA NOTIFICAÇÃO!") ganhou classe própria (.cd-chamada) com branco MENOS intenso (#C3CEDB) e peso 700 em vez de 900. Motivo: um texto longo, todo em caixa alta, em branco puro e peso máximo vira um bloco "gritado" e cansa a leitura. Agora o "⚠️ ATENÇÃO, [NOME]!" fica sendo o ponto de maior contraste da linha — nome em vermelho, "ATENÇÃO" em branco forte — e o resto acompanha em tom mais macio); ANTERIOR: contorno no nível BEM DISCRETO (opção 3): gradiente azul mais escuro e dessaturado (#142A3E a #47697F, pico sóbrio) e halo praticamente só um assentamento (.14, camada única). O destaque da caixa passa a vir do TEXTO — caixa alta, negrito, nome do atendente em vermelho — e não do contorno, que agora só delimita sem competir com a leitura. Continua FIXO, sem piscar); ANTERIOR: ESCOLHA do contorno: AZUL SUAVIZADO e FIXO. O cromado suavizado do ·96 foi testado e o azul suavizado ficou melhor, então voltamos a ele. Gradiente de #16324D a #5A89B6 (sem pico claro estourado) e halo discreto (.22/.12), sem piscar. Evolução completa: vermelho piscante → cromado piscante (ofuscava: pico de BRANCO PURO + halo forte + piscada, tudo ao lado de texto branco) → azul piscante → azul fixo → azul suavizado → cromado suavizado → AZUL SUAVIZADO FIXO); ANTERIOR: o contorno voltou ao CROMADO, mas no mesmo nível de suavização que o azul tinha atingido. O que ofuscava antes não era "ser cromado": era o pico de BRANCO PURO (#FFFFFF) no gradiente somado a um halo forte, e tudo isso PISCANDO ao lado de texto branco. Agora o brilho máximo do metal para num prata acinzentado (#8E9BA6) — o gradiente mantém a variação escuro→claro que dá a leitura de "cromo polido", sem estourar — o halo ficou discreto (.22/.12) e a piscada não voltou. Contorno CROMADO SUAVE e FIXO); ANTERIOR: a cor do contorno azul foi SUAVIZADA — baixaram duas coisas juntas: as cores do gradiente (tons menos saturados, sem o azul-claro estourado #6FBAFF que puxava a vista; agora vai de #16324D a #5A89B6) e o halo luminoso em volta (opacidade caiu de .42/.20 para .22/.12). A caixa segue destacada no painel, mas sem gritar. Continua FIXA, sem piscar); ANTERIOR: o contorno das notificações agora é AZUL FIXO — a piscada foi REMOVIDA por completo (nenhuma animação restou na caixa). Motivo: piscar ajuda a NOTAR mas atrapalha a LER, e a cobrança precisa ser lida. O contorno azul luminoso continua destacando a caixa, sem cansar a vista. Histórico da evolução: vermelho piscante → cromado piscante (branco brilhante, ofuscava ao lado do texto branco) → azul piscante → AZUL FIXO); ANTERIOR: o contorno CROMADO saiu e virou AZUL NEON. O cromado era essencialmente BRANCO brilhante, e um branco pulsando ao lado de texto branco ofuscava e atrapalhava a leitura; o azul contrasta com o texto em vez de competir com ele. Além da cor, o BRILHO foi suavizado (halo menor e menos opaco) e o pulso ficou mais lento (1.15s → 1.35s) — o incômodo não vinha só da cor, vinha da intensidade. Também reduzido o text-shadow BRANCO da frase de impacto, que deixava a fonte levemente borrada sobre si mesma: agora é uma sombra escura sutil, que dá contraste e mantém a letra nítida); AJUSTE ANTERIOR: a fonte da frase de impacto do cabeçalho aumentou 20% — de 0.63rem para 0.756rem (o histórico do tamanho ficou: 0.9rem original → 0.63rem no ·91 → 0.756rem agora, ou seja ~16% menor que o original); a seta ▾ acompanhou (0.72 → 0.86rem). O texto do corpo da caixa segue em 0.86rem, inalterado); AJUSTE ANTERIOR: a frase de impacto do cabeçalho (a que aparece com a caixa fechada) teve a fonte reduzida em 30% — de 0.9rem para 0.63rem; a seta ▾ foi ajustada proporcionalmente (0.9 → 0.72rem) para não ficar desproporcional ao lado do texto menor. O texto do CORPO da caixa continua em 0.86rem, inalterado); AJUSTE ANTERIOR: o INTERIOR da caixa de notificação voltou ao normal — o fundo agora é var(--card), o mesmo dos demais painéis, sem gradiente/clarão nenhum. Restou SÓ a borda cromada com o halo externo piscando. Nota técnica: a camada de fundo em padding-box não pode simplesmente ser removida — sem ela o gradiente cromado do border-box vazaria e preencheria a caixa inteira; por isso ela virou uma cor SÓLIDA (var(--card)) em vez de sumir. E border-image, o caminho "óbvio" para borda em gradiente, não serve porque não respeita border-radius e deixaria os cantos quadrados); AJUSTE ANTERIOR: removido o "flash" que passava por cima da caixa inteira — saiu a animação de brilho deslizante (cdCromoDesliza) e saiu o glow interno (inset box-shadow). Agora SÓ O CONTORNO pisca: a borda é um gradiente cromado ESTÁTICO (grafite → prata → branco → prata → grafite, aspecto de metal polido) e o que pulsa é apenas o halo EXTERNO em volta dela (cdCromoPulsa, 1.15s). O conteúdo da caixa fica limpo, sem nada passando por cima. O botão verde LED do "Verificado" mantém o brilho fixo próprio); VISUAL ANTERIOR: o contorno das caixas de notificação trocou o VERMELHO piscante por um CROMADO NEON CINTILANTE. Cromo não é cor sólida, é REFLEXO — então a borda é um gradiente metálico (grafite → prata → branco puro → prata → grafite) que DESLIZA em volta da caixa (animação cdCromoDesliza, 2.6s linear), somado a um halo pulsante que faz a cintilação (cdCromoPulsa, 1.15s). As duas animações rodam em ciclos independentes, o que dá brilho vivo de metal em vez de pisca-pisca chapado. Técnica: DUPLO GRADIENTE — fundo em padding-box e cromado em border-box — porque border-image NÃO respeita border-radius e deixaria os cantos quadrados; o deslize vem de animar o background-position do gradiente da borda (background-size 300% nele). O nome do atendente segue VERMELHO no cabeçalho e o botão verde LED do "Verificado" segue fixo, sem piscar); VISUAL: as caixas de notificação agora nascem RECOLHIDAS — só a frase de impacto aparece: "⚠️ ATENÇÃO, [NOME]! 🚨 AÇÃO IMEDIATA NECESSÁRIA: TEM CLIENTES ABANDONADOS NO SEU PAINEL! NÃO IGNORE ESTA NOTIFICAÇÃO!"; clicar no cabeçalho abre/fecha o conteúdo (seta ▾ gira); SÓ o nome do atendente sai em VERMELHO (classe .cd-nome), todo o resto da frase em BRANCO negrito vivo (inverteu a lógica anterior, em que só a palavra ATENÇÃO era branca); o estado aberto/fechado vive em memória (cdAbertas) e SOBREVIVE ao re-render automático de 60s — sem isso a caixa fecharia sozinha na cara do atendente no meio da leitura; cada caixa abre de forma independente; o botão "✓ Verificado" tem prioridade no clique e NÃO alterna a caixa; o separador tracejado do bloco amarelo só aparece quando ele vem depois do bloco de contato); CORREÇÃO CRÍTICA — "as notificações de Em Tratativa sumiram depois da importação". CAUSA (reproduzida em teste): qualquer render feito com um CSV ATRASADO fazia o rastreador dar SOFT DELETE nos nomes (pois naquele CSV velho eles "não estavam em tratativa"); quando o CSV correto chegava, a entrada era RECRIADA com ts=agora e o relógio de 24h ZERAVA — escondendo a cobrança por mais um dia. O CSV atrasado vinha de duas fontes: o do localStorage (carregarStatusHotel renderiza com ele antes de buscar o servidor) e o do PRÓPRIO SERVIDOR, porque o KV do Cloudflare é eventualmente consistente e um GET logo após o POST pode devolver a versão anterior. Somavam-se duas falhas: o rastreador rodava ANTES de carregarConfig() trazer o appConfig da nuvem (gravando estado meia-boca), e o merge decidia conflito por "maior ts vence" — mas as entradas do seed nascem com ts:0, o menor valor possível, então perdiam para qualquer del:1 espúrio. CORREÇÕES: (1) GUARDA MONOTÔNICA — appConfig.tratativaCsvTs guarda o importadoEm do último CSV processado; CSV mais velho é IGNORADO pelo relógio, venha de onde vier; (2) uvCfgPronta — o rastreador só age depois que a config vem da nuvem; (3) campo "op" (carimbo da última escrita) separado do "ts" (início do relógio) e merge decidindo por "op", então ts:0 não perde mais por ser zero; (4) o soft delete agora PRESERVA o ts original; (5) SEED v2 — repara o estado já corrompido: todo nome hoje em tratativa volta a ts:0 e dispara na hora, e o selo v2 vence o v1 no merge para o reparo se propagar entre PCs); ÊNFASE: as frases de ação das notificações agora saem em NEGRITO — "clique no botão “Template Enviado”" no bloco de cima e "atualize o status de cada atendimento no sistema" no bloco de baixo; usam a classe .cd-forte com color:inherit, para o negrito HERDAR a cor do bloco (branco-avermelhado em cima, AMARELO embaixo) em vez do branco fixo do <b> padrão, preservando a distinção de cor entre as duas cobranças); VISUAL das notificações do Control Desk: (1) a palavra "ATENÇÃO" agora sai em BRANCO e negrito (classe .cd-atencao), destacada do resto do título que segue vermelho; (2) FUSÃO — quando o mesmo atendente tem AS DUAS pendências, elas passam a ocupar UM ÚNICO quadrado com um só título: em cima o bloco de "fazer contato / clicar em Template Enviado" e embaixo, separado por uma linha tracejada, o bloco de "Em Tratativa" com o botão Verificado dentro dele; antes eram duas caixas separadas com o título repetido; (3) o bloco de baixo (Em Tratativa) agora tem fonte AMARELA (#FFD84D) para diferenciar visualmente das duas cobranças; quem tem só uma das pendências continua com uma caixa de bloco único, e o grupo EQUIPE segue sempre por último); apelido novo cadastrado: "Laura Teston"/"Laura" = Hynaê Teston, somando-se a "Rael" = Israel Hespanhol e "Ghabi" = Ghabriella Bressan no mapa AGENTE_APELIDOS); CORREÇÃO: apelidos na coluna Agente do CSV — os nomes em tratativa continuavam caindo no grupo EQUIPE porque o CSV traz APELIDOS ("Rael" = Israel Hespanhol, "Ghabi" = Ghabriella Bressan) que nenhuma regra automática de nome consegue deduzir (não há relação estrutural entre "Rael" e "Israel Hespanhol"); criado o mapa explícito AGENTE_APELIDOS como regra 0 do matcher (vence tudo, e funciona também quando o apelido vem com sobrenome: "Rael Hespanhol"); PARA ADICIONAR APELIDO NOVO basta acrescentar uma linha em AGENTE_APELIDOS no formato 'apelido minusculo sem acento':'Nome Completo'; AUTODIAGNÓSTICO: a caixa da notificação EQUIPE agora MOSTRA na tela exatamente como o CSV escreveu cada agente não reconhecido — não precisa mais abrir o console para descobrir apelidos novos (também disponível em window.__cdAgentesNaoReconhecidos)); CORREÇÃO na Regra 24h do Control Desk: os nomes em tratativa TÊM agente no CSV, mas todos caíam no grupo "EQUIPE" — a causa era o reuso de umNomeBateEstrito(), função feita para comparar HÓSPEDES, que recusa de propósito o match quando um lado tem só UM nome ("Ana" × "Ana Maria" → não casa, proteção contra homônimos entre clientes); só que a coluna "Agente" é um campo INTERNO da equipe e quase sempre traz só o PRIMEIRO nome ("Diego", "Fernando"), então todo agente de nome único caía em não-reconhecido; criado matcher dedicado uvAgenteParaAtendente() que casa por (1) igualdade exata, (2) nome completo com primeiro nome igual + sobrenome compartilhado, (3) primeiro nome sozinho — mas só quando esse primeiro nome for ÚNICO entre os 12 atendentes (se fosse ambíguo, recusa e manda pro grupo EQUIPE, nunca cobra a pessoa errada; verificado: nenhum dos 12 atendentes compartilha primeiro nome hoje, então o match é seguro); agentes realmente de fora da equipe continuam indo pro grupo EQUIPE listando os nomes; adicionado diagnóstico window.__cdAgentesNaoReconhecidos + console.info mostrando COMO o CSV escreveu cada agente não reconhecido); CORREÇÃO CRÍTICA na Regra 6h do Control Desk: a notificação estava contando direto de appConfig.carteira "cru", sem cruzar com quem REALMENTE aparece na coluna Contato Realizado — nomes que saíram do Kanban por qualquer motivo (linha removida do CSV, virou Recusado/Erro de Comunicação/Sem Retorno, ou passou a bater com voucher WeCann) ficavam "fantasmas" na carteira e inflavam a contagem sem aparecer em lugar nenhum na tela, causando o bug relatado — Diego notificado com 8 pendências sem ter nenhum contato visível; corrigido expondo grupos.realizado como fonte única de verdade (window.__kbRealizadoNomes), calculada pelo próprio renderStatusColunas logo antes de renderCdNotifs — a notificação agora NUNCA pode contar mais do que o que está de fato visível na tela); NOVO: Notificações de Cobrança no Control Desk — caixa vermelha LED neon piscando entre "Ocupação dos Atendentes" e o "Atendente da vez", com duas regras automáticas: (1) REGRA 6h — nomes na carteira/Contato Realizado há mais de 6 horas sem baixa disparam "⚠️ ATENÇÃO, [ATENDENTE]!" com a contagem X só dos vencidos; sem botão — a notificação some sozinha quando todos forem baixados, manual ou pela automação do CSV; usa o carimbo ts do carteiraOps que já existia; (2) REGRA 24h — nomes com status "Em Tratativa" há mais de 24 horas disparam notificação com botão verde LED neon fixo "✓ Verificado" que silencia o grupo por 24h e reinicia a contagem (appConfig.notifVerificado, clique mais recente vence no merge); relógio de tratativa novo em appConfig.tratativaTs {ts,del} com seed inicial ts:0 para nomes legados (disparam imediatamente, decisão do Nando); agente do CSV reconhecido entre os atendentes (match primeiro+último nome) → notificação nominal com contagem; agente vazio/não reconhecido → "⚠️ ATENÇÃO, EQUIPE!" listando os NOMES dos clientes; merge multi-PC nos dois caminhos (abertura+salvar) via uvMesclarNotifs; tick de 60s mantém a caixa atualizada; logs notif_verificado); NOVO: limpeza automática da carteira por progressão — quem está em "Em Tratativa" ou "Fechado" no CSV agora NÃO pode existir em mais nenhum lugar do Kanban; cobre o caso que faltava — nome esquecido em Contato Realizado sem nunca ter passado por Template Enviado — removendo da carteira automaticamente (sem arquivar em Template Enviado, já que progredir não é a mesma coisa que template enviado), com log próprio kanban_limpeza_carteira, rodando a cada render — protege também contra drift de sincronização entre PCs, não só importação de CSV); AJUSTE na automação "Contato Feito": agora o CSV sempre prevalece — se o nome estiver na carteira de um atendente NO MOMENTO da importação (mesmo se foi restaurado manualmente após um Template Enviado anterior) e o CSV disser "Contato Feito", o sistema arquiva de novo automaticamente; antes, uma restauração manual bloqueava a automação até o próximo clique manual, agora não bloqueia mais — o CSV desatualizado é o sinal para corrigir o CSV, não para o Hub ignorá-lo); NOVO: automação "Contato Feito" → Template Enviado — se o CSV importado diz que um nome já teve "Contato Feito" E esse mesmo nome estava em branco no CSV anterior (Fazer contato OU Contato Realizado), o sistema arquiva sozinho em Template Enviado/Conciliação, preservando o atendente, com o mesmo carimbo anti-ressurreição do botão manual, log próprio (kanban_auto_template) e toast de resumo em lote; se o nome chegou de fora já com Contato Feito, nada muda — só a pasta azul, como sempre); revertido: menu lateral voltou a ter a barra de rolagem própria (max-height + overflow-y), como era antes do build 74) — agora fica sempre totalmente aberto, mostrando todos os itens de uma vez, mantendo o comportamento fixo/sticky ao rolar a página); merge multi-PC deduplica por ts+cli+pax; o Pax aparece na linha do histórico de atendimentos), atualiza junto da Ocupação; redesenho neon: tubo escuro com líquido luminoso que enche conforme a contagem, gradiente vivo por faixa (ciano→verde-água→lima→âmbar→magenta) com glow, número em destaque no bulbo, carinha neon mantida acompanhando o nível; teto de escala dinâmico), ignorando sentinelas e toques <1s; persistência permanente em appConfig.ocpHistorico com merge multi-PC por união de eventos), seletor "seu nome", ranking geral e termômetros do dia, e reconhecimento como vendedora nos vouchers; já constava na Ocupação) quando qualquer lado já vive na era dos carimbos (kanbanSelo); auditoria central: todo nome que ENTRAR na carteira via merge é registrado no log (abertura/salvar/poll), e as 4 ações manuais (trazer/devolver/arquivar/restaurar) também logam; poll ganhou cura ativa da nuvem); seed dos 40 clientes preservado); lixeira agora abre modal de confirmação antes de excluir; título do painel trocado de "Matriz Comercial" para "Fornecedor"), busca e sincronização multi-PC por timestamp) no menu e no cabeçalho do painel): Ocupação dos Atendentes + Ausência Programada movidas do dashboard para lá, IDÊNTICAS em layout e funções; render religado na navegação, no auto-refresh e no sync multi-PC; Control Desk agora é a tela inicial do sistema): tela com os 35 clientes do PDF, tudo editável inline (cliente, situação, contato, responsável), busca, filtro por responsável com contagem, badges de status coloridos e cores do sistema; sincronizado entre PCs por timestamp); regra de fim de semana — sexta, sábado e domingo usam o nome do sábado do PDF (sex/dom readonly, edita-se no sábado); destaque rosa nos 3 dias) já grava a seleção; campos Início e Fim ficam mais limpos) + blur para matar o incremento nativo — velocidade lenta e previsível em mouse e trackpad) e listener wheel direto no elemento com passive:false + limiar maior — scroll agora desacelera de verdade), e scroll do mouse desacelerado para ajuste suave de hora/minuto) com merge por timestamp em salvar+carregar+polling, soft delete nos arquivados e migração automática do legado)" do cabeçalho), barra lateral vermelha e separador antes do compromisso); fontes em branco vivo; ordem bolinha - nome - data - hora - compromisso) em atendimento na bolinha vermelha e pergunta qual transferir; transferir libera o slot de origem) -->
+    <!-- build: HUB-v3·109 (MINHAS TAREFAS — nova área PRIVADA no menu lateral, logo abaixo da Matriz Comercial. ACESSO (Fluxo 1): o operador escolhe o próprio nome e digita a SENHA dele; cada senha abre somente a "gaveta" daquele operador — as tarefas dos outros não aparecem. A senha é guardada como HASH SHA-256 temperado com o nome (nunca em texto puro); primeiro acesso cria a senha (mín. 4 caracteres, com confirmação); "Esqueci minha senha" reseta a gaveta APAGANDO senha e post-its (digitar RESETAR para confirmar — Opção A, sem senha-mestra). A pasta TRANCA sozinha ao navegar para outra tela e após 15 min sem uso; botão 🔒 Trancar sempre visível. CONTEÚDO: post-its estilo papel (9 cores à escolha, visual de bloquinho com sombras empilhadas e leve rotação) sobre QUADRO DE MADEIRA (régua de tábuas feita só com CSS); cada post-it tem "Data:", TÍTULO em fonte manuscrita e LINHAS com QUADRADINHO-LED estático (não pulsante) — clique abre 7 cores (azul, verde, vermelho, laranja, amarelo, roxo, rosa) + apagar; Enter cria a próxima linha, Backspace em linha vazia remove, botão + linha, excluir linha no hover, trocar cor do papel e excluir post-it com confirmação. EDITOR: as linhas usam O MESMO motor do Diretório→Notas — o editor virou RETARGETÁVEL (window.__notaEditorAtivo + prefixo __ntbPrefixo): a barra de Minhas Tarefas (ids mt*) reusa notaCmd/notaAplicarTamanho/abrirPopoverCor/notaSincronizarSeletores; as Notas seguem idênticas via fallback. SYNC: appConfig.minhasTarefas viaja pelo KV (não precisa mexer no Worker) com merge multi-PC próprio uvMesclarTarefas — senha decide por senhaTs, post-its por id com ts mais recente e soft delete — ligado no carregarConfig e no salvarConfig. HONESTIDADE TÉCNICA: é privacidade de TELA (Opção A) — o conteúdo não é criptografado no banco; protege do colega curioso, não de quem abre o F12. ANTERIOR: AUSÊNCIA PROGRAMADA — agora aceita PERÍODO de vários dias e horário por digitação livre. (1) PERÍODO MULTI-DIA: o modelo ganhou o campo dataFim (data de término); o calendário virou seletor de INTERVALO (1º clique = início em VERDE, 2º clique = fim em VERMELHO, dias no meio destacados); clicar antes do início recomeça a seleção; registros antigos sem dataFim assumem o mesmo dia (retrocompatível). (2) HORÁRIO LIVRE: os campos Início/Fim deixaram de ser input type=time e viraram campo de texto que aceita SÓ números — digita-se 4 dígitos seguidos (ex.: 1400) e o sistema insere sozinho os dois-pontos do meio → 14:00; no blur completa o que falta (9 → 09:00, 830 → 08:30); removida a máquina antiga de showPicker/scroll desses campos. (3) VALIDAÇÃO do fim depois do início compara o DATETIME COMPLETO (data+hora), então período que cruza a meia-noite ou vários dias valida certo. (4) SINCRONIZAÇÃO com a Ocupação e ausProgPassado usam o datetime real de início e fim. (5) LISTA e resumos mostram o intervalo — mesmo dia: 14:00-18:00; dias diferentes: dois chips início → fim. Sem mudança no Worker. ANTERIOR: KANBAN — BLINDAGEM DEFINITIVA do "✓ Template Enviado" (o clique continuava sendo desfeito após o ·106). DEPURAÇÃO PROFUNDA encontrou DUAS brechas reais: (1) RENDER OTIMISTA DO BOOT — carregarStatusHotel renderiza PRIMEIRO com o CSV do localStorage (pode estar velho/divergente) e as purgas rodavam nesse render criando soft-delete com carimbo tsm=AGORA, mais novo que o do clique, que então VENCIA o merge em todos os PCs (o rastreador já respeitava a flag uvCsvAutoritativo do ·86, mas as purgas NÃO); (2) WORKER/DO — mesclarEstadoVivo usava Object.assign para arquivados: patch de um PC defasado (ex.: build velho em cache) sempre vencia, mesmo com tsm mais antigo, regredindo o arquivado fresco no servidor. DEFESAS NOVAS: (a) uvCsvPodeDestruir() — purgas só rodam com CSV AUTORITATIVO do servidor e nunca com CSV mais velho que a marca sincronizada tratativaCsvTs; (b) ESCUDO PÓS-CLIQUE uvEscudoCliques — por 90s após o clique manual (ou automação), nenhum merge/purga reverte aquele nome, nem com carimbo mais novo; Restaurar/Devolver manuais limpam o escudo; tentativas bloqueadas são logadas (console + log central kanban_escudo); (c) merge 3-WAY no carregarConfig (localStorage ∪ memória ∪ nuvem) fecha a janela de ação ainda não persistida; (d) BADGE DE BUILD visível no canto inferior direito + console.info — para confirmar a versão que o navegador está de fato rodando (cache!); (e) window.uvDiag("nome") — dossiê completo do cliente no console: carteira, arquivado, carimbos, escudo, linhas do CSV que casam e últimos eventos; (f) WORKER v3 (worker_v3_do.js) — arquivados mesclados por tsm (mais novo vence, nunca regride) e carteira respeita a era dos carimbos (nome sem op não entra). ANTERIOR: KANBAN — CORREÇÃO do botão "✓ Template Enviado": clicar nele em "Contato Realizado" devolvia o nome para "Fazer contato" em vez de arquivar. CAUSA (reproduzida em teste): purgarArquivadosPorStatus roda em TODO render e a PRIMEIRA linha do CSV que "batesse" com o nome decidia sozinha — e o matcher estrito também casa DUPLICATAS ("Carlos Silva" × "Carlos Teste Silva") e HOMÔNIMOS PARCIAIS (1º nome + um sobrenome em comum); se essa OUTRA linha estivesse "Em tratativa"/"Fechado", o arquivado recém-criado era soft-deletado NO MESMO render do clique (e o motivo "progrediu" também apagava a carteira), então o nome — que segue EM BRANCO no CSV — reaparecia em "Fazer contato". CORREÇÕES: (1) match EXATO (normNome igual) tem prioridade ABSOLUTA na purga — existindo linha exata, só ela decide, duplicata/homônimo parecido não opina; (2) se QUALQUER linha candidata continua EM BRANCO no CSV, NÃO purga — o cliente ainda está no funil como arquivado; (3) mesma blindagem em purgarCarteiraPorStatus: nome repetido no CSV com uma linha em branco NÃO tem a carteira purgada pela linha duplicada em tratativa. Progressão LEGÍTIMA (a linha exata do cliente virou "Em Tratativa"/"Fechado") continua purgando normalmente — coberto por teste de regressão); ANTERIOR: TEMPO REAL: o Hub agora abre um WebSocket com o Durable Object do Worker (/api/live) e recebe as mudanças de outros PCs em MENOS DE 1 SEGUNDO, em qualquer tela — antes só no polling de 60s e só com o Dashboard aberto. O ENVIO continua sendo o salvarConfig() de sempre: o Worker repassa os campos vivos ao DO, que transmite a todos. O RECEBIMENTO mescla com as MESMAS funções já validadas (uvMesclarCarteiraArq, uvMesclarNotifs, ocpMesclarEstados) — nunca substitui cegamente, então ação local recém-feita não se perde. Reconexão automática com espera progressiva + ping de 30s; o polling de 60s CONTINUA ATIVO como rede de proteção. Re-render seletivo: só redesenha o que mudou); ANTERIOR: NOTIFICAÇÕES: nova REGRA 24h para o status "Contato Feito" (NOTIFICAÇÕES: nova REGRA 24h para o status "Contato Feito" — bloco AZUL no Control Desk com a mesma mensagem do bloco amarelo, só trocando "Em Tratativa" por "Contato Feito", e botão "✓ Verificado" próprio. Relógio independente em appConfig.cfeitoTs {ts,del,op} com guarda monótonica cfeitoCsvTs e selo cfeitoSeloSeed, espelhando toda a blindagem do relógio de tratativa (CSV atrasado ignorado, soft delete preservando ts, merge por "op"). SEED: todo nome hoje em "Contato Feito" entra com ts:0 e dispara na hora, mesma regra do Em Tratativa. O silêncio do Verificado usa CHAVE PRÓPRIA "cf::"+atendente — verificar a cobrança azul NÃO silencia a amarela); ANTERIOR: KANBAN: a coluna "Contato Feito" agora mostra o AGENTE do CSV (KANBAN: a coluna "Contato Feito" agora mostra o AGENTE do CSV embaixo de cada nome, no mesmo formato da coluna "Em tratativa" ("Ag.: Fulano"). Tecnicamente, colLista() ganhou um 5º parâmetro opcional metaFn — as outras colunas de lista (Recusados, Erro de Comunicação, Sem Retorno) seguem sem meta, sem nenhuma mudança); ANTERIOR: VISUAL: contorno CROMADO VIVO e FIXO (VISUAL: contorno CROMADO VIVO e FIXO — mesmo nível de intensidade do azul vivo do ·101, só trocando a cor, para a comparação ser justa. O cromado tem o pico de BRANCO PURO (#FFFFFF), que é o que dá a leitura de "metal polido" e é justamente o que ofuscava lá atrás — MAS naquela época ele estava PISCANDO; agora está PARADO, e a piscada era metade do problema. Se ainda pesar, existe o cromado SUAVIZADO (pico parando em #8E9BA6) pronto no preview); ANTERIOR: contorno no NÍVEL 1 (azul vivo) — gradiente #0A2E52 a #6FBAFF com halo mais presente (.42/.20). É o mais marcante dos três níveis, mas continua FIXO: o que ofuscava de verdade era a PISCADA somada ao pico de BRANCO PURO do cromado, e nenhum dos dois voltou. Combina com a chamada em branco macio do ·99); ANTERIOR: o contorno voltou ao NÍVEL 2 (azul suavizado) — gradiente #16324D a #5A89B6 e halo contido (.22/.12), fixo, sem piscar. O nível 3 (bem discreto) foi testado no ·98 e o nível 2 ficou melhor. Combina com a chamada em branco macio introduzida no ·99); ANTERIOR: a segunda parte da frase de impacto ("🚨 AÇÃO IMEDIATA NECESSÁRIA: TEM CLIENTES ABANDONADOS NO SEU PAINEL! NÃO IGNORE ESTA NOTIFICAÇÃO!") ganhou classe própria (.cd-chamada) com branco MENOS intenso (#C3CEDB) e peso 700 em vez de 900. Motivo: um texto longo, todo em caixa alta, em branco puro e peso máximo vira um bloco "gritado" e cansa a leitura. Agora o "⚠️ ATENÇÃO, [NOME]!" fica sendo o ponto de maior contraste da linha — nome em vermelho, "ATENÇÃO" em branco forte — e o resto acompanha em tom mais macio); ANTERIOR: contorno no nível BEM DISCRETO (opção 3): gradiente azul mais escuro e dessaturado (#142A3E a #47697F, pico sóbrio) e halo praticamente só um assentamento (.14, camada única). O destaque da caixa passa a vir do TEXTO — caixa alta, negrito, nome do atendente em vermelho — e não do contorno, que agora só delimita sem competir com a leitura. Continua FIXO, sem piscar); ANTERIOR: ESCOLHA do contorno: AZUL SUAVIZADO e FIXO. O cromado suavizado do ·96 foi testado e o azul suavizado ficou melhor, então voltamos a ele. Gradiente de #16324D a #5A89B6 (sem pico claro estourado) e halo discreto (.22/.12), sem piscar. Evolução completa: vermelho piscante → cromado piscante (ofuscava: pico de BRANCO PURO + halo forte + piscada, tudo ao lado de texto branco) → azul piscante → azul fixo → azul suavizado → cromado suavizado → AZUL SUAVIZADO FIXO); ANTERIOR: o contorno voltou ao CROMADO, mas no mesmo nível de suavização que o azul tinha atingido. O que ofuscava antes não era "ser cromado": era o pico de BRANCO PURO (#FFFFFF) no gradiente somado a um halo forte, e tudo isso PISCANDO ao lado de texto branco. Agora o brilho máximo do metal para num prata acinzentado (#8E9BA6) — o gradiente mantém a variação escuro→claro que dá a leitura de "cromo polido", sem estourar — o halo ficou discreto (.22/.12) e a piscada não voltou. Contorno CROMADO SUAVE e FIXO); ANTERIOR: a cor do contorno azul foi SUAVIZADA — baixaram duas coisas juntas: as cores do gradiente (tons menos saturados, sem o azul-claro estourado #6FBAFF que puxava a vista; agora vai de #16324D a #5A89B6) e o halo luminoso em volta (opacidade caiu de .42/.20 para .22/.12). A caixa segue destacada no painel, mas sem gritar. Continua FIXA, sem piscar); ANTERIOR: o contorno das notificações agora é AZUL FIXO — a piscada foi REMOVIDA por completo (nenhuma animação restou na caixa). Motivo: piscar ajuda a NOTAR mas atrapalha a LER, e a cobrança precisa ser lida. O contorno azul luminoso continua destacando a caixa, sem cansar a vista. Histórico da evolução: vermelho piscante → cromado piscante (branco brilhante, ofuscava ao lado do texto branco) → azul piscante → AZUL FIXO); ANTERIOR: o contorno CROMADO saiu e virou AZUL NEON. O cromado era essencialmente BRANCO brilhante, e um branco pulsando ao lado de texto branco ofuscava e atrapalhava a leitura; o azul contrasta com o texto em vez de competir com ele. Além da cor, o BRILHO foi suavizado (halo menor e menos opaco) e o pulso ficou mais lento (1.15s → 1.35s) — o incômodo não vinha só da cor, vinha da intensidade. Também reduzido o text-shadow BRANCO da frase de impacto, que deixava a fonte levemente borrada sobre si mesma: agora é uma sombra escura sutil, que dá contraste e mantém a letra nítida); AJUSTE ANTERIOR: a fonte da frase de impacto do cabeçalho aumentou 20% — de 0.63rem para 0.756rem (o histórico do tamanho ficou: 0.9rem original → 0.63rem no ·91 → 0.756rem agora, ou seja ~16% menor que o original); a seta ▾ acompanhou (0.72 → 0.86rem). O texto do corpo da caixa segue em 0.86rem, inalterado); AJUSTE ANTERIOR: a frase de impacto do cabeçalho (a que aparece com a caixa fechada) teve a fonte reduzida em 30% — de 0.9rem para 0.63rem; a seta ▾ foi ajustada proporcionalmente (0.9 → 0.72rem) para não ficar desproporcional ao lado do texto menor. O texto do CORPO da caixa continua em 0.86rem, inalterado); AJUSTE ANTERIOR: o INTERIOR da caixa de notificação voltou ao normal — o fundo agora é var(--card), o mesmo dos demais painéis, sem gradiente/clarão nenhum. Restou SÓ a borda cromada com o halo externo piscando. Nota técnica: a camada de fundo em padding-box não pode simplesmente ser removida — sem ela o gradiente cromado do border-box vazaria e preencheria a caixa inteira; por isso ela virou uma cor SÓLIDA (var(--card)) em vez de sumir. E border-image, o caminho "óbvio" para borda em gradiente, não serve porque não respeita border-radius e deixaria os cantos quadrados); AJUSTE ANTERIOR: removido o "flash" que passava por cima da caixa inteira — saiu a animação de brilho deslizante (cdCromoDesliza) e saiu o glow interno (inset box-shadow). Agora SÓ O CONTORNO pisca: a borda é um gradiente cromado ESTÁTICO (grafite → prata → branco → prata → grafite, aspecto de metal polido) e o que pulsa é apenas o halo EXTERNO em volta dela (cdCromoPulsa, 1.15s). O conteúdo da caixa fica limpo, sem nada passando por cima. O botão verde LED do "Verificado" mantém o brilho fixo próprio); VISUAL ANTERIOR: o contorno das caixas de notificação trocou o VERMELHO piscante por um CROMADO NEON CINTILANTE. Cromo não é cor sólida, é REFLEXO — então a borda é um gradiente metálico (grafite → prata → branco puro → prata → grafite) que DESLIZA em volta da caixa (animação cdCromoDesliza, 2.6s linear), somado a um halo pulsante que faz a cintilação (cdCromoPulsa, 1.15s). As duas animações rodam em ciclos independentes, o que dá brilho vivo de metal em vez de pisca-pisca chapado. Técnica: DUPLO GRADIENTE — fundo em padding-box e cromado em border-box — porque border-image NÃO respeita border-radius e deixaria os cantos quadrados; o deslize vem de animar o background-position do gradiente da borda (background-size 300% nele). O nome do atendente segue VERMELHO no cabeçalho e o botão verde LED do "Verificado" segue fixo, sem piscar); VISUAL: as caixas de notificação agora nascem RECOLHIDAS — só a frase de impacto aparece: "⚠️ ATENÇÃO, [NOME]! 🚨 AÇÃO IMEDIATA NECESSÁRIA: TEM CLIENTES ABANDONADOS NO SEU PAINEL! NÃO IGNORE ESTA NOTIFICAÇÃO!"; clicar no cabeçalho abre/fecha o conteúdo (seta ▾ gira); SÓ o nome do atendente sai em VERMELHO (classe .cd-nome), todo o resto da frase em BRANCO negrito vivo (inverteu a lógica anterior, em que só a palavra ATENÇÃO era branca); o estado aberto/fechado vive em memória (cdAbertas) e SOBREVIVE ao re-render automático de 60s — sem isso a caixa fecharia sozinha na cara do atendente no meio da leitura; cada caixa abre de forma independente; o botão "✓ Verificado" tem prioridade no clique e NÃO alterna a caixa; o separador tracejado do bloco amarelo só aparece quando ele vem depois do bloco de contato); CORREÇÃO CRÍTICA — "as notificações de Em Tratativa sumiram depois da importação". CAUSA (reproduzida em teste): qualquer render feito com um CSV ATRASADO fazia o rastreador dar SOFT DELETE nos nomes (pois naquele CSV velho eles "não estavam em tratativa"); quando o CSV correto chegava, a entrada era RECRIADA com ts=agora e o relógio de 24h ZERAVA — escondendo a cobrança por mais um dia. O CSV atrasado vinha de duas fontes: o do localStorage (carregarStatusHotel renderiza com ele antes de buscar o servidor) e o do PRÓPRIO SERVIDOR, porque o KV do Cloudflare é eventualmente consistente e um GET logo após o POST pode devolver a versão anterior. Somavam-se duas falhas: o rastreador rodava ANTES de carregarConfig() trazer o appConfig da nuvem (gravando estado meia-boca), e o merge decidia conflito por "maior ts vence" — mas as entradas do seed nascem com ts:0, o menor valor possível, então perdiam para qualquer del:1 espúrio. CORREÇÕES: (1) GUARDA MONOTÔNICA — appConfig.tratativaCsvTs guarda o importadoEm do último CSV processado; CSV mais velho é IGNORADO pelo relógio, venha de onde vier; (2) uvCfgPronta — o rastreador só age depois que a config vem da nuvem; (3) campo "op" (carimbo da última escrita) separado do "ts" (início do relógio) e merge decidindo por "op", então ts:0 não perde mais por ser zero; (4) o soft delete agora PRESERVA o ts original; (5) SEED v2 — repara o estado já corrompido: todo nome hoje em tratativa volta a ts:0 e dispara na hora, e o selo v2 vence o v1 no merge para o reparo se propagar entre PCs); ÊNFASE: as frases de ação das notificações agora saem em NEGRITO — "clique no botão “Template Enviado”" no bloco de cima e "atualize o status de cada atendimento no sistema" no bloco de baixo; usam a classe .cd-forte com color:inherit, para o negrito HERDAR a cor do bloco (branco-avermelhado em cima, AMARELO embaixo) em vez do branco fixo do <b> padrão, preservando a distinção de cor entre as duas cobranças); VISUAL das notificações do Control Desk: (1) a palavra "ATENÇÃO" agora sai em BRANCO e negrito (classe .cd-atencao), destacada do resto do título que segue vermelho; (2) FUSÃO — quando o mesmo atendente tem AS DUAS pendências, elas passam a ocupar UM ÚNICO quadrado com um só título: em cima o bloco de "fazer contato / clicar em Template Enviado" e embaixo, separado por uma linha tracejada, o bloco de "Em Tratativa" com o botão Verificado dentro dele; antes eram duas caixas separadas com o título repetido; (3) o bloco de baixo (Em Tratativa) agora tem fonte AMARELA (#FFD84D) para diferenciar visualmente das duas cobranças; quem tem só uma das pendências continua com uma caixa de bloco único, e o grupo EQUIPE segue sempre por último); apelido novo cadastrado: "Laura Teston"/"Laura" = Hynaê Teston, somando-se a "Rael" = Israel Hespanhol e "Ghabi" = Ghabriella Bressan no mapa AGENTE_APELIDOS); CORREÇÃO: apelidos na coluna Agente do CSV — os nomes em tratativa continuavam caindo no grupo EQUIPE porque o CSV traz APELIDOS ("Rael" = Israel Hespanhol, "Ghabi" = Ghabriella Bressan) que nenhuma regra automática de nome consegue deduzir (não há relação estrutural entre "Rael" e "Israel Hespanhol"); criado o mapa explícito AGENTE_APELIDOS como regra 0 do matcher (vence tudo, e funciona também quando o apelido vem com sobrenome: "Rael Hespanhol"); PARA ADICIONAR APELIDO NOVO basta acrescentar uma linha em AGENTE_APELIDOS no formato 'apelido minusculo sem acento':'Nome Completo'; AUTODIAGNÓSTICO: a caixa da notificação EQUIPE agora MOSTRA na tela exatamente como o CSV escreveu cada agente não reconhecido — não precisa mais abrir o console para descobrir apelidos novos (também disponível em window.__cdAgentesNaoReconhecidos)); CORREÇÃO na Regra 24h do Control Desk: os nomes em tratativa TÊM agente no CSV, mas todos caíam no grupo "EQUIPE" — a causa era o reuso de umNomeBateEstrito(), função feita para comparar HÓSPEDES, que recusa de propósito o match quando um lado tem só UM nome ("Ana" × "Ana Maria" → não casa, proteção contra homônimos entre clientes); só que a coluna "Agente" é um campo INTERNO da equipe e quase sempre traz só o PRIMEIRO nome ("Diego", "Fernando"), então todo agente de nome único caía em não-reconhecido; criado matcher dedicado uvAgenteParaAtendente() que casa por (1) igualdade exata, (2) nome completo com primeiro nome igual + sobrenome compartilhado, (3) primeiro nome sozinho — mas só quando esse primeiro nome for ÚNICO entre os 12 atendentes (se fosse ambíguo, recusa e manda pro grupo EQUIPE, nunca cobra a pessoa errada; verificado: nenhum dos 12 atendentes compartilha primeiro nome hoje, então o match é seguro); agentes realmente de fora da equipe continuam indo pro grupo EQUIPE listando os nomes; adicionado diagnóstico window.__cdAgentesNaoReconhecidos + console.info mostrando COMO o CSV escreveu cada agente não reconhecido); CORREÇÃO CRÍTICA na Regra 6h do Control Desk: a notificação estava contando direto de appConfig.carteira "cru", sem cruzar com quem REALMENTE aparece na coluna Contato Realizado — nomes que saíram do Kanban por qualquer motivo (linha removida do CSV, virou Recusado/Erro de Comunicação/Sem Retorno, ou passou a bater com voucher WeCann) ficavam "fantasmas" na carteira e inflavam a contagem sem aparecer em lugar nenhum na tela, causando o bug relatado — Diego notificado com 8 pendências sem ter nenhum contato visível; corrigido expondo grupos.realizado como fonte única de verdade (window.__kbRealizadoNomes), calculada pelo próprio renderStatusColunas logo antes de renderCdNotifs — a notificação agora NUNCA pode contar mais do que o que está de fato visível na tela); NOVO: Notificações de Cobrança no Control Desk — caixa vermelha LED neon piscando entre "Ocupação dos Atendentes" e o "Atendente da vez", com duas regras automáticas: (1) REGRA 6h — nomes na carteira/Contato Realizado há mais de 6 horas sem baixa disparam "⚠️ ATENÇÃO, [ATENDENTE]!" com a contagem X só dos vencidos; sem botão — a notificação some sozinha quando todos forem baixados, manual ou pela automação do CSV; usa o carimbo ts do carteiraOps que já existia; (2) REGRA 24h — nomes com status "Em Tratativa" há mais de 24 horas disparam notificação com botão verde LED neon fixo "✓ Verificado" que silencia o grupo por 24h e reinicia a contagem (appConfig.notifVerificado, clique mais recente vence no merge); relógio de tratativa novo em appConfig.tratativaTs {ts,del} com seed inicial ts:0 para nomes legados (disparam imediatamente, decisão do Nando); agente do CSV reconhecido entre os atendentes (match primeiro+último nome) → notificação nominal com contagem; agente vazio/não reconhecido → "⚠️ ATENÇÃO, EQUIPE!" listando os NOMES dos clientes; merge multi-PC nos dois caminhos (abertura+salvar) via uvMesclarNotifs; tick de 60s mantém a caixa atualizada; logs notif_verificado); NOVO: limpeza automática da carteira por progressão — quem está em "Em Tratativa" ou "Fechado" no CSV agora NÃO pode existir em mais nenhum lugar do Kanban; cobre o caso que faltava — nome esquecido em Contato Realizado sem nunca ter passado por Template Enviado — removendo da carteira automaticamente (sem arquivar em Template Enviado, já que progredir não é a mesma coisa que template enviado), com log próprio kanban_limpeza_carteira, rodando a cada render — protege também contra drift de sincronização entre PCs, não só importação de CSV); AJUSTE na automação "Contato Feito": agora o CSV sempre prevalece — se o nome estiver na carteira de um atendente NO MOMENTO da importação (mesmo se foi restaurado manualmente após um Template Enviado anterior) e o CSV disser "Contato Feito", o sistema arquiva de novo automaticamente; antes, uma restauração manual bloqueava a automação até o próximo clique manual, agora não bloqueia mais — o CSV desatualizado é o sinal para corrigir o CSV, não para o Hub ignorá-lo); NOVO: automação "Contato Feito" → Template Enviado — se o CSV importado diz que um nome já teve "Contato Feito" E esse mesmo nome estava em branco no CSV anterior (Fazer contato OU Contato Realizado), o sistema arquiva sozinho em Template Enviado/Conciliação, preservando o atendente, com o mesmo carimbo anti-ressurreição do botão manual, log próprio (kanban_auto_template) e toast de resumo em lote; se o nome chegou de fora já com Contato Feito, nada muda — só a pasta azul, como sempre); revertido: menu lateral voltou a ter a barra de rolagem própria (max-height + overflow-y), como era antes do build 74) — agora fica sempre totalmente aberto, mostrando todos os itens de uma vez, mantendo o comportamento fixo/sticky ao rolar a página); merge multi-PC deduplica por ts+cli+pax; o Pax aparece na linha do histórico de atendimentos), atualiza junto da Ocupação; redesenho neon: tubo escuro com líquido luminoso que enche conforme a contagem, gradiente vivo por faixa (ciano→verde-água→lima→âmbar→magenta) com glow, número em destaque no bulbo, carinha neon mantida acompanhando o nível; teto de escala dinâmico), ignorando sentinelas e toques <1s; persistência permanente em appConfig.ocpHistorico com merge multi-PC por união de eventos), seletor "seu nome", ranking geral e termômetros do dia, e reconhecimento como vendedora nos vouchers; já constava na Ocupação) quando qualquer lado já vive na era dos carimbos (kanbanSelo); auditoria central: todo nome que ENTRAR na carteira via merge é registrado no log (abertura/salvar/poll), e as 4 ações manuais (trazer/devolver/arquivar/restaurar) também logam; poll ganhou cura ativa da nuvem); seed dos 40 clientes preservado); lixeira agora abre modal de confirmação antes de excluir; título do painel trocado de "Matriz Comercial" para "Fornecedor"), busca e sincronização multi-PC por timestamp) no menu e no cabeçalho do painel): Ocupação dos Atendentes + Ausência Programada movidas do dashboard para lá, IDÊNTICAS em layout e funções; render religado na navegação, no auto-refresh e no sync multi-PC; Control Desk agora é a tela inicial do sistema): tela com os 35 clientes do PDF, tudo editável inline (cliente, situação, contato, responsável), busca, filtro por responsável com contagem, badges de status coloridos e cores do sistema; sincronizado entre PCs por timestamp); regra de fim de semana — sexta, sábado e domingo usam o nome do sábado do PDF (sex/dom readonly, edita-se no sábado); destaque rosa nos 3 dias) já grava a seleção; campos Início e Fim ficam mais limpos) + blur para matar o incremento nativo — velocidade lenta e previsível em mouse e trackpad) e listener wheel direto no elemento com passive:false + limiar maior — scroll agora desacelera de verdade), e scroll do mouse desacelerado para ajuste suave de hora/minuto) com merge por timestamp em salvar+carregar+polling, soft delete nos arquivados e migração automática do legado)" do cabeçalho), barra lateral vermelha e separador antes do compromisso); fontes em branco vivo; ordem bolinha - nome - data - hora - compromisso) em atendimento na bolinha vermelha e pergunta qual transferir; transferir libera o slot de origem) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -1962,6 +2052,10 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
 
       <section class="screen" id="scr-cliente">
         <div id="clienteWrap"></div>
+      </section>
+
+      <section class="screen" id="scr-tarefas">
+        <div id="mtRoot"></div>
       </section>
 
     </div>
@@ -2456,7 +2550,7 @@ async function loadSaved(){
 // (·107) versão VISÍVEL do build — badge no canto inferior direito + console.
 // Serve para confirmar qual versão está de fato rodando no navegador (cache do
 // Pages/navegador pode servir build antigo mesmo após o deploy!).
-const UV_BUILD='HUB-v3\u00b7108';
+const UV_BUILD='HUB-v3\u00b7109';
 try{ console.info('%c[Hub Ultravel] build '+UV_BUILD, 'color:#6FBAFF;font-weight:bold'); }catch(e){}
 try{
   document.addEventListener('DOMContentLoaded', function(){
@@ -2585,6 +2679,15 @@ async function carregarConfig(){
         Object.keys(_apIds).forEach(function(id){ var ea=_apA[id], eb=_apB[id]; _mAp[id]=(ea&&eb)?(((ea.ts||0)>=(eb.ts||0))?ea:eb):(ea||eb); });
         appConfig.ausenciasProgramadas=_mAp;
       }
+      // MINHAS TAREFAS (·109): gavetas privadas por operador — senha pelo carimbo
+      // senhaTs, post-its por id pelo ts mais recente (soft delete preservado).
+      if(local.minhasTarefas || c.minhasTarefas){
+        if(typeof window.uvMesclarTarefas==='function'){
+          appConfig.minhasTarefas=window.uvMesclarTarefas(local.minhasTarefas||appConfig.minhasTarefas||{}, c.minhasTarefas||{});
+        } else if(c.minhasTarefas && typeof c.minhasTarefas==='object'){
+          appConfig.minhasTarefas=Object.assign({}, c.minhasTarefas, appConfig.minhasTarefas||local.minhasTarefas||{});
+        }
+      }
       localStorage.setItem('uv_config',JSON.stringify(appConfig));
     }
   }catch(e){}
@@ -2660,6 +2763,14 @@ async function salvarConfig(){
       Object.keys(apCloud).forEach(function(k){apIds[k]=1;}); Object.keys(apLocal).forEach(function(k){apIds[k]=1;});
       Object.keys(apIds).forEach(function(id){ var ea=apCloud[id], eb=apLocal[id]; apOut[id]=(ea&&eb)?(((ea.ts||0)>=(eb.ts||0))?ea:eb):(ea||eb); });
       appConfig.ausenciasProgramadas=apOut;
+    }
+    // MINHAS TAREFAS (·109): une nuvem+local por operador (senha por senhaTs; post-its por ts)
+    if(cloud.minhasTarefas || appConfig.minhasTarefas){
+      if(typeof window.uvMesclarTarefas==='function'){
+        appConfig.minhasTarefas=window.uvMesclarTarefas(appConfig.minhasTarefas||{}, cloud.minhasTarefas||{});
+      } else if(cloud.minhasTarefas && typeof cloud.minhasTarefas==='object'){
+        appConfig.minhasTarefas=Object.assign({}, cloud.minhasTarefas, appConfig.minhasTarefas||{});
+      }
     }
     // CARTEIRA + ARQUIVADOS (Contato Realizado / Template Enviado): merge por carimbo.
     // Corrige a ressurreição de nomes: um PC defasado NÃO reenvia carteira velha —
@@ -6339,6 +6450,9 @@ init();
     var el=document.getElementById(id); if(el) el.classList.add('active');
   }
   window.hubGoScreen=function(scr){
+    // Minhas Tarefas: TRANCA automaticamente ao navegar para qualquer outra tela —
+    // ninguém sai da sala deixando a gaveta aberta (·109)
+    if(scr!=='tarefas'){ try{ if(typeof window.mtTrancar==='function') window.mtTrancar(true); }catch(e){} }
     if(scr in WEC){
       show('scr-wecann');
       try{ appConfig.estoqueVisivel=true; }catch(e){}
@@ -6357,6 +6471,7 @@ init();
       if(scr==='cabeca' && typeof window.renderCabecaRede==='function') window.renderCabecaRede();
       if(scr==='matriz' && typeof window.renderMatriz==='function') window.renderMatriz();
       if(scr==='cliente' && typeof window.renderCliente==='function') window.renderCliente();
+      if(scr==='tarefas' && typeof window.renderTarefas==='function') window.renderTarefas();
     }
     document.querySelectorAll('#hubSidebar .nav-item').forEach(function(n){
       n.classList.toggle('active', n.getAttribute('data-screen')===scr);
@@ -6493,8 +6608,22 @@ init();
 function getNotas(){ try{ return JSON.parse(localStorage.getItem('uv_notas')||'[]'); }catch(e){ return []; } }
 function setNotas(a){ try{ localStorage.setItem('uv_notas', JSON.stringify(a)); }catch(e){} }
 // aplica um comando de formatação no editor de notas (execCommand cobre todo o básico)
+/* ===== RETARGET DO EDITOR (·109) =====
+   O motor da barra de formatação (execCommand) era amarrado ao #notaTexto.
+   Agora ele atua no "editável ativo": as linhas dos post-its de Minhas Tarefas
+   registram-se em window.__notaEditorAtivo ao receber foco, e as Notas seguem
+   funcionando exatamente como antes (fallback). __ntbPrefixo permite que uma
+   segunda barra de ferramentas (com ids prefixados) reuse as mesmas funções. */
+window.__notaEditorAtivo=null;
+window.__ntbPrefixo='';
+function notaEditorAlvo(){
+  var e=window.__notaEditorAtivo;
+  if(e && e.isConnected && e.getAttribute && e.getAttribute('contenteditable')==='true') return e;
+  return document.getElementById('notaTexto');
+}
+function ntbCtl(id){ return document.getElementById((window.__ntbPrefixo||'')+id); }
 function notaCmd(cmd, valor){
-  var ed=document.getElementById('notaTexto'); if(!ed) return;
+  var ed=notaEditorAlvo(); if(!ed) return;
   ed.focus();
   try{
     if(cmd==='hiliteColor'){
@@ -6503,16 +6632,16 @@ function notaCmd(cmd, valor){
       document.execCommand(cmd, false, valor);
     }
   }catch(e){}
-  if(cmd==='fontName'){ var f=document.getElementById('ntbFont'); if(f) f.value=''; }
-  if(cmd==='fontSize'){ var s=document.getElementById('ntbSize'); if(s) s.value=''; }
+  if(cmd==='fontName'){ var f=ntbCtl('ntbFont'); if(f) f.value=''; }
+  if(cmd==='fontSize'){ var s=ntbCtl('ntbSize'); if(s) s.value=''; }
 }
 // aplica um tamanho de fonte REAL (em pixels, de 1 a 72) ao texto selecionado.
 // O comando execCommand('fontSize') só aceita 1..7, por isso usamos uma técnica em
 // dois passos: marcamos a seleção com um tamanho temporário e trocamos por px exato.
 function notaAplicarTamanho(px){
-  var ed=document.getElementById('notaTexto'); if(!ed) return;
+  var ed=notaEditorAlvo(); if(!ed) return;
   var n=parseInt(px,10);
-  var sel=document.getElementById('ntbSize');
+  var sel=ntbCtl('ntbSize');
   if(!px || isNaN(n)) return;   // opção vazia ("Tam.") não faz nada
   n=Math.max(1, Math.min(72, n)); // trava de segurança entre 1 e 72
   ed.focus();
@@ -6536,7 +6665,7 @@ function notaAplicarTamanho(px){
    assim o usuário sempre vê a formatação ativa onde o cursor está. */
 function notaSincronizarSeletores(){
   try{
-    var ed=document.getElementById('notaTexto'); if(!ed) return;
+    var ed=notaEditorAlvo(); if(!ed) return;
     var sel=window.getSelection && window.getSelection();
     if(!sel || sel.rangeCount===0) return;
     var node=sel.anchorNode; if(!node) return;
@@ -6548,7 +6677,7 @@ function notaSincronizarSeletores(){
     /* ---- TAMANHO DA FONTE ---- */
     var px=parseFloat(cs.fontSize)||0;
     var n=Math.round(px);
-    var selSize=document.getElementById('ntbSize');
+    var selSize=ntbCtl('ntbSize');
     if(selSize && n>0){
       var exato=null, maisProx=null, difMin=Infinity;
       for(var i=0;i<selSize.options.length;i++){
@@ -6578,7 +6707,7 @@ function notaSincronizarSeletores(){
       }
       p=p.parentElement; guard++;
     }
-    var selFont=document.getElementById('ntbFont');
+    var selFont=ntbCtl('ntbFont');
     if(selFont){
       var achou='';
       for(var j=0;j<selFont.options.length;j++){
@@ -6609,7 +6738,7 @@ var _ntbCorEscolhida='';   // cor atualmente escolhida dentro do popover
 // salva a seleção atual do editor (para restaurar depois que o popover roubar o foco)
 function ntbSalvarSelecao(){
   var sel=window.getSelection();
-  var ed=document.getElementById('notaTexto');
+  var ed=notaEditorAlvo();
   if(sel && sel.rangeCount>0 && ed){
     var r=sel.getRangeAt(0);
     // só guarda se a seleção está DENTRO do editor
@@ -6620,7 +6749,7 @@ function ntbSalvarSelecao(){
 // restaura a seleção salva
 function ntbRestaurarSelecao(){
   if(!_ntbSelRange) return;
-  var ed=document.getElementById('notaTexto'); if(ed) ed.focus();
+  var ed=notaEditorAlvo(); if(ed) ed.focus();
   var sel=window.getSelection();
   sel.removeAllRanges();
   sel.addRange(_ntbSelRange);
@@ -6645,8 +6774,8 @@ function abrirPopoverCor(alvo, btn){
   ntbSalvarSelecao();
   _ntbCorAlvo=alvo;
   var corAtual = alvo==='texto'
-    ? (document.getElementById('ntbCorAmostraTexto').style.background||'#E8EEF4')
-    : (document.getElementById('ntbCorAmostraFundo').style.background||'#FFEB3B');
+    ? ((ntbCtl('ntbCorAmostraTexto')||{style:{}}).style.background||'#E8EEF4')
+    : ((ntbCtl('ntbCorAmostraFundo')||{style:{}}).style.background||'#FFEB3B');
   _ntbCorEscolhida = ntbToHex(corAtual);
 
   var pop=document.createElement('div');
@@ -6704,10 +6833,10 @@ function abrirPopoverCor(alvo, btn){
     ntbRestaurarSelecao();
     if(alvoAtual==='texto'){
       notaCmd('foreColor', cor);
-      var am=document.getElementById('ntbCorAmostraTexto'); if(am) am.style.background=cor;
+      var am=ntbCtl('ntbCorAmostraTexto'); if(am) am.style.background=cor;
     } else {
       notaCmd('hiliteColor', cor);
-      var am2=document.getElementById('ntbCorAmostraFundo'); if(am2) am2.style.background=cor;
+      var am2=ntbCtl('ntbCorAmostraFundo'); if(am2) am2.style.background=cor;
     }
     fecharPopoverCor();
   });
@@ -10661,5 +10790,452 @@ function excluirNotaUI(id){
   .mx-save.mx-danger{background:#c0392b;border-color:#a93226}
   .mx-save.mx-danger:hover{background:#a93226}
 </style>
+<script>
+/* =====================================================================
+   ===== MINHAS TAREFAS (build HUB-v3·109) — área privada por senha =====
+   Cada operador tem a sua "gaveta": senha própria (guardada como HASH
+   SHA-256, nunca em texto puro) e post-its que SÓ aparecem depois de
+   destrancar. Fluxo 1: escolhe o nome → digita a senha. A pasta tranca
+   sozinha ao navegar para outra tela e após 15 min sem uso.
+   Conteúdo: post-its estilo papel sobre quadro de madeira, com título,
+   linhas com quadradinho-LED estático (7 cores) e texto formatável pela
+   MESMA barra do Diretório→Notas (motor retargetável do ·109).
+   ===================================================================== */
+(function(){
+  'use strict';
+
+  /* ---------- SHA-256 compacto (síncrono, sem dependências) ---------- */
+  function mtSha256(txt){
+    function rr(v,n){ return (v>>>n)|(v<<(32-n)); }
+    var K=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+    var H=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+    var bytes=[]; txt=unescape(encodeURIComponent(txt));
+    for(var i=0;i<txt.length;i++) bytes.push(txt.charCodeAt(i)&0xff);
+    var bl=bytes.length*8;
+    bytes.push(0x80);
+    while(bytes.length%64!==56) bytes.push(0);
+    for(var j=7;j>=0;j--) bytes.push((j>=4)?0:((bl>>>(j*8))&0xff));
+    for(var b=0;b<bytes.length;b+=64){
+      var w=new Array(64);
+      for(var t=0;t<16;t++) w[t]=(bytes[b+t*4]<<24)|(bytes[b+t*4+1]<<16)|(bytes[b+t*4+2]<<8)|(bytes[b+t*4+3]);
+      for(t=16;t<64;t++){
+        var s0=rr(w[t-15],7)^rr(w[t-15],18)^(w[t-15]>>>3);
+        var s1=rr(w[t-2],17)^rr(w[t-2],19)^(w[t-2]>>>10);
+        w[t]=(w[t-16]+s0+w[t-7]+s1)|0;
+      }
+      var a=H[0],bb=H[1],c=H[2],d=H[3],e=H[4],f=H[5],g=H[6],h=H[7];
+      for(t=0;t<64;t++){
+        var S1=rr(e,6)^rr(e,11)^rr(e,25), ch=(e&f)^(~e&g);
+        var t1=(h+S1+ch+K[t]+w[t])|0;
+        var S0=rr(a,2)^rr(a,13)^rr(a,22), mj=(a&bb)^(a&c)^(bb&c);
+        var t2=(S0+mj)|0;
+        h=g; g=f; f=e; e=(d+t1)|0; d=c; c=bb; bb=a; a=(t1+t2)|0;
+      }
+      H[0]=(H[0]+a)|0; H[1]=(H[1]+bb)|0; H[2]=(H[2]+c)|0; H[3]=(H[3]+d)|0;
+      H[4]=(H[4]+e)|0; H[5]=(H[5]+f)|0; H[6]=(H[6]+g)|0; H[7]=(H[7]+h)|0;
+    }
+    return H.map(function(x){ return ('00000000'+(x>>>0).toString(16)).slice(-8); }).join('');
+  }
+  window.mtSha256=mtSha256;
+
+  /* ---------- operadores, paletas e helpers ---------- */
+  function mtOperadores(){
+    var base=(typeof ATENDENTES!=='undefined' && Array.isArray(ATENDENTES))?ATENDENTES.slice():[];
+    if(base.indexOf('Ruth Alves')<0) base.push('Ruth Alves');   // consta na Ocupação
+    return base.sort(function(a,b){ return a.localeCompare(b,'pt-BR'); });
+  }
+  // cores de papel (9, como a foto de referência)
+  var MT_PAPEIS=['#f5ef9e','#b9e4b4','#f9cad5','#c9a7e8','#ded3f2','#bfdcf7','#f27cb4','#d9f0e3','#cfe98d'];
+  // cores do LED (as 7 pedidas)
+  var MT_LEDS=[
+    {n:'Azul',     c:'#2f9bff'}, {n:'Verde',   c:'#2ee56b'}, {n:'Vermelho', c:'#ff3b3b'},
+    {n:'Laranja',  c:'#ff8c1a'}, {n:'Amarelo', c:'#ffd400'}, {n:'Roxo',     c:'#b05cff'},
+    {n:'Rosa',     c:'#ff5ca8'}
+  ];
+  var mtEsc=function(v){ return (v==null?'':String(v)).replace(/[&<>"]/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); };
+  // sanitiza HTML vindo do armazenamento antes de reinjetar (só formatação básica)
+  function mtHtmlSeguro(html){
+    var t=document.createElement('div'); t.innerHTML=(html||'');
+    t.querySelectorAll('script,style,iframe,object,embed,link,meta').forEach(function(n){ n.remove(); });
+    t.querySelectorAll('*').forEach(function(n){
+      [].slice.call(n.attributes).forEach(function(at){
+        var nm=at.name.toLowerCase();
+        if(nm.indexOf('on')===0 || (nm==='href'&&/^\s*javascript:/i.test(at.value)) || (nm==='src')) n.removeAttribute(at.name);
+      });
+    });
+    return t.innerHTML;
+  }
+
+  /* ---------- armazenamento (gavetas por operador) ---------- */
+  function mtStore(){
+    if(!appConfig.minhasTarefas || typeof appConfig.minhasTarefas!=='object') appConfig.minhasTarefas={};
+    return appConfig.minhasTarefas;
+  }
+  function mtDe(at){
+    var m=mtStore();
+    if(!m[at] || typeof m[at]!=='object') m[at]={ senhaHash:'', senhaTs:0, postits:{} };
+    if(!m[at].postits || typeof m[at].postits!=='object') m[at].postits={};
+    return m[at];
+  }
+  // MERGE multi-PC: por operador — senha pelo carimbo senhaTs; post-its por id pelo ts
+  // (mais novo vence; del é soft delete e nunca ressuscita sozinho)
+  function uvMesclarTarefas(base, outro){
+    base=(base&&typeof base==='object')?base:{}; outro=(outro&&typeof outro==='object')?outro:{};
+    var out={}, ks={};
+    Object.keys(base).forEach(function(k){ ks[k]=1; }); Object.keys(outro).forEach(function(k){ ks[k]=1; });
+    Object.keys(ks).forEach(function(at){
+      var A=base[at]||{}, B=outro[at]||{};
+      var g={ senhaHash:'', senhaTs:0, postits:{} };
+      if((A.senhaTs||0)>=(B.senhaTs||0)){ g.senhaHash=A.senhaHash||''; g.senhaTs=A.senhaTs||0; }
+      else { g.senhaHash=B.senhaHash||''; g.senhaTs=B.senhaTs||0; }
+      var pk={}; Object.keys(A.postits||{}).forEach(function(k){ pk[k]=1; }); Object.keys(B.postits||{}).forEach(function(k){ pk[k]=1; });
+      Object.keys(pk).forEach(function(id){
+        var x=(A.postits||{})[id], y=(B.postits||{})[id];
+        g.postits[id]=(x&&y)?(((x.ts||0)>=(y.ts||0))?x:y):(x||y);
+      });
+      out[at]=g;
+    });
+    return out;
+  }
+  window.uvMesclarTarefas=uvMesclarTarefas;
+
+  /* ---------- sessão (destrancado em memória, NUNCA persistido) ---------- */
+  var mtSessao=null;            // nome do operador destrancado (só em memória)
+  var mtTimerOcioso=null;
+  var MT_OCIOSO_MS=15*60*1000;  // 15 min sem uso → tranca
+  function mtArmarOcioso(){
+    if(mtTimerOcioso) clearTimeout(mtTimerOcioso);
+    if(!mtSessao) return;
+    mtTimerOcioso=setTimeout(function(){ mtTrancar(); }, MT_OCIOSO_MS);
+  }
+  function mtTrancar(silencioso){
+    if(!mtSessao) return;
+    mtSalvarAgora();            // garante que nada digitado se perde
+    mtSessao=null;
+    if(mtTimerOcioso){ clearTimeout(mtTimerOcioso); mtTimerOcioso=null; }
+    window.__notaEditorAtivo=null; window.__ntbPrefixo='';
+    var sc=document.getElementById('scr-tarefas');
+    if(!silencioso || (sc && sc.classList.contains('active'))) renderTarefas();
+  }
+  window.mtTrancar=mtTrancar;
+
+  /* ---------- salvar (debounce) ---------- */
+  var mtSalvarTimer=null;
+  function mtAgendarSalvar(){
+    if(mtSalvarTimer) clearTimeout(mtSalvarTimer);
+    mtSalvarTimer=setTimeout(mtSalvarAgora, 900);
+  }
+  function mtSalvarAgora(){
+    if(mtSalvarTimer){ clearTimeout(mtSalvarTimer); mtSalvarTimer=null; }
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+  }
+
+  /* ---------- tela: cadeado ---------- */
+  function renderLock(){
+    var root=document.getElementById('mtRoot'); if(!root) return;
+    var ops=mtOperadores();
+    root.innerHTML=''
+      +'<div class="mt-lock-wrap"><div class="mt-lock-card">'
+      +  '<div class="mt-lock-ic">🔒</div>'
+      +  '<div class="mt-lock-tit">Minhas Tarefas</div>'
+      +  '<div class="mt-lock-sub">Área privada: cada operador enxerga somente os próprios post-its.<br>Escolha seu nome e digite sua senha.</div>'
+      +  '<div id="mtLockNovo"></div>'
+      +  '<select id="mtLockQuem"><option value="">Quem é você?</option>'
+      +     ops.map(function(a){ return '<option>'+mtEsc(a)+'</option>'; }).join('')
+      +  '</select>'
+      +  '<input type="password" id="mtLockSenha" placeholder="Sua senha" autocomplete="off">'
+      +  '<input type="password" id="mtLockSenha2" placeholder="Confirme a nova senha" autocomplete="off" style="display:none">'
+      +  '<div class="mt-lock-erro" id="mtLockErro"></div>'
+      +  '<button type="button" class="mt-lock-btn" id="mtLockEntrar">Entrar</button>'
+      +  '<div class="mt-lock-links"><button type="button" id="mtLockEsqueci">Esqueci minha senha</button></div>'
+      +'</div></div>';
+
+    var q=document.getElementById('mtLockQuem'), s1=document.getElementById('mtLockSenha'),
+        s2=document.getElementById('mtLockSenha2'), er=document.getElementById('mtLockErro'),
+        bt=document.getElementById('mtLockEntrar'), nv=document.getElementById('mtLockNovo');
+
+    function modo(){ // primeiro acesso (sem hash) → modo "criar senha"
+      var at=q.value; er.textContent='';
+      if(!at){ nv.innerHTML=''; s2.style.display='none'; bt.textContent='Entrar'; return; }
+      var g=(mtStore()[at])||{};
+      if(!g.senhaHash){
+        nv.innerHTML='<div class="mt-lock-novo">👋 Primeiro acesso de <b>'+mtEsc(at)+'</b>: crie sua senha agora (mínimo 4 caracteres).</div>';
+        s2.style.display='block'; bt.textContent='Criar senha e entrar';
+      } else { nv.innerHTML=''; s2.style.display='none'; bt.textContent='Entrar'; }
+    }
+    q.addEventListener('change', modo);
+
+    function entrar(){
+      var at=q.value; er.textContent='';
+      if(!at){ er.textContent='Escolha o seu nome na lista.'; return; }
+      var g=mtDe(at);
+      var senha=s1.value||'';
+      if(!g.senhaHash){
+        if(senha.length<4){ er.textContent='A senha precisa de pelo menos 4 caracteres.'; return; }
+        if(senha!==(s2.value||'')){ er.textContent='As senhas não conferem.'; return; }
+        g.senhaHash=mtSha256(at+'::'+senha);   // hash "temperado" com o nome
+        g.senhaTs=Date.now();
+        mtSalvarAgora();
+        try{ if(typeof logRemoto==='function') logRemoto('tarefas_senha_criada','Senha criada em Minhas Tarefas',{atendente:at}); }catch(e){}
+      } else {
+        if(mtSha256(at+'::'+senha)!==g.senhaHash){ er.textContent='Senha incorreta.'; s1.select(); return; }
+      }
+      mtSessao=at; s1.value=''; s2.value='';
+      mtArmarOcioso();
+      renderBoard();
+    }
+    bt.addEventListener('click', entrar);
+    s1.addEventListener('keydown', function(e){ if(e.key==='Enter'){ if(s2.style.display!=='none'){ s2.focus(); } else entrar(); } });
+    s2.addEventListener('keydown', function(e){ if(e.key==='Enter') entrar(); });
+
+    document.getElementById('mtLockEsqueci').addEventListener('click', function(){
+      var at=q.value;
+      if(!at){ er.textContent='Escolha primeiro o seu nome na lista.'; return; }
+      var g=(mtStore()[at])||{};
+      if(!g.senhaHash){ er.textContent='Este nome ainda não tem senha — é só criar uma.'; modo(); return; }
+      // Opção A (sem senha-mestra): resetar apaga a senha E os post-its da gaveta.
+      var conf=prompt('⚠️ Sem a senha não há como recuperar o conteúdo.\n\nResetar a gaveta de "'+at+'" apaga a senha E TODOS os post-its dela.\n\nPara confirmar, digite: RESETAR');
+      if((conf||'').trim().toUpperCase()!=='RESETAR'){ er.textContent='Reset cancelado.'; return; }
+      var novo=mtDe(at);
+      Object.keys(novo.postits).forEach(function(id){ novo.postits[id]={ ...novo.postits[id], del:1, ts:Date.now() }; });
+      novo.senhaHash=''; novo.senhaTs=Date.now();
+      mtSalvarAgora();
+      try{ if(typeof logRemoto==='function') logRemoto('tarefas_reset','Gaveta resetada (esqueci a senha)',{atendente:at}); }catch(e){}
+      er.textContent=''; modo();
+      nv.innerHTML='<div class="mt-lock-novo">♻️ Gaveta de <b>'+mtEsc(at)+'</b> resetada. Crie uma nova senha.</div>';
+      s2.style.display='block'; bt.textContent='Criar senha e entrar';
+    });
+  }
+
+  /* ---------- tela: quadro destrancado ---------- */
+  function mtToolbarHtml(){
+    // MESMA barra do Diretório→Notas, com ids prefixados "mt" para conviver com a original
+    return ''
+    +'<div class="nota-toolbar mt-toolbar-wrap" id="mtToolbar">'
+    +  '<select id="mtntbFont" title="Tipo de fonte" onchange="notaCmd(\'fontName\', this.value)">'
+    +    '<option value="">Fonte</option><option value="Arial, sans-serif">Arial</option><option value="Georgia, serif">Georgia</option><option value="\'Times New Roman\', serif">Times</option><option value="\'Courier New\', monospace">Courier</option><option value="Verdana, sans-serif">Verdana</option><option value="\'Trebuchet MS\', sans-serif">Trebuchet</option>'
+    +  '</select>'
+    +  '<select id="mtntbSize" title="Tamanho da fonte" onchange="notaAplicarTamanho(this.value)">'
+    +    '<option value="" selected>Tam.</option>'+[1,2,3,4,5,6,7,8,9,10,11,12,14,16,18,20,22,24,26,28,32,36].map(function(n){ return '<option value="'+n+'">'+n+'</option>'; }).join('')
+    +  '</select>'
+    +  '<span class="ntb-sep"></span>'
+    +  '<button type="button" title="Negrito" onclick="notaCmd(\'bold\')" style="font-weight:800">B</button>'
+    +  '<button type="button" title="Itálico" onclick="notaCmd(\'italic\')" style="font-style:italic">I</button>'
+    +  '<button type="button" title="Sublinhado" onclick="notaCmd(\'underline\')" style="text-decoration:underline">U</button>'
+    +  '<button type="button" title="Riscado" onclick="notaCmd(\'strikeThrough\')" style="text-decoration:line-through">S</button>'
+    +  '<span class="ntb-sep"></span>'
+    +  '<button type="button" class="ntb-cor-btn" id="mtntbCorTexto" title="Cor do texto" onclick="abrirPopoverCor(\'texto\', this)"><span class="ntb-lbl" style="font-weight:800">A</span><span class="ntb-cor-amostra" id="mtntbCorAmostraTexto" style="background:#2c3038"></span></button>'
+    +  '<button type="button" class="ntb-cor-btn" id="mtntbCorFundo" title="Cor de fundo (marca-texto)" onclick="abrirPopoverCor(\'fundo\', this)"><span class="ntb-lbl">🖍</span><span class="ntb-cor-amostra" id="mtntbCorAmostraFundo" style="background:#FFEB3B"></span></button>'
+    +  '<span class="ntb-sep"></span>'
+    +  '<button type="button" title="Limpar formatação" onclick="notaCmd(\'removeFormat\')">✕ᶠ</button>'
+    +'</div>';
+  }
+  function mtGiro(id){ // leve rotação estável por post-it (aspecto "colado à mão")
+    var h=0; for(var i=0;i<id.length;i++) h=(h*31+id.charCodeAt(i))|0;
+    return (((h>>>3)%25)/10-1.2).toFixed(2)+'deg';
+  }
+  function mtPostitHtml(id, p){
+    var criado=p.criado? new Date(p.criado):new Date();
+    var dataTxt=String(criado.getDate()).padStart(2,'0')+'/'+String(criado.getMonth()+1).padStart(2,'0')+'/'+String(criado.getFullYear()).slice(2);
+    var linhas=(p.linhas&&p.linhas.length)?p.linhas:[{html:'',led:''}];
+    return ''
+    +'<div class="mt-post" data-mt-post="'+mtEsc(id)+'" style="--papel:'+mtEsc(p.cor||MT_PAPEIS[0])+';--giro:'+mtGiro(id)+'">'
+    +  '<div class="mt-post-data">Data: '+dataTxt+'</div>'
+    +  '<div class="mt-post-tit" contenteditable="true" data-ph="To Do" data-mt-tit="'+mtEsc(id)+'">'+mtHtmlSeguro(p.titulo||'')+'</div>'
+    +  '<div class="mt-linhas">'
+    +     linhas.map(function(l,i){
+            var led=(l.led||'');
+            return '<div class="mt-linha" data-mt-linha="'+i+'">'
+              +'<button type="button" class="mt-led'+(led?' on':'')+'" style="--led:'+mtEsc(led||'transparent')+'" data-mt-led="'+mtEsc(id)+'|'+i+'" title="Clique para escolher a cor do LED"></button>'
+              +'<div class="mt-txt" contenteditable="true" data-mt-txt="'+mtEsc(id)+'|'+i+'">'+mtHtmlSeguro(l.html||'')+'</div>'
+              +'<button type="button" class="mt-linha-x" data-mt-delx="'+mtEsc(id)+'|'+i+'" title="Remover esta linha">✕</button>'
+            +'</div>';
+          }).join('')
+    +  '</div>'
+    +  '<button type="button" class="mt-addlinha" data-mt-addlinha="'+mtEsc(id)+'">＋ linha</button>'
+    +  '<div class="mt-post-acoes">'
+    +    '<button type="button" class="mt-post-acao" data-mt-cor="'+mtEsc(id)+'">🎨 Cor</button>'
+    +    '<button type="button" class="mt-post-acao mt-del" data-mt-del="'+mtEsc(id)+'">🗑 Excluir</button>'
+    +  '</div>'
+    +'</div>';
+  }
+  function renderBoard(){
+    var root=document.getElementById('mtRoot'); if(!root || !mtSessao) return;
+    var g=mtDe(mtSessao);
+    var ids=Object.keys(g.postits).filter(function(id){ return !g.postits[id].del; })
+      .sort(function(a,b){ return (g.postits[a].criado||0)-(g.postits[b].criado||0); });
+    root.innerHTML=''
+    +'<div class="mt-topo">'
+    +  '<span class="mt-topo-quem">👤 '+mtEsc(mtSessao)+' <span style="opacity:.7;font-weight:600">· gaveta aberta</span></span>'
+    +  '<button type="button" class="mt-btn mt-btn-novo" id="mtNovo">＋ Novo post-it</button>'
+    +  '<button type="button" class="mt-btn mt-btn-lock" id="mtLock">🔒 Trancar</button>'
+    +'</div>'
+    + mtToolbarHtml()
+    +'<div class="mt-board"><div class="mt-grid" id="mtGrid">'
+    +   (ids.length? ids.map(function(id){ return mtPostitHtml(id, g.postits[id]); }).join('')
+                   : '<div class="mt-vazio">Nenhum post-it ainda.<br>Clique em “＋ Novo post-it” e escolha a cor do papel. 🗒️</div>')
+    +'</div></div>';
+  }
+
+  /* ---------- render principal (roteador chama esta) ---------- */
+  function renderTarefas(){
+    if(mtSessao) renderBoard(); else renderLock();
+  }
+  window.renderTarefas=renderTarefas;
+
+  /* ---------- popovers (cor do papel / cor do LED) ---------- */
+  function mtFecharPops(){ ['mtCorPop','mtLedPop'].forEach(function(id){ var p=document.getElementById(id); if(p) p.remove(); }); }
+  document.addEventListener('mousedown', function(e){
+    var p1=document.getElementById('mtCorPop'), p2=document.getElementById('mtLedPop');
+    if(p1 && !p1.contains(e.target) && !e.target.closest('[data-mt-cor],#mtNovo')) p1.remove();
+    if(p2 && !p2.contains(e.target) && !e.target.closest('.mt-led')) p2.remove();
+  }, true);
+  function mtAbrirCorPop(btn, aoEscolher, titulo){
+    mtFecharPops();
+    var pop=document.createElement('div');
+    pop.className='mt-corpop'; pop.id='mtCorPop';
+    pop.innerHTML='<div class="mt-corpop-tit">'+titulo+'</div>'
+      +'<div class="mt-corpop-grade">'+MT_PAPEIS.map(function(c){ return '<button type="button" class="mt-corpop-sw" data-c="'+c+'" style="background:'+c+'" title="'+c+'"></button>'; }).join('')+'</div>';
+    document.body.appendChild(pop);
+    var r=btn.getBoundingClientRect();
+    var esq=Math.max(8, Math.min(r.left+window.scrollX, window.scrollX+document.documentElement.clientWidth-244));
+    pop.style.top=(r.bottom+window.scrollY+6)+'px'; pop.style.left=esq+'px';
+    pop.addEventListener('click', function(ev){
+      var sw=ev.target.closest('.mt-corpop-sw'); if(!sw) return;
+      aoEscolher(sw.getAttribute('data-c')); pop.remove();
+    });
+  }
+  function mtAbrirLedPop(btn, aoEscolher){
+    mtFecharPops();
+    var pop=document.createElement('div');
+    pop.className='mt-ledpop'; pop.id='mtLedPop';
+    pop.innerHTML=MT_LEDS.map(function(l){ return '<button type="button" class="mt-ledpop-sw" style="--c:'+l.c+'" data-c="'+l.c+'" title="'+l.n+'"></button>'; }).join('')
+      +'<button type="button" class="mt-ledpop-off" data-c="" title="Apagar o LED">off</button>';
+    document.body.appendChild(pop);
+    var r=btn.getBoundingClientRect();
+    var esq=Math.max(8, Math.min(r.left+window.scrollX-8, window.scrollX+document.documentElement.clientWidth-180));
+    pop.style.top=(r.bottom+window.scrollY+6)+'px'; pop.style.left=esq+'px';
+    pop.addEventListener('click', function(ev){
+      var sw=ev.target.closest('[data-c]'); if(!sw) return;
+      aoEscolher(sw.getAttribute('data-c')||''); pop.remove();
+    });
+  }
+
+  /* ---------- interações (delegação no mtRoot) ---------- */
+  function mtPost(id){ return mtDe(mtSessao).postits[id]; }
+  function mtCarimba(p){ p.ts=Date.now(); }
+  document.addEventListener('click', function(e){
+    var root=document.getElementById('mtRoot'); if(!root || !root.contains(e.target) || !mtSessao) return;
+    mtArmarOcioso();
+
+    if(e.target.closest('#mtLock')){ mtTrancar(); return; }
+
+    var novo=e.target.closest('#mtNovo');
+    if(novo){
+      mtAbrirCorPop(novo, function(cor){
+        var g=mtDe(mtSessao);
+        var id='pt'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+        g.postits[id]={ titulo:'', cor:cor, criado:Date.now(), linhas:[{html:'',led:''},{html:'',led:''},{html:'',led:''}], ts:Date.now(), del:0 };
+        mtAgendarSalvar(); renderBoard();
+        try{ var t=document.querySelector('[data-mt-tit="'+id+'"]'); if(t) t.focus(); }catch(_){}
+      }, '🗒️ Escolha a cor do post-it');
+      return;
+    }
+    var bCor=e.target.closest('[data-mt-cor]');
+    if(bCor){
+      var idc=bCor.getAttribute('data-mt-cor');
+      mtAbrirCorPop(bCor, function(cor){
+        var p=mtPost(idc); if(!p) return;
+        p.cor=cor; mtCarimba(p); mtAgendarSalvar();
+        var card=document.querySelector('[data-mt-post="'+idc+'"]'); if(card) card.style.setProperty('--papel', cor);
+      }, '🎨 Trocar a cor deste post-it');
+      return;
+    }
+    var bLed=e.target.closest('[data-mt-led]');
+    if(bLed){
+      var pl=bLed.getAttribute('data-mt-led').split('|'), idl=pl[0], li=+pl[1];
+      mtAbrirLedPop(bLed, function(cor){
+        var p=mtPost(idl); if(!p || !p.linhas[li]) return;
+        p.linhas[li].led=cor; mtCarimba(p); mtAgendarSalvar();
+        bLed.classList.toggle('on', !!cor);
+        bLed.style.setProperty('--led', cor||'transparent');
+      });
+      return;
+    }
+    var bAdd=e.target.closest('[data-mt-addlinha]');
+    if(bAdd){
+      var ida=bAdd.getAttribute('data-mt-addlinha'); var p=mtPost(ida); if(!p) return;
+      p.linhas.push({html:'',led:''}); mtCarimba(p); mtAgendarSalvar(); renderBoard();
+      try{ var tx=document.querySelector('[data-mt-txt="'+ida+'|'+(p.linhas.length-1)+'"]'); if(tx) tx.focus(); }catch(_){}
+      return;
+    }
+    var bX=e.target.closest('[data-mt-delx]');
+    if(bX){
+      var px=bX.getAttribute('data-mt-delx').split('|'), idx=px[0], lix=+px[1];
+      var p2=mtPost(idx); if(!p2) return;
+      if(p2.linhas.length<=1){ p2.linhas[0]={html:'',led:''}; } else { p2.linhas.splice(lix,1); }
+      mtCarimba(p2); mtAgendarSalvar(); renderBoard();
+      return;
+    }
+    var bDel=e.target.closest('[data-mt-del]');
+    if(bDel){
+      var idd=bDel.getAttribute('data-mt-del'); var p3=mtPost(idd); if(!p3) return;
+      if(!confirm('Excluir este post-it? Essa ação não pode ser desfeita.')) return;
+      p3.del=1; mtCarimba(p3); mtAgendarSalvar(); renderBoard();
+      return;
+    }
+  });
+
+  // digitação: espelha o DOM no modelo (sem re-render, preservando o cursor)
+  document.addEventListener('input', function(e){
+    var root=document.getElementById('mtRoot'); if(!root || !root.contains(e.target) || !mtSessao) return;
+    mtArmarOcioso();
+    var tit=e.target.closest('[data-mt-tit]');
+    if(tit){ var p=mtPost(tit.getAttribute('data-mt-tit')); if(p){ p.titulo=tit.innerHTML; mtCarimba(p); mtAgendarSalvar(); } return; }
+    var tx=e.target.closest('[data-mt-txt]');
+    if(tx){
+      var pr=tx.getAttribute('data-mt-txt').split('|');
+      var p2=mtPost(pr[0]); if(p2 && p2.linhas[+pr[1]]){ p2.linhas[+pr[1]].html=tx.innerHTML; mtCarimba(p2); mtAgendarSalvar(); }
+      return;
+    }
+  });
+
+  // Enter numa linha cria a próxima; Backspace em linha vazia remove; Enter no título vai pra 1ª linha
+  document.addEventListener('keydown', function(e){
+    var root=document.getElementById('mtRoot'); if(!root || !root.contains(e.target) || !mtSessao) return;
+    var tit=e.target.closest('[data-mt-tit]');
+    if(tit && e.key==='Enter'){
+      e.preventDefault();
+      var id0=tit.getAttribute('data-mt-tit');
+      var t0=document.querySelector('[data-mt-txt="'+id0+'|0"]'); if(t0) t0.focus();
+      return;
+    }
+    var tx=e.target.closest('[data-mt-txt]'); if(!tx) return;
+    var pr=tx.getAttribute('data-mt-txt').split('|'), id=pr[0], i=+pr[1];
+    var p=mtPost(id); if(!p) return;
+    if(e.key==='Enter'){
+      e.preventDefault();
+      p.linhas.splice(i+1,0,{html:'',led:''}); mtCarimba(p); mtAgendarSalvar(); renderBoard();
+      try{ var nx=document.querySelector('[data-mt-txt="'+id+'|'+(i+1)+'"]'); if(nx) nx.focus(); }catch(_){}
+      return;
+    }
+    if(e.key==='Backspace' && (tx.textContent||'').trim()==='' && p.linhas.length>1){
+      e.preventDefault();
+      p.linhas.splice(i,1); mtCarimba(p); mtAgendarSalvar(); renderBoard();
+      try{ var pv=document.querySelector('[data-mt-txt="'+id+'|'+Math.max(0,i-1)+'"]'); if(pv) pv.focus(); }catch(_){}
+      return;
+    }
+  });
+
+  // foco: registra o editável ativo para a barra de formatação (motor retargetável ·109)
+  document.addEventListener('focusin', function(e){
+    var t=e.target;
+    if(t && t.closest && (t.closest('[data-mt-txt]')||t.closest('[data-mt-tit]'))){
+      window.__notaEditorAtivo=t; window.__ntbPrefixo='mt'; mtArmarOcioso(); return;
+    }
+    if(t && t.id==='notaTexto'){ window.__notaEditorAtivo=t; window.__ntbPrefixo=''; }
+  });
+})();
+</script>
 </body>
 </html>
