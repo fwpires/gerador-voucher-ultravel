@@ -436,12 +436,23 @@ body:not(.dark) .ocp-sbtr-op:hover{background:#ffe9cf}
 .apr-cal-vazio{height:30px}
 .apr-cal-dia{height:30px;border:1px solid transparent;border-radius:7px;background:rgba(255,255,255,.05);color:#e8eef4;font-size:12px;font-weight:700;cursor:pointer;transition:all .12s}
 .apr-cal-dia:hover{background:rgba(10,156,240,.25)}
+.apr-cal-dia.range{background:rgba(18,176,255,.20);color:#dff2ff;border-color:rgba(18,176,255,.35);border-radius:4px}
 .apr-cal-dia.sel{background:linear-gradient(180deg,#12b0ff,#0670d8);color:#fff;border-color:#7fe0ff;box-shadow:0 0 12px rgba(18,176,255,.9),inset 0 0 5px rgba(255,255,255,.5);font-weight:900;transform:scale(1.06)}
+.apr-cal-dia.sel-ini{background:linear-gradient(180deg,#22d07a,#0a9a52);border-color:#8effc4;box-shadow:0 0 12px rgba(34,208,122,.9),inset 0 0 5px rgba(255,255,255,.5)}
+.apr-cal-dia.sel-fim{background:linear-gradient(180deg,#ff6b6b,#d81f1f);border-color:#ffc0c0;box-shadow:0 0 12px rgba(255,80,80,.9),inset 0 0 5px rgba(255,255,255,.5)}
+.apr-cal-hint{font-size:11px;font-weight:700;color:#9fd0f0;background:rgba(18,176,255,.10);border:1px solid rgba(18,176,255,.22);border-radius:7px;padding:5px 8px;margin:2px 0 8px;text-align:center}
+.apr-cal-hint b{color:#fff}
+.apr-cal-resumo{display:flex;align-items:center;justify-content:space-between;gap:6px;margin:9px 0 2px;font-size:11px;color:#cfe0f0}
+.apr-cal-resumo:empty{display:none}
+.apr-res-cel{flex:1 1 0;text-align:center;line-height:1.35;font-weight:600}
+.apr-res-cel b{color:#fff;font-weight:800}
+.apr-res-seta{flex:0 0 auto;color:#12b0ff;font-weight:900;font-size:14px}
 .apr-cal-horas{display:flex;flex-direction:column;gap:9px;margin:11px 0 4px;border-top:1px solid rgba(255,255,255,.1);padding-top:11px}
 .apr-cal-hrow{display:flex;align-items:center;gap:8px}
-.apr-cal-hlbl{flex:0 0 46px;color:#fff;font-size:12.5px;font-weight:800}
-.apr-cal-time{flex:1 1 auto;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:8px;color:#fff;font-size:12.5px;font-weight:700;padding:6px 9px;outline:none;color-scheme:dark;cursor:pointer}
-.apr-cal-time:focus{border-color:#12b0ff}
+.apr-cal-hlbl{flex:0 0 62px;color:#fff;font-size:12px;font-weight:800}
+.apr-cal-time{flex:1 1 auto;width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:8px;color:#fff;font-size:15px;font-weight:800;letter-spacing:1px;text-align:center;padding:7px 9px;outline:none;color-scheme:dark;font-variant-numeric:tabular-nums}
+.apr-cal-time::placeholder{color:#5f7a88;letter-spacing:1px;font-weight:700}
+.apr-cal-time:focus{border-color:#12b0ff;box-shadow:0 0 0 2px rgba(18,176,255,.25)}
 .apr-cal-acoes{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
 .apr-cal-limpar,.apr-cal-ok{padding:7px 16px;border-radius:8px;border:none;font-size:12.5px;font-weight:800;cursor:pointer;transition:all .15s}
 .apr-cal-limpar{background:rgba(255,255,255,.09);color:#cfe0f0}
@@ -459,6 +470,9 @@ body:not(.dark) .ocp-sbtr-op:hover{background:#ffe9cf}
 .apr-led{width:15px;height:15px;border-radius:50%;flex:0 0 auto;border:2px solid rgba(255,255,255,.22);background:radial-gradient(circle at 32% 28%, #ffd0d0 0%, #ff3d3d 45%, #b60d0d 100%);animation:ocpPulseR 1.1s ease-in-out infinite}
 .apr-item.passado .apr-led{animation:none;background:#7a8698;box-shadow:none;border-color:rgba(255,255,255,.15)}
 .apr-chip{display:inline-flex;align-items:center;gap:5px;flex:0 0 auto;color:#fff;font-size:12.5px;font-weight:700;white-space:nowrap;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:7px;padding:4px 9px}
+.apr-chip.apr-ini{background:rgba(34,208,122,.14);border-color:rgba(34,208,122,.4)}
+.apr-chip.apr-fim{background:rgba(255,107,107,.14);border-color:rgba(255,107,107,.4)}
+.apr-seta-per{flex:0 0 auto;color:#12b0ff;font-weight:900;font-size:14px;align-self:center}
 .apr-chip .apr-ic{font-size:11px;opacity:.85}
 .apr-nome{font-weight:800;background:rgba(10,156,240,.16);border-color:rgba(10,156,240,.36)}
 .apr-data{background:rgba(150,110,240,.16);border-color:rgba(150,110,240,.36)}
@@ -1851,7 +1865,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <span class="hint" id="savedCount">0 vouchers</span>
     <span id="avisoBuracos"></span>
     <span id="avisoWecannEtiq"></span>
-    <!-- build: HUB-v3·107 (KANBAN — BLINDAGEM DEFINITIVA do "✓ Template Enviado" (o clique continuava sendo desfeito após o ·106). DEPURAÇÃO PROFUNDA encontrou DUAS brechas reais: (1) RENDER OTIMISTA DO BOOT — carregarStatusHotel renderiza PRIMEIRO com o CSV do localStorage (pode estar velho/divergente) e as purgas rodavam nesse render criando soft-delete com carimbo tsm=AGORA, mais novo que o do clique, que então VENCIA o merge em todos os PCs (o rastreador já respeitava a flag uvCsvAutoritativo do ·86, mas as purgas NÃO); (2) WORKER/DO — mesclarEstadoVivo usava Object.assign para arquivados: patch de um PC defasado (ex.: build velho em cache) sempre vencia, mesmo com tsm mais antigo, regredindo o arquivado fresco no servidor. DEFESAS NOVAS: (a) uvCsvPodeDestruir() — purgas só rodam com CSV AUTORITATIVO do servidor e nunca com CSV mais velho que a marca sincronizada tratativaCsvTs; (b) ESCUDO PÓS-CLIQUE uvEscudoCliques — por 90s após o clique manual (ou automação), nenhum merge/purga reverte aquele nome, nem com carimbo mais novo; Restaurar/Devolver manuais limpam o escudo; tentativas bloqueadas são logadas (console + log central kanban_escudo); (c) merge 3-WAY no carregarConfig (localStorage ∪ memória ∪ nuvem) fecha a janela de ação ainda não persistida; (d) BADGE DE BUILD visível no canto inferior direito + console.info — para confirmar a versão que o navegador está de fato rodando (cache!); (e) window.uvDiag("nome") — dossiê completo do cliente no console: carteira, arquivado, carimbos, escudo, linhas do CSV que casam e últimos eventos; (f) WORKER v3 (worker_v3_do.js) — arquivados mesclados por tsm (mais novo vence, nunca regride) e carteira respeita a era dos carimbos (nome sem op não entra). ANTERIOR: KANBAN — CORREÇÃO do botão "✓ Template Enviado": clicar nele em "Contato Realizado" devolvia o nome para "Fazer contato" em vez de arquivar. CAUSA (reproduzida em teste): purgarArquivadosPorStatus roda em TODO render e a PRIMEIRA linha do CSV que "batesse" com o nome decidia sozinha — e o matcher estrito também casa DUPLICATAS ("Carlos Silva" × "Carlos Teste Silva") e HOMÔNIMOS PARCIAIS (1º nome + um sobrenome em comum); se essa OUTRA linha estivesse "Em tratativa"/"Fechado", o arquivado recém-criado era soft-deletado NO MESMO render do clique (e o motivo "progrediu" também apagava a carteira), então o nome — que segue EM BRANCO no CSV — reaparecia em "Fazer contato". CORREÇÕES: (1) match EXATO (normNome igual) tem prioridade ABSOLUTA na purga — existindo linha exata, só ela decide, duplicata/homônimo parecido não opina; (2) se QUALQUER linha candidata continua EM BRANCO no CSV, NÃO purga — o cliente ainda está no funil como arquivado; (3) mesma blindagem em purgarCarteiraPorStatus: nome repetido no CSV com uma linha em branco NÃO tem a carteira purgada pela linha duplicada em tratativa. Progressão LEGÍTIMA (a linha exata do cliente virou "Em Tratativa"/"Fechado") continua purgando normalmente — coberto por teste de regressão); ANTERIOR: TEMPO REAL: o Hub agora abre um WebSocket com o Durable Object do Worker (/api/live) e recebe as mudanças de outros PCs em MENOS DE 1 SEGUNDO, em qualquer tela — antes só no polling de 60s e só com o Dashboard aberto. O ENVIO continua sendo o salvarConfig() de sempre: o Worker repassa os campos vivos ao DO, que transmite a todos. O RECEBIMENTO mescla com as MESMAS funções já validadas (uvMesclarCarteiraArq, uvMesclarNotifs, ocpMesclarEstados) — nunca substitui cegamente, então ação local recém-feita não se perde. Reconexão automática com espera progressiva + ping de 30s; o polling de 60s CONTINUA ATIVO como rede de proteção. Re-render seletivo: só redesenha o que mudou); ANTERIOR: NOTIFICAÇÕES: nova REGRA 24h para o status "Contato Feito" (NOTIFICAÇÕES: nova REGRA 24h para o status "Contato Feito" — bloco AZUL no Control Desk com a mesma mensagem do bloco amarelo, só trocando "Em Tratativa" por "Contato Feito", e botão "✓ Verificado" próprio. Relógio independente em appConfig.cfeitoTs {ts,del,op} com guarda monótonica cfeitoCsvTs e selo cfeitoSeloSeed, espelhando toda a blindagem do relógio de tratativa (CSV atrasado ignorado, soft delete preservando ts, merge por "op"). SEED: todo nome hoje em "Contato Feito" entra com ts:0 e dispara na hora, mesma regra do Em Tratativa. O silêncio do Verificado usa CHAVE PRÓPRIA "cf::"+atendente — verificar a cobrança azul NÃO silencia a amarela); ANTERIOR: KANBAN: a coluna "Contato Feito" agora mostra o AGENTE do CSV (KANBAN: a coluna "Contato Feito" agora mostra o AGENTE do CSV embaixo de cada nome, no mesmo formato da coluna "Em tratativa" ("Ag.: Fulano"). Tecnicamente, colLista() ganhou um 5º parâmetro opcional metaFn — as outras colunas de lista (Recusados, Erro de Comunicação, Sem Retorno) seguem sem meta, sem nenhuma mudança); ANTERIOR: VISUAL: contorno CROMADO VIVO e FIXO (VISUAL: contorno CROMADO VIVO e FIXO — mesmo nível de intensidade do azul vivo do ·101, só trocando a cor, para a comparação ser justa. O cromado tem o pico de BRANCO PURO (#FFFFFF), que é o que dá a leitura de "metal polido" e é justamente o que ofuscava lá atrás — MAS naquela época ele estava PISCANDO; agora está PARADO, e a piscada era metade do problema. Se ainda pesar, existe o cromado SUAVIZADO (pico parando em #8E9BA6) pronto no preview); ANTERIOR: contorno no NÍVEL 1 (azul vivo) — gradiente #0A2E52 a #6FBAFF com halo mais presente (.42/.20). É o mais marcante dos três níveis, mas continua FIXO: o que ofuscava de verdade era a PISCADA somada ao pico de BRANCO PURO do cromado, e nenhum dos dois voltou. Combina com a chamada em branco macio do ·99); ANTERIOR: o contorno voltou ao NÍVEL 2 (azul suavizado) — gradiente #16324D a #5A89B6 e halo contido (.22/.12), fixo, sem piscar. O nível 3 (bem discreto) foi testado no ·98 e o nível 2 ficou melhor. Combina com a chamada em branco macio introduzida no ·99); ANTERIOR: a segunda parte da frase de impacto ("🚨 AÇÃO IMEDIATA NECESSÁRIA: TEM CLIENTES ABANDONADOS NO SEU PAINEL! NÃO IGNORE ESTA NOTIFICAÇÃO!") ganhou classe própria (.cd-chamada) com branco MENOS intenso (#C3CEDB) e peso 700 em vez de 900. Motivo: um texto longo, todo em caixa alta, em branco puro e peso máximo vira um bloco "gritado" e cansa a leitura. Agora o "⚠️ ATENÇÃO, [NOME]!" fica sendo o ponto de maior contraste da linha — nome em vermelho, "ATENÇÃO" em branco forte — e o resto acompanha em tom mais macio); ANTERIOR: contorno no nível BEM DISCRETO (opção 3): gradiente azul mais escuro e dessaturado (#142A3E a #47697F, pico sóbrio) e halo praticamente só um assentamento (.14, camada única). O destaque da caixa passa a vir do TEXTO — caixa alta, negrito, nome do atendente em vermelho — e não do contorno, que agora só delimita sem competir com a leitura. Continua FIXO, sem piscar); ANTERIOR: ESCOLHA do contorno: AZUL SUAVIZADO e FIXO. O cromado suavizado do ·96 foi testado e o azul suavizado ficou melhor, então voltamos a ele. Gradiente de #16324D a #5A89B6 (sem pico claro estourado) e halo discreto (.22/.12), sem piscar. Evolução completa: vermelho piscante → cromado piscante (ofuscava: pico de BRANCO PURO + halo forte + piscada, tudo ao lado de texto branco) → azul piscante → azul fixo → azul suavizado → cromado suavizado → AZUL SUAVIZADO FIXO); ANTERIOR: o contorno voltou ao CROMADO, mas no mesmo nível de suavização que o azul tinha atingido. O que ofuscava antes não era "ser cromado": era o pico de BRANCO PURO (#FFFFFF) no gradiente somado a um halo forte, e tudo isso PISCANDO ao lado de texto branco. Agora o brilho máximo do metal para num prata acinzentado (#8E9BA6) — o gradiente mantém a variação escuro→claro que dá a leitura de "cromo polido", sem estourar — o halo ficou discreto (.22/.12) e a piscada não voltou. Contorno CROMADO SUAVE e FIXO); ANTERIOR: a cor do contorno azul foi SUAVIZADA — baixaram duas coisas juntas: as cores do gradiente (tons menos saturados, sem o azul-claro estourado #6FBAFF que puxava a vista; agora vai de #16324D a #5A89B6) e o halo luminoso em volta (opacidade caiu de .42/.20 para .22/.12). A caixa segue destacada no painel, mas sem gritar. Continua FIXA, sem piscar); ANTERIOR: o contorno das notificações agora é AZUL FIXO — a piscada foi REMOVIDA por completo (nenhuma animação restou na caixa). Motivo: piscar ajuda a NOTAR mas atrapalha a LER, e a cobrança precisa ser lida. O contorno azul luminoso continua destacando a caixa, sem cansar a vista. Histórico da evolução: vermelho piscante → cromado piscante (branco brilhante, ofuscava ao lado do texto branco) → azul piscante → AZUL FIXO); ANTERIOR: o contorno CROMADO saiu e virou AZUL NEON. O cromado era essencialmente BRANCO brilhante, e um branco pulsando ao lado de texto branco ofuscava e atrapalhava a leitura; o azul contrasta com o texto em vez de competir com ele. Além da cor, o BRILHO foi suavizado (halo menor e menos opaco) e o pulso ficou mais lento (1.15s → 1.35s) — o incômodo não vinha só da cor, vinha da intensidade. Também reduzido o text-shadow BRANCO da frase de impacto, que deixava a fonte levemente borrada sobre si mesma: agora é uma sombra escura sutil, que dá contraste e mantém a letra nítida); AJUSTE ANTERIOR: a fonte da frase de impacto do cabeçalho aumentou 20% — de 0.63rem para 0.756rem (o histórico do tamanho ficou: 0.9rem original → 0.63rem no ·91 → 0.756rem agora, ou seja ~16% menor que o original); a seta ▾ acompanhou (0.72 → 0.86rem). O texto do corpo da caixa segue em 0.86rem, inalterado); AJUSTE ANTERIOR: a frase de impacto do cabeçalho (a que aparece com a caixa fechada) teve a fonte reduzida em 30% — de 0.9rem para 0.63rem; a seta ▾ foi ajustada proporcionalmente (0.9 → 0.72rem) para não ficar desproporcional ao lado do texto menor. O texto do CORPO da caixa continua em 0.86rem, inalterado); AJUSTE ANTERIOR: o INTERIOR da caixa de notificação voltou ao normal — o fundo agora é var(--card), o mesmo dos demais painéis, sem gradiente/clarão nenhum. Restou SÓ a borda cromada com o halo externo piscando. Nota técnica: a camada de fundo em padding-box não pode simplesmente ser removida — sem ela o gradiente cromado do border-box vazaria e preencheria a caixa inteira; por isso ela virou uma cor SÓLIDA (var(--card)) em vez de sumir. E border-image, o caminho "óbvio" para borda em gradiente, não serve porque não respeita border-radius e deixaria os cantos quadrados); AJUSTE ANTERIOR: removido o "flash" que passava por cima da caixa inteira — saiu a animação de brilho deslizante (cdCromoDesliza) e saiu o glow interno (inset box-shadow). Agora SÓ O CONTORNO pisca: a borda é um gradiente cromado ESTÁTICO (grafite → prata → branco → prata → grafite, aspecto de metal polido) e o que pulsa é apenas o halo EXTERNO em volta dela (cdCromoPulsa, 1.15s). O conteúdo da caixa fica limpo, sem nada passando por cima. O botão verde LED do "Verificado" mantém o brilho fixo próprio); VISUAL ANTERIOR: o contorno das caixas de notificação trocou o VERMELHO piscante por um CROMADO NEON CINTILANTE. Cromo não é cor sólida, é REFLEXO — então a borda é um gradiente metálico (grafite → prata → branco puro → prata → grafite) que DESLIZA em volta da caixa (animação cdCromoDesliza, 2.6s linear), somado a um halo pulsante que faz a cintilação (cdCromoPulsa, 1.15s). As duas animações rodam em ciclos independentes, o que dá brilho vivo de metal em vez de pisca-pisca chapado. Técnica: DUPLO GRADIENTE — fundo em padding-box e cromado em border-box — porque border-image NÃO respeita border-radius e deixaria os cantos quadrados; o deslize vem de animar o background-position do gradiente da borda (background-size 300% nele). O nome do atendente segue VERMELHO no cabeçalho e o botão verde LED do "Verificado" segue fixo, sem piscar); VISUAL: as caixas de notificação agora nascem RECOLHIDAS — só a frase de impacto aparece: "⚠️ ATENÇÃO, [NOME]! 🚨 AÇÃO IMEDIATA NECESSÁRIA: TEM CLIENTES ABANDONADOS NO SEU PAINEL! NÃO IGNORE ESTA NOTIFICAÇÃO!"; clicar no cabeçalho abre/fecha o conteúdo (seta ▾ gira); SÓ o nome do atendente sai em VERMELHO (classe .cd-nome), todo o resto da frase em BRANCO negrito vivo (inverteu a lógica anterior, em que só a palavra ATENÇÃO era branca); o estado aberto/fechado vive em memória (cdAbertas) e SOBREVIVE ao re-render automático de 60s — sem isso a caixa fecharia sozinha na cara do atendente no meio da leitura; cada caixa abre de forma independente; o botão "✓ Verificado" tem prioridade no clique e NÃO alterna a caixa; o separador tracejado do bloco amarelo só aparece quando ele vem depois do bloco de contato); CORREÇÃO CRÍTICA — "as notificações de Em Tratativa sumiram depois da importação". CAUSA (reproduzida em teste): qualquer render feito com um CSV ATRASADO fazia o rastreador dar SOFT DELETE nos nomes (pois naquele CSV velho eles "não estavam em tratativa"); quando o CSV correto chegava, a entrada era RECRIADA com ts=agora e o relógio de 24h ZERAVA — escondendo a cobrança por mais um dia. O CSV atrasado vinha de duas fontes: o do localStorage (carregarStatusHotel renderiza com ele antes de buscar o servidor) e o do PRÓPRIO SERVIDOR, porque o KV do Cloudflare é eventualmente consistente e um GET logo após o POST pode devolver a versão anterior. Somavam-se duas falhas: o rastreador rodava ANTES de carregarConfig() trazer o appConfig da nuvem (gravando estado meia-boca), e o merge decidia conflito por "maior ts vence" — mas as entradas do seed nascem com ts:0, o menor valor possível, então perdiam para qualquer del:1 espúrio. CORREÇÕES: (1) GUARDA MONOTÔNICA — appConfig.tratativaCsvTs guarda o importadoEm do último CSV processado; CSV mais velho é IGNORADO pelo relógio, venha de onde vier; (2) uvCfgPronta — o rastreador só age depois que a config vem da nuvem; (3) campo "op" (carimbo da última escrita) separado do "ts" (início do relógio) e merge decidindo por "op", então ts:0 não perde mais por ser zero; (4) o soft delete agora PRESERVA o ts original; (5) SEED v2 — repara o estado já corrompido: todo nome hoje em tratativa volta a ts:0 e dispara na hora, e o selo v2 vence o v1 no merge para o reparo se propagar entre PCs); ÊNFASE: as frases de ação das notificações agora saem em NEGRITO — "clique no botão “Template Enviado”" no bloco de cima e "atualize o status de cada atendimento no sistema" no bloco de baixo; usam a classe .cd-forte com color:inherit, para o negrito HERDAR a cor do bloco (branco-avermelhado em cima, AMARELO embaixo) em vez do branco fixo do <b> padrão, preservando a distinção de cor entre as duas cobranças); VISUAL das notificações do Control Desk: (1) a palavra "ATENÇÃO" agora sai em BRANCO e negrito (classe .cd-atencao), destacada do resto do título que segue vermelho; (2) FUSÃO — quando o mesmo atendente tem AS DUAS pendências, elas passam a ocupar UM ÚNICO quadrado com um só título: em cima o bloco de "fazer contato / clicar em Template Enviado" e embaixo, separado por uma linha tracejada, o bloco de "Em Tratativa" com o botão Verificado dentro dele; antes eram duas caixas separadas com o título repetido; (3) o bloco de baixo (Em Tratativa) agora tem fonte AMARELA (#FFD84D) para diferenciar visualmente das duas cobranças; quem tem só uma das pendências continua com uma caixa de bloco único, e o grupo EQUIPE segue sempre por último); apelido novo cadastrado: "Laura Teston"/"Laura" = Hynaê Teston, somando-se a "Rael" = Israel Hespanhol e "Ghabi" = Ghabriella Bressan no mapa AGENTE_APELIDOS); CORREÇÃO: apelidos na coluna Agente do CSV — os nomes em tratativa continuavam caindo no grupo EQUIPE porque o CSV traz APELIDOS ("Rael" = Israel Hespanhol, "Ghabi" = Ghabriella Bressan) que nenhuma regra automática de nome consegue deduzir (não há relação estrutural entre "Rael" e "Israel Hespanhol"); criado o mapa explícito AGENTE_APELIDOS como regra 0 do matcher (vence tudo, e funciona também quando o apelido vem com sobrenome: "Rael Hespanhol"); PARA ADICIONAR APELIDO NOVO basta acrescentar uma linha em AGENTE_APELIDOS no formato 'apelido minusculo sem acento':'Nome Completo'; AUTODIAGNÓSTICO: a caixa da notificação EQUIPE agora MOSTRA na tela exatamente como o CSV escreveu cada agente não reconhecido — não precisa mais abrir o console para descobrir apelidos novos (também disponível em window.__cdAgentesNaoReconhecidos)); CORREÇÃO na Regra 24h do Control Desk: os nomes em tratativa TÊM agente no CSV, mas todos caíam no grupo "EQUIPE" — a causa era o reuso de umNomeBateEstrito(), função feita para comparar HÓSPEDES, que recusa de propósito o match quando um lado tem só UM nome ("Ana" × "Ana Maria" → não casa, proteção contra homônimos entre clientes); só que a coluna "Agente" é um campo INTERNO da equipe e quase sempre traz só o PRIMEIRO nome ("Diego", "Fernando"), então todo agente de nome único caía em não-reconhecido; criado matcher dedicado uvAgenteParaAtendente() que casa por (1) igualdade exata, (2) nome completo com primeiro nome igual + sobrenome compartilhado, (3) primeiro nome sozinho — mas só quando esse primeiro nome for ÚNICO entre os 12 atendentes (se fosse ambíguo, recusa e manda pro grupo EQUIPE, nunca cobra a pessoa errada; verificado: nenhum dos 12 atendentes compartilha primeiro nome hoje, então o match é seguro); agentes realmente de fora da equipe continuam indo pro grupo EQUIPE listando os nomes; adicionado diagnóstico window.__cdAgentesNaoReconhecidos + console.info mostrando COMO o CSV escreveu cada agente não reconhecido); CORREÇÃO CRÍTICA na Regra 6h do Control Desk: a notificação estava contando direto de appConfig.carteira "cru", sem cruzar com quem REALMENTE aparece na coluna Contato Realizado — nomes que saíram do Kanban por qualquer motivo (linha removida do CSV, virou Recusado/Erro de Comunicação/Sem Retorno, ou passou a bater com voucher WeCann) ficavam "fantasmas" na carteira e inflavam a contagem sem aparecer em lugar nenhum na tela, causando o bug relatado — Diego notificado com 8 pendências sem ter nenhum contato visível; corrigido expondo grupos.realizado como fonte única de verdade (window.__kbRealizadoNomes), calculada pelo próprio renderStatusColunas logo antes de renderCdNotifs — a notificação agora NUNCA pode contar mais do que o que está de fato visível na tela); NOVO: Notificações de Cobrança no Control Desk — caixa vermelha LED neon piscando entre "Ocupação dos Atendentes" e o "Atendente da vez", com duas regras automáticas: (1) REGRA 6h — nomes na carteira/Contato Realizado há mais de 6 horas sem baixa disparam "⚠️ ATENÇÃO, [ATENDENTE]!" com a contagem X só dos vencidos; sem botão — a notificação some sozinha quando todos forem baixados, manual ou pela automação do CSV; usa o carimbo ts do carteiraOps que já existia; (2) REGRA 24h — nomes com status "Em Tratativa" há mais de 24 horas disparam notificação com botão verde LED neon fixo "✓ Verificado" que silencia o grupo por 24h e reinicia a contagem (appConfig.notifVerificado, clique mais recente vence no merge); relógio de tratativa novo em appConfig.tratativaTs {ts,del} com seed inicial ts:0 para nomes legados (disparam imediatamente, decisão do Nando); agente do CSV reconhecido entre os atendentes (match primeiro+último nome) → notificação nominal com contagem; agente vazio/não reconhecido → "⚠️ ATENÇÃO, EQUIPE!" listando os NOMES dos clientes; merge multi-PC nos dois caminhos (abertura+salvar) via uvMesclarNotifs; tick de 60s mantém a caixa atualizada; logs notif_verificado); NOVO: limpeza automática da carteira por progressão — quem está em "Em Tratativa" ou "Fechado" no CSV agora NÃO pode existir em mais nenhum lugar do Kanban; cobre o caso que faltava — nome esquecido em Contato Realizado sem nunca ter passado por Template Enviado — removendo da carteira automaticamente (sem arquivar em Template Enviado, já que progredir não é a mesma coisa que template enviado), com log próprio kanban_limpeza_carteira, rodando a cada render — protege também contra drift de sincronização entre PCs, não só importação de CSV); AJUSTE na automação "Contato Feito": agora o CSV sempre prevalece — se o nome estiver na carteira de um atendente NO MOMENTO da importação (mesmo se foi restaurado manualmente após um Template Enviado anterior) e o CSV disser "Contato Feito", o sistema arquiva de novo automaticamente; antes, uma restauração manual bloqueava a automação até o próximo clique manual, agora não bloqueia mais — o CSV desatualizado é o sinal para corrigir o CSV, não para o Hub ignorá-lo); NOVO: automação "Contato Feito" → Template Enviado — se o CSV importado diz que um nome já teve "Contato Feito" E esse mesmo nome estava em branco no CSV anterior (Fazer contato OU Contato Realizado), o sistema arquiva sozinho em Template Enviado/Conciliação, preservando o atendente, com o mesmo carimbo anti-ressurreição do botão manual, log próprio (kanban_auto_template) e toast de resumo em lote; se o nome chegou de fora já com Contato Feito, nada muda — só a pasta azul, como sempre); revertido: menu lateral voltou a ter a barra de rolagem própria (max-height + overflow-y), como era antes do build 74) — agora fica sempre totalmente aberto, mostrando todos os itens de uma vez, mantendo o comportamento fixo/sticky ao rolar a página); merge multi-PC deduplica por ts+cli+pax; o Pax aparece na linha do histórico de atendimentos), atualiza junto da Ocupação; redesenho neon: tubo escuro com líquido luminoso que enche conforme a contagem, gradiente vivo por faixa (ciano→verde-água→lima→âmbar→magenta) com glow, número em destaque no bulbo, carinha neon mantida acompanhando o nível; teto de escala dinâmico), ignorando sentinelas e toques <1s; persistência permanente em appConfig.ocpHistorico com merge multi-PC por união de eventos), seletor "seu nome", ranking geral e termômetros do dia, e reconhecimento como vendedora nos vouchers; já constava na Ocupação) quando qualquer lado já vive na era dos carimbos (kanbanSelo); auditoria central: todo nome que ENTRAR na carteira via merge é registrado no log (abertura/salvar/poll), e as 4 ações manuais (trazer/devolver/arquivar/restaurar) também logam; poll ganhou cura ativa da nuvem); seed dos 40 clientes preservado); lixeira agora abre modal de confirmação antes de excluir; título do painel trocado de "Matriz Comercial" para "Fornecedor"), busca e sincronização multi-PC por timestamp) no menu e no cabeçalho do painel): Ocupação dos Atendentes + Ausência Programada movidas do dashboard para lá, IDÊNTICAS em layout e funções; render religado na navegação, no auto-refresh e no sync multi-PC; Control Desk agora é a tela inicial do sistema): tela com os 35 clientes do PDF, tudo editável inline (cliente, situação, contato, responsável), busca, filtro por responsável com contagem, badges de status coloridos e cores do sistema; sincronizado entre PCs por timestamp); regra de fim de semana — sexta, sábado e domingo usam o nome do sábado do PDF (sex/dom readonly, edita-se no sábado); destaque rosa nos 3 dias) já grava a seleção; campos Início e Fim ficam mais limpos) + blur para matar o incremento nativo — velocidade lenta e previsível em mouse e trackpad) e listener wheel direto no elemento com passive:false + limiar maior — scroll agora desacelera de verdade), e scroll do mouse desacelerado para ajuste suave de hora/minuto) com merge por timestamp em salvar+carregar+polling, soft delete nos arquivados e migração automática do legado)" do cabeçalho), barra lateral vermelha e separador antes do compromisso); fontes em branco vivo; ordem bolinha - nome - data - hora - compromisso) em atendimento na bolinha vermelha e pergunta qual transferir; transferir libera o slot de origem) -->
+    <!-- build: HUB-v3·108 (AUSÊNCIA PROGRAMADA — agora aceita PERÍODO de vários dias e horário por digitação livre. (1) PERÍODO MULTI-DIA: o modelo ganhou o campo dataFim (data de término); o calendário virou seletor de INTERVALO (1º clique = início em VERDE, 2º clique = fim em VERMELHO, dias no meio destacados); clicar antes do início recomeça a seleção; registros antigos sem dataFim assumem o mesmo dia (retrocompatível). (2) HORÁRIO LIVRE: os campos Início/Fim deixaram de ser input type=time e viraram campo de texto que aceita SÓ números — digita-se 4 dígitos seguidos (ex.: 1400) e o sistema insere sozinho os dois-pontos do meio → 14:00; no blur completa o que falta (9 → 09:00, 830 → 08:30); removida a máquina antiga de showPicker/scroll desses campos. (3) VALIDAÇÃO do fim depois do início compara o DATETIME COMPLETO (data+hora), então período que cruza a meia-noite ou vários dias valida certo. (4) SINCRONIZAÇÃO com a Ocupação e ausProgPassado usam o datetime real de início e fim. (5) LISTA e resumos mostram o intervalo — mesmo dia: 14:00-18:00; dias diferentes: dois chips início → fim. Sem mudança no Worker. ANTERIOR: KANBAN — BLINDAGEM DEFINITIVA do "✓ Template Enviado" (o clique continuava sendo desfeito após o ·106). DEPURAÇÃO PROFUNDA encontrou DUAS brechas reais: (1) RENDER OTIMISTA DO BOOT — carregarStatusHotel renderiza PRIMEIRO com o CSV do localStorage (pode estar velho/divergente) e as purgas rodavam nesse render criando soft-delete com carimbo tsm=AGORA, mais novo que o do clique, que então VENCIA o merge em todos os PCs (o rastreador já respeitava a flag uvCsvAutoritativo do ·86, mas as purgas NÃO); (2) WORKER/DO — mesclarEstadoVivo usava Object.assign para arquivados: patch de um PC defasado (ex.: build velho em cache) sempre vencia, mesmo com tsm mais antigo, regredindo o arquivado fresco no servidor. DEFESAS NOVAS: (a) uvCsvPodeDestruir() — purgas só rodam com CSV AUTORITATIVO do servidor e nunca com CSV mais velho que a marca sincronizada tratativaCsvTs; (b) ESCUDO PÓS-CLIQUE uvEscudoCliques — por 90s após o clique manual (ou automação), nenhum merge/purga reverte aquele nome, nem com carimbo mais novo; Restaurar/Devolver manuais limpam o escudo; tentativas bloqueadas são logadas (console + log central kanban_escudo); (c) merge 3-WAY no carregarConfig (localStorage ∪ memória ∪ nuvem) fecha a janela de ação ainda não persistida; (d) BADGE DE BUILD visível no canto inferior direito + console.info — para confirmar a versão que o navegador está de fato rodando (cache!); (e) window.uvDiag("nome") — dossiê completo do cliente no console: carteira, arquivado, carimbos, escudo, linhas do CSV que casam e últimos eventos; (f) WORKER v3 (worker_v3_do.js) — arquivados mesclados por tsm (mais novo vence, nunca regride) e carteira respeita a era dos carimbos (nome sem op não entra). ANTERIOR: KANBAN — CORREÇÃO do botão "✓ Template Enviado": clicar nele em "Contato Realizado" devolvia o nome para "Fazer contato" em vez de arquivar. CAUSA (reproduzida em teste): purgarArquivadosPorStatus roda em TODO render e a PRIMEIRA linha do CSV que "batesse" com o nome decidia sozinha — e o matcher estrito também casa DUPLICATAS ("Carlos Silva" × "Carlos Teste Silva") e HOMÔNIMOS PARCIAIS (1º nome + um sobrenome em comum); se essa OUTRA linha estivesse "Em tratativa"/"Fechado", o arquivado recém-criado era soft-deletado NO MESMO render do clique (e o motivo "progrediu" também apagava a carteira), então o nome — que segue EM BRANCO no CSV — reaparecia em "Fazer contato". CORREÇÕES: (1) match EXATO (normNome igual) tem prioridade ABSOLUTA na purga — existindo linha exata, só ela decide, duplicata/homônimo parecido não opina; (2) se QUALQUER linha candidata continua EM BRANCO no CSV, NÃO purga — o cliente ainda está no funil como arquivado; (3) mesma blindagem em purgarCarteiraPorStatus: nome repetido no CSV com uma linha em branco NÃO tem a carteira purgada pela linha duplicada em tratativa. Progressão LEGÍTIMA (a linha exata do cliente virou "Em Tratativa"/"Fechado") continua purgando normalmente — coberto por teste de regressão); ANTERIOR: TEMPO REAL: o Hub agora abre um WebSocket com o Durable Object do Worker (/api/live) e recebe as mudanças de outros PCs em MENOS DE 1 SEGUNDO, em qualquer tela — antes só no polling de 60s e só com o Dashboard aberto. O ENVIO continua sendo o salvarConfig() de sempre: o Worker repassa os campos vivos ao DO, que transmite a todos. O RECEBIMENTO mescla com as MESMAS funções já validadas (uvMesclarCarteiraArq, uvMesclarNotifs, ocpMesclarEstados) — nunca substitui cegamente, então ação local recém-feita não se perde. Reconexão automática com espera progressiva + ping de 30s; o polling de 60s CONTINUA ATIVO como rede de proteção. Re-render seletivo: só redesenha o que mudou); ANTERIOR: NOTIFICAÇÕES: nova REGRA 24h para o status "Contato Feito" (NOTIFICAÇÕES: nova REGRA 24h para o status "Contato Feito" — bloco AZUL no Control Desk com a mesma mensagem do bloco amarelo, só trocando "Em Tratativa" por "Contato Feito", e botão "✓ Verificado" próprio. Relógio independente em appConfig.cfeitoTs {ts,del,op} com guarda monótonica cfeitoCsvTs e selo cfeitoSeloSeed, espelhando toda a blindagem do relógio de tratativa (CSV atrasado ignorado, soft delete preservando ts, merge por "op"). SEED: todo nome hoje em "Contato Feito" entra com ts:0 e dispara na hora, mesma regra do Em Tratativa. O silêncio do Verificado usa CHAVE PRÓPRIA "cf::"+atendente — verificar a cobrança azul NÃO silencia a amarela); ANTERIOR: KANBAN: a coluna "Contato Feito" agora mostra o AGENTE do CSV (KANBAN: a coluna "Contato Feito" agora mostra o AGENTE do CSV embaixo de cada nome, no mesmo formato da coluna "Em tratativa" ("Ag.: Fulano"). Tecnicamente, colLista() ganhou um 5º parâmetro opcional metaFn — as outras colunas de lista (Recusados, Erro de Comunicação, Sem Retorno) seguem sem meta, sem nenhuma mudança); ANTERIOR: VISUAL: contorno CROMADO VIVO e FIXO (VISUAL: contorno CROMADO VIVO e FIXO — mesmo nível de intensidade do azul vivo do ·101, só trocando a cor, para a comparação ser justa. O cromado tem o pico de BRANCO PURO (#FFFFFF), que é o que dá a leitura de "metal polido" e é justamente o que ofuscava lá atrás — MAS naquela época ele estava PISCANDO; agora está PARADO, e a piscada era metade do problema. Se ainda pesar, existe o cromado SUAVIZADO (pico parando em #8E9BA6) pronto no preview); ANTERIOR: contorno no NÍVEL 1 (azul vivo) — gradiente #0A2E52 a #6FBAFF com halo mais presente (.42/.20). É o mais marcante dos três níveis, mas continua FIXO: o que ofuscava de verdade era a PISCADA somada ao pico de BRANCO PURO do cromado, e nenhum dos dois voltou. Combina com a chamada em branco macio do ·99); ANTERIOR: o contorno voltou ao NÍVEL 2 (azul suavizado) — gradiente #16324D a #5A89B6 e halo contido (.22/.12), fixo, sem piscar. O nível 3 (bem discreto) foi testado no ·98 e o nível 2 ficou melhor. Combina com a chamada em branco macio introduzida no ·99); ANTERIOR: a segunda parte da frase de impacto ("🚨 AÇÃO IMEDIATA NECESSÁRIA: TEM CLIENTES ABANDONADOS NO SEU PAINEL! NÃO IGNORE ESTA NOTIFICAÇÃO!") ganhou classe própria (.cd-chamada) com branco MENOS intenso (#C3CEDB) e peso 700 em vez de 900. Motivo: um texto longo, todo em caixa alta, em branco puro e peso máximo vira um bloco "gritado" e cansa a leitura. Agora o "⚠️ ATENÇÃO, [NOME]!" fica sendo o ponto de maior contraste da linha — nome em vermelho, "ATENÇÃO" em branco forte — e o resto acompanha em tom mais macio); ANTERIOR: contorno no nível BEM DISCRETO (opção 3): gradiente azul mais escuro e dessaturado (#142A3E a #47697F, pico sóbrio) e halo praticamente só um assentamento (.14, camada única). O destaque da caixa passa a vir do TEXTO — caixa alta, negrito, nome do atendente em vermelho — e não do contorno, que agora só delimita sem competir com a leitura. Continua FIXO, sem piscar); ANTERIOR: ESCOLHA do contorno: AZUL SUAVIZADO e FIXO. O cromado suavizado do ·96 foi testado e o azul suavizado ficou melhor, então voltamos a ele. Gradiente de #16324D a #5A89B6 (sem pico claro estourado) e halo discreto (.22/.12), sem piscar. Evolução completa: vermelho piscante → cromado piscante (ofuscava: pico de BRANCO PURO + halo forte + piscada, tudo ao lado de texto branco) → azul piscante → azul fixo → azul suavizado → cromado suavizado → AZUL SUAVIZADO FIXO); ANTERIOR: o contorno voltou ao CROMADO, mas no mesmo nível de suavização que o azul tinha atingido. O que ofuscava antes não era "ser cromado": era o pico de BRANCO PURO (#FFFFFF) no gradiente somado a um halo forte, e tudo isso PISCANDO ao lado de texto branco. Agora o brilho máximo do metal para num prata acinzentado (#8E9BA6) — o gradiente mantém a variação escuro→claro que dá a leitura de "cromo polido", sem estourar — o halo ficou discreto (.22/.12) e a piscada não voltou. Contorno CROMADO SUAVE e FIXO); ANTERIOR: a cor do contorno azul foi SUAVIZADA — baixaram duas coisas juntas: as cores do gradiente (tons menos saturados, sem o azul-claro estourado #6FBAFF que puxava a vista; agora vai de #16324D a #5A89B6) e o halo luminoso em volta (opacidade caiu de .42/.20 para .22/.12). A caixa segue destacada no painel, mas sem gritar. Continua FIXA, sem piscar); ANTERIOR: o contorno das notificações agora é AZUL FIXO — a piscada foi REMOVIDA por completo (nenhuma animação restou na caixa). Motivo: piscar ajuda a NOTAR mas atrapalha a LER, e a cobrança precisa ser lida. O contorno azul luminoso continua destacando a caixa, sem cansar a vista. Histórico da evolução: vermelho piscante → cromado piscante (branco brilhante, ofuscava ao lado do texto branco) → azul piscante → AZUL FIXO); ANTERIOR: o contorno CROMADO saiu e virou AZUL NEON. O cromado era essencialmente BRANCO brilhante, e um branco pulsando ao lado de texto branco ofuscava e atrapalhava a leitura; o azul contrasta com o texto em vez de competir com ele. Além da cor, o BRILHO foi suavizado (halo menor e menos opaco) e o pulso ficou mais lento (1.15s → 1.35s) — o incômodo não vinha só da cor, vinha da intensidade. Também reduzido o text-shadow BRANCO da frase de impacto, que deixava a fonte levemente borrada sobre si mesma: agora é uma sombra escura sutil, que dá contraste e mantém a letra nítida); AJUSTE ANTERIOR: a fonte da frase de impacto do cabeçalho aumentou 20% — de 0.63rem para 0.756rem (o histórico do tamanho ficou: 0.9rem original → 0.63rem no ·91 → 0.756rem agora, ou seja ~16% menor que o original); a seta ▾ acompanhou (0.72 → 0.86rem). O texto do corpo da caixa segue em 0.86rem, inalterado); AJUSTE ANTERIOR: a frase de impacto do cabeçalho (a que aparece com a caixa fechada) teve a fonte reduzida em 30% — de 0.9rem para 0.63rem; a seta ▾ foi ajustada proporcionalmente (0.9 → 0.72rem) para não ficar desproporcional ao lado do texto menor. O texto do CORPO da caixa continua em 0.86rem, inalterado); AJUSTE ANTERIOR: o INTERIOR da caixa de notificação voltou ao normal — o fundo agora é var(--card), o mesmo dos demais painéis, sem gradiente/clarão nenhum. Restou SÓ a borda cromada com o halo externo piscando. Nota técnica: a camada de fundo em padding-box não pode simplesmente ser removida — sem ela o gradiente cromado do border-box vazaria e preencheria a caixa inteira; por isso ela virou uma cor SÓLIDA (var(--card)) em vez de sumir. E border-image, o caminho "óbvio" para borda em gradiente, não serve porque não respeita border-radius e deixaria os cantos quadrados); AJUSTE ANTERIOR: removido o "flash" que passava por cima da caixa inteira — saiu a animação de brilho deslizante (cdCromoDesliza) e saiu o glow interno (inset box-shadow). Agora SÓ O CONTORNO pisca: a borda é um gradiente cromado ESTÁTICO (grafite → prata → branco → prata → grafite, aspecto de metal polido) e o que pulsa é apenas o halo EXTERNO em volta dela (cdCromoPulsa, 1.15s). O conteúdo da caixa fica limpo, sem nada passando por cima. O botão verde LED do "Verificado" mantém o brilho fixo próprio); VISUAL ANTERIOR: o contorno das caixas de notificação trocou o VERMELHO piscante por um CROMADO NEON CINTILANTE. Cromo não é cor sólida, é REFLEXO — então a borda é um gradiente metálico (grafite → prata → branco puro → prata → grafite) que DESLIZA em volta da caixa (animação cdCromoDesliza, 2.6s linear), somado a um halo pulsante que faz a cintilação (cdCromoPulsa, 1.15s). As duas animações rodam em ciclos independentes, o que dá brilho vivo de metal em vez de pisca-pisca chapado. Técnica: DUPLO GRADIENTE — fundo em padding-box e cromado em border-box — porque border-image NÃO respeita border-radius e deixaria os cantos quadrados; o deslize vem de animar o background-position do gradiente da borda (background-size 300% nele). O nome do atendente segue VERMELHO no cabeçalho e o botão verde LED do "Verificado" segue fixo, sem piscar); VISUAL: as caixas de notificação agora nascem RECOLHIDAS — só a frase de impacto aparece: "⚠️ ATENÇÃO, [NOME]! 🚨 AÇÃO IMEDIATA NECESSÁRIA: TEM CLIENTES ABANDONADOS NO SEU PAINEL! NÃO IGNORE ESTA NOTIFICAÇÃO!"; clicar no cabeçalho abre/fecha o conteúdo (seta ▾ gira); SÓ o nome do atendente sai em VERMELHO (classe .cd-nome), todo o resto da frase em BRANCO negrito vivo (inverteu a lógica anterior, em que só a palavra ATENÇÃO era branca); o estado aberto/fechado vive em memória (cdAbertas) e SOBREVIVE ao re-render automático de 60s — sem isso a caixa fecharia sozinha na cara do atendente no meio da leitura; cada caixa abre de forma independente; o botão "✓ Verificado" tem prioridade no clique e NÃO alterna a caixa; o separador tracejado do bloco amarelo só aparece quando ele vem depois do bloco de contato); CORREÇÃO CRÍTICA — "as notificações de Em Tratativa sumiram depois da importação". CAUSA (reproduzida em teste): qualquer render feito com um CSV ATRASADO fazia o rastreador dar SOFT DELETE nos nomes (pois naquele CSV velho eles "não estavam em tratativa"); quando o CSV correto chegava, a entrada era RECRIADA com ts=agora e o relógio de 24h ZERAVA — escondendo a cobrança por mais um dia. O CSV atrasado vinha de duas fontes: o do localStorage (carregarStatusHotel renderiza com ele antes de buscar o servidor) e o do PRÓPRIO SERVIDOR, porque o KV do Cloudflare é eventualmente consistente e um GET logo após o POST pode devolver a versão anterior. Somavam-se duas falhas: o rastreador rodava ANTES de carregarConfig() trazer o appConfig da nuvem (gravando estado meia-boca), e o merge decidia conflito por "maior ts vence" — mas as entradas do seed nascem com ts:0, o menor valor possível, então perdiam para qualquer del:1 espúrio. CORREÇÕES: (1) GUARDA MONOTÔNICA — appConfig.tratativaCsvTs guarda o importadoEm do último CSV processado; CSV mais velho é IGNORADO pelo relógio, venha de onde vier; (2) uvCfgPronta — o rastreador só age depois que a config vem da nuvem; (3) campo "op" (carimbo da última escrita) separado do "ts" (início do relógio) e merge decidindo por "op", então ts:0 não perde mais por ser zero; (4) o soft delete agora PRESERVA o ts original; (5) SEED v2 — repara o estado já corrompido: todo nome hoje em tratativa volta a ts:0 e dispara na hora, e o selo v2 vence o v1 no merge para o reparo se propagar entre PCs); ÊNFASE: as frases de ação das notificações agora saem em NEGRITO — "clique no botão “Template Enviado”" no bloco de cima e "atualize o status de cada atendimento no sistema" no bloco de baixo; usam a classe .cd-forte com color:inherit, para o negrito HERDAR a cor do bloco (branco-avermelhado em cima, AMARELO embaixo) em vez do branco fixo do <b> padrão, preservando a distinção de cor entre as duas cobranças); VISUAL das notificações do Control Desk: (1) a palavra "ATENÇÃO" agora sai em BRANCO e negrito (classe .cd-atencao), destacada do resto do título que segue vermelho; (2) FUSÃO — quando o mesmo atendente tem AS DUAS pendências, elas passam a ocupar UM ÚNICO quadrado com um só título: em cima o bloco de "fazer contato / clicar em Template Enviado" e embaixo, separado por uma linha tracejada, o bloco de "Em Tratativa" com o botão Verificado dentro dele; antes eram duas caixas separadas com o título repetido; (3) o bloco de baixo (Em Tratativa) agora tem fonte AMARELA (#FFD84D) para diferenciar visualmente das duas cobranças; quem tem só uma das pendências continua com uma caixa de bloco único, e o grupo EQUIPE segue sempre por último); apelido novo cadastrado: "Laura Teston"/"Laura" = Hynaê Teston, somando-se a "Rael" = Israel Hespanhol e "Ghabi" = Ghabriella Bressan no mapa AGENTE_APELIDOS); CORREÇÃO: apelidos na coluna Agente do CSV — os nomes em tratativa continuavam caindo no grupo EQUIPE porque o CSV traz APELIDOS ("Rael" = Israel Hespanhol, "Ghabi" = Ghabriella Bressan) que nenhuma regra automática de nome consegue deduzir (não há relação estrutural entre "Rael" e "Israel Hespanhol"); criado o mapa explícito AGENTE_APELIDOS como regra 0 do matcher (vence tudo, e funciona também quando o apelido vem com sobrenome: "Rael Hespanhol"); PARA ADICIONAR APELIDO NOVO basta acrescentar uma linha em AGENTE_APELIDOS no formato 'apelido minusculo sem acento':'Nome Completo'; AUTODIAGNÓSTICO: a caixa da notificação EQUIPE agora MOSTRA na tela exatamente como o CSV escreveu cada agente não reconhecido — não precisa mais abrir o console para descobrir apelidos novos (também disponível em window.__cdAgentesNaoReconhecidos)); CORREÇÃO na Regra 24h do Control Desk: os nomes em tratativa TÊM agente no CSV, mas todos caíam no grupo "EQUIPE" — a causa era o reuso de umNomeBateEstrito(), função feita para comparar HÓSPEDES, que recusa de propósito o match quando um lado tem só UM nome ("Ana" × "Ana Maria" → não casa, proteção contra homônimos entre clientes); só que a coluna "Agente" é um campo INTERNO da equipe e quase sempre traz só o PRIMEIRO nome ("Diego", "Fernando"), então todo agente de nome único caía em não-reconhecido; criado matcher dedicado uvAgenteParaAtendente() que casa por (1) igualdade exata, (2) nome completo com primeiro nome igual + sobrenome compartilhado, (3) primeiro nome sozinho — mas só quando esse primeiro nome for ÚNICO entre os 12 atendentes (se fosse ambíguo, recusa e manda pro grupo EQUIPE, nunca cobra a pessoa errada; verificado: nenhum dos 12 atendentes compartilha primeiro nome hoje, então o match é seguro); agentes realmente de fora da equipe continuam indo pro grupo EQUIPE listando os nomes; adicionado diagnóstico window.__cdAgentesNaoReconhecidos + console.info mostrando COMO o CSV escreveu cada agente não reconhecido); CORREÇÃO CRÍTICA na Regra 6h do Control Desk: a notificação estava contando direto de appConfig.carteira "cru", sem cruzar com quem REALMENTE aparece na coluna Contato Realizado — nomes que saíram do Kanban por qualquer motivo (linha removida do CSV, virou Recusado/Erro de Comunicação/Sem Retorno, ou passou a bater com voucher WeCann) ficavam "fantasmas" na carteira e inflavam a contagem sem aparecer em lugar nenhum na tela, causando o bug relatado — Diego notificado com 8 pendências sem ter nenhum contato visível; corrigido expondo grupos.realizado como fonte única de verdade (window.__kbRealizadoNomes), calculada pelo próprio renderStatusColunas logo antes de renderCdNotifs — a notificação agora NUNCA pode contar mais do que o que está de fato visível na tela); NOVO: Notificações de Cobrança no Control Desk — caixa vermelha LED neon piscando entre "Ocupação dos Atendentes" e o "Atendente da vez", com duas regras automáticas: (1) REGRA 6h — nomes na carteira/Contato Realizado há mais de 6 horas sem baixa disparam "⚠️ ATENÇÃO, [ATENDENTE]!" com a contagem X só dos vencidos; sem botão — a notificação some sozinha quando todos forem baixados, manual ou pela automação do CSV; usa o carimbo ts do carteiraOps que já existia; (2) REGRA 24h — nomes com status "Em Tratativa" há mais de 24 horas disparam notificação com botão verde LED neon fixo "✓ Verificado" que silencia o grupo por 24h e reinicia a contagem (appConfig.notifVerificado, clique mais recente vence no merge); relógio de tratativa novo em appConfig.tratativaTs {ts,del} com seed inicial ts:0 para nomes legados (disparam imediatamente, decisão do Nando); agente do CSV reconhecido entre os atendentes (match primeiro+último nome) → notificação nominal com contagem; agente vazio/não reconhecido → "⚠️ ATENÇÃO, EQUIPE!" listando os NOMES dos clientes; merge multi-PC nos dois caminhos (abertura+salvar) via uvMesclarNotifs; tick de 60s mantém a caixa atualizada; logs notif_verificado); NOVO: limpeza automática da carteira por progressão — quem está em "Em Tratativa" ou "Fechado" no CSV agora NÃO pode existir em mais nenhum lugar do Kanban; cobre o caso que faltava — nome esquecido em Contato Realizado sem nunca ter passado por Template Enviado — removendo da carteira automaticamente (sem arquivar em Template Enviado, já que progredir não é a mesma coisa que template enviado), com log próprio kanban_limpeza_carteira, rodando a cada render — protege também contra drift de sincronização entre PCs, não só importação de CSV); AJUSTE na automação "Contato Feito": agora o CSV sempre prevalece — se o nome estiver na carteira de um atendente NO MOMENTO da importação (mesmo se foi restaurado manualmente após um Template Enviado anterior) e o CSV disser "Contato Feito", o sistema arquiva de novo automaticamente; antes, uma restauração manual bloqueava a automação até o próximo clique manual, agora não bloqueia mais — o CSV desatualizado é o sinal para corrigir o CSV, não para o Hub ignorá-lo); NOVO: automação "Contato Feito" → Template Enviado — se o CSV importado diz que um nome já teve "Contato Feito" E esse mesmo nome estava em branco no CSV anterior (Fazer contato OU Contato Realizado), o sistema arquiva sozinho em Template Enviado/Conciliação, preservando o atendente, com o mesmo carimbo anti-ressurreição do botão manual, log próprio (kanban_auto_template) e toast de resumo em lote; se o nome chegou de fora já com Contato Feito, nada muda — só a pasta azul, como sempre); revertido: menu lateral voltou a ter a barra de rolagem própria (max-height + overflow-y), como era antes do build 74) — agora fica sempre totalmente aberto, mostrando todos os itens de uma vez, mantendo o comportamento fixo/sticky ao rolar a página); merge multi-PC deduplica por ts+cli+pax; o Pax aparece na linha do histórico de atendimentos), atualiza junto da Ocupação; redesenho neon: tubo escuro com líquido luminoso que enche conforme a contagem, gradiente vivo por faixa (ciano→verde-água→lima→âmbar→magenta) com glow, número em destaque no bulbo, carinha neon mantida acompanhando o nível; teto de escala dinâmico), ignorando sentinelas e toques <1s; persistência permanente em appConfig.ocpHistorico com merge multi-PC por união de eventos), seletor "seu nome", ranking geral e termômetros do dia, e reconhecimento como vendedora nos vouchers; já constava na Ocupação) quando qualquer lado já vive na era dos carimbos (kanbanSelo); auditoria central: todo nome que ENTRAR na carteira via merge é registrado no log (abertura/salvar/poll), e as 4 ações manuais (trazer/devolver/arquivar/restaurar) também logam; poll ganhou cura ativa da nuvem); seed dos 40 clientes preservado); lixeira agora abre modal de confirmação antes de excluir; título do painel trocado de "Matriz Comercial" para "Fornecedor"), busca e sincronização multi-PC por timestamp) no menu e no cabeçalho do painel): Ocupação dos Atendentes + Ausência Programada movidas do dashboard para lá, IDÊNTICAS em layout e funções; render religado na navegação, no auto-refresh e no sync multi-PC; Control Desk agora é a tela inicial do sistema): tela com os 35 clientes do PDF, tudo editável inline (cliente, situação, contato, responsável), busca, filtro por responsável com contagem, badges de status coloridos e cores do sistema; sincronizado entre PCs por timestamp); regra de fim de semana — sexta, sábado e domingo usam o nome do sábado do PDF (sex/dom readonly, edita-se no sábado); destaque rosa nos 3 dias) já grava a seleção; campos Início e Fim ficam mais limpos) + blur para matar o incremento nativo — velocidade lenta e previsível em mouse e trackpad) e listener wheel direto no elemento com passive:false + limiar maior — scroll agora desacelera de verdade), e scroll do mouse desacelerado para ajuste suave de hora/minuto) com merge por timestamp em salvar+carregar+polling, soft delete nos arquivados e migração automática do legado)" do cabeçalho), barra lateral vermelha e separador antes do compromisso); fontes em branco vivo; ordem bolinha - nome - data - hora - compromisso) em atendimento na bolinha vermelha e pergunta qual transferir; transferir libera o slot de origem) -->
   </div>
   <div class="saved-tools">
     <div class="search">
@@ -1896,28 +1910,30 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
           <div class="ocp-grid" id="ocpGrid"></div>
         </div>
         <div class="dash-card apr-card">
-          <div class="dash-card-t">📅 Ausência Programada<span class="ocp-hint">informe a data, o horário e o compromisso — visível a todos os atendentes</span></div>
+          <div class="dash-card-t">📅 Ausência Programada<span class="ocp-hint">informe o período (início e fim), os horários e o compromisso — visível a todos os atendentes</span></div>
           <div class="apr-form">
             <select id="aprAtendente" class="apr-inp apr-atend" title="Atendente (obrigatório)">
               <option value="">Selecione o atendente…</option>
             </select>
             <div class="apr-dt" id="aprDt">
-              <button type="button" class="apr-inp apr-dt-btn" id="aprDtBtn" disabled>Selecione a data e hora</button>
+              <button type="button" class="apr-inp apr-dt-btn" id="aprDtBtn" disabled>Selecione o período e os horários</button>
               <div class="apr-dt-pop" id="aprDtPop" hidden>
                 <div class="apr-cal-head">
                   <button type="button" class="apr-cal-nav" data-apr-nav="-1" title="Mês anterior">◀</button>
                   <span class="apr-cal-mes" id="aprCalMes"></span>
                   <button type="button" class="apr-cal-nav" data-apr-nav="1" title="Próximo mês">▶</button>
                 </div>
+                <div class="apr-cal-hint" id="aprCalHint">Clique na data de <b>início</b> do período</div>
                 <div class="apr-cal-grid" id="aprCalGrid"></div>
+                <div class="apr-cal-resumo" id="aprCalResumo"></div>
                 <div class="apr-cal-horas">
                   <div class="apr-cal-hrow">
-                    <label class="apr-cal-hlbl">Início:</label>
-                    <input type="time" id="aprPickIni" class="apr-cal-time">
+                    <label class="apr-cal-hlbl">🟢 Início</label>
+                    <input type="text" id="aprPickIni" class="apr-cal-time" inputmode="numeric" maxlength="5" placeholder="--:--" autocomplete="off" title="Digite 4 números (ex.: 1400) — o : é inserido sozinho">
                   </div>
                   <div class="apr-cal-hrow">
-                    <label class="apr-cal-hlbl">Fim:</label>
-                    <input type="time" id="aprPickFim" class="apr-cal-time">
+                    <label class="apr-cal-hlbl">🔴 Fim</label>
+                    <input type="text" id="aprPickFim" class="apr-cal-time" inputmode="numeric" maxlength="5" placeholder="--:--" autocomplete="off" title="Digite 4 números (ex.: 1400) — o : é inserido sozinho">
                   </div>
                 </div>
                 <div class="apr-cal-acoes">
@@ -2440,7 +2456,7 @@ async function loadSaved(){
 // (·107) versão VISÍVEL do build — badge no canto inferior direito + console.
 // Serve para confirmar qual versão está de fato rodando no navegador (cache do
 // Pages/navegador pode servir build antigo mesmo após o deploy!).
-const UV_BUILD='HUB-v3\u00b7107';
+const UV_BUILD='HUB-v3\u00b7108';
 try{ console.info('%c[Hub Ultravel] build '+UV_BUILD, 'color:#6FBAFF;font-weight:bold'); }catch(e){}
 try{
   document.addEventListener('DOMContentLoaded', function(){
@@ -7801,21 +7817,23 @@ function excluirNotaUI(id){
   }
   function ausProgLista(){
     var m=ausProgStore();
-    return Object.keys(m).map(function(id){ var e=m[id]||{}; return {id:id, atendente:e.atendente||'', data:e.data||'', hora:e.hora||'', horaFim:e.horaFim||'', compromisso:e.compromisso||'', ts:e.ts||0, del:e.del?1:0}; })
+    // dataFim (·108): data de TÉRMINO do período. Retrocompatível — registros antigos
+    // sem dataFim assumem o mesmo dia da data de início (period de 1 dia).
+    return Object.keys(m).map(function(id){ var e=m[id]||{}; return {id:id, atendente:e.atendente||'', data:e.data||'', hora:e.hora||'', dataFim:e.dataFim||'', horaFim:e.horaFim||'', compromisso:e.compromisso||'', ts:e.ts||0, del:e.del?1:0}; })
       .filter(function(e){ return !e.del && (e.data||e.hora||e.compromisso); })
       .sort(function(a,b){ return (a.data+' '+a.hora).localeCompare(b.data+' '+b.hora); });   // mais próximo primeiro
   }
-  function ausProgAdd(atendente, data, hora, horaFim, comp){
+  function ausProgAdd(atendente, data, hora, dataFim, horaFim, comp){
     var m=ausProgStore();
     var id='ap'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
-    m[id]={ atendente:(atendente||'').trim(), data:(data||'').trim(), hora:(hora||'').trim(), horaFim:(horaFim||'').trim(), compromisso:(comp||'').trim(), ts:Date.now(), del:0 };
+    m[id]={ atendente:(atendente||'').trim(), data:(data||'').trim(), hora:(hora||'').trim(), dataFim:(dataFim||'').trim(), horaFim:(horaFim||'').trim(), compromisso:(comp||'').trim(), ts:Date.now(), del:0 };
     window.renderAusProg(); try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
     try{ aprSincronizarOcupacao(); }catch(e){}   // aplica na hora se já estiver dentro da janela
   }
-  function ausProgUpd(id, atendente, data, hora, horaFim, comp){
+  function ausProgUpd(id, atendente, data, hora, dataFim, horaFim, comp){
     var m=ausProgStore(); if(!m[id]) return;
     try{ aprReverterSeAtiva(id, m[id].atendente, m[id].compromisso); }catch(e){}   // desfaz o estado antigo
-    m[id].atendente=(atendente||'').trim(); m[id].data=(data||'').trim(); m[id].hora=(hora||'').trim(); m[id].horaFim=(horaFim||'').trim(); m[id].compromisso=(comp||'').trim();
+    m[id].atendente=(atendente||'').trim(); m[id].data=(data||'').trim(); m[id].hora=(hora||'').trim(); m[id].dataFim=(dataFim||'').trim(); m[id].horaFim=(horaFim||'').trim(); m[id].compromisso=(comp||'').trim();
     m[id].ts=Date.now();
     window.renderAusProg(); try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
     try{ aprSincronizarOcupacao(); }catch(e){}   // reavalia pelo novo horário
@@ -7826,38 +7844,96 @@ function excluirNotaUI(id){
     m[id].del=1; m[id].ts=Date.now();   // marca deletado + carimba (não apaga: vence o merge)
     window.renderAusProg(); try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
   }
-  function ausProgFmtQuando(data, hora, horaFim){
-    return ausProgFmtData(data)+(ausProgFmtHora(hora,horaFim)?' · '+ausProgFmtHora(hora,horaFim):'');
-  }
   function ausProgFmtData(data){
     if(!data) return '—';
     var p=data.split('-'); return (p.length===3)?(p[2]+'/'+p[1]+'/'+p[0].slice(2)):data;
   }
-  function ausProgFmtHora(hora, horaFim){
-    if(!hora) return '';
-    return hora + (horaFim ? '–'+horaFim : '');
+  // ---- HELPERS DE PERÍODO (·108): datetime completo de INÍCIO e FIM (podem ser dias diferentes) ----
+  function ausProgIniMs(data, hora){
+    if(!data) return NaN;
+    return new Date(data+'T'+(hora||'00:00')+':00').getTime();
   }
-  function ausProgPassado(data, hora, horaFim){
-    if(!data) return false;
-    var ref=(horaFim||hora||'23:59');   // o período só termina na hora de FIM
-    var dt=new Date(data+'T'+ref+':00');
-    return !isNaN(dt.getTime()) && dt.getTime() < Date.now();
+  function ausProgFimMs(data, hora, dataFim, horaFim){
+    var df=(dataFim||data);   // sem dataFim → mesmo dia do início (retrocompatível)
+    if(!df) return NaN;
+    return new Date(df+'T'+(horaFim||hora||'23:59')+':00').getTime();
   }
+  // Resumo textual do período. Mesmo dia → "12/05/26 · 14:00–18:00".
+  // Dias diferentes → "12/05/26 · 14:00  →  18/05/26 · 14:00".
+  function ausProgFmtQuando(data, hora, dataFim, horaFim){
+    if(arguments.length===3){ horaFim=dataFim; dataFim=''; }   // retrocompat: chamada antiga (data,hora,horaFim)
+    var df=(dataFim||'').trim();
+    var iniTxt=ausProgFmtData(data)+(hora?' · '+hora:'');
+    var mesmoDia=(!df || df===data);
+    if(mesmoDia) return iniTxt + (horaFim?'–'+horaFim:'');
+    return iniTxt + '  →  ' + ausProgFmtData(df) + (horaFim?' · '+horaFim:'');
+  }
+  function ausProgPassado(data, hora, dataFim, horaFim){
+    if(arguments.length===3){ horaFim=dataFim; dataFim=''; }   // retrocompat
+    var fim=ausProgFimMs(data, hora, dataFim, horaFim);
+    return !isNaN(fim) && fim < Date.now();
+  }
+
+  /* ===== AUTO-FORMATAÇÃO DE HORA (·108) — campo livre, só números =====
+     O usuário digita 4 números seguidos (ex.: 1400) e o sistema insere sozinho os
+     ":" do meio → 14:00. Retira qualquer caractere que não seja dígito. */
+  function ausProgHoraLive(txt){
+    // durante a digitação: só insere os ":" do meio (não força padding ainda)
+    var d=(txt||'').replace(/\D/g,'').slice(0,4);
+    if(d.length<=2) return d;
+    return d.slice(0,2)+':'+d.slice(2);
+  }
+  function ausProgHoraNorm(txt){
+    // ao sair do campo (blur): completa para HH:MM válido a partir dos dígitos.
+    // 1-2 díg → hora cheia (9 → 09:00); 3 díg → H:MM (830 → 08:30); 4 díg → HH:MM.
+    var d=(txt||'').replace(/\D/g,'');
+    if(!d) return '';
+    var hh, mm;
+    if(d.length<=2){ hh=parseInt(d,10); mm=0; }
+    else if(d.length===3){ hh=parseInt(d.slice(0,1),10); mm=parseInt(d.slice(1,3),10); }
+    else { hh=parseInt(d.slice(0,2),10); mm=parseInt(d.slice(2,4),10); }
+    if(isNaN(hh)) hh=0; if(isNaN(mm)) mm=0;
+    hh=Math.min(23,Math.max(0,hh)); mm=Math.min(59,Math.max(0,mm));
+    return String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0');
+  }
+  // expõe os helpers puros (formatação/datetime) para debug e verificação
+  try{
+    window.ausProgHoraLive=ausProgHoraLive; window.ausProgHoraNorm=ausProgHoraNorm;
+    window.ausProgIniMs=ausProgIniMs; window.ausProgFimMs=ausProgFimMs;
+    window.ausProgFmtQuando=ausProgFmtQuando; window.ausProgPassado=ausProgPassado;
+    window.ausProgFmtData=ausProgFmtData; window.ausProgLista=ausProgLista;
+  }catch(e){}
   var aprEditId=null;   // id do compromisso em edição (ou null = criando novo)
 
-  // ----- Seletor de data/hora customizado (calendário + Início/Fim embutidos) -----
-  var aprPick={ data:'', hora:'', horaFim:'', mes:null };   // seleção corrente do picker
+  // ----- Seletor de PERÍODO customizado (calendário de intervalo + horas livres) -----
+  // aprPick.data = data de INÍCIO; aprPick.dataFim = data de FIM (pode ser o mesmo dia).
+  var aprPick={ data:'', hora:'', dataFim:'', horaFim:'', mes:null };   // seleção corrente do picker
   var APR_MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
   var APR_DOW=['D','S','T','Q','Q','S','S'];
 
-  // Atualiza o texto do botão do seletor com o resumo da seleção (ou o placeholder).
+  // Atualiza o texto do botão do seletor com o resumo do período (ou o placeholder).
   function aprDtSync(){
     var btn=document.getElementById('aprDtBtn'); if(!btn) return;
     if(aprPick.data){
-      var h=ausProgFmtHora(aprPick.hora, aprPick.horaFim);
-      btn.textContent=ausProgFmtData(aprPick.data)+(h?' · '+h:'');
+      btn.textContent=ausProgFmtQuando(aprPick.data, aprPick.hora, aprPick.dataFim, aprPick.horaFim);
       btn.classList.add('has');
-    } else { btn.textContent='Selecione a data e hora'; btn.classList.remove('has'); }
+    } else { btn.textContent='Selecione o período e os horários'; btn.classList.remove('has'); }
+    // resumo dentro do popover (Início → Fim)
+    var res=document.getElementById('aprCalResumo');
+    if(res){
+      if(aprPick.data){
+        var iniR='<b>'+ocpEsc(ausProgFmtData(aprPick.data))+'</b>'+(aprPick.hora?' · '+ocpEsc(aprPick.hora):'');
+        var df=(aprPick.dataFim||aprPick.data);
+        var fimR='<b>'+ocpEsc(ausProgFmtData(df))+'</b>'+(aprPick.horaFim?' · '+ocpEsc(aprPick.horaFim):'');
+        res.innerHTML='<span class="apr-res-cel">🟢 Início<br>'+iniR+'</span><span class="apr-res-seta">→</span><span class="apr-res-cel">🔴 Fim<br>'+fimR+'</span>';
+      } else { res.innerHTML=''; }
+    }
+    var hint=document.getElementById('aprCalHint');
+    if(hint){
+      if(!aprPick.data) hint.innerHTML='Clique na data de <b>início</b> do período';
+      else if(!aprPick.dataFim || aprPick.dataFim===aprPick.data) hint.innerHTML='Agora clique na data de <b>fim</b> (ou repita o mesmo dia)';
+      else hint.innerHTML='Período de <b>'+ocpEsc(ausProgFmtData(aprPick.data))+'</b> até <b>'+ocpEsc(ausProgFmtData(aprPick.dataFim))+'</b>';
+    }
   }
   // Desenha o calendário do mês em visão, destacando o dia selecionado (cor forte).
   function aprCalRender(){
@@ -7870,10 +7946,18 @@ function excluirNotaUI(id){
     var html='';
     APR_DOW.forEach(function(d){ html+='<span class="apr-cal-dow">'+d+'</span>'; });
     for(var i=0;i<inicioSemana;i++) html+='<span class="apr-cal-vazio"></span>';
+    var ini=aprPick.data||'', fim=aprPick.dataFim||'';
     for(var dia=1;dia<=diasNoMes;dia++){
       var iso=ano+'-'+String(mes+1).padStart(2,'0')+'-'+String(dia).padStart(2,'0');
-      var sel=(iso===aprPick.data);
-      html+='<button type="button" class="apr-cal-dia'+(sel?' sel':'')+'" data-apr-dia="'+iso+'">'+dia+'</button>';
+      var ehIni=(iso===ini), ehFim=(iso===fim && fim);
+      // dia no MEIO do intervalo (destaque suave)
+      var noMeio=false;
+      if(ini && fim && ini!==fim){ noMeio = (iso>ini && iso<fim); }
+      var cls='apr-cal-dia';
+      if(ehIni) cls+=' sel sel-ini';
+      if(ehFim) cls+=' sel sel-fim';
+      if(noMeio) cls+=' range';
+      html+='<button type="button" class="'+cls+'" data-apr-dia="'+iso+'">'+dia+'</button>';
     }
     grid.innerHTML=html;
     var pi=document.getElementById('aprPickIni'); if(pi) pi.value=aprPick.hora||'';
@@ -7886,7 +7970,7 @@ function excluirNotaUI(id){
     try{ if(typeof window.aprLigarCamposHora==='function') window.aprLigarCamposHora(); }catch(e){}
   }
   function aprDtFechar(){ var p=document.getElementById('aprDtPop'); if(p) p.hidden=true; }
-  function aprPickReset(){ aprPick={ data:'', hora:'', horaFim:'', mes:null }; aprDtSync(); aprDtFechar(); }
+  function aprPickReset(){ aprPick={ data:'', hora:'', dataFim:'', horaFim:'', mes:null }; aprDtSync(); aprDtFechar(); }
 
 
   function aprPopularAtendentes(){
@@ -7912,13 +7996,27 @@ function excluirNotaUI(id){
     var lista=ausProgLista();
     if(!lista.length){ el.innerHTML='<div class="apr-vazio">Nenhuma ausência programada. Preencha acima e clique em Salvar.</div>'; return; }
     el.innerHTML=lista.map(function(e){
-      var passado=ausProgPassado(e.data, e.hora, e.horaFim);
-      var hora=ausProgFmtHora(e.hora,e.horaFim);
+      var passado=ausProgPassado(e.data, e.hora, e.dataFim, e.horaFim);
+      var df=(e.dataFim||e.data);
+      var mesmoDia=(!e.dataFim || e.dataFim===e.data);
+      // MESMO DIA → um chip de data + um chip "14:00–18:00".
+      // DIAS DIFERENTES → dois chips (início e fim), cada um com sua data e hora.
+      var chipsQuando;
+      if(mesmoDia){
+        var horaTxt=e.hora+(e.horaFim?'–'+e.horaFim:'');
+        chipsQuando=
+          '<span class="apr-chip apr-data"><span class="apr-ic">📅</span>'+ocpEsc(ausProgFmtData(e.data))+'</span>'+
+          (e.hora?'<span class="apr-chip apr-hora"><span class="apr-ic">⏰</span>'+ocpEsc(horaTxt)+'</span>':'');
+      } else {
+        chipsQuando=
+          '<span class="apr-chip apr-data apr-ini"><span class="apr-ic">🟢</span>'+ocpEsc(ausProgFmtData(e.data))+(e.hora?' · '+ocpEsc(e.hora):'')+'</span>'+
+          '<span class="apr-seta-per">→</span>'+
+          '<span class="apr-chip apr-data apr-fim"><span class="apr-ic">🔴</span>'+ocpEsc(ausProgFmtData(df))+(e.horaFim?' · '+ocpEsc(e.horaFim):'')+'</span>';
+      }
       return '<div class="apr-item'+(passado?' passado':'')+'">'+
         '<span class="apr-led" title="'+(passado?'compromisso já passou':'ausência programada')+'"></span>'+
         (e.atendente?'<span class="apr-chip apr-nome"><span class="apr-ic">👤</span>'+ocpEsc(e.atendente)+'</span>':'')+
-        '<span class="apr-chip apr-data"><span class="apr-ic">📅</span>'+ocpEsc(ausProgFmtData(e.data))+'</span>'+
-        (hora?'<span class="apr-chip apr-hora"><span class="apr-ic">⏰</span>'+ocpEsc(hora)+'</span>':'')+
+        chipsQuando+
         '<span class="apr-comp-txt" title="'+ocpEsc(e.compromisso)+'"><span class="apr-ic">📝</span><span class="apr-comp-val">'+ocpEsc(e.compromisso||'(sem descrição)')+'</span></span>'+
         '<span class="apr-acoes">'+
           '<button type="button" class="apr-ed" data-apr-ed="'+e.id+'" title="Editar">✎</button>'+
@@ -8910,8 +9008,9 @@ function excluirNotaUI(id){
     var agora=Date.now(), o=ocpEstado();
     ausProgLista().forEach(function(e){
       if(!e.atendente || !e.data || !e.hora) return;
-      var ini=new Date(e.data+'T'+e.hora+':00').getTime();
-      var fim=new Date(e.data+'T'+(e.horaFim||e.hora)+':00').getTime();
+      // período completo (·108): início e fim podem estar em DIAS diferentes
+      var ini=ausProgIniMs(e.data, e.hora);
+      var fim=ausProgFimMs(e.data, e.hora, e.dataFim, e.horaFim);
       if(isNaN(ini)||isNaN(fim)) return;
       var ativa=(agora>=ini && agora<fim), passou=(agora>=fim);
       var marcador=aprMarcadorProg(e.compromisso);
@@ -9309,17 +9408,27 @@ function excluirNotaUI(id){
       e.preventDefault();
       var seln=document.getElementById('aprAtendente'), btnDt=document.getElementById('aprDtBtn'), ci=document.getElementById('aprComp');
       var atendente=(seln&&seln.value||'').trim();
-      var data=aprPick.data||'', hora=aprPick.hora||'', horaFim=aprPick.horaFim||'';
+      // normaliza horários digitados livremente antes de validar/salvar
+      var _i1=document.getElementById('aprPickIni'); if(_i1 && _i1.value){ _i1.value=ausProgHoraNorm(_i1.value); aprPick.hora=_i1.value; }
+      var _i2=document.getElementById('aprPickFim'); if(_i2 && _i2.value){ _i2.value=ausProgHoraNorm(_i2.value); aprPick.horaFim=_i2.value; }
+      var data=aprPick.data||'', hora=aprPick.hora||'', dataFim=(aprPick.dataFim||aprPick.data)||'', horaFim=aprPick.horaFim||'';
       var comp=(ci&&(ci.value||'').trim())||'';
       if(!atendente && !data && !comp) return;         // nada preenchido → ignora
       if(!atendente){ if(seln){ try{seln.focus();}catch(_){} seln.style.borderColor='#ff5252'; } return; }  // atendente obrigatório
-      if(!data){ if(btnDt && !btnDt.disabled){ try{btnDt.focus();}catch(_){} btnDt.style.borderColor='#ff5252'; aprDtAbrir(); } return; } // data obrigatória
-      if(!hora){ aprDtAbrir(); var _pi=document.getElementById('aprPickIni'); if(_pi){ try{_pi.focus();}catch(_){} } return; } // início obrigatório
-      if(!horaFim){ aprDtAbrir(); var _pf=document.getElementById('aprPickFim'); if(_pf){ try{_pf.focus();}catch(_){} } return; } // fim obrigatório
-      if(hora && horaFim && horaFim<=hora){ aprDtAbrir(); var _pf2=document.getElementById('aprPickFim'); if(_pf2){ try{_pf2.focus();}catch(_){} } return; } // fim depois do início
+      if(!data){ if(btnDt && !btnDt.disabled){ try{btnDt.focus();}catch(_){} btnDt.style.borderColor='#ff5252'; aprDtAbrir(); } return; } // data de início obrigatória
+      if(!hora){ aprDtAbrir(); var _pi=document.getElementById('aprPickIni'); if(_pi){ try{_pi.focus();}catch(_){} } return; } // hora de início obrigatória
+      if(!horaFim){ aprDtAbrir(); var _pf=document.getElementById('aprPickFim'); if(_pf){ try{_pf.focus();}catch(_){} } return; } // hora de fim obrigatória
+      // FIM depois do INÍCIO considerando as DATAS (período pode cruzar vários dias)
+      var _iniMs=ausProgIniMs(data, hora), _fimMs=ausProgFimMs(data, hora, dataFim, horaFim);
+      if(!isNaN(_iniMs) && !isNaN(_fimMs) && _fimMs<=_iniMs){
+        aprDtAbrir();
+        var _h=document.getElementById('aprCalHint'); if(_h){ _h.innerHTML='⚠️ O <b>fim</b> precisa ser depois do <b>início</b>'; _h.style.color='#ff9b9b'; }
+        var _pf2=document.getElementById('aprPickFim'); if(_pf2){ try{_pf2.focus();}catch(_){} }
+        return;
+      }
       if(!comp){ if(ci){ try{ci.focus();}catch(_){} ci.style.borderColor='#ff5252'; } return; }               // compromisso obrigatório
-      if(aprEditId){ ausProgUpd(aprEditId, atendente, data, hora, horaFim, comp); aprEditId=null; }
-      else { ausProgAdd(atendente, data, hora, horaFim, comp); }
+      if(aprEditId){ ausProgUpd(aprEditId, atendente, data, hora, dataFim, horaFim, comp); aprEditId=null; }
+      else { ausProgAdd(atendente, data, hora, dataFim, horaFim, comp); }
       // limpa o formulário e re-trava o seletor
       if(seln){ seln.value=''; seln.style.borderColor=''; }
       if(btnDt){ btnDt.style.borderColor=''; btnDt.disabled=true; }
@@ -9334,8 +9443,8 @@ function excluirNotaUI(id){
       var id=ed.getAttribute('data-apr-ed'); var it=ausProgStore()[id]; if(!it) return;
       var sel2=document.getElementById('aprAtendente'), ci2=document.getElementById('aprComp');
       if(sel2){ aprPopularAtendentes(); sel2.value=it.atendente||''; }
-      aprSyncEnable();   // libera o seletor de data/hora se houver atendente
-      aprPick={ data:it.data||'', hora:it.hora||'', horaFim:it.horaFim||'', mes: it.data?new Date(it.data+'T12:00'):new Date() };
+      aprSyncEnable();   // libera o seletor de período se houver atendente
+      aprPick={ data:it.data||'', hora:it.hora||'', dataFim:(it.dataFim||it.data)||'', horaFim:it.horaFim||'', mes: it.data?new Date(it.data+'T12:00'):new Date() };
       aprDtSync();
       if(ci2) ci2.value=it.compromisso||'';
       aprEditId=id;
@@ -9349,7 +9458,7 @@ function excluirNotaUI(id){
     if(dl){
       var id2=dl.getAttribute('data-apr-del'); var it2=ausProgStore()[id2]; if(!it2) return;
       var cbg=document.createElement('div'); cbg.className='ocp-confirm-bg';
-      cbg.innerHTML='<div class="ocp-confirm"><h4>Excluir ausência</h4><p>Excluir o compromisso de <b>'+ocpEsc(ausProgFmtQuando(it2.data,it2.hora,it2.horaFim))+'</b>? Vale para todos os computadores.</p><div class="ocp-confirm-btns"><button type="button" class="ocp-confirm-nao">Cancelar</button><button type="button" class="ocp-confirm-sim">Excluir</button></div></div>';
+      cbg.innerHTML='<div class="ocp-confirm"><h4>Excluir ausência</h4><p>Excluir o compromisso de <b>'+ocpEsc(ausProgFmtQuando(it2.data,it2.hora,it2.dataFim,it2.horaFim))+'</b>? Vale para todos os computadores.</p><div class="ocp-confirm-btns"><button type="button" class="ocp-confirm-nao">Cancelar</button><button type="button" class="ocp-confirm-sim">Excluir</button></div></div>';
       document.body.appendChild(cbg);
       function fechar(){ if(cbg.parentNode) cbg.parentNode.removeChild(cbg); }
       cbg.addEventListener('click', function(ev){ if(ev.target===cbg) fechar(); });
@@ -9372,56 +9481,55 @@ function excluirNotaUI(id){
       e.preventDefault(); var b=document.getElementById('aprSalvar'); if(b) b.click();
     }
   });
-  // Selecionar o atendente libera o seletor de data/hora
+  // Selecionar o atendente libera o seletor de período
   document.addEventListener('change', function(e){
     if(e.target && e.target.id==='aprAtendente'){ aprSyncEnable(); }
-    else if(e.target && e.target.id==='aprPickIni'){ aprPick.hora=(e.target.value||''); aprDtSync(); }
-    else if(e.target && e.target.id==='aprPickFim'){ aprPick.horaFim=(e.target.value||''); aprDtSync(); }
   });
-  // captura a hora em TEMPO REAL (input), sem precisar clicar fora do seletor
+  // AUTO-FORMATAÇÃO EM TEMPO REAL (·108): a cada dígito, insere sozinho o ":" do meio.
+  // Digitar "1400" vira "14:00". Só números são aceitos.
   document.addEventListener('input', function(e){
-    if(e.target && e.target.id==='aprPickIni'){ aprPick.hora=(e.target.value||''); aprDtSync(); }
-    else if(e.target && e.target.id==='aprPickFim'){ aprPick.horaFim=(e.target.value||''); aprDtSync(); }
+    if(!e.target) return;
+    if(e.target.id==='aprPickIni' || e.target.id==='aprPickFim'){
+      var fmt=ausProgHoraLive(e.target.value);
+      if(e.target.value!==fmt){
+        e.target.value=fmt;
+        try{ e.target.setSelectionRange(fmt.length, fmt.length); }catch(_){}   // cursor no fim
+      }
+      if(e.target.id==='aprPickIni') aprPick.hora=fmt; else aprPick.horaFim=fmt;
+      aprDtSync();
+    }
   });
-  // Liga (uma vez por input) os comportamentos dos campos de hora:
-  //  • CLIQUE em qualquer parte → abre o seletor nativo (showPicker SÍNCRONO, senão o
-  //    navegador bloqueia por perda de ativação por gesto);
-  //  • SCROLL desacelerado → listener DIRETO no elemento com passive:false, que é o
-  //    único jeito confiável de bloquear o incremento rápido nativo do input time.
-  var aprWheelLast=0;
-  function aprAjustarHora(input, secao, passo){
-    var p=(input.value||'00:00').split(':');
-    var hh=parseInt(p[0]||'0',10)||0, mm=parseInt(p[1]||'0',10)||0;
-    if(secao==='h') hh=(hh+passo+24)%24; else mm=(mm+passo+60)%60;
-    input.value=String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0');
-    input.dispatchEvent(new Event('input',{bubbles:true}));   // atualiza aprPick + resumo
-  }
+  // Ao SAIR do campo (blur), completa para HH:MM válido (9 → 09:00, 830 → 08:30).
+  document.addEventListener('blur', function(e){
+    if(!e.target) return;
+    if(e.target.id==='aprPickIni' || e.target.id==='aprPickFim'){
+      var norm=ausProgHoraNorm(e.target.value);
+      e.target.value=norm;
+      if(e.target.id==='aprPickIni') aprPick.hora=norm; else aprPick.horaFim=norm;
+      aprDtSync();
+    }
+  }, true);   // captura: blur não borbulha
+  // Liga (uma vez por input) o comportamento dos campos de hora agora por DIGITAÇÃO:
+  //  • só aceita números; Enter normaliza e pula pro próximo campo (Início → Fim → OK).
   function aprLigarCamposHora(){
     ['aprPickIni','aprPickFim'].forEach(function(id){
       var inp=document.getElementById(id); if(!inp || inp.__aprHooked) return;
       inp.__aprHooked=1;
-      // clique em qualquer área → ABRE o seletor; clicar de novo com ele aberto → FECHA
-      inp.addEventListener('click', function(){
-        if(inp.__pickerOpen){ inp.__pickerOpen=false; try{ inp.blur(); }catch(_){} }   // já aberto → fecha
-        else { try{ inp.showPicker && inp.showPicker(); inp.__pickerOpen=true; }catch(_){} }
+      inp.addEventListener('keydown', function(e){
+        // navegação/edição sempre permitidas
+        var ctrl=['Backspace','Delete','ArrowLeft','ArrowRight','Tab','Home','End'];
+        if(e.key==='Enter'){
+          e.preventDefault();
+          inp.value=ausProgHoraNorm(inp.value);
+          if(id==='aprPickIni') aprPick.hora=inp.value; else aprPick.horaFim=inp.value;
+          aprDtSync();
+          if(id==='aprPickIni'){ var f=document.getElementById('aprPickFim'); if(f){ try{f.focus();}catch(_){} } }
+          else { var ok=document.getElementById('aprCalOk'); if(ok){ try{ok.click();}catch(_){} } }
+          return;
+        }
+        if(ctrl.indexOf(e.key)>=0 || e.ctrlKey || e.metaKey) return;
+        if(!/^[0-9]$/.test(e.key)) e.preventDefault();   // bloqueia tudo que não é número
       });
-      // se o dropdown fechar por fora (clicar no calendário, escolher valor, Esc), zera o estado
-      inp.addEventListener('blur',   function(){ inp.__pickerOpen=false; });
-      inp.addEventListener('change', function(){ inp.__pickerOpen=false; });
-      // SCROLL LENTO e PREVISÍVEL: throttle POR TEMPO (independe de mouse/trackpad) +
-      // blur para matar o incremento nativo do input (que só ocorre com o campo focado).
-      inp.addEventListener('wheel', function(e){
-        e.preventDefault(); e.stopPropagation();
-        try{ inp.blur(); }catch(_){}                 // remove o foco → sem troca nativa
-        var agora=Date.now();
-        var INTERVALO=320;                           // ms mínimos entre passos (maior = mais lento)
-        if(agora - aprWheelLast < INTERVALO) return; // ignora a rolagem rápida no meio
-        aprWheelLast=agora;
-        var dir = e.deltaY>0 ? -1 : 1;               // rolar para baixo diminui
-        var r=inp.getBoundingClientRect();
-        var secao=(e.clientX - r.left) < r.width*0.55 ? 'h' : 'm';   // esquerda=hora, direita=minuto
-        aprAjustarHora(inp, secao, dir);
-      }, {passive:false});
     });
   }
   window.aprLigarCamposHora=aprLigarCamposHora;
@@ -9434,20 +9542,33 @@ function excluirNotaUI(id){
     // navegar de mês
     var nav=e.target.closest('[data-apr-nav]');
     if(nav){ var base=aprPick.mes||new Date(); aprPick.mes=new Date(base.getFullYear(), base.getMonth()+parseInt(nav.getAttribute('data-apr-nav'),10), 1); aprCalRender(); return; }
-    // escolher um dia → destaca com cor forte
+    // escolher um dia → seleção de INTERVALO (·108):
+    //  • sem início, ou já com início+fim → começa novo período (define início, limpa fim)
+    //  • com início e sem fim → clique >= início vira o fim; clique < início vira novo início
     var dia=e.target.closest('[data-apr-dia]');
-    if(dia){ aprPick.data=dia.getAttribute('data-apr-dia'); aprCalRender(); aprDtSync(); return; }
+    if(dia){
+      var iso=dia.getAttribute('data-apr-dia');
+      if(!aprPick.data || (aprPick.data && aprPick.dataFim)){
+        aprPick.data=iso; aprPick.dataFim='';
+      } else {
+        if(iso>=aprPick.data) aprPick.dataFim=iso;
+        else { aprPick.data=iso; aprPick.dataFim=''; }
+      }
+      aprCalRender(); aprDtSync(); return;
+    }
     // Limpar seleção (mantém o popover aberto)
     if(e.target.closest('#aprCalLimpar')){
-      aprPick.data=''; aprPick.hora=''; aprPick.horaFim='';
+      aprPick.data=''; aprPick.hora=''; aprPick.dataFim=''; aprPick.horaFim='';
       var pi=document.getElementById('aprPickIni'); if(pi) pi.value='';
       var pf=document.getElementById('aprPickFim'); if(pf) pf.value='';
       aprCalRender(); aprDtSync(); return;
     }
-    // OK GERAL → única forma de fechar o seletor. Garante que lê os valores atuais dos inputs.
+    // OK GERAL → única forma de fechar o seletor. NORMALIZA os horários digitados
+    // (ex.: "9" → "09:00", "830" → "08:30", "1400" → "14:00") antes de confirmar.
     if(e.target.closest('#aprCalOk')){
       var i1=document.getElementById('aprPickIni'), i2=document.getElementById('aprPickFim');
-      if(i1) aprPick.hora=i1.value||''; if(i2) aprPick.horaFim=i2.value||'';
+      if(i1){ i1.value=ausProgHoraNorm(i1.value); aprPick.hora=i1.value; }
+      if(i2){ i2.value=ausProgHoraNorm(i2.value); aprPick.horaFim=i2.value; }
       aprDtSync(); aprDtFechar(); return;
     }
     // (removido) clicar fora NÃO fecha mais o seletor — evita sair sem querer ao
