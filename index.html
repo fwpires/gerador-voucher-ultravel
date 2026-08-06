@@ -1558,6 +1558,9 @@ body:not(.dark) .ocph-total-licit b{color:#5c4800}
 .ocph-total-prosp{margin-left:14px;color:#d8b4fe}
 .ocph-total-prosp b{color:#ecd5ff}
 body:not(.dark) .ocph-row.ocph-prospeccao{background:rgba(168,85,247,.08)}
+/* (·227) Grupos reusa a paleta roxa da Prospecção — mesma cor, linha própria. */
+.ocph-row.ocph-grupos{border-left:3px solid rgba(168,85,247,.6);background:rgba(168,85,247,.06)}
+body:not(.dark) .ocph-row.ocph-grupos{background:rgba(168,85,247,.08)}
 body:not(.dark) .ocph-prospobs{color:#6b3fa0}
 body:not(.dark) .ocph-prosp-tag,body:not(.dark) .ocph-total-prosp{color:#6b21a8}
 body:not(.dark) .ocph-total-prosp b{color:#4c1d95}
@@ -3699,7 +3702,7 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 226;
+var UV_BUILD_NUM = 227;
 const UV_BUILD='HUB-v3\u00b7'+UV_BUILD_NUM;
 try{ console.info('%c[Hub Ultravel] build '+UV_BUILD, 'color:#6FBAFF;font-weight:bold'); }catch(e){}
 try{
@@ -11993,6 +11996,55 @@ function excluirNotaUI(id){
   }
   window.ocpEhGrupos=ocpEhGrupos; window.ocpObsGrupos=ocpObsGrupos; window.ocpPodeGrupos=ocpPodeGrupos;
 
+  /* (·227) GRUPOS NO HISTÓRICO — mesmo mecanismo de registro automático que a
+     Gestão Interna (·211) e a Prospecção (·213) já têm: marcar a caixa passa a
+     abrir um bloco cronometrado com linha própria no histórico do atendimento,
+     em vez de só ocupar bolinha e sumir. UMA linha ao vivo (não três), a partir
+     do início MAIS ANTIGO entre os slots — mesmo formato das irmãs. */
+  function ocpGruposAberto(at){
+    var o=ocpEstado();
+    var slots=o.slots[at]||[], inis=o.inicios[at]||[], clis=o.clientes[at]||[];
+    var ini=0, obs='', valor='';
+    for(var i=0;i<3;i++){
+      if(!slots[i]) continue;
+      var v=(clis[i]||'').trim();
+      if(!ocpEhGrupos(v)) continue;
+      var t=inis[i]||0; if(!t) continue;
+      if(!ini || t<ini){ ini=t; obs=ocpObsGrupos(v); valor=v; }
+    }
+    return ini ? { ini:ini, obs:obs, valor:valor } : null;
+  }
+  /* Fecha o bloco no histórico com a marca grupos:1 — mesma identidade estável
+     do ·141 (cliente|pax|início), então fechar duas vezes ATUALIZA em vez de
+     duplicar. */
+  function ocpRegistrarGrupos(at, valorAnterior, iniMs){
+    try{
+      if(!ocpEhGrupos(valorAnterior)) return;
+      if(!iniMs || iniMs<=0) return;
+      var fim=Date.now(), dur=fim-iniMs;
+      if(dur<1000) return;                       // toque acidental: não vira registro
+      var H=ocpHistoricoMapa();
+      if(!Array.isArray(H[at])) H[at]=[];
+      var val=(valorAnterior||'').toString().trim();
+      for(var d=0; d<H[at].length; d++){
+        var e0=H[at][d]; if(!e0 || !e0.grupos) continue;
+        var iniE=e0.ini || ((e0.ts||0)-(e0.dur||0));
+        if((e0.cli||'')===val && Math.abs(iniE-iniMs)<1500){
+          if(fim>(e0.ts||0)){ e0.ts=fim; e0.dur=fim-iniMs; }   // mesmo bloco: atualiza
+          e0.ini=iniMs;
+          return;
+        }
+      }
+      H[at].unshift({ ts:fim, ini:iniMs, cli:val, dur:dur, pax:'', sus:0, grupos:1 });
+      if(H[at].length>OCP_HIST_MAX) H[at]=H[at].slice(0, OCP_HIST_MAX);
+    }catch(e){}
+  }
+  function ocpFecharGruposSeAberta(at){
+    var a=ocpGruposAberto(at);
+    if(a) ocpRegistrarGrupos(at, a.valor, a.ini);
+  }
+  window.ocpGruposAberto=ocpGruposAberto; window.ocpRegistrarGrupos=ocpRegistrarGrupos;
+
   /* (·204) FINANCEIRO — mesma mecânica da Licitação, outra atendente e outra cor.
      Lista (e não constante única) pelo mesmo motivo do ·175: a regra pode crescer
      sem refactor. Comparação pelo nome NORMALIZADO, imúne a acento e caixa. */
@@ -13342,6 +13394,12 @@ function excluirNotaUI(id){
     var g=ocpProspeccaoAberta(at);
     return g ? [{ aberto:true, prospeccao:true, ini:g.ini, ts:g.ini, cli:'Prospec\u00e7\u00e3o', obs:g.obs }] : [];
   }
+  /* (·227) GRUPOS aberto como linha ao vivo — UMA só, com a observação junto.
+     Mesmo formato da Prospecção/Gestão Interna. */
+  function ocpGruposDoAtendente(at){
+    var g=ocpGruposAberto(at);
+    return g ? [{ aberto:true, grupos:true, ini:g.ini, ts:g.ini, cli:'Grupos', obs:g.obs }] : [];
+  }
   // (·204) espelho para o FINANCEIRO: UMA linha ao vivo (não três), cronometrada do
   // início mais antigo entre os slots — mesmo formato da licitação.
   function ocpFinDoAtendente(at){
@@ -14252,6 +14310,10 @@ function excluirNotaUI(id){
          DERIVADA do valor da sentinela (ocpObsProspeccao), nunca de um campo paralelo. */
       if(e.prosp) return { aberto:false, prosp:1, ts:e.ts, fim:e.ts, ini:(e.ini||(e.ts-dur)), dur:dur,
                            cli:'Prospec\u00e7\u00e3o', obs:ocpObsProspeccao(e.cli) };
+      /* (·227) mesma lição repetida: campo não copiado nominalmente não existe
+         para o render. A observação é DERIVADA do valor da sentinela. */
+      if(e.grupos) return { aberto:false, grupos:1, ts:e.ts, fim:e.ts, ini:(e.ini||(e.ts-dur)), dur:dur,
+                           cli:'Grupos', obs:ocpObsGrupos(e.cli) };
       // (·204) bloco de FINANCEIRO: leva o desfecho e a descrição, que é justamente
       // o que a trava de saída coletou — sem eles a linha não informaria nada.
       if(e.fin) return { aberto:false, fin:1, ts:e.ts, fim:e.ts, ini:(e.ini||(e.ts-dur)), dur:dur,
@@ -14270,9 +14332,10 @@ function excluirNotaUI(id){
     var finans=ocpFinDoAtendente(at);        // (·204) financeiro em curso (Ruth Alves)
     var internos=ocpInternoDoAtendente(at);  // (·211) gestão interna em curso
     var prospecs=ocpProspDoAtendente(at);    // (·213) prospecção em curso
+    var gruposVivo=ocpGruposDoAtendente(at); // (·227) grupos em curso
     // lista ÚNICA: atendimentos ao vivo + Stand By ao vivo + finalizados. Ordena por
     // INÍCIO (mais recente primeiro). Ao vivo (atendimento ou stand by) fica no topo.
-    var lista=ativos.concat(standby).concat(ausentes).concat(licits).concat(finans).concat(internos).concat(prospecs).concat(finalizados).sort(function(a,b){ return (b.ini||0)-(a.ini||0); });
+    var lista=ativos.concat(standby).concat(ausentes).concat(licits).concat(finans).concat(internos).concat(prospecs).concat(gruposVivo).concat(finalizados).sort(function(a,b){ return (b.ini||0)-(a.ini||0); });
 
     // (·130) FILTRO "só stand by": quando ligado pelo clique no badge, a lista EXIBIDA
     // contém apenas as entradas de Stand By. Os contadores do cabeçalho continuam
@@ -14313,7 +14376,7 @@ function excluirNotaUI(id){
     // (·160) Stand By E AUSÊNCIA ficam FORA do tempo total: os dois são tempo parado.
     // (·175) LICITAÇÃO também fica FORA do tempo total de atendimento: é trabalho, mas
     // não é atendimento de cliente — somá-la distorceria a leitura de produtividade.
-    var totalMs=0; lista.forEach(function(e){ if(e.standby||e.ausente||e.aus||e.licitacao||e.lic||e.prospeccao||e.prosp) return; totalMs += e.aberto ? Math.max(0, agora-(e.ini||agora)) : (e.dur||0); });
+    var totalMs=0; lista.forEach(function(e){ if(e.standby||e.ausente||e.aus||e.licitacao||e.lic||e.prospeccao||e.prosp||e.grupos) return; totalMs += e.aberto ? Math.max(0, agora-(e.ini||agora)) : (e.dur||0); });
     // tempo de ausência somado à parte (aberta + já fechadas), para leitura do gestor
     var ausMs=0; lista.forEach(function(e){ if(!(e.ausente||e.aus)) return; ausMs += e.aberto ? Math.max(0, agora-(e.ini||agora)) : (e.dur||0); });
     // (·175) tempo de licitação somado à parte, com total próprio no rodapé
@@ -14332,8 +14395,13 @@ function excluirNotaUI(id){
        só nasce quando existe linha AO VIVO (lição do ·204). */
     var prospMs=0; lista.forEach(function(e){ if(!(e.prospeccao||e.prosp)) return; prospMs += e.aberto ? Math.max(0, agora-(e.ini||agora)) : (e.dur||0); });
     var nProspecs=lista.filter(function(e){ return e.prospeccao||e.prosp; }).length;
+    /* (·227) totais próprios de GRUPOS, calculados TAMBÉM na montagem — sem isto
+       um bloco já encerrado ficaria sem soma nenhuma no rodapé, porque o ticker
+       de 1s só nasce quando existe linha AO VIVO (lição do ·213). */
+    var gruposMs=0; lista.forEach(function(e){ if(!(e.grupos)) return; gruposMs += e.aberto ? Math.max(0, agora-(e.ini||agora)) : (e.dur||0); });
+    var nGrupos=lista.filter(function(e){ return e.grupos; }).length;
     // (·160/·175) registros de ausência e de licitação NÃO são atendimentos
-    var nAtend=ativos.length + finalizados.filter(function(e){ return !e.aus && !e.lic && !e.prosp; }).length;
+    var nAtend=ativos.length + finalizados.filter(function(e){ return !e.aus && !e.lic && !e.prosp && !e.grupos; }).length;
 
     var corpo = grupos.length ? grupos.map(function(g){
       var linhas=g.itens.map(function(e){
@@ -14400,6 +14468,18 @@ function excluirNotaUI(id){
               '<span class="ocph-dur ocph-dur-vivo '+decor.cor+'" data-ocp-hini="'+e.ini+'">'+decor.txt+'</span>'+
             '</div>';
           }
+          if(e.grupos){
+            /* (·227) GRUPOS EM CURSO: selo roxo (mesma cor da Prospecção) e cronômetro
+               correndo, com a observação logo abaixo quando houver. Sem observação a
+               linha sai só com o rótulo — o campo é opcional, como na Gestão Interna. */
+            var obsG=(e.obs||'').toString().trim();
+            return '<div class="ocph-row ocph-vivo ocph-grupos">'+
+              '<span class="ocph-hora">'+ocpHistHora(e.ini)+'<span class="ocph-vivo-tag ocph-prosp-tag">👥 Grupos</span></span>'+
+              '<span class="ocph-cli" title="Grupos'+(obsG?' \u2014 '+ocpEsc(obsG):'')+'">Grupos'+
+                (obsG?'<span class="ocph-pax ocph-prospobs">'+ocpEsc(obsG)+'</span>':'')+'</span>'+
+              '<span class="ocph-dur ocph-dur-vivo '+decor.cor+'" data-ocp-hini="'+e.ini+'">'+decor.txt+'</span>'+
+            '</div>';
+          }
           if(e.ausente){
             // (·160) AUSÊNCIA EM CURSO: selo rosa e cronômetro correndo, com o motivo
             // logo abaixo. Só aparece para a equipe de vendas.
@@ -14454,6 +14534,16 @@ function excluirNotaUI(id){
             '<span class="ocph-hora">'+ocpHistHora(e.ini)+' \u2192 '+ocpHistHora(e.fim)+'<span class="ocph-vivo-tag ocph-prosp-tag">🎯 Prospec\u00e7\u00e3o</span></span>'+
             '<span class="ocph-cli" title="Prospec\u00e7\u00e3o'+(obsPF?' \u2014 '+ocpEsc(obsPF):'')+'">Prospec\u00e7\u00e3o'+
               (obsPF?'<span class="ocph-pax ocph-prospobs">'+ocpEsc(obsPF)+'</span>':'')+'</span>'+
+            '<span class="ocph-dur">'+ocpHistDur(e.dur)+'</span>'+
+          '</div>';
+        }
+        if(e.grupos){
+          // (·227) BLOCO DE GRUPOS ENCERRADO: início → fim, tempo e observação.
+          var obsGF=(e.obs||'').toString().trim();
+          return '<div class="ocph-row ocph-grupos">'+
+            '<span class="ocph-hora">'+ocpHistHora(e.ini)+' \u2192 '+ocpHistHora(e.fim)+'<span class="ocph-vivo-tag ocph-prosp-tag">👥 Grupos</span></span>'+
+            '<span class="ocph-cli" title="Grupos'+(obsGF?' \u2014 '+ocpEsc(obsGF):'')+'">Grupos'+
+              (obsGF?'<span class="ocph-pax ocph-prospobs">'+ocpEsc(obsGF)+'</span>':'')+'</span>'+
             '<span class="ocph-dur">'+ocpHistDur(e.dur)+'</span>'+
           '</div>';
         }
@@ -14515,7 +14605,8 @@ function excluirNotaUI(id){
         '<div class="ocph-foot"><span class="ocph-total" id="ocpHistTotal">'+(soStandby?'<b>'+nStandby+'</b> em stand by':'Tempo total: <b>'+ocpHistDur(totalMs)+'</b>'+(nAusencias?'<span class="ocph-total-aus" id="ocpHistAus">🚷 ausente: <b>'+ocpHistDur(ausMs)+'</b></span>':'')+
           (nLicits?'<span class="ocph-total-licit" id="ocpHistLicit">🏛 licitação: <b>'+ocpHistDur(licMs)+'</b></span>':'')+
           (nFinans?'<span class="ocph-total-licit" id="ocpHistFin">💼 financeiro: <b>'+ocpHistDur(finMs)+'</b></span>':'')+
-          (nProspecs?'<span class="ocph-total-prosp" id="ocpHistProsp">🎯 prospec\u00e7\u00e3o: <b>'+ocpHistDur(prospMs)+'</b></span>':''))+'</span>'+
+          (nProspecs?'<span class="ocph-total-prosp" id="ocpHistProsp">🎯 prospec\u00e7\u00e3o: <b>'+ocpHistDur(prospMs)+'</b></span>':'')+
+          (nGrupos?'<span class="ocph-total-prosp" id="ocpHistGrupos">👥 grupos: <b>'+ocpHistDur(gruposMs)+'</b></span>':''))+'</span>'+
           '<button type="button" class="ocph-fechar" id="ocpHistFechar">Fechar</button></div>'+
       '</div>';
     document.body.appendChild(bg);
@@ -14543,7 +14634,7 @@ function excluirNotaUI(id){
        ·211 — é a QUARTA vez que este ponto morde. Com o atendente SOMENTE em
        prospecção, todas as outras parcelas dariam zero, o setInterval nunca nasceria
        e o cronômetro congelaria no valor do instante em que a tela abriu. */
-    if(nAtivos || nStandby || ausentes.length || licits.length || finans.length || internos.length || prospecs.length){
+    if(nAtivos || nStandby || ausentes.length || licits.length || finans.length || internos.length || prospecs.length || gruposVivo.length){
       ocpHistTicker=setInterval(function(){
         var mod=document.getElementById('ocpHistModal');
         if(!mod){ if(ocpHistTicker){ clearInterval(ocpHistTicker); ocpHistTicker=null; } return; }
@@ -14553,7 +14644,7 @@ function excluirNotaUI(id){
         // contradizendo o cálculo da abertura (que já os separava) e apagando os totais
         // próprios "🚷 ausente" e "🏛 licitação". Agora cada linha é classificada pela
         // classe da própria .ocph-row e somada no balde certo.
-        var ag=Date.now(), somaViva=0, somaAus=0, somaLic=0, somaFin=0, somaInt=0, somaProsp=0;   // (·213)
+        var ag=Date.now(), somaViva=0, somaAus=0, somaLic=0, somaFin=0, somaInt=0, somaProsp=0, somaGrupos=0;   // (·227)
         mod.querySelectorAll('.ocph-dur-vivo').forEach(function(el){
           var ini=parseInt(el.getAttribute('data-ocp-hini'),10)||ag;
           var d=ocpFmtTimer(ag-ini);
@@ -14565,6 +14656,7 @@ function excluirNotaUI(id){
           if(cl.indexOf('ocph-ausente')>=0)         somaAus += dt;
           else if(cl.indexOf('ocph-financeiro')>=0) somaFin += dt;   // (·204) antes de licitacao
           else if(cl.indexOf('ocph-interno')>=0)    somaInt += dt;   // (·211) balde próprio
+          else if(cl.indexOf('ocph-grupos')>=0)     somaGrupos += dt; // (·227) balde próprio, ANTES de prospeccao
           else if(cl.indexOf('ocph-prospeccao')>=0) somaProsp += dt; // (·213) balde próprio
           else if(cl.indexOf('ocph-licitacao')>=0)  somaLic += dt;
           else if(cl.indexOf('ocph-standby')>=0)    { /* stand by é pausa: fora dos totais */ }
@@ -14574,13 +14666,14 @@ function excluirNotaUI(id){
         // seu total. (·130) no filtro "só stand by" o rodapé mostra a CONTAGEM.
         var tot=document.getElementById('ocpHistTotal');
         if(tot && !soStandby){
-          var fin=0, finAus=0, finLic=0, finFin=0, finInt=0, finProsp=0;   // (·213)
+          var fin=0, finAus=0, finLic=0, finFin=0, finInt=0, finProsp=0, finGrupos=0;   // (·227)
           finalizados.forEach(function(e){
             if(e.aus)      finAus += (e.dur||0);
             else if(e.lic) finLic += (e.dur||0);
             else if(e.fin) finFin += (e.dur||0);   // (·204)
             else if(e.int) finInt += (e.dur||0);   // (·211)
             else if(e.prosp) finProsp += (e.dur||0);   // (·213)
+            else if(e.grupos) finGrupos += (e.dur||0);   // (·227)
             else           fin    += (e.dur||0);
           });
           var htmlTot='Tempo total: <b>'+ocpHistDur(fin+somaViva)+'</b>';
@@ -14594,6 +14687,8 @@ function excluirNotaUI(id){
           /* (·213) total próprio da prospecção — sem balde separado ela apareceria
              somada ao "Tempo total", inflando a métrica que mede conversa com cliente. */
           if((finProsp+somaProsp)>0) htmlTot+='<span class="ocph-total-prosp" id="ocpHistProsp">🎯 prospec\u00e7\u00e3o: <b>'+ocpHistDur(finProsp+somaProsp)+'</b></span>';
+          /* (·227) total próprio de Grupos — mesma razão da prospecção. */
+          if((finGrupos+somaGrupos)>0) htmlTot+='<span class="ocph-total-prosp" id="ocpHistGrupos">👥 grupos: <b>'+ocpHistDur(finGrupos+somaGrupos)+'</b></span>';
           tot.innerHTML=htmlTot;
         }
       }, 1000);
@@ -14766,6 +14861,12 @@ function excluirNotaUI(id){
     try{
       var _prospAtual=ocpProspeccaoAberta(at);
       if(_prospAtual && _prospAtual.valor!==v) ocpRegistrarProspeccao(at, _prospAtual.valor, _prospAtual.ini);
+    }catch(e){}
+    /* (·227) MESMA REGRA PARA GRUPOS — comparar pelo VALOR INTEIRO fecha o bloco
+       antigo e abre um novo quando a observação muda, igual à Prospecção. */
+    try{
+      var _gruAtual=ocpGruposAberto(at);
+      if(_gruAtual && _gruAtual.valor!==v) ocpRegistrarGrupos(at, _gruAtual.valor, _gruAtual.ini);
     }catch(e){}
     var vermelho=!!v;                 // com sentinela → 3 vermelhos; vazio → 3 verdes
     if(!Array.isArray(o.slots[at])    || o.slots[at].length!==3)    o.slots[at]=[0,0,0];
@@ -14985,6 +15086,19 @@ function excluirNotaUI(id){
           var _restamP=0;
           for(var _qp=0;_qp<3;_qp++){ if(_qp!==i && (o.slots[at]||[])[_qp] && ocpEhProspeccao(o.clientes[at][_qp])) _restamP++; }
           if(!_restamP) ocpRegistrarProspeccao(at, _pr.valor, _pr.ini);
+        }
+      }
+    }catch(e){}
+    /* (·227) espelho exato para GRUPOS: enquanto sobrar pelo menos uma bolinha
+       no bloco, a contagem CONTINUA — só quando um cliente real toma a ÚLTIMA é
+       que o bloco terminou de fato e vira registro. */
+    try{
+      if(!ocpEhGrupos(valor)){
+        var _gr=ocpGruposAberto(at);
+        if(_gr){
+          var _restamG=0;
+          for(var _qg=0;_qg<3;_qg++){ if(_qg!==i && (o.slots[at]||[])[_qg] && ocpEhGrupos(o.clientes[at][_qg])) _restamG++; }
+          if(!_restamG) ocpRegistrarGrupos(at, _gr.valor, _gr.ini);
         }
       }
     }catch(e){}
