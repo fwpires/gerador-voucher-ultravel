@@ -3702,7 +3702,7 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 227;
+var UV_BUILD_NUM = 228;
 const UV_BUILD='HUB-v3\u00b7'+UV_BUILD_NUM;
 try{ console.info('%c[Hub Ultravel] build '+UV_BUILD, 'color:#6FBAFF;font-weight:bold'); }catch(e){}
 try{
@@ -16199,19 +16199,42 @@ function excluirNotaUI(id){
     // do toggle normal de 1 slot só. Não se aplica a Gestão Interna nem a um vermelho
     // comum de atendimento, que continuam sendo tirados um a um.
     var _cliAtual=(o.clientes[at] && o.clientes[at][i]) ? o.clientes[at][i] : '';
-    // (·225/·226) AUSENTE e GRUPOS — DESMARCAR é POR BOLINHA: clicar numa das duas
-    // cores libera SÓ a bolinha clicada, as outras continuam com a sentinela. A
-    // MARCAÇÃO continua conjunta (o checkbox do modal ainda acende as 3 de uma vez,
-    // isso não mudou — só o desfazer ficou granular). Fica de FORA do bloco de
-    // "grupo" abaixo de propósito: as demais sentinelas continuam liberando as três
-    // juntas, como sempre. ·226 estendeu a regra do ·225 para o Grupos, mesmo
-    // pedido do Nando: "aplicar a mesma regra do Bug 1".
-    if(o.slots[at][i] && (_cliAtual.indexOf('__AUSENTE__')===0 || ocpEhGrupos(_cliAtual))){
-      var _rotuloSolto = ocpEhGrupos(_cliAtual) ? 'Grupos' : 'Ausente';
+    // (·225/·226/·228) AUSENTE, GRUPOS e GESTÃO INTERNA — DESMARCAR é POR BOLINHA:
+    // clicar numa das três cores libera SÓ a bolinha clicada, as outras continuam
+    // com a sentinela. A MARCAÇÃO continua conjunta (o checkbox do modal ainda
+    // acende as 3 de uma vez, isso não mudou — só o desfazer ficou granular).
+    // ·228 CORRIGE O BUG DO REGISTRO NO HISTÓRICO: até aqui este bloco só chamava
+    // ocpLiberarSlotTransfer — que apenas apaga o slot, sem NUNCA chamar
+    // ocpRegistrar{Ausencia,Interno,Grupos}. Resultado: nem Ausente nem Grupos
+    // jamais viravam registro no histórico por este caminho (só pelo checkbox do
+    // modal, que desmarca as três de uma vez). E Gestão Interna nem entrava aqui —
+    // caía no toggle padrão de atendimento de cliente, que também nunca fecha o
+    // bloco dela. REGRA CONFIRMADA PELO NANDO: a contagem só para quando as TRÊS
+    // bolinhas forem desmarcadas; com 1 ou 2 ainda marcadas, o tempo continua
+    // contando até a última cair. Por isso, ANTES de liberar esta bolinha,
+    // conferimos se sobra alguma OUTRA marcada com a MESMA sentinela — só quando
+    // NÃO sobra nenhuma é que o bloco de fato terminou e deve ser fechado/gravado
+    // (a função ocpFechar*SeAberta roda enquanto o slot ainda está marcado, para
+    // pegar o início certo, e só DEPOIS o slot é liberado).
+    if(o.slots[at][i] && (_cliAtual.indexOf('__AUSENTE__')===0 || ocpEhInterno(_cliAtual) || ocpEhGrupos(_cliAtual))){
+      var _rotuloSolto = ocpEhGrupos(_cliAtual) ? 'Grupos' : (ocpEhInterno(_cliAtual) ? 'Gest\u00e3o Interna' : 'Ausente');
+      var _restamSolto=0;
+      for(var _qs=0;_qs<3;_qs++){
+        if(_qs===i || !(o.slots[at]||[])[_qs]) continue;
+        var _vSolto=(o.clientes[at]||[])[_qs]||'';
+        if(ocpEhGrupos(_cliAtual)){ if(ocpEhGrupos(_vSolto)) _restamSolto++; }
+        else if(ocpEhInterno(_cliAtual)){ if(ocpEhInterno(_vSolto)) _restamSolto++; }
+        else { if(_vSolto.indexOf('__AUSENTE__')===0) _restamSolto++; }
+      }
+      if(!_restamSolto){
+        if(ocpEhGrupos(_cliAtual)) ocpFecharGruposSeAberta(at);
+        else if(ocpEhInterno(_cliAtual)) ocpFecharInternoSeAberto(at);
+        else ocpFecharAusenciaSeAberta(at);
+      }
       ocpLiberarSlotTransfer(at, i);   // libera só este slot (mesma função do Stand By)
       try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(_){}
       try{ window.renderOcupacao(true); }catch(_){}
-      try{ if(typeof logRemoto==='function') logRemoto('ocp_sentinela', (at||'—')+' — liberou 1 bolinha de '+_rotuloSolto+' (as demais continuam)', {atendente:at}); }catch(_){}
+      try{ if(typeof logRemoto==='function') logRemoto('ocp_sentinela', (at||'—')+' — liberou 1 bolinha de '+_rotuloSolto+(_restamSolto?' (as demais continuam)':' (última — registrada no hist\u00f3rico)'), {atendente:at}); }catch(_){}
       return;
     }
     // (·175) a LICITAÇÃO entra no efeito reverso de GRUPO: ela também representa a
