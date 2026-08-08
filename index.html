@@ -747,6 +747,41 @@ body:not(.dark) .apr-item{background:#fff;border-color:#F0B4B4}
 .eq-card:hover{border-color:var(--borda-forte);box-shadow:0 3px 12px rgba(0,0,0,.12)}
 /* aniversariante do dia ganha destaque na própria ficha */
 .eq-card.eq-hoje{border-left-color:#ff8fc7;box-shadow:0 0 0 1px rgba(255,143,199,.35),0 4px 18px rgba(255,143,199,.18)}
+/* (·237) CONTORNO LUMINOSO POR GÊNERO — pedido do Nando: "deixar o sistema
+   visualmente mais simpático", usando o MESMO estilo de contorno colorido que
+   já existe no aviso de conciliação (borda + brilho suave em rgba) e no card
+   de aniversário (.eq-hoje, ao lado). Aqui vira o estado PERMANENTE da ficha,
+   não só do dia do aniversário: rosa bebê para meninas, azul bebê para
+   meninos — a MESMA dupla de cores que o card de "Feliz Aniversário" já usa,
+   para as duas telas conversarem visualmente em vez de inventar um terceiro
+   par de tons. */
+.eq-card.eq-menino{border-color:rgba(127,199,245,.55);box-shadow:0 0 0 1px rgba(127,199,245,.28),0 4px 16px rgba(127,199,245,.16)}
+.eq-card.eq-menina{border-color:rgba(255,158,205,.55);box-shadow:0 0 0 1px rgba(255,158,205,.28),0 4px 16px rgba(255,158,205,.16)}
+.eq-card.eq-menino:hover{border-color:rgba(127,199,245,.85);box-shadow:0 0 0 1px rgba(127,199,245,.4),0 6px 20px rgba(127,199,245,.24)}
+.eq-card.eq-menina:hover{border-color:rgba(255,158,205,.85);box-shadow:0 0 0 1px rgba(255,158,205,.4),0 6px 20px rgba(255,158,205,.24)}
+/* aniversariante do dia continua com prioridade visual sobre a cor de gênero */
+.eq-card.eq-hoje.eq-menino,.eq-card.eq-hoje.eq-menina{border-color:#ff8fc7;box-shadow:0 0 0 1px rgba(255,143,199,.35),0 4px 18px rgba(255,143,199,.18)}
+/* (·238) DESTAQUE DE ANIVERSÁRIO — pedido do Nando: no dia do aniversário, o
+   card do aniversariante fica bem aceso e piscando; os DEMAIS ficam
+   apagados/enfraquecidos, para dar contraste. Período: 00:00–23:59 do
+   calendário (não o dia operacional que vira às 04h — regra explícita do
+   pedido, diferente do resto do Hub, ver eqHojeCalendario). Cores vivas:
+   MESMA família neon que .ocp-led já usa (azul #12B0FF, rosa #FF69B4) —
+   reaproveitar o vocabulário de "aceso" que o resto do Hub já fala, em vez
+   de inventar um terceiro tom que só existiria aqui. */
+.eq-card.eq-vivo{position:relative;z-index:1;border-width:2px;animation:eqAnivPiscaBorda 1.3s ease-in-out infinite}
+.eq-card.eq-vivo.eq-menino{border-color:#12B0FF;animation-name:eqAnivPiscaAzul}
+.eq-card.eq-vivo.eq-menina{border-color:#FF69B4;animation-name:eqAnivPiscaRosa}
+@keyframes eqAnivPiscaAzul{
+  0%,100%{box-shadow:0 0 8px 2px rgba(18,176,255,.75),0 0 18px 6px rgba(18,176,255,.35),inset 0 0 10px rgba(18,176,255,.08)}
+  50%{box-shadow:0 0 14px 4px rgba(18,176,255,1),0 0 30px 10px rgba(18,176,255,.65),inset 0 0 16px rgba(18,176,255,.18)}
+}
+@keyframes eqAnivPiscaRosa{
+  0%,100%{box-shadow:0 0 8px 2px rgba(255,105,180,.75),0 0 18px 6px rgba(255,105,180,.35),inset 0 0 10px rgba(255,105,180,.08)}
+  50%{box-shadow:0 0 14px 4px rgba(255,105,180,1),0 0 30px 10px rgba(255,105,180,.65),inset 0 0 16px rgba(255,105,180,.18)}
+}
+.eq-card.eq-apagado{opacity:.4;filter:grayscale(.55) brightness(.82);transition:opacity .25s,filter .25s}
+.eq-card.eq-apagado:hover{opacity:.7;filter:grayscale(.25) brightness(.92)}
 .eq-l1{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
 .eq-nome{font-size:15px;font-weight:900;color:var(--texto)}
 .eq-idade{font-size:11.5px;font-weight:800;color:var(--texto-fraco)}
@@ -3886,7 +3921,7 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 236;
+var UV_BUILD_NUM = 239;
 const UV_BUILD='HUB-v3\u00b7'+UV_BUILD_NUM;
 try{ console.info('%c[Hub Ultravel] build '+UV_BUILD, 'color:#6FBAFF;font-weight:bold'); }catch(e){}
 try{
@@ -20120,6 +20155,32 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
   window.eqAniversariantesHoje = eqAniversariantesHoje;
 
   /* ---------------------------------------------------------------
+     (·238) DESTAQUE VISUAL DE ANIVERSÁRIO NOS CARDS DA EQUIPE.
+     Pedido do Nando: período EXATO das 00:00 às 23:59 do dia — não o
+     dia operacional (que vira às 04h, usado no resto do Hub). Por
+     isso este destaque usa o relógio de CALENDÁRIO puro, separado de
+     eqHojeRef/eqAniversariantesHoje (que continuam no dia operacional
+     e seguem valendo para a notificação do Control Desk — pedidos
+     diferentes, réguas diferentes, cada um com a que foi pedida).
+     --------------------------------------------------------------- */
+  function eqHojeCalendario(){
+    var n=new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate(), 12, 0, 0);
+  }
+  function eqAniversariantesHojeCalendario(){
+    var ref=eqHojeCalendario();
+    var mesH=ref.getMonth()+1, diaH=ref.getDate();
+    var ehBissexto = (function(a){ return (a%4===0 && a%100!==0) || a%400===0; })(ref.getFullYear());
+    var out={};
+    eqLista().forEach(function(p){
+      var q=(p.nasc||'').split('-'); if(q.length!==3) return;
+      var m=parseInt(q[1],10), d=parseInt(q[2],10);
+      var bate = (m===mesH && d===diaH) || (m===2 && d===29 && !ehBissexto && mesH===2 && diaH===28);
+      if(bate) out[p.id]=1;
+    });
+    return out;
+  }
+
+  /* ---------------------------------------------------------------
      "ESTE ANIVERSARIANTE SOU EU?" — mesma cautela de correspondência
      conta≠nome que Ações Comerciais (·215), Minhas Tarefas (·220) e as
      bolinhas do card (·224) já usam: igualdade normalizada primeiro; só
@@ -20171,7 +20232,10 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
   window.renderEquipe=function(){
     var w=document.getElementById('equipeWrap'); if(!w) return;
     var ref=eqHojeRef();
-    var aniv={}; eqAniversariantesHoje().forEach(function(p){ aniv[p.id]=1; });
+    // (·238) destaque/apagamento por aniversário — relógio de CALENDÁRIO (00:00–23:59),
+    // separado da notificação do Control Desk de propósito (ver comentário na função)
+    var anivCal=eqAniversariantesHojeCalendario();
+    var temAnivHoje = Object.keys(anivCal).length>0;
     var todos=eqLista();
     var q=eqNorm(eqBuscaTxt);
     var lista=todos.filter(function(p){
@@ -20222,7 +20286,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
 
     var cards = lista.length ? lista.map(function(p){
       var idade=eqIdade(p.nasc, ref);
-      var ehHoje=!!aniv[p.id];
+      var ehHoje=!!anivCal[p.id];
       var cab, corpo;
       if(eqEditando){
         cab='<div class="eq-l1">'+
@@ -20262,7 +20326,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
           campoLeitura('Endere\u00e7o', p.endereco, true)+
         '</div>';
       }
-      return '<div class="eq-card'+(ehHoje?' eq-hoje':'')+(eqEditando?' eq-editando':'')+
+      return '<div class="eq-card'+(ehHoje?' eq-hoje':'')+(ehHoje?' eq-vivo':(temAnivHoje?' eq-apagado':''))+' eq-'+(p.sexo==='M'?'menino':'menina')+(eqEditando?' eq-editando':'')+
              '" data-eq-card="'+eqEsc(p.id)+'">'+cab+corpo+'</div>';
     }).join('') : '<div class="cr-vazio">Nenhum integrante encontrado para essa busca.</div>';
 
@@ -20330,6 +20394,18 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       return;
     }
   });
+
+  // (·238) refresh periódico — o destaque de aniversário precisa aparecer/sumir
+  // sozinho na virada do dia mesmo com a tela Equipe aberta o tempo todo, sem
+  // esperar uma navegação. Só redesenha quando a tela está VISÍVEL e ninguém
+  // está no modo de edição (reescrever o innerHTML no meio de uma digitação
+  // perderia o foco — mesma lição do ·229/·230).
+  setInterval(function(){
+    try{
+      var el=document.getElementById('equipeWrap');
+      if(el && el.offsetParent!==null && !eqEditando) window.renderEquipe();
+    }catch(e){}
+  }, 60000);
 
   /* ---------------------------------------------------------------
      ILUSTRAÇÕES ANIMADAS (data-URI, sem dependência externa —
