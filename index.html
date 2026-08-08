@@ -743,7 +743,7 @@ body:not(.dark) .apr-item{background:#fff;border-color:#F0B4B4}
 .eq-busca:focus{border-color:var(--azul)}
 .eq-cont{font-size:12px;font-weight:800;color:var(--texto-fraco);white-space:nowrap}
 .eq-grid{display:flex;flex-direction:column;gap:10px}
-.eq-card{background:var(--cartao,#fff);border:1px solid var(--borda);border-left:4px solid var(--azul);border-radius:12px;padding:12px 14px;transition:all .15s}
+.eq-card{background:var(--card);border:1px solid var(--borda);border-left:4px solid var(--azul);border-radius:12px;padding:12px 14px;transition:all .15s}
 .eq-card:hover{border-color:var(--borda-forte);box-shadow:0 3px 12px rgba(0,0,0,.12)}
 /* aniversariante do dia ganha destaque na própria ficha */
 .eq-card.eq-hoje{border-left-color:#ff8fc7;box-shadow:0 0 0 1px rgba(255,143,199,.35),0 4px 18px rgba(255,143,199,.18)}
@@ -759,6 +759,26 @@ body:not(.dark) .apr-item{background:#fff;border-color:#F0B4B4}
 .eq-campo-largo{grid-column:1/-1}
 .eq-copy{background:none;border:none;color:var(--texto-fraco);cursor:pointer;font-size:11px;padding:0 0 0 5px}
 .eq-copy:hover{color:var(--azul)}
+
+body.dark .eq-card{background:rgba(255,255,255,.04)}
+body.dark .eq-card.eq-hoje{background:rgba(255,143,199,.07)}
+/* ---- modo de edição (·230) ---- */
+.eq-acoes{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.eq-bt{padding:10px 16px;border-radius:10px;border:1px solid var(--borda);background:transparent;color:var(--texto);font-size:13px;font-weight:800;cursor:pointer;transition:all .15s;white-space:nowrap}
+.eq-bt:hover{border-color:var(--borda-forte);background:var(--azul-claro)}
+.eq-bt.primario{border:none;background:linear-gradient(180deg,var(--azul),var(--azul-escuro));color:#fff}
+.eq-bt.primario:hover{box-shadow:0 4px 16px rgba(0,93,170,.45);transform:translateY(-1px)}
+.eq-bt.on{background:linear-gradient(180deg,#f0a500,#c98500);border:none;color:#3a2600}
+.eq-inp{width:100%;box-sizing:border-box;background:transparent;border:1px solid var(--borda);border-radius:8px;color:var(--texto);font-size:12.5px;font-weight:700;padding:6px 8px;outline:none;transition:all .15s;font-family:inherit}
+.eq-inp:hover{background:var(--azul-claro)}
+.eq-inp:focus{background:var(--azul-claro);border-color:var(--azul)}
+.eq-inp.eq-inp-nome{font-size:14.5px;font-weight:900;flex:1 1 240px;min-width:150px}
+.eq-sel{width:100%;box-sizing:border-box;background:var(--azul-claro);border:1px solid var(--borda);border-radius:8px;color:var(--texto);font-size:12.5px;font-weight:800;padding:6px 8px;outline:none;cursor:pointer;font-family:inherit}
+.eq-del{width:32px;height:32px;flex:0 0 auto;border-radius:9px;border:1px solid var(--borda);background:transparent;color:var(--texto-suave);font-size:14px;cursor:pointer;transition:all .15s}
+.eq-del:hover{background:rgba(224,34,34,.15);border-color:#e02222;color:#e02222}
+.eq-editando{border-left-color:#f0a500}
+.eq-aviso-ed{background:rgba(240,165,0,.12);border:1px solid rgba(240,165,0,.4);color:#e0a020;border-radius:10px;padding:9px 13px;font-size:12.5px;font-weight:700;margin-bottom:12px}
+body:not(.dark) .eq-aviso-ed{color:#8a6100}
 
 /* ============================================================
    (·229) CARD DE ANIVERSÁRIO no Control Desk. Fica ACIMA da
@@ -3774,7 +3794,7 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 229;
+var UV_BUILD_NUM = 230;
 const UV_BUILD='HUB-v3\u00b7'+UV_BUILD_NUM;
 try{ console.info('%c[Hub Ultravel] build '+UV_BUILD, 'color:#6FBAFF;font-weight:bold'); }catch(e){}
 try{
@@ -3967,6 +3987,12 @@ async function carregarConfig(){
       // CABEÇA DE REDE: merge por carimbo (edição mais recente vence)
       if(typeof window.crMergeMaps==='function'){
         appConfig.cabecaRede=window.crMergeMaps(local.cabecaRede, c.cabecaRede);
+      }
+      /* (·230) EQUIPE — ligado nos MESMOS dois pontos que o Cabeça de Rede usa.
+         Sem isto, o último PC a salvar sobrescreveria as edições de ficha dos
+         outros 11 em vez de mesclá-las por carimbo. */
+      if(typeof window.eqMergeMaps==='function'){
+        appConfig.equipe=window.eqMergeMaps(local.equipe, c.equipe);
       }
       if(typeof window.mxMergeMaps==='function'){
         appConfig.matrizComercial=window.mxMergeMaps(local.matrizComercial, c.matrizComercial);
@@ -4255,6 +4281,9 @@ async function salvarConfig(){
     // CABEÇA DE REDE: merge por carimbo (edição mais recente vence)
     if(typeof window.crMergeMaps==='function'){
       appConfig.cabecaRede=window.crMergeMaps(appConfig.cabecaRede, cloud.cabecaRede);
+    }
+    if(typeof window.eqMergeMaps==='function'){          // (·230) Equipe
+      appConfig.equipe=window.eqMergeMaps(appConfig.equipe, cloud.equipe);
     }
     if(typeof window.mxMergeMaps==='function'){
       appConfig.matrizComercial=window.mxMergeMaps(appConfig.matrizComercial, cloud.matrizComercial);
@@ -19784,38 +19813,123 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
   /* Ficha da equipe. Somente leitura: são dados cadastrais que mudam
      raramente e por fora do Hub, então um editor inline aqui só criaria
      duas fontes da verdade para o mesmo dado. */
-  var EQUIPE = [
-    {nome:'Fernando Pires', sexo:'M', cpf:'04854537973', nasc:'1984-05-09', tel:'48984299758',
+  var EQUIPE_SEED = [
+    {id:'eq01', nome:'Fernando Pires', sexo:'M', cpf:'04854537973', nasc:'1984-05-09', tel:'48984299758',
      email:'fernando.pires@ultravel.com.br', pessoal:'fwpires@gmail.com', endereco:''},
-    {nome:'Ana Maria Gill Souza', sexo:'F', cpf:'00714517909', nasc:'1983-01-28', tel:'48984281918',
+    {id:'eq02', nome:'Ana Maria Gill Souza', sexo:'F', cpf:'00714517909', nasc:'1983-01-28', tel:'48984281918',
      email:'ana.gill@ultravel.com.br', pessoal:'anamariagill@hotmail.com', endereco:''},
-    {nome:'Hyna\u00ea Teston', sexo:'F', cpf:'10775637955', nasc:'1998-12-19', tel:'48998397180',
+    {id:'eq03', nome:'Hyna\u00ea Teston', sexo:'F', cpf:'10775637955', nasc:'1998-12-19', tel:'48998397180',
      email:'laura.teston@ultravel.com.br', pessoal:'', endereco:''},
-    {nome:'Ghabriella Bressan', sexo:'F', cpf:'14181922952', nasc:'2004-02-27', tel:'48988385423',
+    {id:'eq04', nome:'Ghabriella Bressan', sexo:'F', cpf:'14181922952', nasc:'2004-02-27', tel:'48988385423',
      email:'ghabriella.bressan@ultravel.com.br', pessoal:'', endereco:''},
-    {nome:'Eduardo Vin\u00edcius Oliveira', sexo:'M', cpf:'09425766916', nasc:'1992-11-16', tel:'48991168079',
+    {id:'eq05', nome:'Eduardo Vin\u00edcius Oliveira', sexo:'M', cpf:'09425766916', nasc:'1992-11-16', tel:'48991168079',
      email:'eduardo.vinicius@ultravel.com.br', pessoal:'eduardo.vini.oliveira@gmail.com', endereco:''},
-    {nome:'Diego Oliveira', sexo:'M', cpf:'04460817950', nasc:'1984-11-07', tel:'48984055852',
+    {id:'eq06', nome:'Diego Oliveira', sexo:'M', cpf:'04460817950', nasc:'1984-11-07', tel:'48984055852',
      email:'diego.oliveira@ultravel.com.br', pessoal:'', endereco:''},
-    {nome:'Juliana Lupo Frizzo', sexo:'F', cpf:'14516391716', nasc:'2000-08-07', tel:'11988049104',
+    {id:'eq07', nome:'Juliana Lupo Frizzo', sexo:'F', cpf:'14516391716', nasc:'2000-08-07', tel:'11988049104',
      email:'juliana.lupo@ultravel.com.br', pessoal:'',
      endereco:'Rua Tito Guimar\u00e3es, 51, apto 303 bl3, Buritis, Belo Horizonte - MG - CEP: 30575-070'},
-    {nome:'Leticia Castro da Rosa', sexo:'F', cpf:'86001590087', nasc:'1994-04-15', tel:'51996677074',
+    {id:'eq08', nome:'Leticia Castro da Rosa', sexo:'F', cpf:'86001590087', nasc:'1994-04-15', tel:'51996677074',
      email:'leticia.rosa@ultravel.com.br', pessoal:'',
      endereco:'Rua Ilari Arlindo Basei, 201, Bairro Guaruj\u00e1 - Porto Alegre - RS - CEP: 91770-555'},
-    {nome:'Ruth Silva Alves', sexo:'F', cpf:'22269390830', nasc:'1980-04-15', tel:'11914431634',
+    {id:'eq09', nome:'Ruth Silva Alves', sexo:'F', cpf:'22269390830', nasc:'1980-04-15', tel:'11914431634',
      email:'ruth.alves@ultravel.com.br', pessoal:'',
      endereco:'Rua Professora Nina Stocco, 596, Bloco A - 93, Jd Catanduva - SP - CEP: 05767-001'},
-    {nome:'Mayara Marcelli Soares da Silva', sexo:'F', cpf:'09494691903', nasc:'1996-10-28', tel:'48991097274',
+    {id:'eq10', nome:'Mayara Marcelli Soares da Silva', sexo:'F', cpf:'09494691903', nasc:'1996-10-28', tel:'48991097274',
      email:'mayara.marcelli@ultravel.com.br', pessoal:'', endereco:''},
-    {nome:'Israel de Jesus Hespanhol', sexo:'M', cpf:'11624763979', nasc:'1999-12-13', tel:'48998571276',
+    {id:'eq11', nome:'Israel de Jesus Hespanhol', sexo:'M', cpf:'11624763979', nasc:'1999-12-13', tel:'48998571276',
      email:'israel.hespanhol@ultravel.com.br', pessoal:'israel-98@hotmail.com', endereco:''},
-    {nome:'Liliane Tavares Gaspar', sexo:'F', cpf:'09868226716', nasc:'1982-04-07', tel:'21993195655',
+    {id:'eq12', nome:'Liliane Tavares Gaspar', sexo:'F', cpf:'09868226716', nasc:'1982-04-07', tel:'21993195655',
      email:'liliane.gaspar@ultravel.com.br', pessoal:'lilianeagspar82@gmail.com', endereco:''},
-    {nome:'Maria Eduarda de Souza Ribeiro', sexo:'F', cpf:'15237646603', nasc:'2002-06-05', tel:'31984985275',
+    {id:'eq13', nome:'Maria Eduarda de Souza Ribeiro', sexo:'F', cpf:'15237646603', nasc:'2002-06-05', tel:'31984985275',
      email:'maria.eduarda@ultravel.com.br', pessoal:'contato.madurib@gmail.com', endereco:''}
   ];
-  window.UV_EQUIPE = EQUIPE;
+
+  /* ---------------------------------------------------------------
+     CAMADA DE DADOS: semente do código + edições do usuário.
+     appConfig.equipe = { id:{campo..., ts, del} }  — o `ts` é o que faz
+     a edição mais recente vencer entre os 12 PCs, e `del` é soft delete
+     (apagar a chave faria a pessoa RESSUSCITAR no próximo merge com um
+     PC que ainda não soubesse da exclusão).
+     --------------------------------------------------------------- */
+  var EQ_CAMPOS = ['nome','sexo','cpf','nasc','tel','email','pessoal','endereco'];
+  function eqStore(){
+    if(!appConfig.equipe || typeof appConfig.equipe!=='object') appConfig.equipe={};
+    return appConfig.equipe;
+  }
+  function eqLista(){
+    var ed=eqStore(), vistos={}, out=[];
+    EQUIPE_SEED.forEach(function(p){
+      var e=ed[p.id]||{};
+      if(e.del) { vistos[p.id]=1; return; }          // integrante da semente removido
+      var o={id:p.id};
+      EQ_CAMPOS.forEach(function(c){ o[c]=(e[c]!==undefined? e[c] : p[c])||''; });
+      vistos[p.id]=1; out.push(o);
+    });
+    // integrantes CRIADOS pelo usuário (não existem na semente)
+    Object.keys(ed).forEach(function(id){
+      if(vistos[id]) return;
+      var e=ed[id]||{}; if(e.del) return;
+      var o={id:id}; EQ_CAMPOS.forEach(function(c){ o[c]=e[c]||''; });
+      if(!o.nome && !o.email && !o.cpf) return;      // registro vazio não vira ficha
+      out.push(o);
+    });
+    return out;
+  }
+  window.UV_EQUIPE_LISTA = eqLista;
+  // Acessor de diagnóstico (mesmo espírito do uvDiagPax/uvDiagNotif já expostos
+  // no console): devolve o mapa CRU appConfig.equipe. NÃO substitui eqSet/eqDel
+  // para escrita — é só leitura, para inspecionar o estado sem precisar do
+  // window.appConfig que este arquivo deliberadamente NÃO expõe (·206: `let`
+  // no escopo global não vira propriedade de window).
+  window.UV_EQ_STORE = eqStore;
+
+  function eqSet(id, campo, valor){
+    if(EQ_CAMPOS.indexOf(campo)<0) return;
+    var ed=eqStore();
+    var base=null; for(var i=0;i<EQUIPE_SEED.length;i++){ if(EQUIPE_SEED[i].id===id){ base=EQUIPE_SEED[i]; break; } }
+    var atual=ed[id]||{};
+    var novo={ts:Date.now(), del:0};
+    EQ_CAMPOS.forEach(function(c){
+      novo[c]=(atual[c]!==undefined ? atual[c] : (base?base[c]:'')) || '';
+    });
+    novo[campo]=(valor==null?'':String(valor)).slice(0,240);
+    ed[id]=novo;
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+    try{ if(typeof logRemoto==='function') logRemoto('equipe','Ficha de '+(novo.nome||'(sem nome)')+' editada ('+campo+')',{area:'Equipe', id:id}); }catch(e){}
+    try{ window.renderCdAniversario(); }catch(e){}   // nascimento/gênero podem ter mudado
+  }
+  function eqNovo(){
+    var ed=eqStore();
+    var id='eqn'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+    var o={ts:Date.now(), del:0}; EQ_CAMPOS.forEach(function(c){ o[c]=''; });
+    o.sexo='F'; o.nome='Novo integrante';
+    ed[id]=o;
+    eqFocarNovo=id;
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+    try{ if(typeof logRemoto==='function') logRemoto('equipe','Novo integrante criado na Equipe',{area:'Equipe', id:id}); }catch(e){}
+    window.renderEquipe();
+  }
+  function eqDel(id){
+    var ed=eqStore();
+    var nome=''; eqLista().forEach(function(p){ if(p.id===id) nome=p.nome; });
+    var o=ed[id]||{}; o.del=1; o.ts=Date.now(); ed[id]=o;
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+    try{ if(typeof logRemoto==='function') logRemoto('equipe','Integrante '+(nome||id)+' removido da Equipe',{area:'Equipe', id:id}); }catch(e){}
+    window.renderEquipe();
+    try{ window.renderCdAniversario(); }catch(e){}
+  }
+  /* Merge multi-PC — a edição mais recente (maior ts) vence, chave a chave.
+     Mesma função que Cabeça de Rede/Matriz usam; ligada nos DOIS pontos
+     padrão (carregarConfig e salvarConfig), senão o último PC a salvar
+     sobrescreveria o mapa inteiro dos outros. */
+  window.eqMergeMaps=function(a,b){
+    a=a||{}; b=b||{}; var out={}, ks={};
+    Object.keys(a).forEach(function(k){ks[k]=1;}); Object.keys(b).forEach(function(k){ks[k]=1;});
+    Object.keys(ks).forEach(function(k){ var x=a[k], y=b[k]; out[k]=(x&&y)?(((x.ts||0)>=(y.ts||0))?x:y):(x||y); });
+    return out;
+  };
+  var eqEditando=false, eqFocarNovo=null;
 
   function eqEsc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, function(c){
     return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
@@ -19876,7 +19990,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     var ref=eqHojeRef();
     var mesH=ref.getMonth()+1, diaH=ref.getDate();
     var ehBissexto = (function(a){ return (a%4===0 && a%100!==0) || a%400===0; })(ref.getFullYear());
-    return EQUIPE.filter(function(p){
+    return eqLista().filter(function(p){
       var q=(p.nasc||'').split('-'); if(q.length!==3) return false;
       var m=parseInt(q[1],10), d=parseInt(q[2],10);
       if(m===mesH && d===diaH) return true;
@@ -19910,8 +20024,8 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
         return false;
       }
       // um dos lados tem só o primeiro nome → só vale se for ÚNICO na equipe
-      var n=0;
-      for(var j=0;j<EQUIPE.length;j++){ if(eqNorm(EQUIPE[j].nome).split(' ')[0]===pa[0]) n++; }
+      var n=0, _eq=eqLista();
+      for(var j=0;j<_eq.length;j++){ if(eqNorm(_eq[j].nome).split(' ')[0]===pa[0]) n++; }
       return n===1;
     }catch(e){ return false; }
   }
@@ -19920,67 +20034,161 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
      TELA "EQUIPE" — leitura, busca e nada mais.
      --------------------------------------------------------------- */
   var eqBuscaTxt='';
+
+  /* ---------------------------------------------------------------
+     TELA "EQUIPE" — dois modos no MESMO render.
+     LEITURA (padrão): valores formatados, sem nada clicável por acidente.
+     EDIÇÃO (botão ✏️): os mesmos campos viram inputs, aparecem o "+ Adicionar
+     integrante" e a lixeira de cada ficha.
+
+     POR QUE UM BOTÃO E NÃO CAMPOS SEMPRE EDITÁVEIS (como no Cabeça de Rede):
+     aqui os dados são CPF, telefone e endereço de pessoas reais, que quase
+     nunca mudam e que os 12 consultam o tempo todo. Campo sempre aberto
+     convida a alteração acidental num clique errado — e uma data de
+     nascimento trocada sem ninguém notar só apareceria como um aniversário
+     no dia errado, meses depois. O modo explícito torna a edição uma
+     decisão, não um acidente.
+     --------------------------------------------------------------- */
   window.renderEquipe=function(){
     var w=document.getElementById('equipeWrap'); if(!w) return;
     var ref=eqHojeRef();
-    var aniv={}; eqAniversariantesHoje().forEach(function(p){ aniv[p.nome]=1; });
+    var aniv={}; eqAniversariantesHoje().forEach(function(p){ aniv[p.id]=1; });
+    var todos=eqLista();
     var q=eqNorm(eqBuscaTxt);
-    var lista=EQUIPE.filter(function(p){
+    var lista=todos.filter(function(p){
       if(!q) return true;
       var dig=q.replace(/\D/g,'');
       if(eqNorm(p.nome).indexOf(q)>=0) return true;
       if(eqNorm(p.email).indexOf(q)>=0 || eqNorm(p.pessoal).indexOf(q)>=0) return true;
       /* dígitos SÓ contam quando existem: indexOf('') devolve 0 em qualquer
          string, então sem esta guarda toda busca textual casaria com todas as
-         13 fichas — foi exatamente o que o E2E pegou. */
+         fichas — foi exatamente o que o E2E do ·229 pegou. */
       if(dig && ((p.cpf||'').indexOf(dig)>=0 || (p.tel||'').indexOf(dig)>=0)) return true;
       return false;
     });
-    function campo(rot, val, largo){
+
+    function campoLeitura(rot, val, largo){
       var vazio=!val;
       return '<div class="eq-campo'+(largo?' eq-campo-largo':'')+'">'+
         '<span class="eq-rot">'+eqEsc(rot)+'</span>'+
-        '<span class="eq-val'+(vazio?' eq-vazio':'')+'">'+eqEsc(vazio?'—':val)+'</span></div>';
+        '<span class="eq-val'+(vazio?' eq-vazio':'')+'">'+eqEsc(vazio?'\u2014':val)+'</span></div>';
     }
+    function campoEdicao(rot, id, campo, val, tipo, ph, largo){
+      return '<div class="eq-campo'+(largo?' eq-campo-largo':'')+'">'+
+        '<span class="eq-rot">'+eqEsc(rot)+'</span>'+
+        '<input type="'+(tipo||'text')+'" class="eq-inp" data-eq-id="'+eqEsc(id)+'" '+
+          'data-eq-campo="'+campo+'" value="'+eqEsc(val)+'" placeholder="'+eqEsc(ph||'')+'"></div>';
+    }
+
     var cards = lista.length ? lista.map(function(p){
-      var id=eqIdade(p.nasc, ref);
-      var ehHoje=!!aniv[p.nome];
-      return '<div class="eq-card'+(ehHoje?' eq-hoje':'')+'">'+
-        '<div class="eq-l1">'+
-          '<span class="eq-nome">'+eqEsc(p.nome)+'</span>'+
-          (id!==null?'<span class="eq-idade">'+id+' anos</span>':'')+
-          (ehHoje?'<span class="eq-selo-hoje">\ud83c\udf82 Aniversariante de hoje</span>':'')+
-        '</div>'+
-        '<div class="eq-dados">'+
-          campo('Data de nascimento', eqFmtData(p.nasc))+
-          campo('CPF', eqFmtCPF(p.cpf))+
-          campo('Telefone', eqFmtTel(p.tel))+
-          campo('E-mail corporativo', p.email)+
-          campo('E-mail pessoal', p.pessoal)+
-          campo('Endere\u00e7o', p.endereco, true)+
-        '</div>'+
-      '</div>';
+      var idade=eqIdade(p.nasc, ref);
+      var ehHoje=!!aniv[p.id];
+      var cab, corpo;
+      if(eqEditando){
+        cab='<div class="eq-l1">'+
+              '<input type="text" class="eq-inp eq-inp-nome" data-eq-id="'+eqEsc(p.id)+'" '+
+                'data-eq-campo="nome" value="'+eqEsc(p.nome)+'" placeholder="Nome completo">'+
+              '<button type="button" class="eq-del" data-eq-del="'+eqEsc(p.id)+'" '+
+                'title="Remover este integrante">\ud83d\uddd1</button>'+
+            '</div>';
+        corpo='<div class="eq-dados">'+
+          campoEdicao('Data de nascimento', p.id, 'nasc', p.nasc, 'date')+
+          /* GÊNERO É CAMPO, NUNCA PALPITE: é ele que decide a cor do card de
+             aniversário (azul/rosa). Deduzir por terminação de nome erraria
+             com gente real numa tela que os 12 veem. */
+          '<div class="eq-campo"><span class="eq-rot">G\u00eanero (cor do anivers\u00e1rio)</span>'+
+            '<select class="eq-sel" data-eq-id="'+eqEsc(p.id)+'" data-eq-campo="sexo">'+
+              '<option value="F"'+(p.sexo!=='M'?' selected':'')+'>Feminino \u2014 rosa beb\u00ea</option>'+
+              '<option value="M"'+(p.sexo==='M'?' selected':'')+'>Masculino \u2014 azul beb\u00ea</option>'+
+            '</select></div>'+
+          campoEdicao('CPF (s\u00f3 n\u00fameros)', p.id, 'cpf', p.cpf, 'text', '00000000000')+
+          campoEdicao('Telefone (s\u00f3 n\u00fameros)', p.id, 'tel', p.tel, 'text', '48999999999')+
+          campoEdicao('E-mail corporativo', p.id, 'email', p.email, 'text', 'nome@ultravel.com.br')+
+          campoEdicao('E-mail pessoal', p.id, 'pessoal', p.pessoal, 'text', '')+
+          campoEdicao('Endere\u00e7o', p.id, 'endereco', p.endereco, 'text', 'Rua, n\u00famero, bairro, cidade - UF - CEP', true)+
+        '</div>';
+      } else {
+        cab='<div class="eq-l1">'+
+              '<span class="eq-nome">'+eqEsc(p.nome)+'</span>'+
+              (idade!==null?'<span class="eq-idade">'+idade+' anos</span>':'')+
+              (ehHoje?'<span class="eq-selo-hoje">\ud83c\udf82 Aniversariante de hoje</span>':'')+
+            '</div>';
+        corpo='<div class="eq-dados">'+
+          campoLeitura('Data de nascimento', eqFmtData(p.nasc))+
+          campoLeitura('CPF', eqFmtCPF(p.cpf))+
+          campoLeitura('Telefone', eqFmtTel(p.tel))+
+          campoLeitura('E-mail corporativo', p.email)+
+          campoLeitura('E-mail pessoal', p.pessoal)+
+          campoLeitura('Endere\u00e7o', p.endereco, true)+
+        '</div>';
+      }
+      return '<div class="eq-card'+(ehHoje?' eq-hoje':'')+(eqEditando?' eq-editando':'')+
+             '" data-eq-card="'+eqEsc(p.id)+'">'+cab+corpo+'</div>';
     }).join('') : '<div class="cr-vazio">Nenhum integrante encontrado para essa busca.</div>';
 
     w.innerHTML =
       '<div class="eq-head">'+
         '<div><h2 class="eq-title"><span class="eq-ic">\ud83d\udc65</span> Equipe</h2>'+
-        '<div class="eq-sub">Ficha dos '+EQUIPE.length+' integrantes \u00b7 aniversariantes s\u00e3o anunciados sozinhos no Control Desk</div></div>'+
+        '<div class="eq-sub">Ficha dos '+todos.length+' integrantes \u00b7 aniversariantes s\u00e3o anunciados sozinhos no Control Desk</div></div>'+
+        '<div class="eq-acoes">'+
+          (eqEditando?'<button type="button" class="eq-bt primario" id="eqNovo">+ Adicionar integrante</button>':'')+
+          '<button type="button" class="eq-bt'+(eqEditando?' on':'')+'" id="eqEditar">'+
+            (eqEditando?'\u2713 Concluir edi\u00e7\u00e3o':'\u270f\ufe0f Editar')+'</button>'+
+        '</div>'+
       '</div>'+
+      (eqEditando?'<div class="eq-aviso-ed">\u270f\ufe0f Modo de edi\u00e7\u00e3o ativo \u2014 tudo o que voc\u00ea alterar \u00e9 salvo sozinho e aparece nos outros computadores em segundos.</div>':'')+
       '<div class="eq-toolbar">'+
         '<input type="text" class="eq-busca" id="eqBusca" placeholder="Buscar por nome, e-mail, CPF ou telefone..." value="'+eqEsc(eqBuscaTxt)+'">'+
-        '<span class="eq-cont">'+lista.length+' de '+EQUIPE.length+'</span>'+
+        '<span class="eq-cont">'+lista.length+' de '+todos.length+'</span>'+
       '</div>'+
       '<div class="eq-grid">'+cards+'</div>';
 
-    // REDESENHO SELETIVO DO FOCO: o innerHTML acima recria o input, então o
-    // cursor volta ao fim do texto — sem isto a busca perderia o foco a cada
-    // letra digitada, defeito que Cias/Cartões e o relatório já tiveram.
+    // REDESENHO SELETIVO DO FOCO: o innerHTML recria os campos, então sem isto
+    // a busca perderia o foco a cada letra digitada — defeito que Cias/Cartões e
+    // o relatório de vendas já tiveram.
     var b=document.getElementById('eqBusca');
     if(b && eqBuscaTxt){ try{ b.focus(); b.setSelectionRange(b.value.length,b.value.length); }catch(e){} }
+    // ficha recém-criada: leva o cursor direto ao nome, senão ela nasce no fim
+    // da lista e a pessoa precisa procurar onde digitar.
+    if(eqFocarNovo){
+      var alvo=w.querySelector('[data-eq-card="'+eqFocarNovo+'"] .eq-inp-nome');
+      eqFocarNovo=null;
+      if(alvo){ try{ alvo.scrollIntoView({block:'center'}); alvo.focus(); alvo.select(); }catch(e){} }
+    }
   };
+
   document.addEventListener('input', function(e){
-    if(e.target && e.target.id==='eqBusca'){ eqBuscaTxt=e.target.value; window.renderEquipe(); }
+    var t=e.target; if(!t) return;
+    if(t.id==='eqBusca'){ eqBuscaTxt=t.value; window.renderEquipe(); return; }
+    /* GRAVA A CADA TECLA, mas NÃO redesenha: reescrever o innerHTML aqui
+       mataria o foco no meio da digitação. O render só acontece ao sair do
+       modo de edição (ou ao criar/remover ficha), quando o valor já está
+       inteiro. */
+    if(t.classList && t.classList.contains('eq-inp')){
+      var id=t.getAttribute('data-eq-id'), c=t.getAttribute('data-eq-campo');
+      if(id && c) eqSet(id, c, t.value);
+    }
+  });
+  document.addEventListener('change', function(e){
+    var t=e.target; if(!t) return;
+    if(t.classList && t.classList.contains('eq-sel')){
+      var id=t.getAttribute('data-eq-id'), c=t.getAttribute('data-eq-campo');
+      if(id && c) eqSet(id, c, t.value);
+    }
+  });
+  document.addEventListener('click', function(e){
+    if(!e.target || !e.target.closest) return;
+    if(e.target.closest('#eqEditar')){ eqEditando=!eqEditando; window.renderEquipe(); return; }
+    if(e.target.closest('#eqNovo')){ eqNovo(); return; }
+    var d=e.target.closest('[data-eq-del]');
+    if(d){
+      var id=d.getAttribute('data-eq-del');
+      var nome=''; eqLista().forEach(function(p){ if(p.id===id) nome=p.nome; });
+      // confirmação antes de apagar: é dado cadastral de uma pessoa real, e a
+      // lixeira fica a um clique de distância dos campos de texto.
+      if(window.confirm('Remover '+(nome||'este integrante')+' da Equipe?')) eqDel(id);
+      return;
+    }
   });
 
   /* ---------------------------------------------------------------
