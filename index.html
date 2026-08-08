@@ -781,6 +781,52 @@ body.dark .eq-card.eq-hoje{background:rgba(255,143,199,.07)}
 body:not(.dark) .eq-aviso-ed{color:#8a6100}
 
 /* ============================================================
+   (·234) FORNECEDORES — 10 subpastas (Cias Aéreas/Eventos/Gerais/
+   Grupos/Hospedagem/Não Indicamos/Passeios/Receptivo/Transfer/Visto),
+   cada uma com sua própria lista de fornecedores. REUSA POR INTEIRO
+   a linguagem visual da Equipe (.eq-*) — mesma ficha, mesmo botão
+   Editar, mesmo modo de edição — só com prefixo .fn- para não colidir
+   com nenhuma classe já usada por Equipe/Cabeça de Rede.
+   ============================================================ */
+.fn-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+.fn-title{font-size:22px;font-weight:900;color:var(--texto);display:flex;align-items:center;gap:10px;margin:0}
+.fn-title .fn-ic{font-size:24px}
+.fn-sub{color:var(--texto-suave);font-size:13px;margin-top:3px}
+.fn-acoes{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.fn-bt{padding:10px 16px;border-radius:10px;border:1px solid var(--borda);background:transparent;color:var(--texto);font-size:13px;font-weight:800;cursor:pointer;transition:all .15s;white-space:nowrap}
+.fn-bt:hover{border-color:var(--borda-forte);background:var(--azul-claro)}
+.fn-bt.primario{border:none;background:linear-gradient(180deg,var(--azul),var(--azul-escuro));color:#fff}
+.fn-bt.primario:hover{box-shadow:0 4px 16px rgba(0,93,170,.45);transform:translateY(-1px)}
+.fn-bt.on{background:linear-gradient(180deg,#f0a500,#c98500);border:none;color:#3a2600}
+.fn-aviso-ed{background:rgba(240,165,0,.12);border:1px solid rgba(240,165,0,.4);color:#e0a020;border-radius:10px;padding:9px 13px;font-size:12.5px;font-weight:700;margin-bottom:12px}
+body:not(.dark) .fn-aviso-ed{color:#8a6100}
+.fn-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.fn-busca{flex:1 1 260px;min-width:180px;background:var(--azul-claro);border:1px solid var(--borda);border-radius:10px;color:var(--texto);font-size:13px;font-weight:600;padding:10px 13px;outline:none}
+.fn-busca:focus{border-color:var(--azul)}
+.fn-cont{font-size:12px;font-weight:800;color:var(--texto-fraco);white-space:nowrap}
+.fn-grid{display:flex;flex-direction:column;gap:10px}
+.fn-card{background:var(--card);border:1px solid var(--borda);border-left:4px solid #f0a500;border-radius:12px;padding:12px 14px;transition:all .15s}
+body.dark .fn-card{background:rgba(255,255,255,.04)}
+.fn-card:hover{border-color:var(--borda-forte);box-shadow:0 3px 12px rgba(0,0,0,.12)}
+.fn-card.fn-editando{border-left-color:#12B0FF}
+.fn-l1{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.fn-nome{font-size:15px;font-weight:900;color:var(--texto)}
+.fn-dados{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:7px 16px}
+.fn-campo{display:flex;flex-direction:column;gap:1px;min-width:0}
+.fn-rot{font-size:10px;font-weight:800;color:var(--texto-fraco);text-transform:uppercase;letter-spacing:.5px}
+.fn-val{font-size:12.5px;font-weight:700;color:var(--texto);word-break:break-word}
+.fn-val.fn-vazio{color:var(--texto-fraco);font-weight:600;font-style:italic}
+.fn-campo-largo{grid-column:1/-1}
+.fn-inp{width:100%;box-sizing:border-box;background:transparent;border:1px solid var(--borda);border-radius:8px;color:var(--texto);font-size:12.5px;font-weight:700;padding:6px 8px;outline:none;transition:all .15s;font-family:inherit}
+.fn-inp:hover{background:var(--azul-claro)}
+.fn-inp:focus{background:var(--azul-claro);border-color:var(--azul)}
+.fn-inp.fn-inp-nome{font-size:14.5px;font-weight:900;flex:1 1 240px;min-width:150px}
+.fn-del{width:32px;height:32px;flex:0 0 auto;border-radius:9px;border:1px solid var(--borda);background:transparent;color:var(--texto-suave);font-size:14px;cursor:pointer;transition:all .15s}
+.fn-del:hover{background:rgba(224,34,34,.15);border-color:#e02222;color:#e02222}
+.fn-vazio-lista{color:var(--texto-suave);font-size:13px;font-style:italic;padding:24px;text-align:center}
+
+
+/* ============================================================
    (·229) CARD DE ANIVERSÁRIO no Control Desk. Fica ACIMA da
    Ocupação dos Atendentes e só existe no DIA do aniversário.
    Duas cores: azul bebê (menino) e rosa bebê (menina), definidas
@@ -2905,6 +2951,19 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
 
         <button class="nav-item" data-screen="cabeca"><span class="nav-ic nav-ic-cr"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#ff7d1a" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12L12 2M12 12L19 5M12 12L22 12M12 12L19 19M12 12L12 22M12 12L5 19M12 12L2 12M12 12L5 5"/><path d="M12 7.5L15.2 8.8L16.5 12L15.2 15.2L12 16.5L8.8 15.2L7.5 12L8.8 8.8Z"/><path d="M12 4.5L17.3 6.7L19.5 12L17.3 17.3L12 19.5L6.7 17.3L4.5 12L6.7 6.7Z"/></svg></span><span>Cabeça de Rede</span></button>
         <button class="nav-item" data-screen="equipe"><span class="nav-ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#12B0FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 19v-1.6a3.2 3.2 0 0 0-3.2-3.2H6.2A3.2 3.2 0 0 0 3 17.4V19"/><circle cx="9.5" cy="7.4" r="3.2"/><path d="M21 19v-1.6a3.2 3.2 0 0 0-2.4-3.1"/><path d="M15.4 4.4a3.2 3.2 0 0 1 0 6.1"/></svg></span><span>Equipe</span></button>
+<button class="nav-item open" data-tree="fornecedores"><span class="nav-ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#f0a500" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l2-3h14l2 3"/><path d="M3 7v12a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V7"/><path d="M3 7h18"/><path d="M9 12h6"/></svg></span><span>Fornecedores</span><b class="nav-caret">▾</b></button>
+        <div class="nav-children show" data-tree-body="fornecedores">
+          <button class="nav-item nav-sub" data-screen="fn-cias">Cias Aéreas</button>
+          <button class="nav-item nav-sub" data-screen="fn-eventos">Eventos</button>
+          <button class="nav-item nav-sub" data-screen="fn-gerais">Gerais</button>
+          <button class="nav-item nav-sub" data-screen="fn-grupos">Grupos</button>
+          <button class="nav-item nav-sub" data-screen="fn-hosp">Hospedagem</button>
+          <button class="nav-item nav-sub" data-screen="fn-naoind">Não Indicamos</button>
+          <button class="nav-item nav-sub" data-screen="fn-passeios">Passeios</button>
+          <button class="nav-item nav-sub" data-screen="fn-receptivo">Receptivo</button>
+          <button class="nav-item nav-sub" data-screen="fn-transfer">Transfer</button>
+          <button class="nav-item nav-sub" data-screen="fn-visto">Visto</button>
+        </div>
         <button class="nav-item open" data-tree="comercial"><span class="nav-ic">📣</span><span>Comercial</span><b class="nav-caret">▾</b></button>
         <div class="nav-children show" data-tree-body="comercial">
           <button class="nav-item nav-sub" data-screen="acoes"><span>Ações Comerciais</span></button>
@@ -3224,6 +3283,36 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
       </section>
       <section class="screen" id="scr-equipe">
         <div id="equipeWrap"></div>
+      </section>
+      <section class="screen" id="scr-fn-cias">
+        <div id="fn-ciasWrap"></div>
+      </section>
+      <section class="screen" id="scr-fn-eventos">
+        <div id="fn-eventosWrap"></div>
+      </section>
+      <section class="screen" id="scr-fn-gerais">
+        <div id="fn-geraisWrap"></div>
+      </section>
+      <section class="screen" id="scr-fn-grupos">
+        <div id="fn-gruposWrap"></div>
+      </section>
+      <section class="screen" id="scr-fn-hosp">
+        <div id="fn-hospWrap"></div>
+      </section>
+      <section class="screen" id="scr-fn-naoind">
+        <div id="fn-naoindWrap"></div>
+      </section>
+      <section class="screen" id="scr-fn-passeios">
+        <div id="fn-passeiosWrap"></div>
+      </section>
+      <section class="screen" id="scr-fn-receptivo">
+        <div id="fn-receptivoWrap"></div>
+      </section>
+      <section class="screen" id="scr-fn-transfer">
+        <div id="fn-transferWrap"></div>
+      </section>
+      <section class="screen" id="scr-fn-visto">
+        <div id="fn-vistoWrap"></div>
       </section>
 
       <section class="screen" id="scr-acoes">
@@ -3794,7 +3883,7 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 233;
+var UV_BUILD_NUM = 234;
 const UV_BUILD='HUB-v3\u00b7'+UV_BUILD_NUM;
 try{ console.info('%c[Hub Ultravel] build '+UV_BUILD, 'color:#6FBAFF;font-weight:bold'); }catch(e){}
 try{
@@ -4003,6 +4092,9 @@ async function carregarConfig(){
          outros 11 em vez de mesclá-las por carimbo. */
       if(typeof window.eqMergeMaps==='function'){
         appConfig.equipe=window.eqMergeMaps(local.equipe, c.equipe);
+      }
+      if(typeof window.fnMergeMaps==='function'){          // (·234) Fornecedores
+        appConfig.fornecedores=window.fnMergeMaps(local.fornecedores, c.fornecedores);
       }
       if(typeof window.mxMergeMaps==='function'){
         appConfig.matrizComercial=window.mxMergeMaps(local.matrizComercial, c.matrizComercial);
@@ -4297,6 +4389,9 @@ async function salvarConfig(){
     }
     if(typeof window.eqMergeMaps==='function'){          // (·230) Equipe
       appConfig.equipe=window.eqMergeMaps(appConfig.equipe, cloud.equipe);
+    }
+    if(typeof window.fnMergeMaps==='function'){            // (·234) Fornecedores
+      appConfig.fornecedores=window.fnMergeMaps(appConfig.fornecedores, cloud.fornecedores);
     }
     if(typeof window.mxMergeMaps==='function'){
       appConfig.matrizComercial=window.mxMergeMaps(appConfig.matrizComercial, cloud.matrizComercial);
@@ -8089,6 +8184,16 @@ init();
       if(scr==='controldesk' && typeof window.renderControlDesk==='function') window.renderControlDesk();
       if(scr==='cabeca' && typeof window.renderCabecaRede==='function') window.renderCabecaRede();
       if(scr==='equipe' && typeof window.renderEquipe==='function') window.renderEquipe();
+      if(scr==='fn-cias' && typeof window.renderForn==='function') window.renderForn('forn01');
+      if(scr==='fn-eventos' && typeof window.renderForn==='function') window.renderForn('forn02');
+      if(scr==='fn-gerais' && typeof window.renderForn==='function') window.renderForn('forn03');
+      if(scr==='fn-grupos' && typeof window.renderForn==='function') window.renderForn('forn04');
+      if(scr==='fn-hosp' && typeof window.renderForn==='function') window.renderForn('forn05');
+      if(scr==='fn-naoind' && typeof window.renderForn==='function') window.renderForn('forn06');
+      if(scr==='fn-passeios' && typeof window.renderForn==='function') window.renderForn('forn07');
+      if(scr==='fn-receptivo' && typeof window.renderForn==='function') window.renderForn('forn08');
+      if(scr==='fn-transfer' && typeof window.renderForn==='function') window.renderForn('forn09');
+      if(scr==='fn-visto' && typeof window.renderForn==='function') window.renderForn('forn10');
       if(scr==='acoes' && typeof window.renderAcoes==='function') window.renderAcoes();
       if(scr==='matriz' && typeof window.renderMatriz==='function') window.renderMatriz();
       if(scr==='cliente' && typeof window.renderCliente==='function') window.renderCliente();
@@ -20332,6 +20437,545 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
   // notificações de cobrança, que já roda de minuto em minuto)
   setInterval(function(){ try{ window.renderCdAniversario(); }catch(e){} }, 60000);
   try{ window.renderCdAniversario(); }catch(e){}
+})();
+</script>
+
+<script>
+/* ================================================================
+   (·234) FORNECEDORES — pedido do Nando: pasta "Fornecedores" logo
+   abaixo de "Equipe", com uma subpasta para cada categoria dos PDFs
+   enviados (Cias Aéreas / Eventos / Gerais / Grupos / Hospedagem /
+   Não Indicamos / Passeios / Receptivo / Transfer / Visto), cada uma
+   com botão de EDITAR (dados existentes) e ADICIONAR (novo registro).
+
+   DECISÃO 1 — SUBPASTA POR CATEGORIA, NÃO POR FORNECEDOR INDIVIDUAL.
+   Os PDFs somam 255 fornecedores ao todo (só "Eventos" tem 135). Uma
+   subpasta por EMPRESA no menu lateral criaria uma árvore com mais de
+   250 itens — inutilizável para navegar e o oposto de organizar. As
+   10 categorias já são exatamente as 10 subpastas que os PDFs
+   nomeiam (um arquivo por categoria); cada uma vira uma tela com a
+   LISTA de fornecedores daquela categoria — mesmo modelo de
+   "pasta com fichas dentro" que Equipe e Cabeça de Rede já usam.
+
+   DECISÃO 2 — OS DADOS BRUTOS DOS PDFs NÃO TINHAM COLUNAS SEPARADAS
+   DE VERDADE (o texto extraído veio corrido, sem um delimitador
+   confiável entre telefone/e-mail/local/observação em muitas linhas).
+   Formatar 255 linhas manualmente em campos rígidos arriscaria
+   inventar uma coluna que o PDF não garantia. Por isso cada ficha tem
+   nome + telefone + e-mail (extraídos por reconhecimento de padrão,
+   que são inequívocos: e-mail sempre tem "@", telefone é uma
+   sequência de dígitos) + UM campo "Observações" com o restante do
+   texto original (local, região, particularidades) — nada foi
+   descartado, só não forcei uma separação que o dado de origem não
+   sustentava com segurança. Tudo isso é editável na hora, então
+   qualquer ajuste fino fica a um clique.
+
+   DECISÃO 3 — MESMO PADRÃO DE EDIÇÃO DA EQUIPE (semente do código +
+   edições do usuário, mesclagem multi-PC por carimbo, soft delete).
+   Reusar o padrão já testado evita reinventar uma segunda forma de
+   guardar "dado de fábrica + o que foi editado" — e herda de graça a
+   sincronização entre os 12 PCs sem precisar de deploy do Worker
+   (tudo viaja dentro do appConfig, pelo KV já existente).
+   ================================================================ */
+(function(){
+  'use strict';
+
+  function fnEsc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function fnNorm(s){ return (s||'').toString().trim().toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' '); }
+
+  var FN_CATS = [
+    {chave:'forn01', sid:'fn-cias', titulo:'Cias Aéreas'},
+    {chave:'forn02', sid:'fn-eventos', titulo:'Eventos'},
+    {chave:'forn03', sid:'fn-gerais', titulo:'Gerais'},
+    {chave:'forn04', sid:'fn-grupos', titulo:'Grupos'},
+    {chave:'forn05', sid:'fn-hosp', titulo:'Hospedagem'},
+    {chave:'forn06', sid:'fn-naoind', titulo:'Não Indicamos'},
+    {chave:'forn07', sid:'fn-passeios', titulo:'Passeios'},
+    {chave:'forn08', sid:'fn-receptivo', titulo:'Receptivo'},
+    {chave:'forn09', sid:'fn-transfer', titulo:'Transfer'},
+    {chave:'forn10', sid:'fn-visto', titulo:'Visto'},
+  ];
+
+  var FN_SEED = {};
+  FN_SEED['forn01'] = [
+    {id:'forn01_001', nome:'American Airlines', tel:'11 25001573', email:'', site:'', obs:'tem que colocar um 0 antes e depois o DD do seu telefone'},
+    {id:'forn01_002', nome:'GOL', tel:'0300 115 2121', email:'', site:'', obs:'SAC'},
+  ];
+  FN_SEED['forn02'] = [
+    {id:'forn02_001', nome:'Vitória Hotel Concept Campinas', tel:'', email:'siteconcept@vitoriahoteis.com.br', site:'', obs:'BR SUDESTE SP Campinas'},
+    {id:'forn02_002', nome:'Radisson RED Campinas', tel:'', email:'eventos.rbel@ahi.com.br', site:'', obs:'BR SUDESTE SP Campinas'},
+    {id:'forn02_003', nome:'Meliá Campinas', tel:'', email:'campinas@melia.com', site:'', obs:'BR SUDESTE SP Campinas'},
+    {id:'forn02_004', nome:'Mercure Belo Horizonte Lourdes', tel:'', email:'eventosbhlourdes@accor.com', site:'', obs:'BR SUDESTE MG Belo Horizonte'},
+    {id:'forn02_005', nome:'BH Raja Hotel', tel:'', email:'reservas@bhrajahotel.com.br', site:'', obs:'BR SUDESTE MG Belo Horizonte'},
+    {id:'forn02_006', nome:'Hotel Nacional Inn Belo Horizonte', tel:'', email:'reservas@nacionalinnbh.com.br', site:'', obs:'BR SUDESTE MG Belo Horizonte'},
+    {id:'forn02_007', nome:'Dayrell Hotel & Centro de Convenções', tel:'', email:'reserva@dayrell.com.br', site:'', obs:'BR SUDESTE MG Belo Horizonte'},
+    {id:'forn02_008', nome:'San Diego Express Barro Preto', tel:'', email:'recepcao@sandiegoexpressbarropreto.com.br', site:'', obs:'BR SUDESTE MG Belo Horizonte'},
+    {id:'forn02_009', nome:'Hotel Normandy', tel:'', email:'reservas2@normandyhotel.com.br', site:'', obs:'BR SUDESTE MG Belo Horizonte'},
+    {id:'forn02_010', nome:'SESC Venda Nova (Centro de Convenções)', tel:'', email:'hotelvendanova@sescmg.com.br', site:'', obs:'BR SUDESTE MG Belo Horizonte'},
+    {id:'forn02_011', nome:'Sheraton Vitória Hotel', tel:'', email:'eventos@sheratonvitoria.com.br / luciana.rios@sheratonvitoria.com.br / aeb@sheratonvitoria.com.br / bsaldanha@sheratonvitoria.com.br', site:'', obs:'BR SUDESTE ES Vitória'},
+    {id:'forn02_012', nome:'Comfort Suítes Vitória', tel:'', email:'reservas.csv@ahi.com.br', site:'', obs:'BR SUDESTE ES Vitória'},
+    {id:'forn02_013', nome:'Alice Vitória Hotel', tel:'5527996376215', email:'', site:'', obs:'BR SUDESTE ES Vitória'},
+    {id:'forn02_014', nome:'Golden Tulip Porto Vitória', tel:'', email:'gtpv.reservas@goldentulip.com.br', site:'', obs:'BR SUDESTE ES Vitória'},
+    {id:'forn02_015', nome:'Ibis Vitória Praia do Canto', tel:'', email:'ibisvitoria@accorhotels.com.br', site:'', obs:'BR SUDESTE ES Vitória'},
+    {id:'forn02_016', nome:'Hotel Bristol Easy Vitória', tel:'', email:'reservas@bristolhoteis.com.br', site:'', obs:'BR SUDESTE ES Vitória'},
+    {id:'forn02_017', nome:'Hotel Minuano', tel:'', email:'reservas@grupominuano-es.com.br', site:'', obs:'BR SUDESTE ES Vitória'},
+    {id:'forn02_018', nome:'Go Inn Vitória', tel:'', email:'reservas.gvix@ahi.com.br', site:'', obs:'BR SUDESTE ES Vitória'},
+    {id:'forn02_019', nome:'Novotel São José dos Campos', tel:'', email:'h0472-re@accor.com', site:'', obs:'BR SUDESTE SP São José dos Campos'},
+    {id:'forn02_020', nome:'Golden Tulip São José dos Campos', tel:'', email:'gtsjc.reservas@goldentulip.com.br', site:'', obs:'BR SUDESTE SP São José dos Campos'},
+    {id:'forn02_021', nome:'Mar Hotel Conventions', tel:'(81) 3302-4434', email:'reservas@ponteshoteis.com.br', site:'', obs:'BR NORDESTE PE Recife'},
+    {id:'forn02_022', nome:'Radisson Recife', tel:'', email:'eventos.rdre@ahi.com.br', site:'', obs:'BR NORDESTE PE Recife'},
+    {id:'forn02_023', nome:'Hotel Grand Mercure Recife Boa Viagem', tel:'', email:'eventos.grandmercurerecife@accor.com', site:'', obs:'BR NORDESTE PE Recife'},
+    {id:'forn02_024', nome:'Transamerica Prestige', tel:'', email:'rsrecife@transamerica.com.br', site:'', obs:'BR NORDESTE PE Recife'},
+    {id:'forn02_025', nome:'Ipê Park Hotel', tel:'', email:'', site:'', obs:'BR SUDESTE SP São José do Rio Preto'},
+    {id:'forn02_026', nome:'Quality Hotel Saint Paul', tel:'', email:'reservas@saintpaulplazahotel.com.br', site:'', obs:'BR SUDESTE SP São José do Rio Preto'},
+    {id:'forn02_027', nome:'Grand Mercure Belém do Pará', tel:'', email:'reservas.grandmercurebelem@accor.com', site:'', obs:'BR NORTE PA Belém'},
+    {id:'forn02_028', nome:'Hotel Atrium Quinta de Pedras', tel:'', email:'reservasbelem@atriumhoteis.com.br', site:'', obs:'BR NORTE PA Belém'},
+    {id:'forn02_029', nome:'Hotel Grão Pará', tel:'91 98237-1592', email:'hotelgraopara@yahoo.com', site:'', obs:'BR NORTE PA Belém'},
+    {id:'forn02_030', nome:'Hotel Sagres', tel:'', email:'eventos@hotelsagres.com', site:'', obs:'BR NORTE PA Belém'},
+    {id:'forn02_031', nome:'Belém Soft Hotel', tel:'(91) 98568-9122', email:'', site:'', obs:'BR NORTE PA Belém'},
+    {id:'forn02_032', nome:'Rede Andrade Docas', tel:'91 98922.0030', email:'', site:'', obs:'BR NORTE PA Belém'},
+    {id:'forn02_033', nome:'Ibis Budget Belém Batista Campos', tel:'', email:'H5624@accor.com.br', site:'', obs:'BR NORTE PA Belém'},
+    {id:'forn02_034', nome:'Comfort Hotel Bauru', tel:'', email:'reservas.cbau@ahi.com.br', site:'', obs:'BR SUDESTE SP Bauru (sala só comporta 80 pessoas)'},
+    {id:'forn02_035', nome:'Blue Tree Towers Bauru', tel:'', email:'', site:'', obs:'BR SUDESTE SP Bauru (sala só comporta 80 pessoas)'},
+    {id:'forn02_036', nome:'Garden Eventos Bauru', tel:'5514 99771-6427', email:'', site:'', obs:'BR SUDESTE SP Bauru (salão muito grande, e 14k de locação)'},
+    {id:'forn02_037', nome:'Alameda Hall', tel:'55 14 99631-7783', email:'', site:'', obs:'BR SUDESTE SP Bauru (Só sala 10k)'},
+    {id:'forn02_038', nome:'Hotel Nacional Inn Bauru', tel:'1440091111', email:'reservas@nacionalinnbauru.com.br', site:'', obs:'BR SUDESTE SP Bauru'},
+    {id:'forn02_039', nome:'Blue Tree Garden Bauru', tel:'(14) 3235-0500', email:'SECRETARIA@btc.com.br', site:'', obs:'BR SUDESTE SP Bauru'},
+    {id:'forn02_040', nome:'Hotel Biazi Plaza', tel:'', email:'contatos@biaziplazahotel.com.br', site:'', obs:'BR SUDESTE SP Bauru'},
+    {id:'forn02_041', nome:'Bristol Santo André Hotel', tel:'', email:'eventos.santoandre@bristolhoteis.com.br', site:'', obs:'BR SUDESTE SP Santo André'},
+    {id:'forn02_042', nome:'Go Inn Santo André', tel:'', email:'reservas.santoandre@ahi.com.br', site:'', obs:'BR SUDESTE SP Santo André'},
+    {id:'forn02_043', nome:'Hotel Plaza Mayor', tel:'', email:'faleconosco@hotelplazamayor.com.br', site:'', obs:'BR SUDESTE SP Santo André'},
+    {id:'forn02_044', nome:'Blue Tree Towers Rio Poty', tel:'', email:'eventos.riopoty@bluetree.com.br', site:'', obs:'BR NORDESTE PI Teresina'},
+    {id:'forn02_045', nome:'Uchôa Teresina Hotel', tel:'', email:'reservas@uchoateresinahotel.com', site:'', obs:'BR NORDESTE PI Teresina'},
+    {id:'forn02_046', nome:'Ramada Hotel & Suites Campos dos Goytacazes', tel:'55 2230259800', email:'', site:'', obs:'BR SUDESTE RJ Campos dos Goytacazes'},
+    {id:'forn02_047', nome:'Comfort Hotel Campos dos Goytacazes', tel:'', email:'reservas.ccrj@ahi.com.br', site:'', obs:'BR SUDESTE RJ Campos dos Goytacazes (comporta só ate 80 pessoas)'},
+    {id:'forn02_048', nome:'Tulip Inn Campos dos Goytacazes', tel:'', email:'ticp.eventos@goldentulip.com.br', site:'', obs:'BR SUDESTE RJ Campos dos Goytacazes'},
+    {id:'forn02_049', nome:'PROMENADE SOHO CAMPOS', tel:'22 99855-3314', email:'comercial@promenade.com.br', site:'', obs:'BR SUDESTE RJ Campos dos Goytacazes'},
+    {id:'forn02_050', nome:'Grand Mercure Belém do Pará', tel:'', email:'reservas.grandmercurebelem@accor.com', site:'', obs:'BR NORTE PA Belém'},
+    {id:'forn02_051', nome:'Hotel Atrium Quinta de Pedras', tel:'', email:'reservasbelem@atriumhoteis.com.br', site:'', obs:'BR NORTE PA Belém'},
+    {id:'forn02_052', nome:'Hotel Grão Pará', tel:'', email:'reservas@hotelgraopara.com.br', site:'', obs:'BR NORTE PA Belém'},
+    {id:'forn02_053', nome:'B Hotel Brasília', tel:'', email:'reservas@bhotelbrasilia.com.br', site:'', obs:'BR CENTRO-OESTE DF Brasília'},
+    {id:'forn02_054', nome:'Royal Tulip Brasília Alvorada', tel:'', email:'Rtbsba.reservas@goldentulip.com.br', site:'', obs:'BR CENTRO-OESTE DF Brasília'},
+    {id:'forn02_055', nome:'Transamerica Collection Goiânia', tel:'', email:'eventos.tcgo@ahi.com.br', site:'', obs:'BR CENTRO-OESTE GO Goiânia'},
+    {id:'forn02_056', nome:'Castro\'s Park Hotel', tel:'', email:'comercial03@castrospark.com.br', site:'', obs:'BR CENTRO-OESTE GO Goiânia'},
+    {id:'forn02_057', nome:'Fort Express', tel:'', email:'hoteldoforte@hotmail.com', site:'', obs:'BR NORTE AP Macapá'},
+    {id:'forn02_058', nome:'Hotel Amapá', tel:'', email:'reservas@amapahotel.com.br', site:'', obs:'BR NORTE AP Macapá'},
+    {id:'forn02_059', nome:'Hotel Atalanta', tel:'', email:'comercial@atalantahotel.com.br', site:'', obs:'BR NORTE AP Macapá'},
+    {id:'forn02_060', nome:'Barrudada Tropical Hotel', tel:'55 93 99122-3532', email:'', site:'', obs:'BR NORTE PA Santarém'},
+    {id:'forn02_061', nome:'Hotel Palace Santarém', tel:'', email:'reservas@hotelpalacesantarem.com.br', site:'', obs:'BR NORTE PA Santarém'},
+    {id:'forn02_062', nome:'Blue Tree Premium Paulista', tel:'', email:'eventos.paulista@bluetree.com.br', site:'', obs:'BR SUDESTE SP São Paulo'},
+    {id:'forn02_063', nome:'InterContinental São Paulo', tel:'', email:'eventos.icsp@ihg.com', site:'', obs:'BR SUDESTE SP São Paulo'},
+    {id:'forn02_064', nome:'Deville Prime Campo Grande', tel:'', email:'eventosgeral.cgr@deville.com.br', site:'', obs:'BR CENTRO-OESTE MS Campo Grande'},
+    {id:'forn02_065', nome:'Novotel Campo Grande', tel:'', email:'h2039-re@accor.com', site:'', obs:'BR CENTRO-OESTE MS Campo Grande'},
+    {id:'forn02_066', nome:'Terra Parque Eco Resort', tel:'', email:'terraparque@terraparque.com.br', site:'', obs:'BR SUDESTE SP Presidente Prudente'},
+    {id:'forn02_067', nome:'Hotel Gralha Azul', tel:'', email:'reservas@hotelgralhaazul.com.br', site:'', obs:'BR SUDESTE SP Presidente Prudente'},
+    {id:'forn02_068', nome:'Blue Tree Towers São Luís', tel:'', email:'reservas.saoluis@bluetree.com.br', site:'', obs:'BR NORDESTE MA São Luiz / Imperatriz'},
+    {id:'forn02_069', nome:'Luzeiros São Luís', tel:'', email:'eventos.slz@hotelluzeiros.com.br', site:'', obs:'BR NORDESTE MA São Luiz / Imperatriz'},
+    {id:'forn02_070', nome:'Imperial Hotel', tel:'', email:'reservas@imperialhotel.tur.br', site:'', obs:'BR NORDESTE MA Imperatriz'},
+    {id:'forn02_071', nome:'Posseidon Hotel', tel:'', email:'reservas@posseidonhotel.com.br', site:'', obs:'BR NORDESTE MA Imperatriz'},
+    {id:'forn02_072', nome:'Hotel Mar', tel:'', email:'atendimento@hotelmar.com.br', site:'', obs:'BR SUDESTE SP Caraguatatuba'},
+    {id:'forn02_073', nome:'Hotel Colônia AOJESP', tel:'', email:'hotelcolonia@aojesp.org.br', site:'', obs:'BR SUDESTE SP Caraguatatuba'},
+    {id:'forn02_074', nome:'Iu-á Hotel', tel:'', email:'reservas@iuahotel.com.br', site:'', obs:'BR NORDESTE CE Juazeiro do Norte'},
+    {id:'forn02_075', nome:'Hotel Verdes Vales', tel:'', email:'eventos@hotelverdesvales.com.br', site:'', obs:'BR NORDESTE CE Juazeiro do Norte'},
+    {id:'forn02_076', nome:'Hotel La Plage', tel:'', email:'laplage@laplage.com.br', site:'', obs:'BR SUDESTE RJ Cabo Frio'},
+    {id:'forn02_077', nome:'Paradiso Del Sol', tel:'', email:'', site:'', obs:'BR SUDESTE RJ Cabo Frio'},
+    {id:'forn02_078', nome:'Malibu Palace Hotel', tel:'', email:'hotel@malibupalace.com.br', site:'', obs:'BR SUDESTE RJ Cabo Frio'},
+    {id:'forn02_079', nome:'SERHS Natal Grand Hotel & Resort', tel:'', email:'info@serhsnatalgrandhotel.com', site:'', obs:'BR NORDESTE RN Natal'},
+    {id:'forn02_080', nome:'Majestic Natal', tel:'', email:'majestic@majesticnatal.com.br', site:'', obs:'BR NORDESTE RN Natal'},
+    {id:'forn02_081', nome:'Paradisus Grand Cana', tel:'', email:'rosa.rosario@melia.com', site:'', obs:'DO Punta Cana'},
+    {id:'forn02_082', nome:'Grand Hyatt', tel:'55 11 2838 1234', email:'amanary.spa@hyatt.com / vendas.sp@hyatt.com', site:'', obs:'BR SUDESTE SP São Paulo /'},
+    {id:'forn02_083', nome:'eSuites Congonhas by Atlantica', tel:'', email:'vendas.ecgh@ahi.com.br', site:'', obs:'BR SUDESTE SP Congonhas (comporta até 300 pessoas)'},
+    {id:'forn02_084', nome:'Alfa Hotel Teresinal', tel:'', email:'reservas@alfahotelteresina.com.br', site:'', obs:'BR NORDESTE PI Teresina'},
+    {id:'forn02_085', nome:'Hotel ESuites Minascasa', tel:'', email:'reservas.emc@ahi.com.br', site:'', obs:'BR SUDESTE BH Belo Horizonte'},
+    {id:'forn02_086', nome:'Slaviero Vitória', tel:'', email:'reservas.sevi@slavierohoteis.com.br', site:'', obs:'BR SUDESTE ES Vitória'},
+    {id:'forn02_087', nome:'Sleep Inn Vitória', tel:'', email:'reservas.svix@ahi.com.br', site:'', obs:'BR SUDESTE ES Vitória'},
+    {id:'forn02_088', nome:'Cannes Passos Hotel', tel:'', email:'hotelcannes@terra.com.br', site:'', obs:'BR SUDESTE ES Vitória'},
+    {id:'forn02_089', nome:'Monã Hotel', tel:'', email:'reservas1@monahotel.com.br / eventos1@monahotel.com.br / vendas1@monahotel.com.br', site:'', obs:'BR NORDESTE PI Teresina'},
+    {id:'forn02_090', nome:'Jockey Class Hotel', tel:'', email:'reservas@jockeyclass.com.br', site:'', obs:'BR NORDESTE PI Teresina (Hotel estilo Boutique)'},
+    {id:'forn02_091', nome:'Fórmula Arrey hotel', tel:'', email:'reservas@formulaflateuropa.com.br / comercial@granhotelarrey.com.br / recepcaogran@gmail.com', site:'', obs:'BR NORDESTE PI Teresina'},
+    {id:'forn02_092', nome:'Rede Andrade', tel:'', email:'grupos2@andradehoteis.com.br / eventos1@andradehoteis.com.br', site:'', obs:'BR NORDESTE PI Teresina'},
+    {id:'forn02_093', nome:'Hotel Senac Ilha do Boi', tel:'', email:'elipe.vieira@hotelilhadoboi.com.br / gerson.furlani@hotelilhadoboi.com.br / luiz.santos@hotelilhadoboi.com.br / watila.silva@hotelilhadoboi.com.br', site:'', obs:'BR SUDESTE ES Vitória'},
+    {id:'forn02_094', nome:'Bristol Praia do Canto', tel:'', email:'h5223-re@accor.com', site:'', obs:'BR SUDESTE ES Vitória'},
+    {id:'forn02_095', nome:'Cannes Passos Hotel', tel:'', email:'hotelcannes@terra.com.br', site:'', obs:'BR SUDESTE ES Vitória'},
+    {id:'forn02_096', nome:'Mareiro Hotel', tel:'', email:'reservas@mareiro.com.br', site:'', obs:'BR NORDESTE CE Fortaleza'},
+    {id:'forn02_097', nome:'Praiano Hotel', tel:'', email:'reservas@praianohotel.com.br', site:'', obs:'BR NORDESTE CE Fortaleza'},
+    {id:'forn02_098', nome:'Holiday Inn Fortaleza', tel:'', email:'reservas@holidayfortaleza.com.br', site:'', obs:'BR NORDESTE CE Fortaleza'},
+    {id:'forn02_099', nome:'Wyndham Garden', tel:'', email:'recepcao@wyndhamgardennortel.com', site:'', obs:'BR SUDESTE SP São Paulo'},
+    {id:'forn02_100', nome:'Blue Tree Towers Fortaleza', tel:'', email:'reservas.fortaleza@bluetree.com.br', site:'', obs:'BR NORDESTE CE Fortaleza'},
+    {id:'forn02_101', nome:'Bristol Jangada Fortaleza', tel:'', email:'bristol@bristolhoteis.com.br', site:'', obs:'BR NORDESTE CE Fortaleza'},
+    {id:'forn02_102', nome:'Magna Praia Hotel', tel:'', email:'reservas@magnapraiahotel.com.br', site:'', obs:'BR NORDESTE CE Fortaleza'},
+    {id:'forn02_103', nome:'Renaissance Sao Paulo Hotel', tel:'', email:'hotel.saopaulo@renaissancehotel.com', site:'', obs:'BR SUDESTE SP São Paulo'},
+    {id:'forn02_104', nome:'Ibis Fortaleza Praia de Iracema', tel:'', email:'H1142-RE@accor.com', site:'', obs:'BR NORDESTE CE Fortaleza'},
+    {id:'forn02_105', nome:'Ibis Styles Fortaleza', tel:'', email:'hc2Z2-re@accor.com', site:'', obs:'BR NORDESTE CE Fortaleza'},
+    {id:'forn02_106', nome:'Comfort Hotel', tel:'', email:'eventos.cfo@ahi.com.br', site:'', obs:'BR NORDESTE CE Fortaleza'},
+    {id:'forn02_107', nome:'Crocobeach Hotel', tel:'', email:'marketing@crocobeach.com.br', site:'', obs:'BR NORDESTE CE Fortaleza'},
+    {id:'forn02_108', nome:'Ibis São Luís', tel:'', email:'H7200-RE@accor.com.br', site:'', obs:'BR NORDESTE MA São Luís'},
+    {id:'forn02_109', nome:'Costa Atlântico Hotel', tel:'', email:'reservas@costaatlanticohotel.com.br', site:'', obs:'BR NORDESTE MA São Luís'},
+    {id:'forn02_110', nome:'Abbeville Hotel', tel:'', email:'contato@hotelabbeville.com.br', site:'', obs:'BR NORDESTE MA São Luís'},
+    {id:'forn02_111', nome:'Hotel São Luís', tel:'', email:'comercial@profissionallehotel.com / reservas@profissionallehotel.com', site:'', obs:'BR NORDESTE MA São Luís'},
+    {id:'forn02_112', nome:'Hotel Rio Poty São Luís', tel:'', email:'reservas@riopotysaoluis.com.br', site:'', obs:'BR NORDESTE MA São Luís'},
+    {id:'forn02_113', nome:'Calhau Praia Hotel', tel:'', email:'reservas@calhaupraiahotel.com.br', site:'', obs:'BR NORDESTE MA São Luís'},
+    {id:'forn02_114', nome:'Hotel Stop Way', tel:'', email:'reservas@stopwayhotel.com.br', site:'', obs:'BR NORDESTE MA São Luís'},
+    {id:'forn02_115', nome:'Brisamar Hotel', tel:'', email:'reservas@brisamar.com.br', site:'', obs:'BR NORDESTE MA São Luís'},
+    {id:'forn02_116', nome:'Veleiros Hotel', tel:'', email:'reservas@veleiroshotel.com.br / gerencia.geral@veleiroshotel.com.br', site:'', obs:'BR NORDESTE MA São Luís'},
+    {id:'forn02_117', nome:'Soft Winter Hotel', tel:'', email:'reservas@softwinhotel.com.br', site:'', obs:'BR NORDESTE MA São Luís'},
+    {id:'forn02_118', nome:'Metropolitan Hotel', tel:'', email:'eventos@metropolitanhotel.com.br', site:'', obs:'BR NORDESTE PI Teresina'},
+    {id:'forn02_119', nome:'Ibis Teresina', tel:'', email:'H5031-re@accor.com', site:'', obs:'BR NORDESTE PI Teresina'},
+    {id:'forn02_120', nome:'Arrey Gran Hotel', tel:'', email:'eventos@granhotelarrey.com.br', site:'', obs:'BR NORDESTE PI Teresina'},
+    {id:'forn02_121', nome:'Infinity Tower', tel:'', email:'kkrasauskas@noah.com.br', site:'', obs:'BR SUDESTE SP São Paulo'},
+    {id:'forn02_122', nome:'Villa Blue Tree', tel:'(11) 5026-8798', email:'isouza@noah.com.br', site:'', obs:'BR SUDESTE SP São Paulo (Possui diversas salas)'},
+    {id:'forn02_123', nome:'Blue Tree Premium Verbo Divino', tel:'(11) 5683-4600', email:'eventos.verbodivino@bluetree.com.br', site:'', obs:'BR SUDESTE SP São Paulo (Comporta até 120 pessoas - Auditórios)'},
+    {id:'forn02_124', nome:'Villa Blue Tree Transatlântico', tel:'(11) 97071-8152', email:'isouza@noah.com.br', site:'', obs:'BR SUDESTE SP São Paulo'},
+    {id:'forn02_125', nome:'Moon Palace The Grand', tel:'', email:'lcasagrande@thepalacecompany.com', site:'', obs:'MX Cancún'},
+    {id:'forn02_126', nome:'Sun Palace', tel:'', email:'lcasagrande@thepalacecompany.com', site:'', obs:'MX Cancún'},
+    {id:'forn02_127', nome:'Playacar Palace Riviera Maya', tel:'', email:'lcasagrande@thepalacecompany.com', site:'', obs:'MX Cancún'},
+    {id:'forn02_128', nome:'Moon Palace Sunrise', tel:'', email:'lcasagrande@thepalacecompany.com', site:'', obs:'MX Cancún'},
+    {id:'forn02_129', nome:'Moon Palace Nizuc', tel:'', email:'lcasagrande@thepalacecompany.com', site:'', obs:'MX Cancún'},
+    {id:'forn02_130', nome:'Moon Palace Jamaica', tel:'', email:'lcasagrande@thepalacecompany.com', site:'', obs:'JAM Ocho Rio'},
+    {id:'forn02_131', nome:'Moon Spa & Golf Club', tel:'', email:'lcasagrande@thepalacecompany.com', site:'', obs:'MX Cancún'},
+    {id:'forn02_132', nome:'Le Blanc Spa Resort Cancún', tel:'', email:'lcasagrande@thepalacecompany.com', site:'', obs:'MX Cancún'},
+    {id:'forn02_133', nome:'Le Blanc Spa Resort Los Cabos', tel:'', email:'lcasagrande@thepalacecompany.com', site:'', obs:'MX Los Cabos'},
+    {id:'forn02_134', nome:'Cozumel Palace', tel:'', email:'lcasagrande@thepalacecompany.com', site:'', obs:'MX Cozumel'},
+    {id:'forn02_135', nome:'Beach Palace', tel:'', email:'lcasagrande@thepalacecompany.com', site:'', obs:'MX Cancún'},
+  ];
+  FN_SEED['forn03'] = [
+    {id:'forn03_001', nome:'Brasilia Viagens', tel:'55 61 8208-0051', email:'atendimento@brasiliaviagens.com.br', site:'https://www.brasiliaviagens.com.br', obs:'América Do Sul Argentina fornecedor terrestre de grande porte'},
+    {id:'forn03_002', nome:'Brasilia Viagens', tel:'55 61 8208-0051', email:'atendimento@brasiliaviagens.com.br', site:'https://www.brasiliaviagens.com.br', obs:'África fornecedor terrestre de grande porte'},
+    {id:'forn03_003', nome:'Brasilia Viagens', tel:'55 61 8208-0051', email:'atendimento@brasiliaviagens.com.br', site:'https://www.brasiliaviagens.com.br', obs:'Europa Portugal fornecedor terrestre de grande porte'},
+    {id:'forn03_004', nome:'Brasilia Viagens', tel:'55 61 8208-0051', email:'atendimento@brasiliaviagens.com.br', site:'https://www.brasiliaviagens.com.br', obs:'Asia China, Japão e Coréia fornecedor terrestre de grande porte'},
+    {id:'forn03_005', nome:'Brasilia Viagens', tel:'55 61 8208-0051', email:'atendimento@brasiliaviagens.com.br', site:'https://www.brasiliaviagens.com.br', obs:'Todos os países que falam árabe, grego, turco, hebraico fornecedor terrestre de grande porte'},
+    {id:'forn03_006', nome:'YACANA', tel:'51 908 859 448', email:'', site:'', obs:'PERU'},
+  ];
+  FN_SEED['forn04'] = [
+    {id:'forn04_001', nome:'Hajjat', tel:'962780810530', email:'Isabel@hajjattours.com', site:'', obs:'Oriente Médio e Norte da África: Jordânia, Israel, Egito, Líbano, Emirados Árabes Unidos, Qatar, Arábia Saudita, Marrocos, Omã, Tunísia, Bahrain, Maldivas | Balcãs: Albânia, Bósnia e Herzegovina, Bulgária, Croácia, Grécia, Kosovo, Macedônia do Norte, Montenegro, Romênia, Sérvia, Turquia, Europa e Leste Europeu (diversas opções sob medida, conforme o perfil do grupo) | África: África do Sul, Botsuana, Moçambique, Namíbia, Zâmbia, Zimbábue, Quênia, Tanzânia | Ásia: China, Coreia do Sul, Japão'},
+    {id:'forn04_002', nome:'Amiel', tel:'972-50-7773103', email:'SandraA@amiel.com / RodrigoC@amiel.com', site:'', obs:'Oriente Médio: Israel | Europa: Grécia, Alemanha, Outros países da Europa'},
+    {id:'forn04_003', nome:'Kangaroo', tel:'41 992716160', email:'tamiris.correa@kangaroosul.com.br', site:'', obs:''},
+    {id:'forn04_004', nome:'Conexion Israel', tel:'', email:'marcelo@conexionisrael.com', site:'', obs:'Oriente Médio: Israel, Jordânia, Egito, Turquia, Emirados Árabes Unidos (Dubai) | Europa'},
+  ];
+  FN_SEED['forn05'] = [
+    {id:'forn05_001', nome:'Hotel Kennedy Executive', tel:'(48) 3241-0011', email:'reservas@hotelkennedy.com.br', site:'', obs:'Brasil Campinas Santa Catarina São José (Hotel Fatura)'},
+    {id:'forn05_002', nome:'Hotel Rochelle', tel:'(41) 2103-1100', email:'reservas@hotelroochelle.com.br', site:'', obs:'Brasil Centro Paraná Curitiba (Hotel Fatura)'},
+    {id:'forn05_003', nome:'Novotel Paris Centre Tour Eiffel', tel:'', email:'', site:'', obs:'França Île-de-France Paris (Hotel 4 estrelas. Na frente do rio sena e com quartos com vista para a torre. Ótima localização e estrutura)'},
+    {id:'forn05_004', nome:'Novotel Paris Charles-de-Gaulle Airport', tel:'', email:'', site:'', obs:'França Aeroporto Charles de Gaulle (Hotel dentro do aeroporto, ótimo para quem precisa dormir em Paris para fazer uma conexão. Estrutura excelente)'},
+    {id:'forn05_005', nome:'Hotel Lombardia', tel:'', email:'', site:'', obs:'Itália Toscana Florença (Custo Benefício - 3 estrelas - perto dos principais pontos turísticos e da estação de trem)'},
+    {id:'forn05_006', nome:'Stay Hotel Coimbra Centro', tel:'', email:'', site:'', obs:'Portugal Coimbra (Custo Benefício Excelente Região)'},
+    {id:'forn05_007', nome:'Guest House Infante Dom Henrique', tel:'', email:'', site:'', obs:'Portugal Coimbra (Custo Benefício Excelente Região)'},
+    {id:'forn05_008', nome:'Veneza Hotel', tel:'', email:'', site:'', obs:'Portugal Aveiro (Custo Benefício Excelente Região)'},
+    {id:'forn05_009', nome:'Residencial Palmeira', tel:'', email:'', site:'', obs:'Portugal Aveiro (Custo Benefício Excelente Região)'},
+    {id:'forn05_010', nome:'Dom José by Guestify', tel:'', email:'', site:'', obs:'Portugal Guimarães (Custo Benefício Excelente Região/nota 10 pelos nossos hóspedes)'},
+    {id:'forn05_011', nome:'B&B', tel:'', email:'', site:'', obs:'Portugal Guimarães (Custo Benefício)'},
+    {id:'forn05_012', nome:'Artcore Hotel Porto', tel:'', email:'', site:'', obs:'Portugal Porto (Custo Benefício Excelente Região)'},
+    {id:'forn05_013', nome:'Hotel Porto Interface Trindade by Kavia', tel:'', email:'', site:'', obs:'Portugal Porto (Custo Benefício Excelente Região)'},
+    {id:'forn05_014', nome:'B&B Hotel Porto Gaia', tel:'', email:'', site:'', obs:'Portugal Gaia (Custo Benefício Excelente Região)'},
+    {id:'forn05_015', nome:'Ibis Lisboa José Malhoa', tel:'', email:'', site:'', obs:'Portugal Lisboa (Custo Benefício Próximo aeroporto)'},
+    {id:'forn05_016', nome:'Stay Hotel Lisboa Aeroporto', tel:'', email:'', site:'', obs:'Portugal Lisboa (Custo Benefício Próximo aeroporto)'},
+    {id:'forn05_017', nome:'Vip Executive Saldanha', tel:'', email:'', site:'', obs:'Portugal Lisboa (Custo Benefício Excelente Região)'},
+    {id:'forn05_018', nome:'Sana Rex', tel:'', email:'', site:'', obs:'Portugal Lisboa (Custo Benefício Excelente Região)'},
+    {id:'forn05_019', nome:'Hotel Lisboa', tel:'', email:'', site:'', obs:'Portugal Lisboa (Custo Benefício Excelente Região)'},
+    {id:'forn05_020', nome:'Turim Restauradores', tel:'', email:'', site:'', obs:'Portugal Lisboa (Excelente Região)'},
+    {id:'forn05_021', nome:'Lisbon Serviced Apartments - Campos', tel:'', email:'', site:'', obs:'Portugal Lisboa (Muito Bom - Próximo aeroporto)'},
+    {id:'forn05_022', nome:'Japaratinga - Maragogi (RESORT DE LUXO)', tel:'', email:'', site:'', obs:''},
+    {id:'forn05_023', nome:'Txai Resort - Bahia (RESORT DE LUXO)', tel:'', email:'', site:'', obs:''},
+    {id:'forn05_024', nome:'Kenoa Resort - Alagoas (RESORT DE LUXO)', tel:'', email:'', site:'', obs:''},
+    {id:'forn05_025', nome:'Ma plage hotel Ile de pipa Resort - Rio Grande do Norte (RESORT DE LUXO)', tel:'', email:'', site:'', obs:''},
+    {id:'forn05_026', nome:'Nanai muro alto - Pernambucano (RESORT DE LUXO)', tel:'', email:'', site:'', obs:''},
+    {id:'forn05_027', nome:'Tivoli Ecoresort - Praia do Forte (RESORT DE LUXO)', tel:'', email:'', site:'', obs:''},
+    {id:'forn05_028', nome:'Carmel Charm Resort - Ceará (RESORT DE LUXO)', tel:'', email:'', site:'', obs:''},
+    {id:'forn05_029', nome:'Carmel Cumbuco - Ceará (RESORT DE LUXO)', tel:'', email:'', site:'', obs:''},
+    {id:'forn05_030', nome:'Carmel Taiba Exclusive - Ceará (RESORT DE LUXO)', tel:'', email:'', site:'', obs:''},
+    {id:'forn05_031', nome:'Ai Suma Hotel - Milão (Hotel 3 estrelas)', tel:'', email:'', site:'', obs:'Itália Milão (Custo benefício. Excelente localização)'},
+    {id:'forn05_032', nome:'AxyHotels Inn Style Milano (Hotel 4 estrelas)', tel:'', email:'', site:'', obs:'Itália Milão (Confortável. Excelente localização)'},
+    {id:'forn05_033', nome:'UNAHotels Mediterraneo Milano (Hotel 4 estrelas)', tel:'', email:'', site:'', obs:'Itália Milão (Confortável. Excelente localização)'},
+    {id:'forn05_034', nome:'NH Collection Roma Centro (Hotel 4 estrelas)', tel:'', email:'', site:'', obs:'Itália Roma (Confortável. Excelente localização/serviço)'},
+    {id:'forn05_035', nome:'Hotel Miami Roma (Hotel 3 estrelas)', tel:'', email:'', site:'', obs:'Itália Roma (Ótimo serviço/atendimento. Excelente localização/hospitalidade)'},
+    {id:'forn05_036', nome:'Guangdong Yingbin Hotel (Hotel 4 estrelas)', tel:'510180', email:'', site:'', obs:'China Cantão (Indicação Ezequiel Rabelo. No.603 Jiefang North Road, Yue Xiu, Cantão, China. Localização excelente — pontuação 9.1/10 baseada em 204 comentários)'},
+    {id:'forn05_037', nome:'Hotel Terrado Lyon (Hotel 4 estrelas)', tel:'', email:'', site:'', obs:'Chile Santiago (Ótimo custo benefício/localização. Excelente localização no bairro Providencia)'},
+  ];
+  FN_SEED['forn06'] = [
+    {id:'forn06_001', nome:'Hôtel Carladez Cambronne', tel:'', email:'', site:'', obs:'Hotel | Paris | Relato de más condições de higiene e manutenção no quarto inicial (cheiro forte, limpeza inadequada)'},
+    {id:'forn06_002', nome:'Hotel Las Lunas', tel:'', email:'', site:'', obs:'Hotel | San Andrés | Más condições de conservação e quartos sem janelas'},
+    {id:'forn06_003', nome:'Hotel Rede Andrade Vela Branca', tel:'', email:'', site:'', obs:'Hotel | Recife | Banheiro com mofo e colchões ruins'},
+  ];
+  FN_SEED['forn07'] = [
+    {id:'forn07_001', nome:'Mendonza Holidays', tel:'54 9 2615 02-0141', email:'agencias@mendonzaholidays.com', site:'', obs:'Argentina'},
+    {id:'forn07_002', nome:'Soy Cancún', tel:'52 1 998 359 8186', email:'', site:'', obs:'Brasil México Quintana Roo Cancún'},
+    {id:'forn07_003', nome:'Canarinhos Tour | Cancun', tel:'52 1 998 162 9866', email:'', site:'', obs:'México Quintana Roo Cancún'},
+    {id:'forn07_004', nome:'Tio Nene Cancun', tel:'52 1 998 844 5634', email:'', site:'', obs:'México Quintana Roo Cancún'},
+    {id:'forn07_005', nome:'Punta Cana em Português', tel:'55 11 98928-7473', email:'', site:'', obs:'Punta Cana Punta Cana'},
+    {id:'forn07_006', nome:'DR Transfer and Tour', tel:'1 829 902-2245', email:'', site:'', obs:'Punta Cana Punta Cana'},
+    {id:'forn07_007', nome:'Sacbe Transfer', tel:'52 998 168-7548', email:'', site:'', obs:'Punta Cana'},
+    {id:'forn07_008', nome:'Vegas Tour', tel:'1 (702) 465-2787', email:'', site:'', obs:'EUA Nevada Las Vegas'},
+    {id:'forn07_009', nome:'Grupo Vem Pra Vegas', tel:'1 (725) 266-0360', email:'', site:'', obs:'EUA Nevada Las Vegas'},
+    {id:'forn07_010', nome:'Conect Vegas - Mariana', tel:'1 (843) 301-9100', email:'', site:'', obs:'EUA Nevada Las Vegas'},
+    {id:'forn07_011', nome:'Vegas Brazil - DMC Vegas', tel:'1 (702) 883-3536', email:'', site:'', obs:'EUA Nevada Las Vegas'},
+    {id:'forn07_012', nome:'Eu Na Gringa - Rodrigo', tel:'1 (702) 756-6454', email:'', site:'', obs:'EUA Nevada Las Vegas (faz mais cidades dos EUA)'},
+  ];
+  FN_SEED['forn08'] = [
+    {id:'forn08_001', nome:'MB Aero', tel:'11 96252 3162', email:'', site:'', obs:'Brasil Sudeste São Paulo Bilíngue'},
+    {id:'forn08_002', nome:'Mariana alimari', tel:'11 98242 5494', email:'', site:'', obs:'Brasil Sudeste São Paulo Bilíngue'},
+  ];
+  FN_SEED['forn09'] = [
+    {id:'forn09_001', nome:'João Trips', tel:'55 85 99687-1136', email:'joaotrips.mkt@gmail.com', site:'', obs:'Chile (Também faz Passeios Turísticos - Brasileiro)'},
+    {id:'forn09_002', nome:'Roby', tel:'54 9 2615 05-1766', email:'', site:'', obs:'Argentina Argentina (Também opera no Chile)'},
+    {id:'forn09_003', nome:'Murilo', tel:'55 21 96500 0149', email:'', site:'', obs:'Brasil Sudeste Rio de Janeiro'},
+    {id:'forn09_004', nome:'Reinaldo (Exatus Vip Rio)', tel:'55 21 99391 1939', email:'', site:'', obs:'Brasil Sudeste Rio de Janeiro'},
+    {id:'forn09_005', nome:'Exatus Vip (Sr. Farias)', tel:'55 19 97411-5360', email:'', site:'', obs:'Brasil Sudeste São Paulo'},
+    {id:'forn09_006', nome:'Seu Transfer', tel:'55 11 98992-3806', email:'agende@seutransfer.com.br', site:'', obs:'Brasil Sudeste São Paulo'},
+    {id:'forn09_007', nome:'Neotur', tel:'55 11 96902 5861', email:'', site:'', obs:'Brasil Sudeste São Paulo (excelente atendimento)'},
+    {id:'forn09_008', nome:'Blue Turismo', tel:'55 11 98011 9900', email:'', site:'', obs:'Brasil Sudeste São Paulo (excelente atendimento)'},
+    {id:'forn09_009', nome:'Alexander', tel:'55 11 99927 2911', email:'', site:'', obs:'Brasil Sudeste São Paulo (excelente atendimento - carro 07 lugares e acessórios para crianças / faz city tour também)'},
+    {id:'forn09_010', nome:'Luis Carlos (Taxi)', tel:'55 73 99110-3532', email:'', site:'', obs:'Brasil Nordeste Bahia Porto Seguro'},
+    {id:'forn09_011', nome:'Bahia Litoral', tel:'55 71 99920-4432', email:'', site:'', obs:'Brasil Nordeste Bahia (Fazem para regiões mais longe)'},
+    {id:'forn09_012', nome:'Luck Receptivo Salvador', tel:'55 71 99642-7913', email:'', site:'', obs:'Brasil Nordeste Bahia Salvador (Fazem para regiões mais longe)'},
+    {id:'forn09_013', nome:'Book Transfer', tel:'55 71 99666-4410', email:'', site:'', obs:'Brasil Nordeste Bahia (Fazem para regiões mais longe)'},
+    {id:'forn09_014', nome:'Book Transfer', tel:'55 71 99666-4410', email:'', site:'', obs:'Brasil Sudeste Rio de Janeiro'},
+    {id:'forn09_015', nome:'Book Transfer', tel:'55 71 99666-4410', email:'', site:'', obs:'Brasil Nordeste Alagoas'},
+    {id:'forn09_016', nome:'Book Transfer', tel:'55 71 99666-4410', email:'', site:'', obs:'Brasil Nordeste Pernambuco'},
+    {id:'forn09_017', nome:'Book Transfer', tel:'55 71 99666-4410', email:'', site:'', obs:'Brasil Sudeste São Paulo'},
+    {id:'forn09_018', nome:'Book Transfer', tel:'55 71 99666-4410', email:'', site:'', obs:'Brasil Centro-Oeste Brasília'},
+    {id:'forn09_019', nome:'Book Transfer', tel:'55 71 99666-4410', email:'', site:'', obs:'Brasil Sul Rio Grande do Sul'},
+    {id:'forn09_020', nome:'Book Transfer', tel:'55 71 99666-4410', email:'', site:'', obs:'Brasil Centro-Oeste Mato Grosso'},
+    {id:'forn09_021', nome:'Punta Cana em Português', tel:'55 11 98928-7473', email:'', site:'', obs:'Punta Cana Punta Cana'},
+    {id:'forn09_022', nome:'DR Transfer and Tour', tel:'1 829 902-2245', email:'', site:'', obs:'Punta Cana Punta Cana'},
+    {id:'forn09_023', nome:'Sacbe Transfer', tel:'52 998 168-7548', email:'', site:'', obs:'Punta Cana'},
+    {id:'forn09_024', nome:'Vegas Tour', tel:'1 (702) 465-2787', email:'', site:'', obs:'EUA Nevada Las Vegas'},
+    {id:'forn09_025', nome:'Grupo Vem Pra Vegas', tel:'1 (725) 266-0360', email:'', site:'', obs:'EUA Nevada Las Vegas'},
+    {id:'forn09_026', nome:'Conect Vegas - Mariana', tel:'1 (843) 301-9100', email:'', site:'', obs:'EUA Nevada Las Vegas'},
+    {id:'forn09_027', nome:'Vegas Brazil - DMC Vegas', tel:'1 (702) 883-3536', email:'', site:'', obs:'EUA Nevada Las Vegas'},
+    {id:'forn09_028', nome:'Eu Na Gringa - Rodrigo', tel:'1 (702) 756-6454', email:'', site:'', obs:'EUA Nevada Las Vegas (faz mais cidades dos EUA)'},
+    {id:'forn09_029', nome:'Transfer Porto de Galinhas', tel:'55 (81) 99975-3828', email:'', site:'', obs:'Brasil Nordeste Pernambuco Recife e regiões (Pode fazer orçamento saindo de um endereço específico, não somente saindo do aeroporto para um hotel em Recife mesmo)'},
+    {id:'forn09_030', nome:'Autobless Transporte e Turismo', tel:'55 48 99152 3295', email:'', site:'', obs:'Brasil Sul Santa Catarina Florianópolis (Vans executivas também, empresa Cristã)'},
+    {id:'forn09_031', nome:'Xande Turismo', tel:'55 48 98452-6522', email:'', site:'', obs:'Brasil Sul Santa Catarina Florianópolis'},
+    {id:'forn09_032', nome:'Alexandre Turismo', tel:'55 48 99972-0039', email:'', site:'', obs:'Brasil Sul Santa Catarina Florianópolis'},
+    {id:'forn09_033', nome:'Bren Tur', tel:'55 48 99163-6637', email:'', site:'', obs:'Brasil Sul Santa Catarina Florianópolis'},
+    {id:'forn09_034', nome:'Sjr Transporte Executivo', tel:'55 48 99957-1963', email:'', site:'', obs:'Brasil Sul Santa Catarina Florianópolis'},
+    {id:'forn09_035', nome:'Fln Transfer Executivo e Turismo', tel:'55 48 98822-2934', email:'', site:'', obs:'Brasil Sul Santa Catarina Florianópolis'},
+    {id:'forn09_036', nome:'BC Transfer', tel:'55 47 98915-5355', email:'', site:'', obs:'Brasil Sul Santa Catarina Balneário Camboriú'},
+    {id:'forn09_037', nome:'Padrinho Cirino Turismo - Lucas', tel:'55 47 99260-2148', email:'', site:'', obs:'Brasil Sul Santa Catarina Balneário Camboriú'},
+    {id:'forn09_038', nome:'Transptur Turismo', tel:'55 47 99925-4554', email:'', site:'', obs:'Brasil Sul Santa Catarina Balneário Camboriú'},
+    {id:'forn09_039', nome:'', tel:'351 910044900', email:'', site:'', obs:'Portugal Drive Way - Tours Portugal'},
+    {id:'forn09_040', nome:'Fabio Torrão Transfer Lisboa', tel:'351 969202954', email:'', site:'', obs:'Portugal Lisboa'},
+    {id:'forn09_041', nome:'Samuel Pascoal Motorista Lisboa', tel:'351 920019548', email:'', site:'', obs:'Portugal Lisboa'},
+    {id:'forn09_042', nome:'Ivanildo e Júnior - Taxi Campinas', tel:'55 19 97420-1961', email:'', site:'', obs:'Brasil Sudeste São Paulo Campinas (Taxi em Campinas que tem cadeirinha de bebê)'},
+    {id:'forn09_043', nome:'Circuitos de', tel:'52 811 556 5847', email:'', site:'', obs:'Mexico México Cidade do México D.F. Cidade do México (Transfer do aeroporto para hotéis na cidade do México)'},
+    {id:'forn09_044', nome:'Madame Transfert', tel:'55 31 99349-4584', email:'', site:'', obs:'França Paris (Oferece diferentes passeios pela França e também possui translado para a Alemanha, Itália, Reino Unido e Bélgica)'},
+    {id:'forn09_045', nome:'Rômulo Klug - transporte executivo', tel:'48 99912-5697', email:'rksegpessoal@hotmail.com', site:'', obs:'Brasil Sul Santa Catarina Florianópolis'},
+    {id:'forn09_046', nome:'1001 Transportation', tel:'1 407-946-0011', email:'info@1001Limo.com / turismo@1001transportation.com', site:'', obs:'/ EUA Florida Miami (Uma das mais tradicionais na Flórida. Alta avaliação no TripAdvisor)'},
+    {id:'forn09_047', nome:'Everglades Transport', tel:'1 (561) 647-1329', email:'dispatch@evergladestransport.com', site:'', obs:'EUA Florida Miami (Focada em transfers privativos e receptivos nos aeroportos MIA e FLL e portos)'},
+    {id:'forn09_048', nome:'Town Car Brazil', tel:'1 (508) 296-5857', email:'contact@towncar.com.br', site:'', obs:'EUA Florida Miami (Serviço de alto padrão - VIP)'},
+    {id:'forn09_049', nome:'Execucar Miami', tel:'1 (786) 704-3365', email:'execucarmiami@gmail.com', site:'', obs:'EUA Florida Miami (Braço executivo de luxo)'},
+    {id:'forn09_050', nome:'Mears Transportation', tel:'1 (855) 463-2776 / 1 (407) 839-1570', email:'esales@mears.com', site:'', obs:'EUA Florida Miami (Boa nota no TripAdvisor)'},
+    {id:'forn09_051', nome:'Miami Van Service', tel:'1 (305) 574-9898 / 1 (305) 714-0148', email:'booking@miamitransportations.com', site:'', obs:'EUA Florida Miami (Especializada em grupos grandes)'},
+    {id:'forn09_052', nome:'Wagner Transfer - Taxi Guarulhos', tel:'55 11 96493-6611', email:'', site:'', obs:'Brasil Sudeste São Paulo Guarulhos (Transfer do aeroporto para hotéis e cidades de São Paulo)'},
+  ];
+  FN_SEED['forn10'] = [
+    {id:'forn10_001', nome:'Sou Vistos', tel:'55 18 99660-0035', email:'contato@sosvistosoficial.com', site:'', obs:'México Também fazem para os EUA e Canadá'},
+    {id:'forn10_002', nome:'Visto Prático', tel:'55 48 99131-9429', email:'', site:'', obs:'EUA Também fazem Europa e Canadá'},
+  ];
+
+  var FN_CAMPOS = ['nome','tel','email','site','obs'];
+
+  /* ---------------------------------------------------------------
+     CAMADA DE DADOS por categoria: appConfig.fornecedores = {
+       forn01: { id:{nome,tel,email,site,obs,ts,del}, ... }, forn02: {...}, ...
+     }. Mesmo desenho de eqStore/eqLista/eqSet/eqDel da Equipe (·229),
+     só que indexado também pela categoria.
+     --------------------------------------------------------------- */
+  function fnStore(cat){
+    if(!appConfig.fornecedores || typeof appConfig.fornecedores!=='object') appConfig.fornecedores={};
+    if(!appConfig.fornecedores[cat] || typeof appConfig.fornecedores[cat]!=='object') appConfig.fornecedores[cat]={};
+    return appConfig.fornecedores[cat];
+  }
+  function fnLista(cat){
+    var seed=FN_SEED[cat]||[], ed=fnStore(cat), vistos={}, out=[];
+    seed.forEach(function(p){
+      var e=ed[p.id]||{};
+      if(e.del){ vistos[p.id]=1; return; }
+      var o={id:p.id};
+      FN_CAMPOS.forEach(function(c){ o[c]=(e[c]!==undefined? e[c] : p[c])||''; });
+      vistos[p.id]=1; out.push(o);
+    });
+    Object.keys(ed).forEach(function(id){
+      if(vistos[id]) return;
+      var e=ed[id]||{}; if(e.del) return;
+      var o={id:id}; FN_CAMPOS.forEach(function(c){ o[c]=e[c]||''; });
+      if(!o.nome) return;
+      out.push(o);
+    });
+    return out;
+  }
+  window.UV_FORN_LISTA = fnLista;
+
+  function fnSet(cat, id, campo, valor){
+    if(FN_CAMPOS.indexOf(campo)<0) return;
+    var ed=fnStore(cat);
+    var seed=FN_SEED[cat]||[], base=null;
+    for(var i=0;i<seed.length;i++){ if(seed[i].id===id){ base=seed[i]; break; } }
+    var atual=ed[id]||{};
+    var novo={ts:Date.now(), del:0};
+    FN_CAMPOS.forEach(function(c){ novo[c]=(atual[c]!==undefined ? atual[c] : (base?base[c]:'')) || ''; });
+    novo[campo]=(valor==null?'':String(valor)).slice(0,600);
+    ed[id]=novo;
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+    try{ if(typeof logRemoto==='function') logRemoto('fornecedores','Ficha de '+(novo.nome||'(sem nome)')+' editada ('+campo+')',{area:'Fornecedores', cat:cat, id:id}); }catch(e){}
+  }
+  function fnNovo(cat){
+    var ed=fnStore(cat);
+    var id=cat+'_novo'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+    var o={ts:Date.now(), del:0}; FN_CAMPOS.forEach(function(c){ o[c]=''; });
+    o.nome='Novo fornecedor';
+    ed[id]=o;
+    fnFocarNovo=id;
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+    try{ if(typeof logRemoto==='function') logRemoto('fornecedores','Novo fornecedor criado em '+cat,{area:'Fornecedores', cat:cat, id:id}); }catch(e){}
+    window.renderForn(cat);
+  }
+  function fnDel(cat, id){
+    var ed=fnStore(cat);
+    var nome=''; fnLista(cat).forEach(function(p){ if(p.id===id) nome=p.nome; });
+    var o=ed[id]||{}; o.del=1; o.ts=Date.now(); ed[id]=o;
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+    try{ if(typeof logRemoto==='function') logRemoto('fornecedores','Fornecedor '+(nome||id)+' removido de '+cat,{area:'Fornecedores', cat:cat, id:id}); }catch(e){}
+    window.renderForn(cat);
+  }
+  /* Merge multi-PC — MESMA forma de eqMergeMaps, só que em DOIS NÍVEIS
+     (categoria, depois id-dentro-da-categoria), porque appConfig.fornecedores
+     agrupa as 10 categorias num único objeto. */
+  window.fnMergeMaps=function(a,b){
+    a=a||{}; b=b||{}; var out={}, cats={};
+    Object.keys(a).forEach(function(k){cats[k]=1;}); Object.keys(b).forEach(function(k){cats[k]=1;});
+    Object.keys(cats).forEach(function(cat){
+      var ma=a[cat]||{}, mb=b[cat]||{}, mo={}, ids={};
+      Object.keys(ma).forEach(function(k){ids[k]=1;}); Object.keys(mb).forEach(function(k){ids[k]=1;});
+      Object.keys(ids).forEach(function(id){
+        var x=ma[id], y=mb[id];
+        mo[id]=(x&&y)?(((x.ts||0)>=(y.ts||0))?x:y):(x||y);
+      });
+      out[cat]=mo;
+    });
+    return out;
+  };
+  window.UV_FN_STORE = fnStore;
+
+  var fnBuscaTxt={}, fnEditando={}, fnFocarNovo=null;
+
+  /* ---------------------------------------------------------------
+     TELA GENÉRICA — as 10 subpastas chamam a MESMA função, passando
+     só a chave da categoria; evita 10 cópias quase idênticas da
+     mesma tela (e 10 lugares para uma correção futura esquecer).
+     --------------------------------------------------------------- */
+  window.renderForn=function(cat){
+    var meta=null; for(var i=0;i<FN_CATS.length;i++){ if(FN_CATS[i].chave===cat){ meta=FN_CATS[i]; break; } }
+    if(!meta) return;
+    var w=document.getElementById(meta.sid+'Wrap'); if(!w) return;
+    var editando=!!fnEditando[cat];
+    var todos=fnLista(cat);
+    var q=fnNorm(fnBuscaTxt[cat]||'');
+    var lista=todos.filter(function(p){
+      if(!q) return true;
+      if(fnNorm(p.nome).indexOf(q)>=0) return true;
+      if(fnNorm(p.email).indexOf(q)>=0) return true;
+      if(fnNorm(p.obs).indexOf(q)>=0) return true;
+      var dig=q.replace(/\D/g,'');
+      if(dig && (p.tel||'').replace(/\D/g,'').indexOf(dig)>=0) return true;
+      return false;
+    }).sort(function(a,b){ return fnNorm(a.nome).localeCompare(fnNorm(b.nome),'pt-BR'); });
+
+    function campoLeitura(rot, val, largo, ehLink){
+      var vazio=!val;
+      var conteudo = (!vazio && ehLink)
+        ? '<a href="'+fnEsc(val.indexOf('http')===0?val:'https://'+val)+'" target="_blank" rel="noopener" class="fn-val">'+fnEsc(val)+'</a>'
+        : '<span class="fn-val'+(vazio?' fn-vazio':'')+'">'+fnEsc(vazio?'\u2014':val)+'</span>';
+      return '<div class="fn-campo'+(largo?' fn-campo-largo':'')+'">'+
+        '<span class="fn-rot">'+fnEsc(rot)+'</span>'+conteudo+'</div>';
+    }
+    function campoEdicao(rot, id, campo, val, ph, largo){
+      return '<div class="fn-campo'+(largo?' fn-campo-largo':'')+'">'+
+        '<span class="fn-rot">'+fnEsc(rot)+'</span>'+
+        '<input type="text" class="fn-inp" data-fn-cat="'+fnEsc(cat)+'" data-fn-id="'+fnEsc(id)+'" '+
+          'data-fn-campo="'+campo+'" value="'+fnEsc(val)+'" placeholder="'+fnEsc(ph||'')+'"></div>';
+    }
+
+    var cards = lista.length ? lista.map(function(p){
+      var cab, corpo;
+      if(editando){
+        cab='<div class="fn-l1">'+
+              '<input type="text" class="fn-inp fn-inp-nome" data-fn-cat="'+fnEsc(cat)+'" data-fn-id="'+fnEsc(p.id)+'" '+
+                'data-fn-campo="nome" value="'+fnEsc(p.nome)+'" placeholder="Nome do fornecedor">'+
+              '<button type="button" class="fn-del" data-fn-del-cat="'+fnEsc(cat)+'" data-fn-del="'+fnEsc(p.id)+'" '+
+                'title="Remover este fornecedor">\ud83d\uddd1</button>'+
+            '</div>';
+        corpo='<div class="fn-dados">'+
+          campoEdicao('Telefone / WhatsApp', p.id, 'tel', p.tel, '(00) 00000-0000')+
+          campoEdicao('E-mail', p.id, 'email', p.email, 'contato@fornecedor.com')+
+          campoEdicao('Site', p.id, 'site', p.site, 'https://...')+
+          campoEdicao('Observa\u00e7\u00f5es (local, regi\u00e3o, particularidades)', p.id, 'obs', p.obs, '', true)+
+        '</div>';
+      } else {
+        cab='<div class="fn-l1"><span class="fn-nome">'+fnEsc(p.nome)+'</span></div>';
+        corpo='<div class="fn-dados">'+
+          campoLeitura('Telefone / WhatsApp', p.tel)+
+          campoLeitura('E-mail', p.email)+
+          campoLeitura('Site', p.site, false, true)+
+          campoLeitura('Observa\u00e7\u00f5es', p.obs, true)+
+        '</div>';
+      }
+      return '<div class="fn-card'+(editando?' fn-editando':'')+'" data-fn-card-cat="'+fnEsc(cat)+'" data-fn-card="'+fnEsc(p.id)+'">'+cab+corpo+'</div>';
+    }).join('') : '<div class="fn-vazio-lista">Nenhum fornecedor encontrado'+(q?' para essa busca':' nesta pasta')+'.</div>';
+
+    w.innerHTML =
+      '<div class="fn-head">'+
+        '<div><h2 class="fn-title"><span class="fn-ic">\ud83d\udce6</span> '+fnEsc(meta.titulo)+'</h2>'+
+        '<div class="fn-sub">'+todos.length+' fornecedor'+(todos.length===1?'':'es')+' cadastrado'+(todos.length===1?'':'s')+'</div></div>'+
+        '<div class="fn-acoes">'+
+          (editando?'<button type="button" class="fn-bt primario" data-fn-novo="'+fnEsc(cat)+'">+ Adicionar fornecedor</button>':'')+
+          '<button type="button" class="fn-bt'+(editando?' on':'')+'" data-fn-editar="'+fnEsc(cat)+'">'+
+            (editando?'\u2713 Concluir edi\u00e7\u00e3o':'\u270f\ufe0f Editar')+'</button>'+
+        '</div>'+
+      '</div>'+
+      (editando?'<div class="fn-aviso-ed">\u270f\ufe0f Modo de edi\u00e7\u00e3o ativo \u2014 tudo o que voc\u00ea alterar \u00e9 salvo sozinho e aparece nos outros computadores em segundos.</div>':'')+
+      '<div class="fn-toolbar">'+
+        '<input type="text" class="fn-busca" data-fn-busca="'+fnEsc(cat)+'" placeholder="Buscar por nome, telefone, e-mail ou observa\u00e7\u00e3o..." value="'+fnEsc(fnBuscaTxt[cat]||'')+'">'+
+        '<span class="fn-cont">'+lista.length+' de '+todos.length+'</span>'+
+      '</div>'+
+      '<div class="fn-grid">'+cards+'</div>';
+
+    var b=w.querySelector('[data-fn-busca]');
+    if(b && fnBuscaTxt[cat]){ try{ b.focus(); b.setSelectionRange(b.value.length,b.value.length); }catch(e){} }
+    if(fnFocarNovo && cat===fnFocarNovo.split('_')[0]+ (fnFocarNovo.indexOf(cat)===0?'':'')){}
+    if(fnFocarNovo && fnFocarNovo.indexOf(cat+'_novo')===0){
+      var alvo=w.querySelector('[data-fn-card="'+fnFocarNovo+'"] .fn-inp-nome');
+      fnFocarNovo=null;
+      if(alvo){ try{ alvo.scrollIntoView({block:'center'}); alvo.focus(); alvo.select(); }catch(e){} }
+    }
+  };
+
+  document.addEventListener('input', function(e){
+    var t=e.target; if(!t) return;
+    if(t.hasAttribute && t.hasAttribute('data-fn-busca')){
+      var cat=t.getAttribute('data-fn-busca'); fnBuscaTxt[cat]=t.value; window.renderForn(cat); return;
+    }
+    if(t.classList && t.classList.contains('fn-inp')){
+      var cat2=t.getAttribute('data-fn-cat'), id=t.getAttribute('data-fn-id'), c=t.getAttribute('data-fn-campo');
+      if(cat2 && id && c) fnSet(cat2, id, c, t.value);
+    }
+  });
+  document.addEventListener('click', function(e){
+    if(!e.target || !e.target.closest) return;
+    var ed=e.target.closest('[data-fn-editar]');
+    if(ed){ var cat=ed.getAttribute('data-fn-editar'); fnEditando[cat]=!fnEditando[cat]; window.renderForn(cat); return; }
+    var nv=e.target.closest('[data-fn-novo]');
+    if(nv){ fnNovo(nv.getAttribute('data-fn-novo')); return; }
+    var d=e.target.closest('[data-fn-del]');
+    if(d){
+      var cat3=d.getAttribute('data-fn-del-cat'), id3=d.getAttribute('data-fn-del');
+      var nome=''; fnLista(cat3).forEach(function(p){ if(p.id===id3) nome=p.nome; });
+      if(window.confirm('Remover '+(nome||'este fornecedor')+' desta pasta?')) fnDel(cat3, id3);
+      return;
+    }
+  });
 })();
 </script>
 </body>
