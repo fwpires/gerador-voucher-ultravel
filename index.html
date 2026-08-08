@@ -825,6 +825,39 @@ body.dark .fn-card{background:rgba(255,255,255,.04)}
 .fn-del:hover{background:rgba(224,34,34,.15);border-color:#e02222;color:#e02222}
 .fn-vazio-lista{color:var(--texto-suave);font-size:13px;font-style:italic;padding:24px;text-align:center}
 
+/* ============================================================
+   (·235) CONTATOS — pastas-ficheiro coloridas, estilo skeuomórfico
+   (aba no topo + corpo com degradê + brilho), no espírito da
+   referência que o Nando mandou. Cada pasta usa DUAS variáveis CSS
+   (--ct-a claro / --ct-b escuro), calculadas em JS a partir de UMA
+   cor só por categoria — não pedimos duas cores por pasta.
+   ============================================================ */
+.ct-voltar{background:none;border:none;color:var(--azul);font-size:13px;font-weight:800;cursor:pointer;padding:0 0 14px;display:inline-flex;align-items:center;gap:4px}
+.ct-voltar:hover{text-decoration:underline}
+.ct-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:22px 18px;padding:6px 2px 20px}
+.ct-folder-btn{position:relative;border:none;background:none;padding:14px 0 0;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;transition:transform .15s}
+.ct-folder-btn:not([disabled]):hover{transform:translateY(-3px)}
+.ct-folder-btn[disabled]{cursor:default;opacity:.55}
+.ct-folder-tab{width:44%;height:16px;align-self:flex-start;margin-left:10%;background:var(--ct-a);border-radius:8px 8px 0 0;box-shadow:0 -1px 0 rgba(0,0,0,.08) inset}
+.ct-folder-body{width:100%;aspect-ratio:4/3;border-radius:12px;background:linear-gradient(160deg,var(--ct-a),var(--ct-b));box-shadow:inset 0 -14px 22px rgba(0,0,0,.18),inset 0 2px 0 rgba(255,255,255,.25),0 6px 14px rgba(0,0,0,.28);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;position:relative;overflow:hidden}
+.ct-folder-shine{position:absolute;top:8%;left:6%;width:60%;height:30%;background:rgba(255,255,255,.22);border-radius:50%;filter:blur(6px);pointer-events:none}
+.ct-folder-label{color:#fff;font-weight:900;font-size:13.5px;text-align:center;padding:0 12px;text-shadow:0 1px 3px rgba(0,0,0,.35);line-height:1.25;word-break:break-word}
+.ct-folder-qtd{color:rgba(255,255,255,.85);font-size:11px;font-weight:800;text-shadow:0 1px 2px rgba(0,0,0,.3)}
+.ct-pencil{position:absolute;top:22px;right:6px;z-index:2;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.4);border-radius:8px;width:26px;height:26px;font-size:12px;cursor:pointer;color:#fff}
+.ct-pencil:hover{background:rgba(0,0,0,.55)}
+.ct-nova-pasta{border:2px dashed var(--borda-forte);border-radius:12px;background:transparent;color:var(--texto-suave);font-size:12.5px;font-weight:800;cursor:pointer;aspect-ratio:4/3;margin-top:16px;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.4;transition:all .15s}
+.ct-nova-pasta:hover{border-color:var(--azul);color:var(--azul);background:var(--azul-claro)}
+.ct-folder-edit{width:100%;background:var(--card);border:1px solid var(--borda);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px;margin-top:16px}
+body.dark .ct-folder-edit{background:rgba(255,255,255,.04)}
+.ct-edit-nome{width:100%;box-sizing:border-box;background:transparent;border:1px solid var(--borda);border-radius:8px;color:var(--texto);font-size:13px;font-weight:800;padding:8px 10px;outline:none;font-family:inherit}
+.ct-edit-nome:focus{border-color:var(--azul);background:var(--azul-claro)}
+.ct-edit-cores{display:flex;flex-wrap:wrap;gap:7px}
+.ct-swatch{width:26px;height:26px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0}
+.ct-swatch.on{border-color:var(--texto)}
+.ct-swatch:hover{transform:scale(1.12)}
+.ct-edit-ok{align-self:flex-end;border:none;background:linear-gradient(180deg,var(--azul),var(--azul-escuro));color:#fff;border-radius:9px;padding:7px 14px;font-size:12.5px;font-weight:800;cursor:pointer}
+
+
 
 /* ============================================================
    (·229) CARD DE ANIVERSÁRIO no Control Desk. Fica ACIMA da
@@ -2951,19 +2984,6 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
 
         <button class="nav-item" data-screen="cabeca"><span class="nav-ic nav-ic-cr"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#ff7d1a" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12L12 2M12 12L19 5M12 12L22 12M12 12L19 19M12 12L12 22M12 12L5 19M12 12L2 12M12 12L5 5"/><path d="M12 7.5L15.2 8.8L16.5 12L15.2 15.2L12 16.5L8.8 15.2L7.5 12L8.8 8.8Z"/><path d="M12 4.5L17.3 6.7L19.5 12L17.3 17.3L12 19.5L6.7 17.3L4.5 12L6.7 6.7Z"/></svg></span><span>Cabeça de Rede</span></button>
         <button class="nav-item" data-screen="equipe"><span class="nav-ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#12B0FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 19v-1.6a3.2 3.2 0 0 0-3.2-3.2H6.2A3.2 3.2 0 0 0 3 17.4V19"/><circle cx="9.5" cy="7.4" r="3.2"/><path d="M21 19v-1.6a3.2 3.2 0 0 0-2.4-3.1"/><path d="M15.4 4.4a3.2 3.2 0 0 1 0 6.1"/></svg></span><span>Equipe</span></button>
-<button class="nav-item open" data-tree="fornecedores"><span class="nav-ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#f0a500" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l2-3h14l2 3"/><path d="M3 7v12a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V7"/><path d="M3 7h18"/><path d="M9 12h6"/></svg></span><span>Fornecedores</span><b class="nav-caret">▾</b></button>
-        <div class="nav-children show" data-tree-body="fornecedores">
-          <button class="nav-item nav-sub" data-screen="fn-cias">Cias Aéreas</button>
-          <button class="nav-item nav-sub" data-screen="fn-eventos">Eventos</button>
-          <button class="nav-item nav-sub" data-screen="fn-gerais">Gerais</button>
-          <button class="nav-item nav-sub" data-screen="fn-grupos">Grupos</button>
-          <button class="nav-item nav-sub" data-screen="fn-hosp">Hospedagem</button>
-          <button class="nav-item nav-sub" data-screen="fn-naoind">Não Indicamos</button>
-          <button class="nav-item nav-sub" data-screen="fn-passeios">Passeios</button>
-          <button class="nav-item nav-sub" data-screen="fn-receptivo">Receptivo</button>
-          <button class="nav-item nav-sub" data-screen="fn-transfer">Transfer</button>
-          <button class="nav-item nav-sub" data-screen="fn-visto">Visto</button>
-        </div>
         <button class="nav-item open" data-tree="comercial"><span class="nav-ic">📣</span><span>Comercial</span><b class="nav-caret">▾</b></button>
         <div class="nav-children show" data-tree-body="comercial">
           <button class="nav-item nav-sub" data-screen="acoes"><span>Ações Comerciais</span></button>
@@ -2971,6 +2991,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
         <button class="nav-item open" data-tree="matriz"><span class="nav-ic nav-ic-mx"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#2ec7a5" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="9.5" x2="21" y2="9.5"/><line x1="9" y1="9.5" x2="9" y2="20"/><line x1="15" y1="9.5" x2="15" y2="20"/></svg></span><span>Matriz Operacional</span><b class="nav-caret">▾</b></button>
         <div class="nav-children show" data-tree-body="matriz">
           <button class="nav-item nav-sub" data-screen="matriz"><span>Fornecedor</span></button>
+          <button class="nav-item nav-sub" data-screen="contatos"><span>Contatos</span></button>
           <button class="nav-item nav-sub" data-screen="cliente"><span>Cliente</span></button>
           <button class="nav-item nav-sub" data-screen="cartoes"><span>Cartões de Crédito</span></button>
           <button class="nav-item nav-sub" data-screen="cias"><span>Cias Aéreas</span></button>
@@ -3284,35 +3305,8 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
       <section class="screen" id="scr-equipe">
         <div id="equipeWrap"></div>
       </section>
-      <section class="screen" id="scr-fn-cias">
-        <div id="fn-ciasWrap"></div>
-      </section>
-      <section class="screen" id="scr-fn-eventos">
-        <div id="fn-eventosWrap"></div>
-      </section>
-      <section class="screen" id="scr-fn-gerais">
-        <div id="fn-geraisWrap"></div>
-      </section>
-      <section class="screen" id="scr-fn-grupos">
-        <div id="fn-gruposWrap"></div>
-      </section>
-      <section class="screen" id="scr-fn-hosp">
-        <div id="fn-hospWrap"></div>
-      </section>
-      <section class="screen" id="scr-fn-naoind">
-        <div id="fn-naoindWrap"></div>
-      </section>
-      <section class="screen" id="scr-fn-passeios">
-        <div id="fn-passeiosWrap"></div>
-      </section>
-      <section class="screen" id="scr-fn-receptivo">
-        <div id="fn-receptivoWrap"></div>
-      </section>
-      <section class="screen" id="scr-fn-transfer">
-        <div id="fn-transferWrap"></div>
-      </section>
-      <section class="screen" id="scr-fn-visto">
-        <div id="fn-vistoWrap"></div>
+      <section class="screen" id="scr-contatos">
+        <div id="contatosWrap"></div>
       </section>
 
       <section class="screen" id="scr-acoes">
@@ -3883,7 +3877,7 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 234;
+var UV_BUILD_NUM = 235;
 const UV_BUILD='HUB-v3\u00b7'+UV_BUILD_NUM;
 try{ console.info('%c[Hub Ultravel] build '+UV_BUILD, 'color:#6FBAFF;font-weight:bold'); }catch(e){}
 try{
@@ -4095,6 +4089,10 @@ async function carregarConfig(){
       }
       if(typeof window.fnMergeMaps==='function'){          // (·234) Fornecedores
         appConfig.fornecedores=window.fnMergeMaps(local.fornecedores, c.fornecedores);
+      }
+      /* (·235) CONTATOS — pastas-ficheiro (nome+cor); mesma proteção de união. */
+      if(typeof window.ctCatsMergeMaps==='function'){
+        appConfig.contatosCats=window.ctCatsMergeMaps(local.contatosCats, c.contatosCats);
       }
       if(typeof window.mxMergeMaps==='function'){
         appConfig.matrizComercial=window.mxMergeMaps(local.matrizComercial, c.matrizComercial);
@@ -4392,6 +4390,9 @@ async function salvarConfig(){
     }
     if(typeof window.fnMergeMaps==='function'){            // (·234) Fornecedores
       appConfig.fornecedores=window.fnMergeMaps(appConfig.fornecedores, cloud.fornecedores);
+    }
+    if(typeof window.ctCatsMergeMaps==='function'){          // (·235) Contatos
+      appConfig.contatosCats=window.ctCatsMergeMaps(appConfig.contatosCats, cloud.contatosCats);
     }
     if(typeof window.mxMergeMaps==='function'){
       appConfig.matrizComercial=window.mxMergeMaps(appConfig.matrizComercial, cloud.matrizComercial);
@@ -8184,16 +8185,7 @@ init();
       if(scr==='controldesk' && typeof window.renderControlDesk==='function') window.renderControlDesk();
       if(scr==='cabeca' && typeof window.renderCabecaRede==='function') window.renderCabecaRede();
       if(scr==='equipe' && typeof window.renderEquipe==='function') window.renderEquipe();
-      if(scr==='fn-cias' && typeof window.renderForn==='function') window.renderForn('forn01');
-      if(scr==='fn-eventos' && typeof window.renderForn==='function') window.renderForn('forn02');
-      if(scr==='fn-gerais' && typeof window.renderForn==='function') window.renderForn('forn03');
-      if(scr==='fn-grupos' && typeof window.renderForn==='function') window.renderForn('forn04');
-      if(scr==='fn-hosp' && typeof window.renderForn==='function') window.renderForn('forn05');
-      if(scr==='fn-naoind' && typeof window.renderForn==='function') window.renderForn('forn06');
-      if(scr==='fn-passeios' && typeof window.renderForn==='function') window.renderForn('forn07');
-      if(scr==='fn-receptivo' && typeof window.renderForn==='function') window.renderForn('forn08');
-      if(scr==='fn-transfer' && typeof window.renderForn==='function') window.renderForn('forn09');
-      if(scr==='fn-visto' && typeof window.renderForn==='function') window.renderForn('forn10');
+      if(scr==='contatos' && typeof window.renderContatos==='function') window.renderContatos();
       if(scr==='acoes' && typeof window.renderAcoes==='function') window.renderAcoes();
       if(scr==='matriz' && typeof window.renderMatriz==='function') window.renderMatriz();
       if(scr==='cliente' && typeof window.renderCliente==='function') window.renderCliente();
@@ -20485,17 +20477,17 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
   function fnNorm(s){ return (s||'').toString().trim().toLowerCase()
     .normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' '); }
 
-  var FN_CATS = [
-    {chave:'forn01', sid:'fn-cias', titulo:'Cias Aéreas'},
-    {chave:'forn02', sid:'fn-eventos', titulo:'Eventos'},
-    {chave:'forn03', sid:'fn-gerais', titulo:'Gerais'},
-    {chave:'forn04', sid:'fn-grupos', titulo:'Grupos'},
-    {chave:'forn05', sid:'fn-hosp', titulo:'Hospedagem'},
-    {chave:'forn06', sid:'fn-naoind', titulo:'Não Indicamos'},
-    {chave:'forn07', sid:'fn-passeios', titulo:'Passeios'},
-    {chave:'forn08', sid:'fn-receptivo', titulo:'Receptivo'},
-    {chave:'forn09', sid:'fn-transfer', titulo:'Transfer'},
-    {chave:'forn10', sid:'fn-visto', titulo:'Visto'},
+  var CT_CATS_BASE = [
+    {chave:'forn01', titulo:'Cias Aéreas',   cor:'#3B8FD4'},
+    {chave:'forn02', titulo:'Eventos',       cor:'#7B4FBE'},
+    {chave:'forn03', titulo:'Gerais',        cor:'#5B6470'},
+    {chave:'forn04', titulo:'Grupos',        cor:'#F0A030'},
+    {chave:'forn05', titulo:'Hospedagem',    cor:'#F0C94E'},
+    {chave:'forn06', titulo:'Não Indicamos', cor:'#C0503A'},
+    {chave:'forn07', titulo:'Passeios',      cor:'#7CB342'},
+    {chave:'forn08', titulo:'Receptivo',     cor:'#3FBFA0'},
+    {chave:'forn09', titulo:'Transfer',      cor:'#8D6E63'},
+    {chave:'forn10', titulo:'Visto',         cor:'#D753C9'},
   ];
 
   var FN_SEED = {};
@@ -20862,14 +20854,142 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
   var fnBuscaTxt={}, fnEditando={}, fnFocarNovo=null;
 
   /* ---------------------------------------------------------------
-     TELA GENÉRICA — as 10 subpastas chamam a MESMA função, passando
-     só a chave da categoria; evita 10 cópias quase idênticas da
-     mesma tela (e 10 lugares para uma correção futura esquecer).
+     (·235) CONTATOS — pedido do Nando: acabar com a árvore de 10
+     subpastas no menu (cada uma um clique a mais) e trocar por UMA
+     tela só, com pastas-ficheiro coloridas — no estilo da imagem de
+     referência que ele mandou — que abrem o conteúdo ao clicar.
+
+     CAMADA DE DADOS DAS PASTAS: mesmo padrão "semente + edições" da
+     Equipe/Fornecedores — CT_CATS_BASE são as 10 categorias de
+     fábrica (nome+cor), appConfig.contatosCats guarda o que foi
+     renomeado/recolorido, e pastas 100% novas (criadas pelo Nando)
+     vivem SÓ nesse objeto, sem entrada correspondente na semente —
+     fnLista/fnSet/fnNovo/fnDel (que já são genéricos por `cat`, sem
+     depender de FN_CATS) continuam funcionando sem nenhuma mudança
+     para uma pasta nova: a lista de fornecedores dela só começa vazia.
      --------------------------------------------------------------- */
-  window.renderForn=function(cat){
-    var meta=null; for(var i=0;i<FN_CATS.length;i++){ if(FN_CATS[i].chave===cat){ meta=FN_CATS[i]; break; } }
-    if(!meta) return;
-    var w=document.getElementById(meta.sid+'Wrap'); if(!w) return;
+  function ctCatsStore(){
+    if(!appConfig.contatosCats || typeof appConfig.contatosCats!=='object') appConfig.contatosCats={};
+    return appConfig.contatosCats;
+  }
+  function ctCatsLista(){
+    var over=ctCatsStore(), vistos={}, out=[];
+    CT_CATS_BASE.forEach(function(b){
+      var o=over[b.chave]||{};
+      out.push({chave:b.chave, titulo:(o.titulo!==undefined&&o.titulo!==''?o.titulo:b.titulo),
+                cor:(o.cor||b.cor)});
+      vistos[b.chave]=1;
+    });
+    Object.keys(over).forEach(function(k){
+      if(vistos[k]) return;
+      var o=over[k]; if(!o || !o.titulo) return;
+      out.push({chave:k, titulo:o.titulo, cor:o.cor||'#3B8FD4'});
+    });
+    return out;
+  }
+  window.UV_CT_CATS_LISTA = ctCatsLista;
+  function ctCatsSet(chave, campo, valor){
+    if(campo!=='titulo' && campo!=='cor') return;
+    var over=ctCatsStore();
+    var base=null; for(var i=0;i<CT_CATS_BASE.length;i++){ if(CT_CATS_BASE[i].chave===chave){ base=CT_CATS_BASE[i]; break; } }
+    var atual=over[chave]||{};
+    var novo={ts:Date.now()};
+    novo.titulo=(atual.titulo!==undefined?atual.titulo:(base?base.titulo:''));
+    novo.cor=(atual.cor!==undefined?atual.cor:(base?base.cor:'#3B8FD4'));
+    novo[campo]=(campo==='titulo')?(valor||'').toString().slice(0,60):valor;
+    over[chave]=novo;
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+    try{ if(typeof logRemoto==='function') logRemoto('contatos','Pasta '+(novo.titulo||chave)+' editada ('+campo+')',{area:'Contatos', chave:chave}); }catch(e){}
+  }
+  var CT_PALETA = ['#3B8FD4','#7B4FBE','#5B6470','#F0A030','#F0C94E','#C0503A','#7CB342','#3FBFA0','#8D6E63','#D753C9','#E0524A','#2E9E5B'];
+  function ctCatsNovo(){
+    var over=ctCatsStore();
+    var chave='ctcustom_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+    var usadas=ctCatsLista().map(function(c){return c.cor;});
+    var cor=CT_PALETA.find(function(c){return usadas.indexOf(c)<0;}) || CT_PALETA[usadas.length%CT_PALETA.length];
+    over[chave]={titulo:'Nova pasta', cor:cor, ts:Date.now()};
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+    try{ if(typeof logRemoto==='function') logRemoto('contatos','Nova pasta de contatos criada',{area:'Contatos', chave:chave}); }catch(e){}
+    return chave;
+  }
+  /* Merge multi-PC de 1 nível só (chave da pasta -> {titulo,cor,ts}) — mesma
+     forma de eqMergeMaps. */
+  window.ctCatsMergeMaps=function(a,b){
+    a=a||{}; b=b||{}; var out={}, ks={};
+    Object.keys(a).forEach(function(k){ks[k]=1;}); Object.keys(b).forEach(function(k){ks[k]=1;});
+    Object.keys(ks).forEach(function(k){ var x=a[k], y=b[k]; out[k]=(x&&y)?(((x.ts||0)>=(y.ts||0))?x:y):(x||y); });
+    return out;
+  };
+
+  // clareia/escurece uma cor hex em `pct` (-100..100) — usada para o degradê
+  // do ficheiro (topo mais claro, base mais escura) a partir de UMA cor só,
+  // em vez de pedir duas cores por pasta ao Nando.
+  function ctSombra(hex, pct){
+    hex=(hex||'#3B8FD4').replace('#','');
+    if(hex.length===3) hex=hex.split('').map(function(c){return c+c;}).join('');
+    var num=parseInt(hex,16), r=(num>>16)&255, g=(num>>8)&255, b=num&255;
+    var f=function(v){ v=pct<0 ? v*(1+pct/100) : v+(255-v)*(pct/100); return Math.max(0,Math.min(255,Math.round(v))); };
+    r=f(r); g=f(g); b=f(b);
+    return '#'+[r,g,b].map(function(v){var s=v.toString(16); return s.length<2?'0'+s:s;}).join('');
+  }
+
+  var contatosAberto=null, ctModoEdPastas=false, ctEditandoCat=null, ctFocarNovaCat=null;
+
+  function ctRenderGrid(w){
+    var cats=ctCatsLista();
+    var tiles=cats.map(function(c){
+      var qtd=fnLista(c.chave).length;
+      if(ctModoEdPastas && ctEditandoCat===c.chave){
+        return '<div class="ct-folder ct-folder-edit">'+
+          '<input type="text" class="ct-edit-nome" data-ct-cat="'+fnEsc(c.chave)+'" data-ct-campo="titulo" '+
+            'value="'+fnEsc(c.titulo)+'" placeholder="Nome da pasta" maxlength="60">'+
+          '<div class="ct-edit-cores">'+CT_PALETA.map(function(cor){
+            return '<button type="button" class="ct-swatch'+(fnNorm(cor)===fnNorm(c.cor)?' on':'')+'" '+
+              'style="background:'+cor+'" data-ct-cor-cat="'+fnEsc(c.chave)+'" data-ct-cor="'+cor+'" title="'+cor+'"></button>';
+          }).join('')+'</div>'+
+          '<button type="button" class="ct-edit-ok" data-ct-ok="'+fnEsc(c.chave)+'">\u2713 Pronto</button>'+
+        '</div>';
+      }
+      var pencil = ctModoEdPastas
+        ? '<button type="button" class="ct-pencil" data-ct-pencil="'+fnEsc(c.chave)+'" title="Editar esta pasta">\u270f\ufe0f</button>'
+        : '';
+      return '<button type="button" class="ct-folder-btn" data-ct-abrir="'+fnEsc(c.chave)+'" '+
+          (ctModoEdPastas?'disabled':'')+' style="--ct-a:'+ctSombra(c.cor,28)+';--ct-b:'+ctSombra(c.cor,-22)+'">'+
+        pencil+
+        '<span class="ct-folder-tab"></span>'+
+        '<span class="ct-folder-body">'+
+          '<span class="ct-folder-shine"></span>'+
+          '<span class="ct-folder-label">'+fnEsc(c.titulo)+'</span>'+
+          '<span class="ct-folder-qtd">'+qtd+'</span>'+
+        '</span>'+
+      '</button>';
+    }).join('');
+    var novaTile = (ctModoEdPastas && ctEditandoCat===null)
+      ? '<button type="button" class="ct-nova-pasta" data-ct-nova="1">+<br>Nova pasta</button>' : '';
+
+    w.innerHTML =
+      '<div class="fn-head">'+
+        '<div><h2 class="fn-title"><span class="fn-ic">\ud83d\udcc1</span> Contatos</h2>'+
+        '<div class="fn-sub">'+cats.length+' pastas de fornecedores</div></div>'+
+        '<div class="fn-acoes">'+
+          '<button type="button" class="fn-bt'+(ctModoEdPastas?' on':'')+'" id="ctEditarPastas">'+
+            (ctModoEdPastas?'\u2713 Concluir edi\u00e7\u00e3o':'\u270f\ufe0f Editar pastas')+'</button>'+
+        '</div>'+
+      '</div>'+
+      (ctModoEdPastas?'<div class="fn-aviso-ed">\u270f\ufe0f Toque no l\u00e1pis de uma pasta para renome\u00e1-la ou trocar a cor, ou crie uma pasta nova. Tudo salva sozinho.</div>':'')+
+      '<div class="ct-grid">'+tiles+novaTile+'</div>';
+
+    if(ctFocarNovaCat){
+      var alvo=w.querySelector('[data-ct-cat="'+ctFocarNovaCat+'"]');
+      ctFocarNovaCat=null;
+      if(alvo){ try{ alvo.focus(); alvo.select(); }catch(e){} }
+    }
+  }
+
+  function ctRenderDetalhe(w, cat){
+    var cats=ctCatsLista();
+    var meta=null; for(var i=0;i<cats.length;i++){ if(cats[i].chave===cat){ meta=cats[i]; break; } }
+    if(!meta){ contatosAberto=null; ctRenderGrid(w); return; }
     var editando=!!fnEditando[cat];
     var todos=fnLista(cat);
     var q=fnNorm(fnBuscaTxt[cat]||'');
@@ -20922,12 +21042,14 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
           campoLeitura('Observa\u00e7\u00f5es', p.obs, true)+
         '</div>';
       }
-      return '<div class="fn-card'+(editando?' fn-editando':'')+'" data-fn-card-cat="'+fnEsc(cat)+'" data-fn-card="'+fnEsc(p.id)+'">'+cab+corpo+'</div>';
-    }).join('') : '<div class="fn-vazio-lista">Nenhum fornecedor encontrado'+(q?' para essa busca':' nesta pasta')+'.</div>';
+      return '<div class="fn-card'+(editando?' fn-editando':'')+'" style="border-left-color:'+fnEsc(meta.cor)+'" '+
+             'data-fn-card-cat="'+fnEsc(cat)+'" data-fn-card="'+fnEsc(p.id)+'">'+cab+corpo+'</div>';
+    }).join('') : '<div class="fn-vazio-lista">Nenhum fornecedor encontrado'+(q?' para essa busca':' nesta pasta ainda')+'.</div>';
 
     w.innerHTML =
+      '<button type="button" class="ct-voltar" id="ctVoltar">\u2190 Voltar para Contatos</button>'+
       '<div class="fn-head">'+
-        '<div><h2 class="fn-title"><span class="fn-ic">\ud83d\udce6</span> '+fnEsc(meta.titulo)+'</h2>'+
+        '<div><h2 class="fn-title"><span class="fn-ic" style="color:'+fnEsc(meta.cor)+'">\ud83d\udcc2</span> '+fnEsc(meta.titulo)+'</h2>'+
         '<div class="fn-sub">'+todos.length+' fornecedor'+(todos.length===1?'':'es')+' cadastrado'+(todos.length===1?'':'s')+'</div></div>'+
         '<div class="fn-acoes">'+
           (editando?'<button type="button" class="fn-bt primario" data-fn-novo="'+fnEsc(cat)+'">+ Adicionar fornecedor</button>':'')+
@@ -20944,28 +21066,45 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
 
     var b=w.querySelector('[data-fn-busca]');
     if(b && fnBuscaTxt[cat]){ try{ b.focus(); b.setSelectionRange(b.value.length,b.value.length); }catch(e){} }
-    if(fnFocarNovo && cat===fnFocarNovo.split('_')[0]+ (fnFocarNovo.indexOf(cat)===0?'':'')){}
     if(fnFocarNovo && fnFocarNovo.indexOf(cat+'_novo')===0){
       var alvo=w.querySelector('[data-fn-card="'+fnFocarNovo+'"] .fn-inp-nome');
       fnFocarNovo=null;
       if(alvo){ try{ alvo.scrollIntoView({block:'center'}); alvo.focus(); alvo.select(); }catch(e){} }
     }
+  }
+
+  window.renderContatos=function(){
+    var w=document.getElementById('contatosWrap'); if(!w) return;
+    if(contatosAberto) ctRenderDetalhe(w, contatosAberto);
+    else ctRenderGrid(w);
   };
+  // mantido por compatibilidade — nada mais chama pela chave direto (era usado
+  // pelas 10 telas antigas, que viraram pastas dentro de Contatos no ·235)
+  window.renderForn=function(){ window.renderContatos(); };
 
   document.addEventListener('input', function(e){
     var t=e.target; if(!t) return;
     if(t.hasAttribute && t.hasAttribute('data-fn-busca')){
-      var cat=t.getAttribute('data-fn-busca'); fnBuscaTxt[cat]=t.value; window.renderForn(cat); return;
+      var cat=t.getAttribute('data-fn-busca'); fnBuscaTxt[cat]=t.value; window.renderContatos(); return;
     }
     if(t.classList && t.classList.contains('fn-inp')){
       var cat2=t.getAttribute('data-fn-cat'), id=t.getAttribute('data-fn-id'), c=t.getAttribute('data-fn-campo');
       if(cat2 && id && c) fnSet(cat2, id, c, t.value);
+      return;
+    }
+    if(t.classList && t.classList.contains('ct-edit-nome')){
+      var cc=t.getAttribute('data-ct-cat');
+      // só grava — NÃO redesenha a cada tecla, senão o campo perde o foco no
+      // meio da digitação (mesma lição da Equipe no ·229/·230)
+      if(cc) ctCatsSet(cc, 'titulo', t.value);
     }
   });
   document.addEventListener('click', function(e){
     if(!e.target || !e.target.closest) return;
+
+    // ---- fornecedores dentro de uma pasta aberta ----
     var ed=e.target.closest('[data-fn-editar]');
-    if(ed){ var cat=ed.getAttribute('data-fn-editar'); fnEditando[cat]=!fnEditando[cat]; window.renderForn(cat); return; }
+    if(ed){ var cat=ed.getAttribute('data-fn-editar'); fnEditando[cat]=!fnEditando[cat]; window.renderContatos(); return; }
     var nv=e.target.closest('[data-fn-novo]');
     if(nv){ fnNovo(nv.getAttribute('data-fn-novo')); return; }
     var d=e.target.closest('[data-fn-del]');
@@ -20974,6 +21113,31 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       var nome=''; fnLista(cat3).forEach(function(p){ if(p.id===id3) nome=p.nome; });
       if(window.confirm('Remover '+(nome||'este fornecedor')+' desta pasta?')) fnDel(cat3, id3);
       return;
+    }
+
+    // ---- navegação Contatos ----
+    var voltar=e.target.closest('#ctVoltar');
+    if(voltar){ contatosAberto=null; window.renderContatos(); return; }
+    var abrir=e.target.closest('[data-ct-abrir]');
+    if(abrir && !ctModoEdPastas){ contatosAberto=abrir.getAttribute('data-ct-abrir'); window.renderContatos(); return; }
+
+    // ---- edição das PASTAS (nome/cor) ----
+    var togglePastas=e.target.closest('#ctEditarPastas');
+    if(togglePastas){ ctModoEdPastas=!ctModoEdPastas; ctEditandoCat=null; window.renderContatos(); return; }
+    var pencil=e.target.closest('[data-ct-pencil]');
+    if(pencil){ ctEditandoCat=pencil.getAttribute('data-ct-pencil'); window.renderContatos(); return; }
+    var ok=e.target.closest('[data-ct-ok]');
+    if(ok){ ctEditandoCat=null; window.renderContatos(); return; }
+    var swatch=e.target.closest('[data-ct-cor]');
+    if(swatch){
+      ctCatsSet(swatch.getAttribute('data-ct-cor-cat'), 'cor', swatch.getAttribute('data-ct-cor'));
+      window.renderContatos(); return;
+    }
+    var nova=e.target.closest('[data-ct-nova]');
+    if(nova){
+      var chave=ctCatsNovo();
+      ctEditandoCat=chave; ctFocarNovaCat=chave;
+      window.renderContatos(); return;
     }
   });
 })();
