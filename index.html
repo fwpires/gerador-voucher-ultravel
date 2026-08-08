@@ -813,7 +813,16 @@ body.dark .fn-card{background:rgba(255,255,255,.04)}
 .fn-nome{font-size:15px;font-weight:900;color:var(--texto)}
 .fn-dados{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:7px 16px}
 .fn-campo{display:flex;flex-direction:column;gap:1px;min-width:0}
-.fn-rot{font-size:10px;font-weight:800;color:var(--texto-fraco);text-transform:uppercase;letter-spacing:.5px}
+.fn-rot{display:inline-block;align-self:flex-start;font-size:10px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:.4px;padding:4px 10px;border-radius:999px;margin-bottom:3px;box-shadow:0 2px 6px rgba(0,0,0,.25);white-space:nowrap}
+/* (·236) Selos coloridos nos rótulos dos campos — pedido do Nando pra ficar
+   "mais simpático", no mesmo estilo dos badges de comissão (Aéreo/Hotel/
+   Carro/Ônibus/Seguro): fundo sólido, texto branco, cantos arredondados.
+   Uma cor por TIPO de campo (não por categoria), pra qualquer pasta nova
+   herdar o padrão automaticamente sem precisar configurar nada. */
+.fn-rot-tel{background:linear-gradient(180deg,#34C173,#1E9E56)}
+.fn-rot-email{background:linear-gradient(180deg,#4A9DE8,#2E7BC9)}
+.fn-rot-site{background:linear-gradient(180deg,#F0A63C,#D6871A)}
+.fn-rot-obs{background:linear-gradient(180deg,#A374E8,#8450C9)}
 .fn-val{font-size:12.5px;font-weight:700;color:var(--texto);word-break:break-word}
 .fn-val.fn-vazio{color:var(--texto-fraco);font-weight:600;font-style:italic}
 .fn-campo-largo{grid-column:1/-1}
@@ -3877,7 +3886,7 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 235;
+var UV_BUILD_NUM = 236;
 const UV_BUILD='HUB-v3\u00b7'+UV_BUILD_NUM;
 try{ console.info('%c[Hub Ultravel] build '+UV_BUILD, 'color:#6FBAFF;font-weight:bold'); }catch(e){}
 try{
@@ -21003,17 +21012,17 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       return false;
     }).sort(function(a,b){ return fnNorm(a.nome).localeCompare(fnNorm(b.nome),'pt-BR'); });
 
-    function campoLeitura(rot, val, largo, ehLink){
+    function campoLeitura(rot, val, largo, ehLink, tipo){
       var vazio=!val;
       var conteudo = (!vazio && ehLink)
         ? '<a href="'+fnEsc(val.indexOf('http')===0?val:'https://'+val)+'" target="_blank" rel="noopener" class="fn-val">'+fnEsc(val)+'</a>'
         : '<span class="fn-val'+(vazio?' fn-vazio':'')+'">'+fnEsc(vazio?'\u2014':val)+'</span>';
       return '<div class="fn-campo'+(largo?' fn-campo-largo':'')+'">'+
-        '<span class="fn-rot">'+fnEsc(rot)+'</span>'+conteudo+'</div>';
+        '<span class="fn-rot'+(tipo?' fn-rot-'+tipo:'')+'">'+fnEsc(rot)+'</span>'+conteudo+'</div>';
     }
-    function campoEdicao(rot, id, campo, val, ph, largo){
+    function campoEdicao(rot, id, campo, val, ph, largo, tipo){
       return '<div class="fn-campo'+(largo?' fn-campo-largo':'')+'">'+
-        '<span class="fn-rot">'+fnEsc(rot)+'</span>'+
+        '<span class="fn-rot'+(tipo?' fn-rot-'+tipo:'')+'">'+fnEsc(rot)+'</span>'+
         '<input type="text" class="fn-inp" data-fn-cat="'+fnEsc(cat)+'" data-fn-id="'+fnEsc(id)+'" '+
           'data-fn-campo="'+campo+'" value="'+fnEsc(val)+'" placeholder="'+fnEsc(ph||'')+'"></div>';
     }
@@ -21028,18 +21037,18 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
                 'title="Remover este fornecedor">\ud83d\uddd1</button>'+
             '</div>';
         corpo='<div class="fn-dados">'+
-          campoEdicao('Telefone / WhatsApp', p.id, 'tel', p.tel, '(00) 00000-0000')+
-          campoEdicao('E-mail', p.id, 'email', p.email, 'contato@fornecedor.com')+
-          campoEdicao('Site', p.id, 'site', p.site, 'https://...')+
-          campoEdicao('Observa\u00e7\u00f5es (local, regi\u00e3o, particularidades)', p.id, 'obs', p.obs, '', true)+
+          campoEdicao('Telefone / WhatsApp', p.id, 'tel', p.tel, '(00) 00000-0000', false, 'tel')+
+          campoEdicao('E-mail', p.id, 'email', p.email, 'contato@fornecedor.com', false, 'email')+
+          campoEdicao('Site', p.id, 'site', p.site, 'https://...', false, 'site')+
+          campoEdicao('Observa\u00e7\u00f5es (local, regi\u00e3o, particularidades)', p.id, 'obs', p.obs, '', true, 'obs')+
         '</div>';
       } else {
         cab='<div class="fn-l1"><span class="fn-nome">'+fnEsc(p.nome)+'</span></div>';
         corpo='<div class="fn-dados">'+
-          campoLeitura('Telefone / WhatsApp', p.tel)+
-          campoLeitura('E-mail', p.email)+
-          campoLeitura('Site', p.site, false, true)+
-          campoLeitura('Observa\u00e7\u00f5es', p.obs, true)+
+          campoLeitura('Telefone / WhatsApp', p.tel, false, false, 'tel')+
+          campoLeitura('E-mail', p.email, false, false, 'email')+
+          campoLeitura('Site', p.site, false, true, 'site')+
+          campoLeitura('Observa\u00e7\u00f5es', p.obs, true, false, 'obs')+
         '</div>';
       }
       return '<div class="fn-card'+(editando?' fn-editando':'')+'" style="border-left-color:'+fnEsc(meta.cor)+'" '+
