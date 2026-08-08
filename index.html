@@ -3794,7 +3794,7 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 231;
+var UV_BUILD_NUM = 233;
 const UV_BUILD='HUB-v3\u00b7'+UV_BUILD_NUM;
 try{ console.info('%c[Hub Ultravel] build '+UV_BUILD, 'color:#6FBAFF;font-weight:bold'); }catch(e){}
 try{
@@ -3939,6 +3939,16 @@ async function carregarConfig(){
       // Depois tira quem já foi marcado "Nome cadastrado" (está em voucherResolvido) pra não ressuscitar.
       appConfig.semCadastroWecann={...(local.semCadastroWecann||{}), ...(c.semCadastroWecann||{})};
       Object.keys(appConfig.voucherResolvido).forEach(k=>{ if(appConfig.semCadastroWecann[k]) delete appConfig.semCadastroWecann[k]; });
+      // (·232) VÍNCULOS DE NOME AMBÍGUO (Marina Susin × Marina Vicente etc.): a MESMA
+      // proteção PERMANENTE que voucherResolvido/naoMesmaPessoa/semCadastroWecann já
+      // tinham — e que esta chave, sozinha, nunca ganhou. Sem isto o campo ficava
+      // sujeito ao spread cru acima ({...appConfig,...c}), que sobrescreve por
+      // inteiro: bastava a nuvem responder com uma cópia um pouco mais velha (ou
+      // vazia, na primeira leitura de outro PC) para a escolha já feita ("é a
+      // Marina Susin Frizzo") desaparecer — e reimportar o CSV, que sempre passa
+      // por aqui, era exatamente o gatilho que expunha isso. Une local+nuvem sem
+      // nunca perder uma escolha já salva.
+      appConfig.vinculos={...(local.vinculos||{}), ...(c.vinculos||{})};
       // BAIXA DE QUARTOS (conciliação WeCann): decisão PERMANENTE. Une local+nuvem por
       // assinatura (ID+nomes) E pelo ID da reserva. Assim, um quarto conferido NUNCA
       // volta para a lista "sem voucher" ao reimportar o CSV — nem entre PCs diferentes.
@@ -4143,6 +4153,9 @@ async function salvarConfig(){
     appConfig.voucherResolvido ={...(cloud.voucherResolvido ||{}), ...(appConfig.voucherResolvido ||{})};
     appConfig.naoMesmaPessoa   ={...(cloud.naoMesmaPessoa   ||{}), ...(appConfig.naoMesmaPessoa   ||{})};
     appConfig.semCadastroWecann={...(cloud.semCadastroWecann||{}), ...(appConfig.semCadastroWecann||{})};
+    // (·232) VÍNCULOS DE NOME AMBÍGUO: mesma proteção PERMANENTE que as três linhas
+    // acima já têm — une nuvem+local, nunca apaga uma escolha já feita.
+    appConfig.vinculos={...(cloud.vinculos||{}), ...(appConfig.vinculos||{})};
     // BAIXA DE QUARTOS: mesma proteção permanente (une nuvem+local, nunca apaga).
     // Impede que um PC com estado antigo sobrescreva/ressuscite uma baixa já feita.
     appConfig.quartosConferidos  ={...(cloud.quartosConferidos  ||{}), ...(appConfig.quartosConferidos  ||{})};
@@ -20065,6 +20078,27 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
          fichas — foi exatamente o que o E2E do ·229 pegou. */
       if(dig && ((p.cpf||'').indexOf(dig)>=0 || (p.tel||'').indexOf(dig)>=0)) return true;
       return false;
+    });
+    /* (·233) ORDEM POR ANIVERSÁRIO — pedido do Nando. Compara só MÊS+DIA (o
+       ANO de nascimento não entra na ordenação: dois aniversários no mesmo
+       dia ficam vizinhos não importa a idade de cada um). Quem não tem data
+       cadastrada vai para o FIM, em vez de cair em 01/01 por padrão — uma
+       ficha incompleta não pode fingir ser a primeira aniversariante do ano.
+       Empate no dia (dois no mesmo 07/08, por exemplo) desempata por nome,
+       pela mesma ordem alfabética que a busca já usa, para o resultado ser
+       sempre o MESMO em qualquer PC — sem isso a ordem dependeria da ordem
+       de chegada no array, que pode variar entre navegadores. */
+    function eqChaveAniv(p){
+      var q2=(p.nasc||'').split('-');
+      if(q2.length!==3) return 9999;               // sem data → sempre por último
+      var m=parseInt(q2[1],10), d=parseInt(q2[2],10);
+      if(!m || !d) return 9999;
+      return m*100+d;                                // 0207 = 7 de fevereiro
+    }
+    lista.sort(function(a,b){
+      var ka=eqChaveAniv(a), kb=eqChaveAniv(b);
+      if(ka!==kb) return ka-kb;
+      return eqNorm(a.nome).localeCompare(eqNorm(b.nome),'pt-BR');
     });
 
     function campoLeitura(rot, val, largo){
