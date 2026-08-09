@@ -3935,7 +3935,7 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 240;
+var UV_BUILD_NUM = 241;
 const UV_BUILD='HUB-v3\u00b7'+UV_BUILD_NUM;
 try{ console.info('%c[Hub Ultravel] build '+UV_BUILD, 'color:#6FBAFF;font-weight:bold'); }catch(e){}
 try{
@@ -7533,6 +7533,23 @@ function renderAvisoWecannSemEtiqueta(list){
 }
 
 function renderSaved(list){
+  // (·241) Painéis que NÃO dependem do texto da busca (aviso de buracos, aviso
+  // WeCann sem etiqueta, disponibilidade/Kanban) só rodam AQUI — na renderização
+  // "cheia", chamada quando os DADOS mudam (carga inicial, exclusão, sync). Antes
+  // rodavam de novo a CADA TECLA digitada (e renderDisponibilidade() rodava em
+  // DOBRO na mesma passada!), reconstruindo o Kanban inteiro sobre 162 vouchers
+  // sem nenhuma relação com o que a pessoa estava digitando — essa era a causa
+  // real da lentidão, não o filtro em si (filtrar 162 itens é instantâneo).
+  renderAvisoBuracos(list);
+  renderAvisoWecannSemEtiqueta(list);
+  renderDisponibilidade();
+  renderSavedFiltro(list);
+}
+
+// Caminho LEVE, chamado a cada tecla digitada na busca (com debounce): só
+// filtra a lista já carregada em memória e redesenha o `#savedList` + a
+// paginação. Nenhum cálculo alheio à busca entra aqui.
+function renderSavedFiltro(list){
   const q=_normE(($('#searchInput').value||'').trim());
   const termos=q.split(/\s+/).filter(Boolean); // cada palavra é buscada separadamente (parcial + multi-termo)
   // OPÇÃO 1: se o usuário busca por "wecann", também reconhecemos vouchers pelo HOTEL do evento,
@@ -7559,18 +7576,18 @@ function renderSaved(list){
     return false;
   }));
   const sc=$('#savedCount');
-  const totHosp=totalHospedesWecann();
-  const sufHosp = totHosp ? (' · '+totHosp+' hósp. WeCann') : '';
   if(termos.length){
     sc.textContent=filt.length+(filt.length!==1?' resultados':' resultado')+' de '+list.length;
     sc.classList.add('filtrando');
   } else {
+    // total de hóspedes WeCann só entra na conta quando NÃO há busca ativa —
+    // é a única situação em que esse número aparece no rótulo, então não há
+    // por que calculá-lo (varre savedCache inteiro) a cada tecla digitada.
+    const totHosp=totalHospedesWecann();
+    const sufHosp = totHosp ? (' · '+totHosp+' hósp. WeCann') : '';
     sc.textContent=list.length+' voucher'+(list.length!==1?'s':'')+sufHosp;
     sc.classList.remove('filtrando');
   }
-  renderAvisoBuracos(list);
-  renderAvisoWecannSemEtiqueta(list);
-  renderDisponibilidade();
   if(!filt.length){
     $('#savedList').innerHTML=`<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 7h16M4 7l1 13a1 1 0 001 1h12a1 1 0 001-1l1-13M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2" stroke-linecap="round" stroke-linejoin="round"/></svg><p>${q?'Nenhum voucher encontrado':'Nenhum voucher salvo ainda'}</p></div>`;
     $('#paginacao').innerHTML='';
@@ -7617,7 +7634,6 @@ function renderSaved(list){
   $$('#savedList [data-edit]').forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); const v=savedCache.find(x=>x.id===b.dataset.edit); if(v)loadVoucher(v); });
   $$('#savedList [data-print]').forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); const v=savedCache.find(x=>x.id===b.dataset.print); if(v)imprimir(v); });
   $$('#savedList [data-preview]').forEach(c=>c.onclick=()=>{ const v=savedCache.find(x=>x.id===c.dataset.preview); if(v)previewVoucher(v); });
-  renderDisponibilidade();
   $$('#savedList [data-del]').forEach(b=>b.onclick=(e)=>{
     e.stopPropagation();
     const v=savedCache.find(x=>x.id===b.dataset.del); if(!v)return;
@@ -7981,7 +7997,16 @@ $('#btnAddPax').onclick=()=>{ $('#paxList').appendChild(paxRow('')); setSalvo(fa
 $('#btnReload').onclick=()=>{ checkCloud(); loadSaved(); };
 $('#btnRetry').onclick=()=>{ setCloud('sync','Reconectando…'); checkCloud().then(ok=>{ if(ok){ toast('Conexão restabelecida!','ok'); loadSaved(); refreshNext(); } else { toast('Ainda sem conexão','err'); } }); };
 $('#btnCfg').onclick=configurar;
-$('#searchInput').oninput=()=>{ paginaAtual=1; renderSaved(savedCache); };
+// (·241) DEBOUNCE na busca — evita disparar uma re-renderização a cada tecla
+// quando a pessoa digita rápido; espera uma pausa curta (110ms, imperceptível
+// para quem digita, mas suficiente pra "engolir" teclas em sequência) antes de
+// filtrar. Combinado com renderSavedFiltro (que não toca nos painéis pesados),
+// a digitação fica instantânea mesmo com centenas de vouchers.
+let _buscaSavedTimer=null;
+$('#searchInput').oninput=()=>{
+  clearTimeout(_buscaSavedTimer);
+  _buscaSavedTimer=setTimeout(()=>{ paginaAtual=1; renderSavedFiltro(savedCache); }, 110);
+};
 $('#ordemSelect').onchange=()=>{ paginaAtual=1; localStorage.setItem('uv_ordem',$('#ordemSelect').value); renderSaved(savedCache); };
 (function(){ const o=localStorage.getItem('uv_ordem'); if(o) $('#ordemSelect').value=o; })();
 $('#internalHead').onclick=()=>$('#internalBox').classList.toggle('open');
