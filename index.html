@@ -755,10 +755,24 @@ body:not(.dark) .apr-item{background:#fff;border-color:#F0B4B4}
    meninos — a MESMA dupla de cores que o card de "Feliz Aniversário" já usa,
    para as duas telas conversarem visualmente em vez de inventar um terceiro
    par de tons. */
-.eq-card.eq-menino{border-color:rgba(127,199,245,.55);box-shadow:0 0 0 1px rgba(127,199,245,.28),0 4px 16px rgba(127,199,245,.16)}
-.eq-card.eq-menina{border-color:rgba(255,158,205,.55);box-shadow:0 0 0 1px rgba(255,158,205,.28),0 4px 16px rgba(255,158,205,.16)}
-.eq-card.eq-menino:hover{border-color:rgba(127,199,245,.85);box-shadow:0 0 0 1px rgba(127,199,245,.4),0 6px 20px rgba(127,199,245,.24)}
-.eq-card.eq-menina:hover{border-color:rgba(255,158,205,.85);box-shadow:0 0 0 1px rgba(255,158,205,.4),0 6px 20px rgba(255,158,205,.24)}
+/* (·240) NEON VIVO + FUNDO TRANSLÚCIDO — pedido do Nando: cores mais
+   saturadas/vibrantes (o rosa/azul bebê do ·237 ficou bonito mas discreto
+   demais para "chamar a atenção") e um fundo sutil por dentro do card na
+   MESMA cor do contorno, bem transparente — reaproveita a mesma técnica que
+   .eq-card.eq-hoje já usa (background translúcido sobre var(--card), abaixo)
+   em vez de inventar uma segunda regra de fundo. Azul #12B0FF é o mesmo azul
+   elétrico "vivo, aceso, neon" que o Nando já pediu para a Gestão Interna —
+   reaproveitar o vocabulário de cor do próprio Hub em vez de um quarto tom.
+   Rosa segue a mesma lógica: mais saturado que o bebê do ·237, mas ainda
+   irmão do rosa do card de aniversário (.eq-hoje), não um tom novo. */
+.eq-card.eq-menino{border-color:#12B0FF;box-shadow:0 0 0 1px rgba(18,176,255,.45),0 4px 18px rgba(18,176,255,.28)}
+.eq-card.eq-menina{border-color:#FF3DA6;box-shadow:0 0 0 1px rgba(255,61,166,.45),0 4px 18px rgba(255,61,166,.28)}
+.eq-card.eq-menino:hover{box-shadow:0 0 0 1px rgba(18,176,255,.65),0 6px 24px rgba(18,176,255,.4)}
+.eq-card.eq-menina:hover{box-shadow:0 0 0 1px rgba(255,61,166,.65),0 6px 24px rgba(255,61,166,.4)}
+body.dark .eq-card.eq-menino{background:rgba(18,176,255,.07)}
+body.dark .eq-card.eq-menina{background:rgba(255,61,166,.07)}
+body:not(.dark) .eq-card.eq-menino{background:rgba(18,176,255,.05)}
+body:not(.dark) .eq-card.eq-menina{background:rgba(255,61,166,.05)}
 /* aniversariante do dia continua com prioridade visual sobre a cor de gênero */
 .eq-card.eq-hoje.eq-menino,.eq-card.eq-hoje.eq-menina{border-color:#ff8fc7;box-shadow:0 0 0 1px rgba(255,143,199,.35),0 4px 18px rgba(255,143,199,.18)}
 /* (·238) DESTAQUE DE ANIVERSÁRIO — pedido do Nando: no dia do aniversário, o
@@ -3921,7 +3935,7 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 239;
+var UV_BUILD_NUM = 240;
 const UV_BUILD='HUB-v3\u00b7'+UV_BUILD_NUM;
 try{ console.info('%c[Hub Ultravel] build '+UV_BUILD, 'color:#6FBAFF;font-weight:bold'); }catch(e){}
 try{
