@@ -179,7 +179,18 @@ body.dark .cloud.cloud-square{background:#16212E;border-color:#2E4460;color:#E8E
    Control Desk) ele sobrava como um vão vazio antes do fim de verdade.
    Reduzido para o mesmo respiro do topo (20px), o suficiente para o último
    botão não ficar colado na borda, sem sobrar um vão perceptível. */
-main{max-width:none;margin:0 auto;padding:20px 22px 20px;
+main{max-width:none;
+  /* (·247) A "sobra nas laterais" que o Nando circulou: margin:0 auto era
+     resquício de quando <main> era um bloco comum de largura 100% (auto
+     nunca sobrava nada ali). Desde o ·246, <main> virou um ITEM FLEX (filho
+     de body{display:flex;flex-direction:column}) — e margem AUTO no eixo
+     cruzado (horizontal, aqui) de um item flex tem um significado especial:
+     em vez de "sem efeito", ela faz o item encolher para o tamanho do
+     CONTEÚDO e se centralizar, ignorando o stretch padrão — exatamente as
+     faixas vazias nas duas bordas que apareceram. margin:0 é o valor certo
+     agora: sem margem automática disputando espaço, o item simplesmente
+     estica full-width (comportamento default de align-items:stretch). */
+  margin:0;padding:20px 22px 20px;
   /* (·246) <main> deixa de ser quem rola — vira só uma moldura de altura FIXA
      (o que sobra da tela abaixo do topbar) que ENTREGA essa altura para o
      .hub-shell logo abaixo repartir entre as duas colunas independentes.
@@ -3991,7 +4002,7 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 246;
+var UV_BUILD_NUM = 247;
 const UV_BUILD='HUB-v3\u00b7'+UV_BUILD_NUM;
 try{ console.info('%c[Hub Ultravel] build '+UV_BUILD, 'color:#6FBAFF;font-weight:bold'); }catch(e){}
 try{
