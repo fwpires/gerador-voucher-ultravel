@@ -165,7 +165,16 @@ body.dark .cloud.cloud-square{background:#16212E;border-color:#2E4460;color:#E8E
 main{max-width:none;margin:0 auto;padding:20px 22px 20px}
 /* ===== HUB v2: shell com menu lateral ===== */
 .hub-shell{display:flex;align-items:flex-start;gap:18px;margin-top:6px}
-.hub-sidebar{width:242px;flex:0 0 242px;position:sticky;top:14px;background:var(--card);border:1px solid var(--borda);border-radius:var(--raio);padding:12px 9px;box-shadow:var(--sombra);max-height:calc(100vh - 96px);overflow-y:auto}
+.hub-sidebar{width:242px;flex:0 0 242px;position:sticky;top:14px;background:var(--card);border:1px solid var(--borda);border-radius:var(--raio);padding:12px 9px;box-shadow:var(--sombra);
+  /* (·244) Reclamação do Nando: uma faixa vazia sobrava embaixo do menu ao
+     rolar telas mais longas. Causa: este teto de altura reservava 96px do
+     rodapé da janela sem usar (bem mais que os 14px de respiro do TOPO,
+     top:14px acima) — sobra que virava um vão visível assim que o menu
+     encostava no teto e precisava de rolagem própria. Trocado para 28px
+     (os mesmos 14px de cima + 14px embaixo, respiro simétrico) — o menu
+     passa a aproveitar quase toda a altura da janela antes de precisar
+     rolar por dentro, encolhendo o vão a quase nada. */
+  max-height:calc(100vh - 28px);overflow-y:auto}
 .hub-main{flex:1;min-width:0}
 .screen{display:none}
 .screen.active{display:block;animation:scrFade .18s ease}
@@ -1973,7 +1982,7 @@ body:not(.dark) .termo-nome{color:#5a7085}
      coluna mudam, o comportamento de fixar no topo continua idêntico ao
      desktop) — sem isso o menu vira uma faixa full-width que rola para longe
      assim que o painel central é rolado. */
-  .hub-sidebar{width:100%;flex:none;position:sticky;top:14px;max-height:calc(100vh - 96px)}
+  .hub-sidebar{width:100%;flex:none;position:sticky;top:14px;max-height:calc(100vh - 28px)}
 }
 /* HUB v2 — visões WeCann em telas limpas (sem carrossel/setas) */
 #scr-wecann .est-setas,#scr-wecann .est-dots{display:none !important}
@@ -3953,7 +3962,7 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 243;
+var UV_BUILD_NUM = 244;
 const UV_BUILD='HUB-v3\u00b7'+UV_BUILD_NUM;
 try{ console.info('%c[Hub Ultravel] build '+UV_BUILD, 'color:#6FBAFF;font-weight:bold'); }catch(e){}
 try{
