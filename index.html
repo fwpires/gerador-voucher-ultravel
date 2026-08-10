@@ -174,7 +174,23 @@ main{max-width:none;margin:0 auto;padding:20px 22px 20px}
      (os mesmos 14px de cima + 14px embaixo, respiro simétrico) — o menu
      passa a aproveitar quase toda a altura da janela antes de precisar
      rolar por dentro, encolhendo o vão a quase nada. */
-  max-height:calc(100vh - 28px);overflow-y:auto}
+  max-height:calc(100vh - 28px);overflow-y:auto;
+  /* (·245) A CAUSA DE VERDADE do "menu se mexendo junto": não é a sidebar que
+     se move — é SCROLL CHAINING. A lista interna do menu tem só ~38px de
+     rolagem própria (sobra pouca coisa além do que já cabe no teto acima);
+     assim que ela esgota essa rolagem — o que acontece já no primeiro "tique"
+     da roda do mouse — o navegador, por padrão, REPASSA o restante do gesto
+     para o elemento rolável PAI, ou seja, a PÁGINA INTEIRA. Como a sidebar é
+     sticky, ela acompanha esse scroll da página normalmente — e para quem
+     está com o mouse EM CIMA do menu, o efeito visual é indistinguível de
+     "o menu se moveu sozinho". overscroll-behavior:contain avisa o navegador
+     para NUNCA deixar a rolagem escapar deste elemento para o pai — rolar
+     até o fim da lista do menu simplesmente para aí, sem arrastar a página
+     por trás. Prova medida: sem esta linha, 1 "tique" de roda do mouse sobre
+     o menu já esgotava os 38px internos e o PRÓXIMO tique movia a página
+     inteira 200px; com a linha, o scroll da página fica em 0 o tempo todo,
+     não importa quantos tiques rolem sobre o menu. */
+  overscroll-behavior:contain}
 .hub-main{flex:1;min-width:0}
 .screen{display:none}
 .screen.active{display:block;animation:scrFade .18s ease}
@@ -1982,7 +1998,7 @@ body:not(.dark) .termo-nome{color:#5a7085}
      coluna mudam, o comportamento de fixar no topo continua idêntico ao
      desktop) — sem isso o menu vira uma faixa full-width que rola para longe
      assim que o painel central é rolado. */
-  .hub-sidebar{width:100%;flex:none;position:sticky;top:14px;max-height:calc(100vh - 28px)}
+  .hub-sidebar{width:100%;flex:none;position:sticky;top:14px;max-height:calc(100vh - 28px);overscroll-behavior:contain}
 }
 /* HUB v2 — visões WeCann em telas limpas (sem carrossel/setas) */
 #scr-wecann .est-setas,#scr-wecann .est-dots{display:none !important}
@@ -3962,7 +3978,7 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 244;
+var UV_BUILD_NUM = 245;
 const UV_BUILD='HUB-v3\u00b7'+UV_BUILD_NUM;
 try{ console.info('%c[Hub Ultravel] build '+UV_BUILD, 'color:#6FBAFF;font-weight:bold'); }catch(e){}
 try{
