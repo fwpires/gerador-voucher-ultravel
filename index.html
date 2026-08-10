@@ -94,13 +94,30 @@ body{
   line-height:1.5;
   -webkit-font-smoothing:antialiased;
   transition:background .25s,color .25s;
+  /* (·246) REESCRITA ESTRUTURAL — depois de três rodadas ajustando sticky/
+     overscroll e o Nando ainda vendo o menu "andar junto" com o painel
+     central (e agora também itens sumindo no fim do menu), a causa raiz
+     real é a ARQUITETURA: até aqui, menu E painel central viviam dentro do
+     MESMO scroll — o da PÁGINA (document/body) — com o menu apenas "grudado"
+     visualmente via position:sticky. Sticky é reposicionamento dentro do
+     MESMO scroll, não independência de verdade — qualquer interação entre
+     o scroll interno do menu (quando a lista é mais alta que a tela) e o
+     scroll da página (scroll chaining) inevitavelmente vaza de um pro outro,
+     de formas diferentes a cada navegador/mouse/trackpad — foi exatamente
+     esse vazamento que o vídeo mostrou, mesmo depois do overscroll-behavior.
+     A CORREÇÃO DE VERDADE: menu e painel central viram DOIS CONTAINERS DE
+     ROLAGEM GENUINAMENTE SEPARADOS, cada um com sua altura FIXA (a da tela,
+     descontado o topbar) e sua PRÓPRIA barra — não existe mais um scroll de
+     página por trás para vazar. A página (body) para de rolar; quem rola é
+     .hub-sidebar OU .hub-main, nunca os dois pelo mesmo gesto. */
+  height:100vh;margin:0;overflow:hidden;display:flex;flex-direction:column;
 }
 h1,h2,h3,h4{font-family:'Sora',sans-serif;letter-spacing:-.01em}
 .mono{font-family:'JetBrains Mono',monospace}
 
 /* ===== TOPBAR ===== */
 .topbar{
-  position:sticky;top:0;z-index:50;
+  position:sticky;top:0;z-index:50;flex:0 0 auto;
   background:var(--card);
   border-bottom:1px solid var(--borda);
   box-shadow:0 1px 2px rgba(16,40,70,.04);
@@ -162,36 +179,35 @@ body.dark .cloud.cloud-square{background:#16212E;border-color:#2E4460;color:#E8E
    Control Desk) ele sobrava como um vão vazio antes do fim de verdade.
    Reduzido para o mesmo respiro do topo (20px), o suficiente para o último
    botão não ficar colado na borda, sem sobrar um vão perceptível. */
-main{max-width:none;margin:0 auto;padding:20px 22px 20px}
+main{max-width:none;margin:0 auto;padding:20px 22px 20px;
+  /* (·246) <main> deixa de ser quem rola — vira só uma moldura de altura FIXA
+     (o que sobra da tela abaixo do topbar) que ENTREGA essa altura para o
+     .hub-shell logo abaixo repartir entre as duas colunas independentes.
+     flex-direction:COLUMN (não row!) é essencial aqui: <main> tem outros
+     filhos além do .hub-shell — os avisos .cfg-warn/.offline-warn de
+     "sem conexão" — que precisam continuar EMPILHADOS acima do shell, como
+     sempre foram; virar flex-direction:row (o padrão) os jogaria lado a lado
+     e espremeria o shell inteiro numa fatia estreita à direita (foi
+     exatamente esse o efeito colateral pego no teste visual antes de
+     entregar). */
+  flex:1 1 auto;min-height:0;overflow:hidden;box-sizing:border-box;display:flex;flex-direction:column}
 /* ===== HUB v2: shell com menu lateral ===== */
-.hub-shell{display:flex;align-items:flex-start;gap:18px;margin-top:6px}
-.hub-sidebar{width:242px;flex:0 0 242px;position:sticky;top:14px;background:var(--card);border:1px solid var(--borda);border-radius:var(--raio);padding:12px 9px;box-shadow:var(--sombra);
-  /* (·244) Reclamação do Nando: uma faixa vazia sobrava embaixo do menu ao
-     rolar telas mais longas. Causa: este teto de altura reservava 96px do
-     rodapé da janela sem usar (bem mais que os 14px de respiro do TOPO,
-     top:14px acima) — sobra que virava um vão visível assim que o menu
-     encostava no teto e precisava de rolagem própria. Trocado para 28px
-     (os mesmos 14px de cima + 14px embaixo, respiro simétrico) — o menu
-     passa a aproveitar quase toda a altura da janela antes de precisar
-     rolar por dentro, encolhendo o vão a quase nada. */
-  max-height:calc(100vh - 28px);overflow-y:auto;
-  /* (·245) A CAUSA DE VERDADE do "menu se mexendo junto": não é a sidebar que
-     se move — é SCROLL CHAINING. A lista interna do menu tem só ~38px de
-     rolagem própria (sobra pouca coisa além do que já cabe no teto acima);
-     assim que ela esgota essa rolagem — o que acontece já no primeiro "tique"
-     da roda do mouse — o navegador, por padrão, REPASSA o restante do gesto
-     para o elemento rolável PAI, ou seja, a PÁGINA INTEIRA. Como a sidebar é
-     sticky, ela acompanha esse scroll da página normalmente — e para quem
-     está com o mouse EM CIMA do menu, o efeito visual é indistinguível de
-     "o menu se moveu sozinho". overscroll-behavior:contain avisa o navegador
-     para NUNCA deixar a rolagem escapar deste elemento para o pai — rolar
-     até o fim da lista do menu simplesmente para aí, sem arrastar a página
-     por trás. Prova medida: sem esta linha, 1 "tique" de roda do mouse sobre
-     o menu já esgotava os 38px internos e o PRÓXIMO tique movia a página
-     inteira 200px; com a linha, o scroll da página fica em 0 o tempo todo,
-     não importa quantos tiques rolem sobre o menu. */
-  overscroll-behavior:contain}
-.hub-main{flex:1;min-width:0}
+.hub-shell{display:flex;align-items:stretch;gap:18px;margin-top:0;flex:1;min-height:0;min-width:0}
+.hub-sidebar{width:242px;flex:0 0 242px;background:var(--card);border:1px solid var(--borda);border-radius:var(--raio);padding:12px 9px;box-shadow:var(--sombra);
+  /* (·246) Container de rolagem PRÓPRIO: altura 100% da coluna (fixa, não
+     cresce com o conteúdo) + overflow-y:auto — o menu rola por dentro de si
+     mesmo, sozinho, sem nenhum scroll de página por trás para vazar ou
+     "vazar dele". Nada de position:sticky/max-height/overscroll-behavior
+     aqui — eram remendos para um problema que essa mudança elimina na raiz;
+     TODO o menu fica sempre alcançável rolando esta caixa, do primeiro ao
+     último item, sem depender de quanto a tela é alta. */
+  height:100%;overflow-y:auto}
+/* (·246) .hub-main é a OUTRA metade do par de scrolls independentes — mesma
+   receita da sidebar: altura 100% da coluna + rolagem própria. Ganhou também
+   um respiro interno (padding-right) para o conteúdo não ficar colado na
+   barra de rolagem própria, que antes não existia aqui (quem rolava era a
+   página inteira). */
+.hub-main{flex:1;min-width:0;height:100%;overflow-y:auto;padding-right:4px}
 .screen{display:none}
 .screen.active{display:block;animation:scrFade .18s ease}
 @keyframes scrFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
@@ -1986,19 +2002,16 @@ body:not(.dark) .termo-nome{color:#5a7085}
 .scr-soon h2{font-size:18px;color:var(--texto-suave);margin:0 0 6px;font-weight:700}
 .scr-soon p{font-size:13px;max-width:380px;margin:0 auto}
 @media(max-width:980px){
-  main{padding:16px 12px 16px}
-  .hub-shell{flex-direction:column;gap:12px}
-  /* (·242) BUG DO NANDO: "o menu lateral esquerdo se move junto com o scroll do
-     painel central". Achado: NÃO é a scrollbar do menu — é esta regra aqui, que
-     trocava position:sticky por position:static (e zerava o max-height) sempre
-     que a janela ficava com 980px de largura ou menos. Sem sticky, a sidebar
-     deixa de ser "presa ao topo" e passa a rolar junto com o documento como
-     qualquer bloco comum — exatamente o "desce junto" que ele relatou. Mantém
-     sticky também nesta faixa de largura (só a LARGURA e o empilhamento em
-     coluna mudam, o comportamento de fixar no topo continua idêntico ao
-     desktop) — sem isso o menu vira uma faixa full-width que rola para longe
-     assim que o painel central é rolado. */
-  .hub-sidebar{width:100%;flex:none;position:sticky;top:14px;max-height:calc(100vh - 28px);overscroll-behavior:contain}
+  /* (·246) Em telas estreitas o app volta ao modelo de ROLAGEM DE PÁGINA
+     única (mais seguro em celular: evita dois scrolls internos competindo
+     com gestos de toque, teclado virtual etc.) — desliga por completo o
+     modelo de "dois painéis independentes" do desktop, revertendo body/main
+     para o fluxo normal do documento. */
+  body{height:auto;overflow:visible;display:block}
+  main{padding:16px 12px 16px;flex:none;min-height:0;overflow:visible;display:block}
+  .hub-shell{flex-direction:column;gap:12px;height:auto;align-items:stretch}
+  .hub-sidebar{width:100%;flex:none;height:auto;max-height:60vh;overflow-y:auto;position:sticky;top:14px;overscroll-behavior:contain}
+  .hub-main{height:auto;overflow:visible;padding-right:0}
 }
 /* HUB v2 — visões WeCann em telas limpas (sem carrossel/setas) */
 #scr-wecann .est-setas,#scr-wecann .est-dots{display:none !important}
@@ -3978,7 +3991,7 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 245;
+var UV_BUILD_NUM = 246;
 const UV_BUILD='HUB-v3\u00b7'+UV_BUILD_NUM;
 try{ console.info('%c[Hub Ultravel] build '+UV_BUILD, 'color:#6FBAFF;font-weight:bold'); }catch(e){}
 try{
