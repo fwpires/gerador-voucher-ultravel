@@ -1955,7 +1955,17 @@ body:not(.dark) .termo-nome{color:#5a7085}
 @media(max-width:980px){
   main{padding:16px 12px 70px}
   .hub-shell{flex-direction:column;gap:12px}
-  .hub-sidebar{width:100%;flex:none;position:static;max-height:none}
+  /* (·242) BUG DO NANDO: "o menu lateral esquerdo se move junto com o scroll do
+     painel central". Achado: NÃO é a scrollbar do menu — é esta regra aqui, que
+     trocava position:sticky por position:static (e zerava o max-height) sempre
+     que a janela ficava com 980px de largura ou menos. Sem sticky, a sidebar
+     deixa de ser "presa ao topo" e passa a rolar junto com o documento como
+     qualquer bloco comum — exatamente o "desce junto" que ele relatou. Mantém
+     sticky também nesta faixa de largura (só a LARGURA e o empilhamento em
+     coluna mudam, o comportamento de fixar no topo continua idêntico ao
+     desktop) — sem isso o menu vira uma faixa full-width que rola para longe
+     assim que o painel central é rolado. */
+  .hub-sidebar{width:100%;flex:none;position:sticky;top:14px;max-height:calc(100vh - 96px)}
 }
 /* HUB v2 — visões WeCann em telas limpas (sem carrossel/setas) */
 #scr-wecann .est-setas,#scr-wecann .est-dots{display:none !important}
@@ -3935,7 +3945,7 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 241;
+var UV_BUILD_NUM = 242;
 const UV_BUILD='HUB-v3\u00b7'+UV_BUILD_NUM;
 try{ console.info('%c[Hub Ultravel] build '+UV_BUILD, 'color:#6FBAFF;font-weight:bold'); }catch(e){}
 try{
