@@ -4002,7 +4002,7 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 249;
+var UV_BUILD_NUM = 250;
 const UV_BUILD='HUB-v3\u00b7'+UV_BUILD_NUM;
 try{ console.info('%c[Hub Ultravel] build '+UV_BUILD, 'color:#6FBAFF;font-weight:bold'); }catch(e){}
 try{
@@ -4218,6 +4218,10 @@ async function carregarConfig(){
       /* (·235) CONTATOS — pastas-ficheiro (nome+cor); mesma proteção de união. */
       if(typeof window.ctCatsMergeMaps==='function'){
         appConfig.contatosCats=window.ctCatsMergeMaps(local.contatosCats, c.contatosCats);
+      }
+      /* (·250) CARTÕES CADASTRADOS PELO USUÁRIO — mesma proteção de união. */
+      if(typeof window.ccExtrasMergeMaps==='function'){
+        appConfig.ccExtras=window.ccExtrasMergeMaps(local.ccExtras, c.ccExtras);
       }
       if(typeof window.mxMergeMaps==='function'){
         appConfig.matrizComercial=window.mxMergeMaps(local.matrizComercial, c.matrizComercial);
@@ -4518,6 +4522,9 @@ async function salvarConfig(){
     }
     if(typeof window.ctCatsMergeMaps==='function'){          // (·235) Contatos
       appConfig.contatosCats=window.ctCatsMergeMaps(appConfig.contatosCats, cloud.contatosCats);
+    }
+    if(typeof window.ccExtrasMergeMaps==='function'){         // (·250) Cartões cadastrados
+      appConfig.ccExtras=window.ccExtrasMergeMaps(appConfig.ccExtras, cloud.ccExtras);
     }
     if(typeof window.mxMergeMaps==='function'){
       appConfig.matrizComercial=window.mxMergeMaps(appConfig.matrizComercial, cloud.matrizComercial);
@@ -18214,6 +18221,27 @@ function excluirNotaUI(id){
   #scr-cartoes .cc-chip.prazo{background:rgba(240,165,74,.12);color:#f0a54a;border:1px solid rgba(240,165,74,.32)}
   #scr-cartoes .cc-chip.noparc{background:rgba(255,82,82,.1);color:#ff8a8a;border:1px solid rgba(255,82,82,.35)}
   #scr-cartoes .cc-star{font-size:.9rem}
+  /* (·250) botão "Cadastrar novo cartão" + selo "novo" + formulário + excluir */
+  #scr-cartoes .cc-btn-novo{flex:0 0 auto;background:linear-gradient(180deg,var(--azul),var(--azul-escuro));border:none;color:#fff;border-radius:10px;padding:11px 18px;font-size:.86rem;font-weight:800;cursor:pointer;white-space:nowrap;transition:all .15s}
+  #scr-cartoes .cc-btn-novo:hover{box-shadow:0 4px 14px rgba(0,93,170,.4);transform:translateY(-1px)}
+  #scr-cartoes .cc-novo-selo{display:inline-block;background:rgba(46,199,165,.16);border:1px solid rgba(46,199,165,.4);color:#2ec7a5;border-radius:20px;padding:1px 8px;font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.4px;vertical-align:middle;margin-left:4px}
+  .cc-nform{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px 14px;margin-top:14px}
+  .cc-nfld{display:flex;flex-direction:column;gap:5px;min-width:0}
+  .cc-nfld.full{grid-column:1/-1}
+  .cc-nfld label{font-size:.72rem;font-weight:700;color:#8CA3B3;text-transform:uppercase;letter-spacing:.4px}
+  .cc-nfld input[type=text],.cc-nfld input[type=number],.cc-nfld select{background:#0F1923;border:1px solid #243849;border-radius:9px;color:#E6EEF3;font-size:.9rem;font-weight:600;padding:9px 11px;outline:none;font-family:inherit;width:100%;box-sizing:border-box}
+  .cc-nfld input:focus,.cc-nfld select:focus{border-color:var(--azul)}
+  .cc-nparc label{display:flex;align-items:center;gap:8px;font-size:.85rem;font-weight:700;color:#cfe8e0;cursor:pointer;text-transform:none;letter-spacing:0}
+  .cc-nparc input{width:auto}
+  .cc-nerro{color:#ff8a8a;font-size:.82rem;font-weight:700;margin-top:12px;min-height:1.1em}
+  .cc-nacoes{display:flex;gap:10px;margin-top:6px}
+  .cc-btn-cancelar{background:transparent;border:1px solid #243849;color:#8CA3B3;border-radius:10px;padding:11px 18px;font-size:.86rem;font-weight:700;cursor:pointer}
+  .cc-btn-cancelar:hover{border-color:#33586b;color:#cfe8e0}
+  .cc-mexcluir{margin-top:18px;padding-top:16px;border-top:1px solid #243849}
+  .cc-btn-excluir{background:rgba(255,82,82,.1);border:1px solid rgba(255,82,82,.4);color:#ff8a8a;border-radius:10px;padding:10px 16px;font-size:.84rem;font-weight:700;cursor:pointer}
+  .cc-btn-excluir:hover{background:rgba(255,82,82,.18)}
+  body:not(.dark) .cc-nfld input,body:not(.dark) .cc-nfld select{background:#fff;border-color:#dfe7ec;color:#15252F}
+  body:not(.dark) .cc-nfld label{color:#5f7488}
   /* modal de detalhes */
   .cc-mgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   .cc-mgrid .full{grid-column:1/-1}
@@ -18254,6 +18282,71 @@ function excluirNotaUI(id){
     {banco:'',          band:'MASTERCARD', num:'5122675508245488', val:'05/2032', cvv:'140', tit:'Marcelo Silva',        nasc:'08/05/1968', cpf:'590.504.114-87', fech:20, venc:25, jIni:26, jFim:7,  parc:true}
   ];
   function ccEsc(s){ return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  /* ========================================================================
+     (·250) CADASTRAR NOVO CARTÃO — pedido do Nando.
+     CC_LISTA é um literal fixo no código-fonte (18 cartões digitados na hora
+     em que a tela nasceu, ·205) — não dá pra "adicionar uma linha" nele em
+     tempo de execução, e reescrever o arquivo a cada cartão novo não é como
+     este sistema guarda dado do usuário. Mesmo padrão que Equipe/Fornecedores/
+     Contatos já usam: os 18 originais continuam sendo a SEMENTE, e os cartões
+     que o Nando cadastrar pela tela vivem numa camada própria em
+     appConfig.ccExtras — sincronizada entre os 12 PCs pelo KV, com o mesmo
+     merge por união+carimbo que protege os outros módulos. A lista que a tela
+     de fato usa (ccListaTodos) é a JUNÇÃO das duas — em todo lugar que antes
+     lia CC_LISTA direto. */
+  function ccExtrasStore(){
+    if(!appConfig.ccExtras || typeof appConfig.ccExtras!=='object') appConfig.ccExtras={};
+    return appConfig.ccExtras;
+  }
+  var CC_CAMPOS=['banco','band','num','val','cvv','tit','nasc','cpf','fech','venc','jIni','jFim','parc'];
+  function ccListaTodos(){
+    var store=ccExtrasStore(), extras=[];
+    Object.keys(store).forEach(function(id){
+      var e=store[id]; if(!e || e.del) return;
+      var card={ _extraId:id };
+      CC_CAMPOS.forEach(function(k){ card[k]=e[k]; });
+      extras.push(card);
+    });
+    // ordena por carimbo (mais antigo primeiro) para a ordem não "dançar" a
+    // cada render — sem isso, dois cartões com o mesmo ts na borda de um
+    // merge poderiam trocar de posição entre um PC e outro
+    extras.sort(function(a,b){ return (store[a._extraId].ts||0)-(store[b._extraId].ts||0); });
+    return CC_LISTA.concat(extras);
+  }
+  function ccNovo(dados){
+    var store=ccExtrasStore();
+    var id='novo_'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+    var reg={ts:Date.now(), del:0};
+    CC_CAMPOS.forEach(function(k){ reg[k]=dados[k]; });
+    store[id]=reg;
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+    try{ if(typeof logRemoto==='function') logRemoto('cartao_novo','Cartão cadastrado: '+(dados.tit||'')+' — '+(dados.band||'')+' final '+(dados.num?String(dados.num).slice(-4):'S/N'),{area:'Cartões de Crédito'}); }catch(e){}
+    return id;
+  }
+  function ccExcluirExtra(extraId){
+    var store=ccExtrasStore();
+    if(!store[extraId]) return false;
+    store[extraId].del=1; store[extraId].ts=Date.now();
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+    try{ if(typeof logRemoto==='function') logRemoto('cartao_excluido','Cartão cadastrado pelo usuário excluído',{area:'Cartões de Crédito'}); }catch(e){}
+    return true;
+  }
+  /* Merge multi-PC — UNIÃO por id, carimbo mais recente vence (mesmo padrão
+     de eqMergeMaps/fnMergeMaps): del é só mais um campo do registro, então um
+     PC que exclua um cartão propaga isso normalmente, sem caminho especial. */
+  window.ccExtrasMergeMaps=function(a,b){
+    a=a||{}; b=b||{}; var out={}, ids={};
+    Object.keys(a).forEach(function(k){ids[k]=1;}); Object.keys(b).forEach(function(k){ids[k]=1;});
+    Object.keys(ids).forEach(function(id){
+      var x=a[id], y=b[id];
+      out[id]=(x&&y)?(((x.ts||0)>=(y.ts||0))?x:y):(x||y);
+    });
+    return out;
+  };
+  window.ccListaTodos=ccListaTodos;
+  window.ccNovo=ccNovo;
+  window.ccExcluirExtra=ccExcluirExtra;
   /* a janela pode CRUZAR a virada do mês (ex.: 26 a 07) */
   function ccNaJanela(c, dia){ return (c.jIni<=c.jFim) ? (dia>=c.jIni && dia<=c.jFim) : (dia>=c.jIni || dia<=c.jFim); }
   /* prazo aproximado até o pagamento: próximo fechamento após hoje → 1º vencimento após ele */
@@ -18488,7 +18581,7 @@ function excluirNotaUI(id){
      entra na lista mesmo assim, marcado, em vez de sumir: esconder faria o
      atendente achar que o cartão não existe mais e procurar outro. */
   function ccParaSeletor(){
-    return CC_LISTA.map(function(c){
+    return ccListaTodos().map(function(c){
       var informado = ccSaldoGet(c);
       return { id:ccId(c),
                band:(c.band==='MASTERCARD'?'Master':'Visa'),
@@ -18500,7 +18593,8 @@ function excluirNotaUI(id){
     });
   }
   function ccPorId(id){
-    for(var k=0;k<CC_LISTA.length;k++){ if(ccId(CC_LISTA[k])===id) return CC_LISTA[k]; }
+    var lista=ccListaTodos();
+    for(var k=0;k<lista.length;k++){ if(ccId(lista[k])===id) return lista[k]; }
     return null;
   }
 
@@ -18534,16 +18628,19 @@ function excluirNotaUI(id){
     var wrap=document.getElementById('cartoesWrap'); if(!wrap) return;
     var hoje=new Date(); var dia=hoje.getDate();
     var dd=String(dia).padStart(2,'0')+'/'+String(hoje.getMonth()+1).padStart(2,'0')+'/'+hoje.getFullYear();
-    var itens=CC_LISTA.map(function(c,ix){
-      return {c:c, ix:ix, on:ccNaJanela(c,dia), prazo:ccPrazoDias(c,hoje)};
+    // (·250) data-cc passou de ÍNDICE para a CHAVE ESTÁVEL (ccId) — com
+    // cartões novos podendo ser cadastrados e excluídos pela tela, um índice
+    // de posição mudaria de cartão a cada adição/remoção; a chave não muda.
+    var itens=ccListaTodos().map(function(c){
+      return {c:c, id:ccId(c), on:ccNaJanela(c,dia), prazo:ccPrazoDias(c,hoje)};
     });
     var best=itens.filter(function(e){ return e.on; }).sort(function(a,b){ return b.prazo-a.prazo || (b.c.parc?1:0)-(a.c.parc?1:0); });
     var resto=itens.filter(function(e){ return !e.on; }).sort(function(a,b){ return a.c.jIni-b.c.jIni; });
     function linha(e, destaque){
       var c=e.c, sld=ccSaldoGet(c);      // (·208) de volta ao saldo informado, direto
-      return '<button type="button" class="cc-row'+(destaque?' best':' off')+'" data-cc="'+e.ix+'">'+
+      return '<button type="button" class="cc-row'+(destaque?' best':' off')+'" data-cc="'+ccEsc(e.id)+'">'+
         '<span class="cc-band '+(c.band==='MASTERCARD'?'master':'visa')+'">'+(c.band==='MASTERCARD'?'MC':'VISA')+'</span>'+
-        '<span class="cc-nome">'+(destaque?'<span class="cc-star">⭐ </span>':'')+ccEsc(ccNomeCartao(c))+' <span class="cc-fim">'+ccEsc(ccFinal(c))+'</span></span>'+
+        '<span class="cc-nome">'+(destaque?'<span class="cc-star">⭐ </span>':'')+ccEsc(ccNomeCartao(c))+' <span class="cc-fim">'+ccEsc(ccFinal(c))+'</span>'+(c._extraId?' <span class="cc-novo-selo" title="Cadastrado pela tela">novo</span>':'')+'</span>'+
         '<span class="cc-tit">'+ccEsc(c.tit)+'</span>'+
         /* (·206) SALDO no resumo, exatamente no espaço entre o titular e os
            melhores dias, como pedido. Sem valor sai um TRAÇO apagado e não
@@ -18561,8 +18658,11 @@ function excluirNotaUI(id){
     }
     wrap.innerHTML=
       '<div class="cc-head" style="margin-bottom:6px">'+
-        '<h1 class="cc-title">💳 MELHORES CARTÕES PARA COMPRAR HOJE <span class="cc-hoje">hoje: '+dd+'</span></h1>'+
-        '<div class="cc-sub">Sugestão automática pelo dia da compra: os cartões em destaque estão na melhor janela HOJE, ordenados pelo maior prazo até o vencimento da fatura. Clique num cartão para ver todos os dados.</div>'+
+        '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap">'+
+          '<div><h1 class="cc-title">💳 MELHORES CARTÕES PARA COMPRAR HOJE <span class="cc-hoje">hoje: '+dd+'</span></h1>'+
+          '<div class="cc-sub">Sugestão automática pelo dia da compra: os cartões em destaque estão na melhor janela HOJE, ordenados pelo maior prazo até o vencimento da fatura. Clique num cartão para ver todos os dados.</div></div>'+
+          '<button type="button" class="cc-btn-novo" id="ccBtnNovo">➕ Cadastrar novo cartão</button>'+
+        '</div>'+
       '</div>'+
       '<div class="cc-sec">⭐ Recomendados agora ('+best.length+')</div>'+
       '<div class="cc-list">'+(best.length?best.map(function(e){return linha(e,true);}).join(''):'<div class="cc-sub" style="padding:8px 4px">Nenhum cartão na janela ideal hoje — veja abaixo o mais próximo.</div>')+'</div>'+
@@ -18579,8 +18679,8 @@ function excluirNotaUI(id){
   function ccCopiarFallback(txt){
     try{ var ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }catch(e){}
   }
-  function ccAbrir(ix){
-    var c=CC_LISTA[ix]; if(!c) return;
+  function ccAbrir(id){
+    var c=ccPorId(id); if(!c) return;
     var hoje=new Date(); var on=ccNaJanela(c,hoje.getDate()); var prazo=ccPrazoDias(c,hoje);
     var ov=document.getElementById('ccOv'), md=document.getElementById('ccModal');
     function fld(l,v,copia){
@@ -18615,6 +18715,12 @@ function excluirNotaUI(id){
             'Salva automaticamente, sem botão. Para zerar, apague o campo.</div>'+
           '</div>'+
         '</div>'+
+        /* (·250) Excluir só existe para cartões CADASTRADOS PELA TELA (têm
+           _extraId). Os 18 originais são a semente do código — apagar um
+           deles pela interface exigiria uma regra de "soft delete de item de
+           semente" que ninguém pediu; se um dia for preciso, é um passo
+           deliberado à parte, não um efeito colateral deste botão. */
+        (c._extraId ? '<div class="cc-mexcluir"><button type="button" class="cc-btn-excluir" id="ccBtnExcluir">🗑 Excluir este cartão cadastrado</button></div>' : '')+
       '</div>';
     ov.classList.add('on');
 
@@ -18645,15 +18751,105 @@ function excluirNotaUI(id){
       inp.addEventListener('keydown', function(ev){ if(ev.key==='Enter'){ ev.preventDefault(); inp.blur(); } });
     }
 
+    var btnExcluir=document.getElementById('ccBtnExcluir');
+    if(btnExcluir){
+      btnExcluir.onclick=function(){
+        if(!confirm('Excluir o cartão '+ccNomeCartao(c)+' '+ccFinal(c)+' ('+(c.tit||'')+')? Esta ação não pode ser desfeita.')) return;
+        ccExcluirExtra(c._extraId);
+        ov.classList.remove('on');
+        if(typeof window.renderCartoes==='function') window.renderCartoes();
+      };
+    }
+
     document.getElementById('ccX').onclick=function(){ ccSaldoFlush(); ov.classList.remove('on');
       if(typeof window.renderCartoes==='function') window.renderCartoes(); };
   }
+  /* ---- (·250) formulário de cadastro de cartão novo ---- */
+  function ccAbrirNovo(){
+    var ov=document.getElementById('ccOv'), md=document.getElementById('ccModal');
+    function campo(id, rot, ph, tipo, largo){
+      return '<div class="cc-nfld'+(largo?' full':'')+'">'+
+        '<label for="'+id+'">'+rot+'</label>'+
+        '<input type="'+(tipo||'text')+'" id="'+id+'" placeholder="'+ccEsc(ph||'')+'" autocomplete="off">'+
+      '</div>';
+    }
+    md.innerHTML=
+      '<div class="cl-mhead"><h2>➕ Cadastrar novo cartão</h2><button type="button" class="cl-x" id="ccNovoX">&times;</button></div>'+
+      '<div class="cl-mbody">'+
+        '<div class="cc-mnota">Preencha os dados do cartão. Campos com <b>*</b> são obrigatórios — os dias de fechamento/vencimento e a janela de melhores dias são o que faz este cartão aparecer nas recomendações do dia certo.</div>'+
+        '<div class="cc-nform" id="ccNovoForm">'+
+          '<div class="cc-nfld"><label for="ccNBand">Bandeira *</label>'+
+            '<select id="ccNBand"><option value="VISA">Visa</option><option value="MASTERCARD">Mastercard</option></select></div>'+
+          campo('ccNBanco','Banco','ex.: Santander')+
+          campo('ccNNum','Número do cartão','16 dígitos — deixe em branco se ainda não tiver')+
+          campo('ccNVal','Validade','MM/AAAA')+
+          campo('ccNCvv','CVV','3 dígitos')+
+          campo('ccNTit','Titular *','nome completo', 'text', true)+
+          campo('ccNNasc','Nascimento do titular','DD/MM/AAAA')+
+          campo('ccNCpf','CPF do titular','000.000.000-00')+
+          campo('ccNFech','Dia de fechamento *','1 a 31','number')+
+          campo('ccNVenc','Dia de vencimento *','1 a 31','number')+
+          campo('ccNJIni','Início da janela de melhores dias *','1 a 31','number')+
+          campo('ccNJFim','Fim da janela de melhores dias *','1 a 31','number')+
+          '<div class="cc-nfld full cc-nparc"><label><input type="checkbox" id="ccNParc" checked> Este cartão aceita parcelamento</label></div>'+
+        '</div>'+
+        '<div class="cc-nerro" id="ccNovoErro"></div>'+
+        '<div class="cc-nacoes"><button type="button" class="cc-btn-novo" id="ccNovoSalvar">✓ Salvar cartão</button>'+
+        '<button type="button" class="cc-btn-cancelar" id="ccNovoCancelar">Cancelar</button></div>'+
+      '</div>';
+    ov.classList.add('on');
+    document.getElementById('ccNTit').focus();
+
+    function fechar(){ ov.classList.remove('on'); }
+    document.getElementById('ccNovoX').onclick=fechar;
+    document.getElementById('ccNovoCancelar').onclick=fechar;
+
+    document.getElementById('ccNovoSalvar').onclick=function(){
+      var erro=document.getElementById('ccNovoErro');
+      var band=document.getElementById('ccNBand').value;
+      var tit=(document.getElementById('ccNTit').value||'').trim();
+      var fech=parseInt(document.getElementById('ccNFech').value,10);
+      var venc=parseInt(document.getElementById('ccNVenc').value,10);
+      var jIni=parseInt(document.getElementById('ccNJIni').value,10);
+      var jFim=parseInt(document.getElementById('ccNJFim').value,10);
+      var faltando=[];
+      if(!tit) faltando.push('Titular');
+      if(!(fech>=1 && fech<=31)) faltando.push('Dia de fechamento (1 a 31)');
+      if(!(venc>=1 && venc<=31)) faltando.push('Dia de vencimento (1 a 31)');
+      if(!(jIni>=1 && jIni<=31)) faltando.push('Início da janela (1 a 31)');
+      if(!(jFim>=1 && jFim<=31)) faltando.push('Fim da janela (1 a 31)');
+      if(faltando.length){
+        erro.textContent='Preencha corretamente: '+faltando.join(', ')+'.';
+        return;
+      }
+      var num=(document.getElementById('ccNNum').value||'').replace(/\D/g,'');
+      var dados={
+        banco:(document.getElementById('ccNBanco').value||'').trim(),
+        band:band,
+        num:num,
+        val:(document.getElementById('ccNVal').value||'').trim(),
+        cvv:(document.getElementById('ccNCvv').value||'').trim(),
+        tit:tit,
+        nasc:(document.getElementById('ccNNasc').value||'').trim(),
+        cpf:(document.getElementById('ccNCpf').value||'').trim(),
+        fech:fech, venc:venc, jIni:jIni, jFim:jFim,
+        parc:!!document.getElementById('ccNParc').checked
+      };
+      ccNovo(dados);
+      fechar();
+      if(typeof window.renderCartoes==='function') window.renderCartoes();
+    };
+  }
+
   document.addEventListener('click', function(e){
     var b=e.target && e.target.closest ? e.target.closest('[data-cc]') : null;
-    if(b){ ccAbrir(parseInt(b.getAttribute('data-cc'),10)); return; }
+    if(b){ ccAbrir(b.getAttribute('data-cc')); return; }
     var cp=e.target && e.target.closest ? e.target.closest('[data-cc-copy]') : null;
     if(cp){ ccCopiar(cp.getAttribute('data-cc-copy'), cp); return; }
+    var bn=e.target && e.target.closest ? e.target.closest('#ccBtnNovo') : null;
+    if(bn){ ccAbrirNovo(); return; }
   });
+
   /* (·206) Esc e clique fora também FECHAM O CICLO: sobem o saldo pendente e
      repintam a lista, senão o valor recém-digitado ficaria certo no appConfig mas
      desatualizado na linha atrás do modal até o próximo render. */
