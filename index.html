@@ -4002,7 +4002,7 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 248;
+var UV_BUILD_NUM = 249;
 const UV_BUILD='HUB-v3\u00b7'+UV_BUILD_NUM;
 try{ console.info('%c[Hub Ultravel] build '+UV_BUILD, 'color:#6FBAFF;font-weight:bold'); }catch(e){}
 try{
@@ -6875,6 +6875,21 @@ function contarPessoasGrupo(arr){
 }
 
 // renderiza as 4 colunas: Fazer contato → Contato Realizado → Em tratativa → Fechado
+// (·249) Cache do que renderStatusColunasDraw precisa para redesenhar SEM
+// recomputar tudo — usado pelo caminho leve da busca (ver mais abaixo).
+let _shDrawCache=null;
+// debounce de 110ms na busca do Kanban — mesma técnica do ·241 (Vouchers
+// Salvos): sem isso, cada tecla chamava renderStatusColunasDraw imediatamente;
+// com listas grandes (600+ contatos, como no relato do Nando) rodar isso a
+// cada tecla em sequência rápida ainda somava atraso perceptível.
+let _shBuscaTimer=null;
+function _shKanbanBuscaDebounce(){
+  clearTimeout(_shBuscaTimer);
+  _shBuscaTimer=setTimeout(function(){
+    if(_shDrawCache) renderStatusColunasDraw(); else renderStatusColunas();
+  }, 110);
+}
+
 function renderStatusColunas(){
   const wrap=document.getElementById('shCols'); if(!wrap) return;
   const rows=(statusHotelData&&statusHotelData.rows)||[];
@@ -6929,11 +6944,50 @@ function renderStatusColunas(){
   // Fechado = cards montados a partir dos vouchers WeCann (hóspedes + passageiros)
   grupos.fechado = vouchersFechadoWecann();
 
-  const passa=r=> !termo || _normE([r.nome,r.email,r.telefone,r.agente,r.hotel,(r.acompanhantes||[]).join(' ')].join(' ')).indexOf(termo)>=0;
-
   // remove da seleção quem não está mais em "Fazer contato"
   const contatoNomes=new Set(grupos.contato.map(r=>normNome(r.nome)));
   [...shSelecionados].forEach(n=>{ if(!contatoNomes.has(n)) shSelecionados.delete(n); });
+
+  // (·249) Tudo que renderStatusColunasDraw precisa fica em cache aqui — é o que
+  // permite a BUSCA (que roda a cada tecla) redesenhar sem repetir as purgas,
+  // os relógios de notificação e os salvarConfig() acima, que não têm nenhuma
+  // relação com o texto digitado. Antes, digitar "ma" no campo relia TUDO isso
+  // 613 vezes (uma por tecla, no exemplo real do Nando) — inclusive gravando
+  // na nuvem repetidamente, o que também gastava rede à toa.
+  // NÃO cacheia `passa`: ela fecha sobre `termo`, e cachear a função junto
+  // congelaria a busca no texto de quando o cache foi criado — cada chamada
+  // do caminho leve recria `passa` com o `termo` atual (ver abaixo).
+  _shDrawCache = {grupos, cart};
+  renderStatusColunasDraw();
+
+  atualizarBotaoTrazer();
+  renderConciliacao();
+  renderRecusados();
+  renderErro();
+  renderSemRetorno();
+  renderContatoFeito();
+  renderArquivados();
+
+  const info=document.getElementById('shInfo');
+  if(info){
+    info.textContent = statusHotelData.importadoEm
+      ? ('Última atualização: '+new Date(statusHotelData.importadoEm).toLocaleString('pt-BR')+' · '+rows.length+' contatos')
+      : 'Nenhum relatório importado ainda — clique em “Importar / Atualizar CSV”.';
+  }
+  requestAnimationFrame(ajustarAlturaCarrossel); // a aba de contatos mudou de altura → reajusta o carrossel
+  requestAnimationFrame(function(){ try{ if(window.__kbUpdateThumb) window.__kbUpdateThumb(); }catch(e){} });
+}
+
+// (·249) CAMINHO LEVE — chamado a cada tecla digitada na busca (com debounce).
+// Só filtra o que já está em cache (_shDrawCache) e redesenha as 8 colunas do
+// Kanban; NÃO roda purgas, relógios de notificação, salvarConfig() nem as
+// outras 6 pastas (Conciliação/Recusados/Erro/Sem Retorno/Contato Feito/
+// Arquivados) — nenhuma delas depende do texto da busca.
+function renderStatusColunasDraw(){
+  const wrap=document.getElementById('shCols'); if(!wrap || !_shDrawCache) return;
+  const {grupos, cart}=_shDrawCache;
+  const termo=_normE(shBusca||'').trim();
+  const passa=r=> !termo || _normE([r.nome,r.email,r.telefone,r.agente,r.hotel,(r.acompanhantes||[]).join(' ')].join(' ')).indexOf(termo)>=0;
 
   const metaTrat=r=>[r.agente?('Ag.: '+r.agente):'', shPeriodo(r)].filter(Boolean).join(' · ');
   // "Contato Feito": mostra o AGENTE do CSV no mesmo formato da coluna "Em tratativa" ("Ag.: Fulano")
@@ -7034,20 +7088,6 @@ function renderStatusColunas(){
     const f=e.target.closest('#shFiltroAt'); if(f){ shFiltroAtendente=f.value; renderStatusColunas(); return; }
     const fh=e.target.closest('#shFiltroHotel'); if(fh){ shFiltroHotel=fh.value; renderStatusColunas(); }
   };
-  atualizarBotaoTrazer();
-  renderConciliacao();
-  renderRecusados();
-  renderErro();
-  renderSemRetorno();
-  renderContatoFeito();
-  renderArquivados();
-
-  const info=document.getElementById('shInfo');
-  if(info){
-    info.textContent = statusHotelData.importadoEm
-      ? ('Última atualização: '+new Date(statusHotelData.importadoEm).toLocaleString('pt-BR')+' · '+rows.length+' contatos')
-      : 'Nenhum relatório importado ainda — clique em “Importar / Atualizar CSV”.';
-  }
   requestAnimationFrame(ajustarAlturaCarrossel); // a aba de contatos mudou de altura → reajusta o carrossel
   requestAnimationFrame(function(){ try{ if(window.__kbUpdateThumb) window.__kbUpdateThumb(); }catch(e){} });
 }
@@ -7401,7 +7441,7 @@ function renderDisponibilidade(){
   const bis=$('#btnImportarStatus'); if(bis) bis.onclick=()=>$('#inputStatusHotel').click();
   const inS=$('#inputStatusHotel'); if(inS) inS.onchange=e=>{ const f=e.target.files&&e.target.files[0]; if(f) importarStatusHotel(f); e.target.value=''; };
   const inC=$('#inputConferenciaCSV'); if(inC) inC.onchange=e=>{ const f=e.target.files&&e.target.files[0]; if(f) conferirNomesCSV(f); e.target.value=''; };
-  const shB=$('#shBusca'); if(shB){ shB.value=shBusca||''; shB.oninput=()=>{ shBusca=shB.value; renderStatusColunas(); }; }
+  const shB=$('#shBusca'); if(shB){ shB.value=shBusca||''; shB.oninput=()=>{ shBusca=shB.value; _shKanbanBuscaDebounce(); }; }
   const shAt=$('#shAtendente');
   if(shAt){
     shAt.innerHTML='<option value="">Selecione seu nome</option>'+ATENDENTES.map(a=>`<option>${esc(a)}</option>`).join('');
