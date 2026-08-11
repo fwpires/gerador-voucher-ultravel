@@ -4002,7 +4002,7 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 250;
+var UV_BUILD_NUM = 251;
 const UV_BUILD='HUB-v3\u00b7'+UV_BUILD_NUM;
 try{ console.info('%c[Hub Ultravel] build '+UV_BUILD, 'color:#6FBAFF;font-weight:bold'); }catch(e){}
 try{
@@ -19574,7 +19574,36 @@ function excluirNotaUI(id){
   // "Carregando…" normalmente, já que não há nada para exibir de imediato.
   var _ultimoCache=null;
 
-  function montarHTML(usuarios, sessoes){
+  // (·251) O Nando reportou que "ainda" estava lento — o cache do ·248 só
+  // vivia numa variável JS, então qualquer recarga da PÁGINA (F5, ou o
+  // próprio Hub recarregando sozinho por causa do detector de versão) o
+  // apagava, e a abertura seguinte voltava a esperar a rede do zero. Isso
+  // explica o "ainda": na prática, quase ninguém abre/fecha o modal várias
+  // vezes na MESMA sessão sem recarregar — o padrão comum é abrir o Hub uma
+  // vez e clicar em Usuários uma vez, exatamente o caso que o cache em
+  // memória não cobria. Corrigido persistindo a lista de USUÁRIOS (nome,
+  // perfil, logins, pendência de 1º acesso) no localStorage, que sobrevive a
+  // qualquer recarga — assim até a PRIMEIRA abertura depois de um F5 já
+  // mostra algo na hora. AS SESSÕES FICAM DE FORA DE PROPÓSITO: cada sessão
+  // carrega um TOKEN — gravar isso em disco (localStorage) deixaria os
+  // tokens de sessão dos 12 atendentes armazenados permanentemente na
+  // máquina, piorando exatamente o tipo de exposição que este painel existe
+  // para conter. A lista de sessões mostra "carregando…" por uma fração de
+  // segundo (até a chamada de rede real voltar) em vez de vir do disco.
+  var UV_USERS_LS_KEY='uv_users_lista_cache_v1';
+  function uvUsersLsSalvar(usuarios){
+    try{ localStorage.setItem(UV_USERS_LS_KEY, JSON.stringify({usuarios:usuarios, ts:Date.now()})); }catch(e){}
+  }
+  function uvUsersLsLer(){
+    try{
+      var raw=localStorage.getItem(UV_USERS_LS_KEY); if(!raw) return null;
+      var obj=JSON.parse(raw);
+      if(!obj || !Array.isArray(obj.usuarios)) return null;
+      return obj.usuarios;
+    }catch(e){ return null; }
+  }
+
+  function montarHTML(usuarios, sessoes, sessoesCarregando){
     var porChave={};
     sessoes.forEach(function(s){ (porChave[s.chave]=porChave[s.chave]||[]).push(s); });
     var ATS=(typeof OCP_ATENDENTES!=='undefined')?OCP_ATENDENTES:(window.OCP_ATENDENTES||[]);
@@ -19583,13 +19612,15 @@ function excluirNotaUI(id){
 
     var linhasUsuarios = usuarios.map(function(u){
       var minhasSessoes=porChave[u.chave]||[];
-      var linhasSessoes = minhasSessoes.map(function(s){
-        return '<div class="uv-sess-row">'+
-          '<span class="uv-sess-disp" title="'+esc(s.dispositivo||'')+'">💻 '+esc((s.dispositivo||'dispositivo desconhecido').slice(0,42))+'</span>'+
-          '<span class="uv-sess-quando">último uso: '+fmtQuando(s.ultimoUso)+'</span>'+
-          '<button type="button" class="uv-sess-revogar" data-tok="'+esc(s.token)+'">revogar</button>'+
-        '</div>';
-      }).join('') || '<div class="uv-sess-row uv-sess-vazio">nenhuma sessão ativa</div>';
+      var linhasSessoes = sessoesCarregando
+        ? '<div class="uv-sess-row uv-sess-vazio">⏳ carregando sessões…</div>'
+        : (minhasSessoes.map(function(s){
+            return '<div class="uv-sess-row">'+
+              '<span class="uv-sess-disp" title="'+esc(s.dispositivo||'')+'">💻 '+esc((s.dispositivo||'dispositivo desconhecido').slice(0,42))+'</span>'+
+              '<span class="uv-sess-quando">último uso: '+fmtQuando(s.ultimoUso)+'</span>'+
+              '<button type="button" class="uv-sess-revogar" data-tok="'+esc(s.token)+'">revogar</button>'+
+            '</div>';
+          }).join('') || '<div class="uv-sess-row uv-sess-vazio">nenhuma sessão ativa</div>');
 
       return '<div class="uv-user-card">'+
         '<div class="uv-user-hd">'+
@@ -19674,11 +19705,22 @@ function excluirNotaUI(id){
     var body=document.getElementById('ocpUsersBody');
     if(!body) return;
 
-    // 1) DESENHA NA HORA com o que já temos (se houver) — é isso que elimina
-    //    o delay percebido em toda reabertura do modal depois da primeira.
-    if(_ultimoCache && !forcarLoading){
-      body.innerHTML = montarHTML(_ultimoCache.usuarios, _ultimoCache.sessoes);
-      wireHandlers(body);
+    // 1) DESENHA NA HORA com o que já temos — primeiro tenta o cache em
+    //    MEMÓRIA (mais completo, com sessões); se esta é a 1ª abertura desde
+    //    que a página carregou, cai para o cache em DISCO (só usuários, sem
+    //    token nenhum) — é isso que garante que até o 1º clique depois de um
+    //    F5 já mostre algo, e não só o 2º clique em diante.
+    if(!forcarLoading){
+      if(_ultimoCache){
+        body.innerHTML = montarHTML(_ultimoCache.usuarios, _ultimoCache.sessoes, false);
+        wireHandlers(body);
+      } else {
+        var usuariosDisco=uvUsersLsLer();
+        if(usuariosDisco){
+          body.innerHTML = montarHTML(usuariosDisco, [], true);
+          wireHandlers(body);
+        }
+      }
     }
 
     // 2) busca a versão fresca por trás (sempre — mesmo quando já mostrou
@@ -19694,8 +19736,9 @@ function excluirNotaUI(id){
       var novoJson=JSON.stringify({usuarios:usuarios, sessoes:sessoes});
       var mudou = !_ultimoCache || _ultimoCache.json!==novoJson;
       _ultimoCache={usuarios:usuarios, sessoes:sessoes, json:novoJson};
+      uvUsersLsSalvar(usuarios);   // só a lista de usuários — sem token de sessão
       if(mudou){
-        body.innerHTML = montarHTML(usuarios, sessoes);
+        body.innerHTML = montarHTML(usuarios, sessoes, false);
         wireHandlers(body);
       }
     }catch(e){
