@@ -4002,7 +4002,7 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 247;
+var UV_BUILD_NUM = 248;
 const UV_BUILD='HUB-v3\u00b7'+UV_BUILD_NUM;
 try{ console.info('%c[Hub Ultravel] build '+UV_BUILD, 'color:#6FBAFF;font-weight:bold'); }catch(e){}
 try{
@@ -19327,9 +19327,127 @@ function excluirNotaUI(id){
     await renderConteudo();
   }
 
-  async function renderConteudo(){
+  // (·248) CACHE-ENTÃO-ATUALIZA — o modal já nascia instantâneo (o próprio
+  // <div> é anexado na hora), mas ficava preso em "Carregando…" esperando as
+  // DUAS chamadas de rede (usuários + sessões) toda vez que era reaberto —
+  // mesmo reabrindo 30 segundos depois, com os mesmos dados de antes. Guarda
+  // o ÚLTIMO resultado bem-sucedido aqui; a próxima abertura desenha ISSO
+  // IMEDIATAMENTE (zero espera perceptível) enquanto busca a versão fresca
+  // por trás, silenciosamente — só troca a tela se algo realmente mudou. A
+  // primeira abertura da sessão (sem cache ainda) continua mostrando
+  // "Carregando…" normalmente, já que não há nada para exibir de imediato.
+  var _ultimoCache=null;
+
+  function montarHTML(usuarios, sessoes){
+    var porChave={};
+    sessoes.forEach(function(s){ (porChave[s.chave]=porChave[s.chave]||[]).push(s); });
+    var ATS=(typeof OCP_ATENDENTES!=='undefined')?OCP_ATENDENTES:(window.OCP_ATENDENTES||[]);
+    var jaCadastrado={}; usuarios.forEach(function(u){ jaCadastrado[(u.nome||'').trim().toLowerCase()]=1; });
+    var sugestoes=ATS.filter(function(n){ return !jaCadastrado[n.trim().toLowerCase()]; });
+
+    var linhasUsuarios = usuarios.map(function(u){
+      var minhasSessoes=porChave[u.chave]||[];
+      var linhasSessoes = minhasSessoes.map(function(s){
+        return '<div class="uv-sess-row">'+
+          '<span class="uv-sess-disp" title="'+esc(s.dispositivo||'')+'">💻 '+esc((s.dispositivo||'dispositivo desconhecido').slice(0,42))+'</span>'+
+          '<span class="uv-sess-quando">último uso: '+fmtQuando(s.ultimoUso)+'</span>'+
+          '<button type="button" class="uv-sess-revogar" data-tok="'+esc(s.token)+'">revogar</button>'+
+        '</div>';
+      }).join('') || '<div class="uv-sess-row uv-sess-vazio">nenhuma sessão ativa</div>';
+
+      return '<div class="uv-user-card">'+
+        '<div class="uv-user-hd">'+
+          '<b>'+esc(u.nome)+'</b>'+
+          '<span class="uv-user-perfil '+(u.perfil==='admin'?'adm':'')+'">'+(u.perfil==='admin'?'👑 admin':'atendente')+'</span>'+
+          (u.precisaTrocarSenha?'<span class="uv-user-pend">⏳ aguardando 1º acesso</span>':'')+
+        '</div>'+
+        '<div class="uv-user-logins">'+(u.logins||[]).map(function(l){return '<span class="uv-user-login">'+esc(l)+'</span>';}).join('')+'</div>'+
+        '<div class="uv-sess-list">'+linhasSessoes+'</div>'+
+        '<div class="uv-user-acoes">'+
+          '<button type="button" class="uv-btn-revogar-tudo" data-chave="'+esc(u.chave)+'">🔒 Revogar TODAS as sessões</button>'+
+          '<button type="button" class="uv-btn-resetar" data-chave="'+esc(u.chave)+'" data-nome="'+esc(u.nome)+'" data-logins=\''+esc(JSON.stringify(u.logins||[]))+'\'">🔑 Definir nova senha provisória</button>'+
+          '<button type="button" class="uv-btn-excluir" data-chave="'+esc(u.chave)+'" data-nome="'+esc(u.nome)+'">🗑 Excluir</button>'+
+        '</div>'+
+      '</div>';
+    }).join('') || '<div style="color:#6c7a90;font-size:12px">Nenhum usuário cadastrado ainda.</div>';
+
+    return '<div class="uv-users-novo">'+
+        '<b>➕ Cadastrar novo usuário</b>'+
+        '<div class="uv-users-novo-row">'+
+          '<input type="text" id="uvNovoNome" placeholder="Nome completo" list="uvSugestoesNomes" autocomplete="off">'+
+          '<datalist id="uvSugestoesNomes">'+sugestoes.map(function(n){return '<option value="'+esc(n)+'">';}).join('')+'</datalist>'+
+        '</div>'+
+        '<div class="uv-users-novo-row">'+
+          '<input type="text" id="uvNovoLogin1" placeholder="E-mail (ex.: fernando.pires@ultravel.com.br)" autocomplete="off">'+
+          '<input type="text" id="uvNovoLogin2" placeholder="Apelido curto (ex.: fernando) — opcional" autocomplete="off">'+
+        '</div>'+
+        '<div class="uv-users-novo-row">'+
+          '<select id="uvNovoPerfil"><option value="atendente">Atendente</option><option value="admin">Admin</option></select>'+
+          '<input type="text" id="uvNovoSenha" placeholder="Senha provisória (mín. 4 caracteres)" autocomplete="off">'+
+          '<button type="button" class="uv-btn-criar" id="uvBtnCriarUsuario">Criar</button>'+
+        '</div>'+
+        '<div class="uv-users-erro" id="uvNovoErro"></div>'+
+      '</div>'+
+      '<div class="uv-users-lista">'+linhasUsuarios+'</div>';
+  }
+
+  function wireHandlers(body){
+    document.getElementById('uvBtnCriarUsuario').onclick = criarUsuario;
+    body.querySelectorAll('.uv-sess-revogar').forEach(function(btn){
+      btn.onclick=async function(){
+        try{ await chamar('/api/auth/revogar', {method:'POST', body:JSON.stringify({token:btn.getAttribute('data-tok')})}); await renderConteudo(true); }
+        catch(e){ alert('Não foi possível revogar: '+(e.message||e)); }
+      };
+    });
+    body.querySelectorAll('.uv-btn-revogar-tudo').forEach(function(btn){
+      btn.onclick=async function(){
+        if(!confirm('Revogar TODAS as sessões deste usuário? Ele(a) vai precisar entrar de novo em todos os computadores.')) return;
+        try{ await chamar('/api/auth/revogar-usuario', {method:'POST', body:JSON.stringify({chave:btn.getAttribute('data-chave')})}); await renderConteudo(true); }
+        catch(e){ alert('Não foi possível revogar: '+(e.message||e)); }
+      };
+    });
+    body.querySelectorAll('.uv-btn-excluir').forEach(function(btn){
+      btn.onclick=async function(){
+        var nome=btn.getAttribute('data-nome');
+        if(!confirm('Excluir a conta de '+nome+'? Esta ação não pode ser desfeita e encerra todas as sessões dele(a).')) return;
+        try{ await chamar('/api/auth/usuarios', {method:'DELETE', body:JSON.stringify({chave:btn.getAttribute('data-chave')})}); await renderConteudo(true); }
+        catch(e){ alert('Não foi possível excluir: '+(e.message||e)); }
+      };
+    });
+    body.querySelectorAll('.uv-btn-resetar').forEach(function(btn){
+      btn.onclick=async function(){
+        var nova=prompt('Nova senha PROVISÓRIA para '+btn.getAttribute('data-nome')+' (mín. 4 caracteres):');
+        if(nova===null) return;
+        if((nova||'').length<4){ alert('A senha precisa de ao menos 4 caracteres.'); return; }
+        var logins=[]; try{ logins=JSON.parse(btn.getAttribute('data-logins')||'[]'); }catch(e){}
+        try{
+          await chamar('/api/auth/usuarios', {method:'POST', body:JSON.stringify({
+            nome:btn.getAttribute('data-nome'), logins:logins, perfil:'atendente', senhaProvisoria:nova
+          })});
+          await renderConteudo(true);
+          alert('Senha provisória redefinida. As sessões antigas deste usuário foram encerradas — ele(a) vai precisar entrar de novo com a senha nova e trocá-la no 1º acesso.');
+        }catch(e){ alert('Não foi possível redefinir: '+(e.message||e)); }
+      };
+    });
+  }
+
+  // forcarLoading=true (usado depois de criar/excluir/revogar) pula o cache
+  // de propósito — uma ação que ACABOU de mudar os dados precisa mostrar o
+  // resultado fresco, não o retrato antigo.
+  async function renderConteudo(forcarLoading){
     var body=document.getElementById('ocpUsersBody');
     if(!body) return;
+
+    // 1) DESENHA NA HORA com o que já temos (se houver) — é isso que elimina
+    //    o delay percebido em toda reabertura do modal depois da primeira.
+    if(_ultimoCache && !forcarLoading){
+      body.innerHTML = montarHTML(_ultimoCache.usuarios, _ultimoCache.sessoes);
+      wireHandlers(body);
+    }
+
+    // 2) busca a versão fresca por trás (sempre — mesmo quando já mostrou
+    //    cache) e só troca a tela de novo se algo realmente mudou, pra não
+    //    "piscar"/perder o que a pessoa estava digitando no formulário.
     try{
       var [uRes, sRes] = await Promise.all([
         chamar('/api/auth/usuarios', {method:'GET'}),
@@ -19337,103 +19455,20 @@ function excluirNotaUI(id){
       ]);
       var usuarios=(uRes && uRes.usuarios) || [];
       var sessoes=(sRes && sRes.sessoes) || [];
-      var porChave={};
-      sessoes.forEach(function(s){ (porChave[s.chave]=porChave[s.chave]||[]).push(s); });
-
-      // pré-preenche a lista de atendentes conhecidos que AINDA não têm conta,
-      // para reduzir digitação — não obriga a usar, é só sugestão no datalist
-      var ATS=(typeof OCP_ATENDENTES!=='undefined')?OCP_ATENDENTES:(window.OCP_ATENDENTES||[]);
-      var jaCadastrado={}; usuarios.forEach(function(u){ jaCadastrado[(u.nome||'').trim().toLowerCase()]=1; });
-      var sugestoes=ATS.filter(function(n){ return !jaCadastrado[n.trim().toLowerCase()]; });
-
-      var linhasUsuarios = usuarios.map(function(u){
-        var minhasSessoes=porChave[u.chave]||[];
-        var linhasSessoes = minhasSessoes.map(function(s){
-          return '<div class="uv-sess-row">'+
-            '<span class="uv-sess-disp" title="'+esc(s.dispositivo||'')+'">💻 '+esc((s.dispositivo||'dispositivo desconhecido').slice(0,42))+'</span>'+
-            '<span class="uv-sess-quando">último uso: '+fmtQuando(s.ultimoUso)+'</span>'+
-            '<button type="button" class="uv-sess-revogar" data-tok="'+esc(s.token)+'">revogar</button>'+
-          '</div>';
-        }).join('') || '<div class="uv-sess-row uv-sess-vazio">nenhuma sessão ativa</div>';
-
-        return '<div class="uv-user-card">'+
-          '<div class="uv-user-hd">'+
-            '<b>'+esc(u.nome)+'</b>'+
-            '<span class="uv-user-perfil '+(u.perfil==='admin'?'adm':'')+'">'+(u.perfil==='admin'?'👑 admin':'atendente')+'</span>'+
-            (u.precisaTrocarSenha?'<span class="uv-user-pend">⏳ aguardando 1º acesso</span>':'')+
-          '</div>'+
-          '<div class="uv-user-logins">'+(u.logins||[]).map(function(l){return '<span class="uv-user-login">'+esc(l)+'</span>';}).join('')+'</div>'+
-          '<div class="uv-sess-list">'+linhasSessoes+'</div>'+
-          '<div class="uv-user-acoes">'+
-            '<button type="button" class="uv-btn-revogar-tudo" data-chave="'+esc(u.chave)+'">🔒 Revogar TODAS as sessões</button>'+
-            '<button type="button" class="uv-btn-resetar" data-chave="'+esc(u.chave)+'" data-nome="'+esc(u.nome)+'" data-logins=\''+esc(JSON.stringify(u.logins||[]))+'\'">🔑 Definir nova senha provisória</button>'+
-            '<button type="button" class="uv-btn-excluir" data-chave="'+esc(u.chave)+'" data-nome="'+esc(u.nome)+'">🗑 Excluir</button>'+
-          '</div>'+
-        '</div>';
-      }).join('') || '<div style="color:#6c7a90;font-size:12px">Nenhum usuário cadastrado ainda.</div>';
-
-      body.innerHTML =
-        '<div class="uv-users-novo">'+
-          '<b>➕ Cadastrar novo usuário</b>'+
-          '<div class="uv-users-novo-row">'+
-            '<input type="text" id="uvNovoNome" placeholder="Nome completo" list="uvSugestoesNomes" autocomplete="off">'+
-            '<datalist id="uvSugestoesNomes">'+sugestoes.map(function(n){return '<option value="'+esc(n)+'">';}).join('')+'</datalist>'+
-          '</div>'+
-          '<div class="uv-users-novo-row">'+
-            '<input type="text" id="uvNovoLogin1" placeholder="E-mail (ex.: fernando.pires@ultravel.com.br)" autocomplete="off">'+
-            '<input type="text" id="uvNovoLogin2" placeholder="Apelido curto (ex.: fernando) — opcional" autocomplete="off">'+
-          '</div>'+
-          '<div class="uv-users-novo-row">'+
-            '<select id="uvNovoPerfil"><option value="atendente">Atendente</option><option value="admin">Admin</option></select>'+
-            '<input type="text" id="uvNovoSenha" placeholder="Senha provisória (mín. 4 caracteres)" autocomplete="off">'+
-            '<button type="button" class="uv-btn-criar" id="uvBtnCriarUsuario">Criar</button>'+
-          '</div>'+
-          '<div class="uv-users-erro" id="uvNovoErro"></div>'+
-        '</div>'+
-        '<div class="uv-users-lista">'+linhasUsuarios+'</div>';
-
-      document.getElementById('uvBtnCriarUsuario').onclick = criarUsuario;
-      body.querySelectorAll('.uv-sess-revogar').forEach(function(btn){
-        btn.onclick=async function(){
-          try{ await chamar('/api/auth/revogar', {method:'POST', body:JSON.stringify({token:btn.getAttribute('data-tok')})}); await renderConteudo(); }
-          catch(e){ alert('Não foi possível revogar: '+(e.message||e)); }
-        };
-      });
-      body.querySelectorAll('.uv-btn-revogar-tudo').forEach(function(btn){
-        btn.onclick=async function(){
-          if(!confirm('Revogar TODAS as sessões deste usuário? Ele(a) vai precisar entrar de novo em todos os computadores.')) return;
-          try{ await chamar('/api/auth/revogar-usuario', {method:'POST', body:JSON.stringify({chave:btn.getAttribute('data-chave')})}); await renderConteudo(); }
-          catch(e){ alert('Não foi possível revogar: '+(e.message||e)); }
-        };
-      });
-      body.querySelectorAll('.uv-btn-excluir').forEach(function(btn){
-        btn.onclick=async function(){
-          var nome=btn.getAttribute('data-nome');
-          if(!confirm('Excluir a conta de '+nome+'? Esta ação não pode ser desfeita e encerra todas as sessões dele(a).')) return;
-          try{ await chamar('/api/auth/usuarios', {method:'DELETE', body:JSON.stringify({chave:btn.getAttribute('data-chave')})}); await renderConteudo(); }
-          catch(e){ alert('Não foi possível excluir: '+(e.message||e)); }
-        };
-      });
-      body.querySelectorAll('.uv-btn-resetar').forEach(function(btn){
-        btn.onclick=async function(){
-          var nova=prompt('Nova senha PROVISÓRIA para '+btn.getAttribute('data-nome')+' (mín. 4 caracteres):');
-          if(nova===null) return;
-          if((nova||'').length<4){ alert('A senha precisa de ao menos 4 caracteres.'); return; }
-          var logins=[]; try{ logins=JSON.parse(btn.getAttribute('data-logins')||'[]'); }catch(e){}
-          try{
-            await chamar('/api/auth/usuarios', {method:'POST', body:JSON.stringify({
-              nome:btn.getAttribute('data-nome'), logins:logins, perfil:'atendente', senhaProvisoria:nova
-            })});
-            await renderConteudo();
-            alert('Senha provisória redefinida. As sessões antigas deste usuário foram encerradas — ele(a) vai precisar entrar de novo com a senha nova e trocá-la no 1º acesso.');
-          }catch(e){ alert('Não foi possível redefinir: '+(e.message||e)); }
-        };
-      });
+      var novoJson=JSON.stringify({usuarios:usuarios, sessoes:sessoes});
+      var mudou = !_ultimoCache || _ultimoCache.json!==novoJson;
+      _ultimoCache={usuarios:usuarios, sessoes:sessoes, json:novoJson};
+      if(mudou){
+        body.innerHTML = montarHTML(usuarios, sessoes);
+        wireHandlers(body);
+      }
     }catch(e){
-      body.innerHTML='<div style="color:#ff9a9a;font-size:12px">Não foi possível carregar: '+esc(e.message||e)+'</div>';
+      if(!_ultimoCache) body.innerHTML='<div style="color:#ff9a9a;font-size:12px">Não foi possível carregar: '+esc(e.message||e)+'</div>';
+      // se já tinha cache na tela, um erro na atualização silenciosa não
+      // apaga o que já estava sendo mostrado — só a criação/exclusão (que já
+      // teve seu próprio alert de erro) chegaria aqui com forcarLoading
     }
   }
-
   async function criarUsuario(){
     var erroEl=document.getElementById('uvNovoErro'); if(erroEl) erroEl.textContent='';
     var nome=(document.getElementById('uvNovoNome').value||'').trim();
