@@ -2499,6 +2499,13 @@ body:not(.dark) .mt-lock-card select,body:not(.dark) .mt-lock-card input[type=pa
 .conc-semfechado .conc-grupo-tit{color:#5FD0C0}
 .conc-semfechado{border-color:rgba(95,208,192,.3) !important}
 .conc-via .conc-grupo-tit{color:#7FB2F5}
+/* auditoria de Check-in/Check-out (CSV × voucher) */
+.conc-ck{border:1px solid rgba(127,178,245,.32) !important;background:rgba(127,178,245,.05) !important;border-radius:var(--raio-sm);padding:2px 0}
+.conc-ck .conc-grupo-tit{color:#9DC0FF}
+.conc-ck-num{color:#7FB2F5;font-weight:700}
+.conc-ck-detalhe{display:inline-block;margin-top:2px;font-size:11px;color:#B9C6E0;font-style:italic}
+.conc-ckcorrigido{flex:0 0 auto;font-size:11px;font-weight:700;border-radius:7px;padding:4px 10px;cursor:pointer;background:rgba(53,208,127,.14);color:#35D07F;border:1px solid rgba(53,208,127,.4);transition:all .14s;line-height:1;align-self:flex-start}
+.conc-ckcorrigido:hover{background:#35D07F;color:#0A1929;border-color:#35D07F}
 .conc-lista{list-style:none;margin:0;padding:0;max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:4px}
 .conc-lista li{font-size:12px;color:#E7EDF7;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:6px;padding:5px 9px}
 /* painel de conciliação por QUARTO (ID Reserva) */
@@ -4002,7 +4009,7 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 251;
+var UV_BUILD_NUM = 252;
 const UV_BUILD='HUB-v3\u00b7'+UV_BUILD_NUM;
 try{ console.info('%c[Hub Ultravel] build '+UV_BUILD, 'color:#6FBAFF;font-weight:bold'); }catch(e){}
 try{
@@ -4147,6 +4154,9 @@ async function carregarConfig(){
       // Depois tira quem já foi marcado "Nome cadastrado" (está em voucherResolvido) pra não ressuscitar.
       appConfig.semCadastroWecann={...(local.semCadastroWecann||{}), ...(c.semCadastroWecann||{})};
       Object.keys(appConfig.voucherResolvido).forEach(k=>{ if(appConfig.semCadastroWecann[k]) delete appConfig.semCadastroWecann[k]; });
+      // AUDITORIA DE CHECK-IN/CHECK-OUT: "Corrigido" também é decisão PERMANENTE — une
+      // local+nuvem pra nunca ressuscitar uma divergência já resolvida, nem entre PCs.
+      appConfig.ckAuditoriaCorrigidos={...(local.ckAuditoriaCorrigidos||{}), ...(c.ckAuditoriaCorrigidos||{})};
       // (·232) VÍNCULOS DE NOME AMBÍGUO (Marina Susin × Marina Vicente etc.): a MESMA
       // proteção PERMANENTE que voucherResolvido/naoMesmaPessoa/semCadastroWecann já
       // tinham — e que esta chave, sozinha, nunca ganhou. Sem isto o campo ficava
@@ -4372,6 +4382,7 @@ async function salvarConfig(){
     appConfig.voucherResolvido ={...(cloud.voucherResolvido ||{}), ...(appConfig.voucherResolvido ||{})};
     appConfig.naoMesmaPessoa   ={...(cloud.naoMesmaPessoa   ||{}), ...(appConfig.naoMesmaPessoa   ||{})};
     appConfig.semCadastroWecann={...(cloud.semCadastroWecann||{}), ...(appConfig.semCadastroWecann||{})};
+    appConfig.ckAuditoriaCorrigidos={...(cloud.ckAuditoriaCorrigidos||{}), ...(appConfig.ckAuditoriaCorrigidos||{})};
     // (·232) VÍNCULOS DE NOME AMBÍGUO: mesma proteção PERMANENTE que as três linhas
     // acima já têm — une nuvem+local, nunca apaga uma escolha já feita.
     appConfig.vinculos={...(cloud.vinculos||{}), ...(appConfig.vinculos||{})};
@@ -4605,6 +4616,26 @@ function fmtPeriodo(ci,co){
   const a=(ci||'').split('-'), b=(co||'').split('-');
   if(a.length<3||b.length<3) return (ci||'?')+' – '+(co||'?');
   return `${a[2]}/${a[1]} – ${b[2]}/${b[1]}`;
+}
+
+/* Normaliza uma data em texto LIVRE (como vem de um CSV: "12/09/2026", "2026-09-12",
+   "12-9-26"...) para AAAA-MM-DD. Devolve '' quando não reconhece o formato — usado
+   pela auditoria de Check-in/Check-out (Conciliação) para comparar CSV × voucher
+   sem depender de como a coluna do CSV foi digitada. */
+function normDataFlexivel(v){
+  if(v==null) return '';
+  let s=String(v).trim(); if(!s) return '';
+  let m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);                // ISO AAAA-MM-DD
+  if(m) return m[1]+'-'+String(m[2]).padStart(2,'0')+'-'+String(m[3]).padStart(2,'0');
+  m=s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);      // dd/mm/aaaa (ou dd-mm / dd.mm)
+  if(m){ let d=+m[1],mo=+m[2],y=+m[3]; if(y<100)y+=2000; if(mo>12&&d<=12){const t=d;d=mo;mo=t;}
+    if(mo>=1&&mo<=12&&d>=1&&d<=31) return y+'-'+String(mo).padStart(2,'0')+'-'+String(d).padStart(2,'0'); }
+  return '';
+}
+// AAAA-MM-DD -> DD/MM/AAAA, só para exibição na auditoria de datas
+function _ckFmtData(iso){
+  const a=(iso||'').split('-');
+  return a.length===3 ? `${a[2]}/${a[1]}/${a[0]}` : (iso||'?');
 }
 
 /* Contador de diárias: agrupa os vouchers de hospedagem do hotel pela data
@@ -5107,6 +5138,35 @@ function wecannGuestDetalhe(){
   return lista;
 }
 
+// hóspedes dos vouchers WeCann COM check-in/check-out do serviço de hospedagem —
+// Map normNome -> {nome, checkin, checkout, num}. Usado pela auditoria de datas
+// da Conciliação (compara CSV × voucher, hóspede a hóspede). Mesmo critério de
+// exclusão de vendedor/fallback-pro-cliente do wecannGuestMap/wecannGuestDetalhe;
+// se o mesmo hóspede aparecer em mais de um voucher, fica o PRIMEIRO encontrado
+// (savedCache já vem do mais recente pro mais antigo — não precisa reordenar).
+function wecannGuestDatas(){
+  const map=new Map();
+  (savedCache||[]).forEach(v=>{
+    const wecannServ=(v.services||[]).filter(sv=>sv.type==='hotel' && HOTEIS_OCUPACAO.some(h=>h.match(sv.data&&sv.data.hotel)));
+    if(!wecannServ.length) return;
+    const vendKey=chaveNome(v.vendedor);
+    wecannServ.forEach(sv=>{
+      const ci=(sv.data&&sv.data.checkin)||'', co=(sv.data&&sv.data.checkout)||'';
+      const h=sv.data&&sv.data.hospedes;
+      const nomes=[];
+      if(Array.isArray(h)&&h.length) h.forEach(x=>{ if(x&&String(x).trim()) nomes.push(String(x).trim()); });
+      else if(v.cliente) nomes.push(String(v.cliente).trim());
+      nomes.forEach(nm=>{
+        if(ehVendedor(nm)) return;
+        if(vendKey && chaveNome(nm)===vendKey) return;
+        const n=normNome(nm); if(!n || map.has(n)) return;
+        map.set(n, { nome:nm, checkin:ci, checkout:co, num:v.num||'' });
+      });
+    });
+  });
+  return map;
+}
+
 // resolve o nome CURTO do CSV (ex.: "João") para o nome COMPLETO que está no
 // voucher WeCann (ex.: "João da Silva"), pra você saber qual João/Mariza é.
 // Se houver mais de um candidato, mostra todos separados por " / " pra desambiguar.
@@ -5225,6 +5285,48 @@ function conciliacaoWecann(){
     viaVoucher: dedupSort(viaVoucherVisivel),
     ok: ambiguos.length===0 && promovidos.length===0 && voucherSemFechado.length===0 && Object.keys(appConfig.semCadastroWecann||{}).length===0
   };
+}
+
+/* ===== AUDITORIA DE CHECK-IN/CHECK-OUT (colunas F/G do CSV × voucher WeCann) =====
+   Disparada implicitamente a cada CSV importado, porque roda dentro de renderConciliacao()
+   (chamada por renderStatusColunas() ao fim de toda importação). Compara, hóspede a
+   hóspede, a data de Check-in e a de Check-out do CSV com o que está gravado no voucher
+   salvo. Divergência de QUALQUER uma das duas datas vira pendência, apontando qual delas
+   está errada. "Corrigido" é uma decisão PERMANENTE (mesmo padrão de voucherResolvido/
+   semCadastroWecann/quartosConferidos): uma vez marcado, o nome nunca mais reaparece,
+   nem em CSVs futuros — union local+nuvem nos dois pontos de merge do appConfig. */
+function auditoriaCheckinCheckout(){
+  const rows=(statusHotelData&&statusHotelData.rows)||[];
+  if(!rows.length) return [];
+  const wecMap=wecannGuestDatas();
+  const corrigidos=appConfig.ckAuditoriaCorrigidos||{};
+  const out=[]; const vistos=new Set();
+  rows.forEach(r=>{
+    const nCsv=normNome(r.nome); if(!nCsv || vistos.has(nCsv)) return;
+    if(corrigidos[nCsv]) return;                          // já marcado "Corrigido": nunca mais aparece
+    const civ=(r.checkin||'').trim(), cov=(r.checkout||'').trim();
+    if(!civ && !cov) return;                               // CSV sem nenhuma das duas datas: nada a auditar
+    const vd=wecMap.get(nCsv); if(!vd) return;              // sem voucher correspondente: fora do escopo desta auditoria
+    const civIso=normDataFlexivel(civ), covIso=normDataFlexivel(cov);
+    const vCi=vd.checkin||'', vCo=vd.checkout||'';
+    const divCi = !!(civIso && vCi && civIso!==vCi);
+    const divCo = !!(covIso && vCo && covIso!==vCo);
+    if(!divCi && !divCo) return;
+    vistos.add(nCsv);
+    const campos=[];
+    if(divCi) campos.push({campo:'Check-in',  csv:_ckFmtData(civIso), voucher:_ckFmtData(vCi)});
+    if(divCo) campos.push({campo:'Check-out', csv:_ckFmtData(covIso), voucher:_ckFmtData(vCo)});
+    out.push({ nome:r.nome, chave:nCsv, num:vd.num, campos });
+  });
+  return out.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+}
+function marcarCkCorrigido(chave, nome){
+  if(!confirm('Marcar "'+nome+'" como corrigido?\n\nSai da lista de divergências de Check-in/Check-out e NUNCA MAIS reaparece, mesmo em CSVs futuros importados depois.')) return;
+  if(!appConfig.ckAuditoriaCorrigidos || typeof appConfig.ckAuditoriaCorrigidos!=='object') appConfig.ckAuditoriaCorrigidos={};
+  appConfig.ckAuditoriaCorrigidos[chave]=true;
+  salvarConfig();
+  renderConciliacao();
+  toast('"'+nome+'" marcado como corrigido — não aparece mais.','ok');
 }
 
 /* ===== CONCILIAÇÃO POR QUARTO (via coluna "ID Reserva" do CSV) =====
@@ -5587,13 +5689,14 @@ function renderConciliacao(){
   if(!rows.length){ box.innerHTML=''; return; } // sem CSV, nada a conciliar
   const c=conciliacaoWecann();
   const cq=conciliacaoPorQuarto();       // conciliação por quarto (ID Reserva)
+  const ckPend=auditoriaCheckinCheckout(); // auditoria de Check-in/Check-out (CSV × voucher)
   const nAmb=c.ambiguos.length;
 
   // monta o painel de QUARTOS (só se o CSV tiver a coluna ID Reserva)
   const blocoQuartos = montarBlocoQuartos(cq);
 
-  // "tudo certo" agora exige TAMBÉM que a conciliação por quarto esteja limpa
-  const tudoOk = c.ok && (cq.semColuna || cq.ok);
+  // "tudo certo" agora exige TAMBÉM que a conciliação por quarto e a auditoria de datas estejam limpas
+  const tudoOk = c.ok && (cq.semColuna || cq.ok) && !ckPend.length;
   if(tudoOk){
     box.innerHTML=`<div class="conc-banner conc-ok">
       <span class="conc-ico">✅</span>
@@ -5630,7 +5733,8 @@ function renderConciliacao(){
     nAmb?`${nAmb} aguardando sua escolha`:'',
     c.promovidos.length?`${c.promovidos.length} p/ atualizar no WeCann`:'',
     c.voucherSemFechado.length?`${c.voucherSemFechado.length} voucher(s) sem Fechado no CSV`:'',
-    c.semCadastro.length?`${c.semCadastro.length} p/ atualizar cadastro no WeCann`:''
+    c.semCadastro.length?`${c.semCadastro.length} p/ atualizar cadastro no WeCann`:'',
+    ckPend.length?`🗓️ ${ckPend.length} check-in/check-out divergente(s)`:''
   ].filter(Boolean).join(' · ');
 
   // registra no log central (só os promovidos novos desta sessão, pra não repetir)
@@ -5656,6 +5760,12 @@ function renderConciliacao(){
       <ul class="conc-lista">${c.semCadastro.map(n=>`<li class="conc-promo-item"><span class="conc-promo-nome conc-nome-link" data-abrirvoucher="${esc(n)}" title="Abrir o voucher de ${esc(n)}">${esc(n)}</span><button class="conc-remcad" data-nomecadastrado="${esc(n)}" title="Já cadastrei no WeCann — remover desta lista">Nome cadastrado</button></li>`).join('')}</ul>
     </div>` : '';
 
+  // auditoria de Check-in/Check-out (CSV × voucher salvo) — pendências por hóspede
+  const blocoCk = ckPend.length ? `<div class="conc-grupo conc-ck">
+      <div class="conc-grupo-tit">🗓️ Check-in/Check-out divergente do voucher <b>(${ckPend.length})</b></div>
+      <ul class="conc-lista">${ckPend.map(p=>`<li class="conc-promo-item"><span class="conc-promo-nome conc-nome-link" data-abrirvoucher="${esc(p.nome)}" title="Abrir o voucher de ${esc(p.nome)}">${esc(p.nome)}${p.num?` <span class="conc-ck-num">#${esc(p.num)}</span>`:''}<br><span class="conc-ck-detalhe">${p.campos.map(cf=>`${esc(cf.campo)}: CSV ${esc(cf.csv)} × voucher ${esc(cf.voucher)}`).join(' · ')}</span></span><button class="conc-ckcorrigido" data-ckcorrigido="${esc(p.chave)}" data-ckcorrigido-nome="${esc(p.nome)}" title="Marcar como corrigido — sai da lista e não volta mais">Corrigido</button></li>`).join('')}</ul>
+    </div>` : '';
+
   box.innerHTML=`<div class="conc-banner conc-warn">
       <span class="conc-ico">⚠️</span>
       <span class="conc-msg"><b>Atenção:</b> ${resumo}</span>
@@ -5663,6 +5773,7 @@ function renderConciliacao(){
     </div>
     ${shConcAberto?`<div class="conc-detalhe">
       ${blocoQuartos}
+      ${blocoCk}
       ${blocoAmbiguos}
       <div class="conc-row">${blocoPromo}${blocoSemFechado}</div>
       ${blocoSemCadastro}
@@ -5684,6 +5795,8 @@ function renderConciliacao(){
     if(sc){ marcarSemCadastroWecann(sc.getAttribute('data-semcadastro')); return; }
     const rc=e.target.closest('[data-nomecadastrado]');
     if(rc){ const nm=rc.getAttribute('data-nomecadastrado'); if(confirm('Confirmar que “'+nm+'” já está cadastrado no WeCann?\n\nO nome sai da lista “Atualizar Cadastro WeCann” e não volta mais.')) nomeCadastradoWecann(nm); return; }
+    const ck=e.target.closest('[data-ckcorrigido]');
+    if(ck){ marcarCkCorrigido(ck.getAttribute('data-ckcorrigido'), ck.getAttribute('data-ckcorrigido-nome')); return; }
     const r=e.target.closest('[data-resolver]');
     if(r){ const nm=r.getAttribute('data-resolver'); shResolverAberto = (shResolverAberto===normNome(nm))?'':normNome(nm); renderConciliacao(); return; }
     const o=e.target.closest('[data-vinc-pessoa]');
