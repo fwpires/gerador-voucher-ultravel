@@ -2191,6 +2191,12 @@ body.dark .pg-btn.ativo{background:var(--azul);border-color:var(--azul);color:#f
 
 /* lista salvos */
 .saved-tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.saved-tools-datas{margin-top:-6px}
+.sv-data-lbl{font-size:12.5px;font-weight:600;color:var(--muted,#6c7a90)}
+.sv-data-inp{font-family:'Inter',sans-serif;font-size:13px;font-weight:600;padding:8px 10px;border-radius:var(--raio-sm);border:1px solid var(--borda);background:#fff;color:var(--texto);outline:none}
+.sv-data-inp:focus{border-color:var(--azul)}
+body.dark .sv-data-inp{background:#16212E;border-color:#243447;color:#E8EEF4;color-scheme:dark}
+body.dark .sv-data-lbl{color:#8CA0BC}
 .ordem-select{font-family:'Inter',sans-serif;font-size:13px;font-weight:600;padding:10px 12px;border-radius:var(--raio-sm);border:1px solid var(--borda);background:#fff;color:var(--texto);cursor:pointer;outline:none}
 .ordem-select:focus{border-color:var(--azul)}
 body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
@@ -3361,6 +3367,20 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
       Atualizar da nuvem
     </button>
   </div>
+  <!-- Filtro por Check-in/Check-out (hospedagem) — exato, casa com o campo do serviço de hotel.
+       Vive numa linha própria porque são 2 campos de data + o botão de limpar, e a linha de
+       busca já está cheia; svFiltrarChanged() dispara o MESMO caminho leve da busca de texto. -->
+  <div class="saved-tools saved-tools-datas">
+    <label class="sv-data-lbl" for="svFiltroCheckin">🗓️ Check-in</label>
+    <input type="date" id="svFiltroCheckin" class="sv-data-inp">
+    <label class="sv-data-lbl" for="svFiltroCheckout">Check-out</label>
+    <input type="date" id="svFiltroCheckout" class="sv-data-inp">
+    <button class="btn btn-ghost btn-sm" id="btnLimparDatasSv" title="Limpar filtro de datas">✕ Limpar</button>
+    <button class="btn btn-ghost btn-sm" id="btnGerarPdfVouchers" title="Gera um PDF com os vouchers que estão sendo exibidos agora (respeitando busca e filtro de datas)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h9l5 5v15H6z" stroke-linejoin="round"/><path d="M15 2v5h5" stroke-linejoin="round"/><path d="M9 13h6M9 17h4" stroke-linecap="round"/></svg>
+      Gerar PDF
+    </button>
+  </div>
   <div id="savedList"></div>
   <div id="paginacao" class="paginacao"></div>
       </section>
@@ -3634,6 +3654,10 @@ const SERVICES = {
 let state = { num:'', services:[], editingId:null, salvo:false, clienteAuto:true };
 let paginaAtual = 1;
 const VOUCHERS_POR_PAGINA = 10;
+// (·252) última lista FILTRADA de Vouchers Salvos (texto + datas), atualizada a cada
+// render de renderSavedFiltro — é o que o botão "Gerar PDF" usa, pra imprimir exatamente
+// o que está na tela, sem recalcular o filtro (e sem depender de reler os dois inputs).
+let _svUltimoFiltro = [];
 let savedCache = [];
 let svcSeq = 0;
 
@@ -4009,7 +4033,7 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 252;
+var UV_BUILD_NUM = 253;
 const UV_BUILD='HUB-v3\u00b7'+UV_BUILD_NUM;
 try{ console.info('%c[Hub Ultravel] build '+UV_BUILD, 'color:#6FBAFF;font-weight:bold'); }catch(e){}
 try{
@@ -7782,7 +7806,23 @@ function renderSavedFiltro(list){
   // OPÇÃO 1: se o usuário busca por "wecann", também reconhecemos vouchers pelo HOTEL do evento,
   // mesmo que a palavra "wecann" não esteja escrita neles. Assim a busca bate com a contagem de hóspedes.
   const buscaWecann = termos.some(t=>'wecann'.includes(t) && t.length>=3);
+  // (·252) FILTRO POR CHECK-IN/CHECK-OUT — casa com o campo do serviço de HOTEL do voucher.
+  // Os dois <input type=date> já entregam AAAA-MM-DD, o MESMO formato gravado em
+  // s.data.checkin/checkout — comparação direta, sem parsing nem fuso. Quando os DOIS estão
+  // preenchidos, precisam bater no MESMO serviço (não basta o check-in de um hotel do voucher
+  // casar com o check-out de outro hotel do mesmo voucher). Existe para o caso real que o motivou:
+  // achar rapidamente "quem está em tal hotel entrando em tal dia e saindo em tal outro", sem
+  // depender da busca de texto (que casa qualquer campo, inclusive datas de outros serviços).
+  const fCi=($('#svFiltroCheckin')&&$('#svFiltroCheckin').value)||'';
+  const fCo=($('#svFiltroCheckout')&&$('#svFiltroCheckout').value)||'';
+  const temFiltroData=!!(fCi||fCo);
+  const bateFiltroDatas=v=>{
+    if(!temFiltroData) return true;
+    return (v.services||[]).some(s=> s && s.type==='hotel' && s.data &&
+      (!fCi || s.data.checkin===fCi) && (!fCo || s.data.checkout===fCo));
+  };
   const filt=ordenarVouchers(list.filter(v=>{
+    if(!bateFiltroDatas(v)) return false;
     if(!termos.length) return true;
     const campos=[v.num, v.cliente, v.vendedor, v.evento, v.contato];
     // inclui os PASSAGEIROS na busca (antes só procurava titular/hóspedes)
@@ -7803,7 +7843,8 @@ function renderSavedFiltro(list){
     return false;
   }));
   const sc=$('#savedCount');
-  if(termos.length){
+  const filtrando = termos.length>0 || temFiltroData; // busca de texto OU filtro de datas conta como "filtrando"
+  if(filtrando){
     sc.textContent=filt.length+(filt.length!==1?' resultados':' resultado')+' de '+list.length;
     sc.classList.add('filtrando');
   } else {
@@ -7815,8 +7856,11 @@ function renderSavedFiltro(list){
     sc.textContent=list.length+' voucher'+(list.length!==1?'s':'')+sufHosp;
     sc.classList.remove('filtrando');
   }
+  // guarda a lista FILTRADA em memória — é ela que o "Gerar PDF" usa, para o
+  // relatório sair EXATAMENTE com o que a tela está mostrando neste instante.
+  _svUltimoFiltro=filt;
   if(!filt.length){
-    $('#savedList').innerHTML=`<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 7h16M4 7l1 13a1 1 0 001 1h12a1 1 0 001-1l1-13M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2" stroke-linecap="round" stroke-linejoin="round"/></svg><p>${q?'Nenhum voucher encontrado':'Nenhum voucher salvo ainda'}</p></div>`;
+    $('#savedList').innerHTML=`<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 7h16M4 7l1 13a1 1 0 001 1h12a1 1 0 001-1l1-13M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2" stroke-linecap="round" stroke-linejoin="round"/></svg><p>${(q||temFiltroData)?'Nenhum voucher encontrado':'Nenhum voucher salvo ainda'}</p></div>`;
     $('#paginacao').innerHTML='';
     return;
   }
@@ -8206,6 +8250,100 @@ function montarVoucherHTML(vv){
     </div></div>`;
 }
 
+/* ===== GERAR PDF — VOUCHERS SALVOS, CONFORME OS FILTROS ATUAIS =====
+   Pedido do Nando: um botão que gera um PDF com a lista de Vouchers Salvos
+   RESPEITANDO os filtros escolhidos na tela (busca de texto + Check-in/Check-out
+   novos) — nasceu junto com o filtro de datas, pra ele conseguir imprimir só os
+   vouchers de um hotel/período específico em vez de conferir um por um na tela.
+   Reusa o MESMO mecanismo de impressão do voucher individual (#printArea +
+   @page dinâmico + window.print()) — nenhuma dependência nova, nenhum arquivo
+   gerado no servidor: é a impressão do navegador, exatamente como o botão
+   "Imprimir / PDF" do topo já faz para 1 voucher só. */
+function gerarPdfVouchers(){
+  // usa a MESMA lista que está na tela neste instante (já passou pelo filtro de
+  // texto + datas em renderSavedFiltro) — assim o PDF nunca diverge do que a
+  // pessoa está vendo, mesmo que ela tenha acabado de digitar ou mudado a data
+  const lista = _svUltimoFiltro || [];
+  if(!lista.length){ toast('Nenhum voucher para gerar — ajuste os filtros primeiro','err'); return; }
+
+  const q=($('#searchInput').value||'').trim();
+  const ci=$('#svFiltroCheckin').value||'', co=$('#svFiltroCheckout').value||'';
+  const filtrosTxt=[
+    q?('Busca: "'+q+'"'):'',
+    ci?('Check-in: '+fmtDate(ci)):'',
+    co?('Check-out: '+fmtDate(co)):''
+  ].filter(Boolean).join(' · ') || 'Todos os vouchers';
+
+  // resume os serviços de um voucher numa linha curta pra tabela — hotel ganha
+  // destaque com o período (é o dado que motivou o filtro de datas), os demais
+  // serviços aparecem só pelo tipo, pra linha não estourar de largura
+  const resumoServicos=v=>{
+    const partes=(v.services||[]).map(s=>{
+      const def=SERVICES[s.type]; const rot=def?def.label:s.type;
+      if(s.type==='hotel'){
+        const hotel=(s.data&&s.data.hotel)||'';
+        const per=shPeriodoVoucher(s.data);
+        return esc(rot+(hotel?(' — '+hotel):'')+(per?(' ('+per+')'):''));
+      }
+      return esc(rot);
+    });
+    return partes.join('<br>')||'—';
+  };
+
+  const linhas=lista.map(v=>`<tr>
+      <td class="pvl-num">#${esc(v.num||'—')}</td>
+      <td>${esc(v.cliente||'—')}</td>
+      <td>${esc(fmtDateTime(v.criadoEm)||'—')}</td>
+      <td>${esc(v.evento||'—')}</td>
+      <td>${resumoServicos(v)}</td>
+      <td>${esc(v.vendedor||'—')}</td>
+    </tr>`).join('');
+
+  const html=`<style>
+    .pvl-wrap{background:#0A1929;padding:26px 24px;font-family:'Inter',sans-serif;color:#fff}
+    .pvl-tit{font-family:'Sora',sans-serif;font-size:22px;font-weight:800;color:#fff;margin-bottom:2px}
+    .pvl-sub{font-size:12px;color:#6B83A0;margin-bottom:3px}
+    .pvl-filtros{font-size:12px;color:#94C11E;font-weight:700;margin-bottom:16px}
+    table.pvl-tbl{width:100%;border-collapse:collapse;font-size:11.5px}
+    table.pvl-tbl th{text-align:left;background:#132A47;color:#9DC4EC;font-size:10px;text-transform:uppercase;letter-spacing:.06em;padding:8px 9px;border-bottom:1px solid rgba(255,255,255,.10)}
+    table.pvl-tbl td{padding:7px 9px;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top;color:#E7EDF7}
+    table.pvl-tbl tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+    .pvl-num{font-family:'JetBrains Mono',monospace;font-weight:700;color:#94C11E;white-space:nowrap}
+    @media print{.pvl-wrap{padding:0}table.pvl-tbl{page-break-inside:auto}table.pvl-tbl tr{page-break-inside:avoid}}
+  </style>
+  <div class="pvl-wrap">
+    <div class="pvl-tit">Vouchers Salvos — Relatório</div>
+    <div class="pvl-sub">Gerado em ${esc(fmtDateTime(new Date().toISOString()))} · ${lista.length} voucher${lista.length!==1?'s':''}</div>
+    <div class="pvl-filtros">${esc(filtrosTxt)}</div>
+    <table class="pvl-tbl">
+      <thead><tr><th>Nº</th><th>Cliente</th><th>Cadastro</th><th>Evento</th><th>Serviços</th><th>Atendente</th></tr></thead>
+      <tbody>${linhas}</tbody>
+    </table>
+  </div>`;
+
+  $('#printArea').innerHTML = html;
+  setTimeout(()=>{
+    let st=document.getElementById('pvPageSize');
+    if(!st){ st=document.createElement('style'); st.id='pvPageSize'; document.head.appendChild(st); }
+    // A4 retrato — diferente do voucher único (que mede o card e usa o tamanho
+    // dele); aqui é uma TABELA que pode ter várias páginas, então o tamanho fixo
+    // de A4 é o que faz sentido, com margem para o cabeçalho respirar
+    st.textContent='@media print{@page{size:A4;margin:14mm 10mm}}';
+    window.print();
+  }, 120);
+}
+// formata o período de um serviço de hotel (AAAA-MM-DD) pro resumo do PDF —
+// mesma lógica de fmtPeriodo, mas tolerante a check-in OU check-out faltando
+// (o relatório de vouchers pode ter reserva incompleta, ao contrário do painel
+// de disponibilidade que exige os dois)
+function shPeriodoVoucher(data){
+  const ci=data&&data.checkin, co=data&&data.checkout;
+  if(ci&&co) return fmtPeriodo(ci,co);
+  if(ci) return fmtDate(ci)+' →';
+  if(co) return '→ '+fmtDate(co);
+  return '';
+}
+
 /* ===== CONFIG WORKER ===== */
 function configurar(){
   const atual=getWorkerUrl();
@@ -8236,6 +8374,12 @@ $('#searchInput').oninput=()=>{
 };
 $('#ordemSelect').onchange=()=>{ paginaAtual=1; localStorage.setItem('uv_ordem',$('#ordemSelect').value); renderSaved(savedCache); };
 (function(){ const o=localStorage.getItem('uv_ordem'); if(o) $('#ordemSelect').value=o; })();
+// (·252) filtro de Check-in/Check-out — não precisa de debounce (é um <input type=date>,
+// não digitação livre): cada mudança já é uma escolha completa do usuário.
+$('#svFiltroCheckin').onchange=()=>{ paginaAtual=1; renderSavedFiltro(savedCache); };
+$('#svFiltroCheckout').onchange=()=>{ paginaAtual=1; renderSavedFiltro(savedCache); };
+$('#btnLimparDatasSv').onclick=()=>{ $('#svFiltroCheckin').value=''; $('#svFiltroCheckout').value=''; paginaAtual=1; renderSavedFiltro(savedCache); };
+$('#btnGerarPdfVouchers').onclick=gerarPdfVouchers;
 $('#internalHead').onclick=()=>$('#internalBox').classList.toggle('open');
 // cliente espelha o 1º passageiro; digitar manualmente no cliente desativa o espelhamento
 $('#fCliente').addEventListener('input',()=>{ state.clienteAuto=false; });
