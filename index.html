@@ -4033,7 +4033,7 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 255;
+var UV_BUILD_NUM = 256;
 const UV_BUILD='HUB-v3\u00b7'+UV_BUILD_NUM;
 try{ console.info('%c[Hub Ultravel] build '+UV_BUILD, 'color:#6FBAFF;font-weight:bold'); }catch(e){}
 try{
@@ -18489,12 +18489,12 @@ function excluirNotaUI(id){
      painel) — aqui é um lembrete permanente, não uma urgência do instante,
      então o pulso pode ser mais discreto sem deixar de estar sempre aceso. */
   @keyframes ccAlertaPulso{0%,100%{box-shadow:0 0 0 0 rgba(255,82,82,.55);opacity:1}50%{box-shadow:0 0 7px 3px rgba(255,82,82,.15);opacity:.55}}
-  #scr-cartoes .cc-led-alerta{display:inline-block;width:9px;height:9px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ff9a9a,#ff2d2d 60%,#8f0000);vertical-align:middle;margin-left:7px;animation:ccAlertaPulso 2.6s ease-in-out infinite;cursor:help}
-  #scr-cartoes .cc-alerta-fixo{background:rgba(255,82,82,.08);border:1px solid rgba(255,82,82,.3);border-radius:10px;padding:10px 13px;font-size:.83rem;line-height:1.5;color:#ffb4b4;margin-bottom:10px}
-  #scr-cartoes .cc-alerta-fixo .cc-led-alerta{margin-left:0;margin-right:7px}
-  #scr-cartoes .cc-alerta-fixo b{color:#ff8a8a}
-  body:not(.dark) #scr-cartoes .cc-alerta-fixo{background:#FFF0F0;border-color:#ffb3b3;color:#8a1f1f}
-  body:not(.dark) #scr-cartoes .cc-alerta-fixo b{color:#c62828}
+  .cc-led-alerta{display:inline-block;width:9px;height:9px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ff9a9a,#ff2d2d 60%,#8f0000);vertical-align:middle;margin-left:7px;animation:ccAlertaPulso 2.6s ease-in-out infinite;cursor:help}
+  .cc-alerta-fixo{background:rgba(255,82,82,.08);border:1px solid rgba(255,82,82,.3);border-radius:10px;padding:10px 13px;font-size:.83rem;line-height:1.5;color:#ffb4b4;margin-bottom:10px}
+  .cc-alerta-fixo .cc-led-alerta{margin-left:0;margin-right:7px}
+  .cc-alerta-fixo b{color:#ff8a8a}
+  body:not(.dark) .cc-alerta-fixo{background:#FFF0F0;border-color:#ffb3b3;color:#8a1f1f}
+  body:not(.dark) .cc-alerta-fixo b{color:#c62828}
   .cc-nform{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px 14px;margin-top:14px}
   .cc-nfld{display:flex;flex-direction:column;gap:5px;min-width:0}
   .cc-nfld.full{grid-column:1/-1}
