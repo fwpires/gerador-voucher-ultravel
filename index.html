@@ -4033,7 +4033,7 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 253;
+var UV_BUILD_NUM = 254;
 const UV_BUILD='HUB-v3\u00b7'+UV_BUILD_NUM;
 try{ console.info('%c[Hub Ultravel] build '+UV_BUILD, 'color:#6FBAFF;font-weight:bold'); }catch(e){}
 try{
@@ -18482,6 +18482,19 @@ function excluirNotaUI(id){
   #scr-cartoes .cc-btn-novo{flex:0 0 auto;background:linear-gradient(180deg,var(--azul),var(--azul-escuro));border:none;color:#fff;border-radius:10px;padding:11px 18px;font-size:.86rem;font-weight:800;cursor:pointer;white-space:nowrap;transition:all .15s}
   #scr-cartoes .cc-btn-novo:hover{box-shadow:0 4px 14px rgba(0,93,170,.4);transform:translateY(-1px)}
   #scr-cartoes .cc-novo-selo{display:inline-block;background:rgba(46,199,165,.16);border:1px solid rgba(46,199,165,.4);color:#2ec7a5;border-radius:20px;padding:1px 8px;font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.4px;vertical-align:middle;margin-left:4px}
+  /* (·253) LED vermelho FIXO, piscando LENTO — marca na lista os cartões com
+     aviso permanente de vinculação de conta (7061/1660). Ciclo de 2.6s, bem
+     mais lento que os LEDs de status da Ocupação (que giram em ~1.1-1.35s
+     de propósito, pra chamar atenção imediata de quem passa o olho no
+     painel) — aqui é um lembrete permanente, não uma urgência do instante,
+     então o pulso pode ser mais discreto sem deixar de estar sempre aceso. */
+  @keyframes ccAlertaPulso{0%,100%{box-shadow:0 0 0 0 rgba(255,82,82,.55);opacity:1}50%{box-shadow:0 0 7px 3px rgba(255,82,82,.15);opacity:.55}}
+  #scr-cartoes .cc-led-alerta{display:inline-block;width:9px;height:9px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ff9a9a,#ff2d2d 60%,#8f0000);vertical-align:middle;margin-left:7px;animation:ccAlertaPulso 2.6s ease-in-out infinite;cursor:help}
+  #scr-cartoes .cc-alerta-fixo{background:rgba(255,82,82,.08);border:1px solid rgba(255,82,82,.4);border-radius:10px;padding:11px 14px;font-size:.86rem;line-height:1.5;color:#ffb3b3;margin-bottom:12px;display:flex;align-items:flex-start;gap:10px}
+  #scr-cartoes .cc-alerta-fixo .cc-led-alerta{margin-left:0;margin-top:5px;flex:0 0 auto}
+  #scr-cartoes .cc-alerta-fixo b{color:#ff8a8a}
+  body:not(.dark) #scr-cartoes .cc-alerta-fixo{background:#FFF0F0;border-color:#ffb3b3;color:#8a1f1f}
+  body:not(.dark) #scr-cartoes .cc-alerta-fixo b{color:#c62828}
   .cc-nform{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px 14px;margin-top:14px}
   .cc-nfld{display:flex;flex-direction:column;gap:5px;min-width:0}
   .cc-nfld.full{grid-column:1/-1}
@@ -18539,6 +18552,28 @@ function excluirNotaUI(id){
     {banco:'',          band:'MASTERCARD', num:'5122675508245488', val:'05/2032', cvv:'140', tit:'Marcelo Silva',        nasc:'08/05/1968', cpf:'590.504.114-87', fech:20, venc:25, jIni:26, jFim:7,  parc:true}
   ];
   function ccEsc(s){ return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  /* ========================================================================
+     (·253) ALERTA FIXO POR CARTÃO — pedido do Nando: aviso permanente,
+     em LED vermelho piscando LENTO, nos cartões finais 7061 e 1660 —
+     instruindo qual conta do backoffice vincular quando o cartão VIRTUAL
+     for usado (a compra cai na conta certa em vez de ficar solta no
+     cartão principal). CHAVE = ÚLTIMOS 4 DÍGITOS: é o mesmo identificador
+     que a lista já usa pra exibir o cartão (ccFinal), então bate exatamente
+     com o que o Nando está olhando na tela — sem depender de índice de
+     posição, que muda a cada cartão novo cadastrado (·250) ou excluído.
+     Isto é um AVISO, não um dado do cartão: fica FORA de CC_LISTA de
+     propósito, pra não se misturar com bandeira/número/CVV/etc — um mapa
+     à parte também é o que permite adicionar/remover avisos sem tocar no
+     literal dos cartões. */
+  var CC_ALERTAS_FIXOS={
+    '7061':'Ao utilizar este cartão virtual, selecione a conta Diego 5803 no backoffice para vincular a venda ao cartão principal.',
+    '1660':'Ao utilizar este cartão virtual, selecione a conta Diego 1022 no backoffice para vincular a venda ao cartão principal.'
+  };
+  function ccAlertaFixo(c){
+    if(!c || !c.num) return '';
+    return CC_ALERTAS_FIXOS[c.num.slice(-4)] || '';
+  }
 
   /* ========================================================================
      (·250) CADASTRAR NOVO CARTÃO — pedido do Nando.
@@ -18895,9 +18930,11 @@ function excluirNotaUI(id){
     var resto=itens.filter(function(e){ return !e.on; }).sort(function(a,b){ return a.c.jIni-b.c.jIni; });
     function linha(e, destaque){
       var c=e.c, sld=ccSaldoGet(c);      // (·208) de volta ao saldo informado, direto
+      var alertaFixo=ccAlertaFixo(c);
       return '<button type="button" class="cc-row'+(destaque?' best':' off')+'" data-cc="'+ccEsc(e.id)+'">'+
         '<span class="cc-band '+(c.band==='MASTERCARD'?'master':'visa')+'">'+(c.band==='MASTERCARD'?'MC':'VISA')+'</span>'+
-        '<span class="cc-nome">'+(destaque?'<span class="cc-star">⭐ </span>':'')+ccEsc(ccNomeCartao(c))+' <span class="cc-fim">'+ccEsc(ccFinal(c))+'</span>'+(c._extraId?' <span class="cc-novo-selo" title="Cadastrado pela tela">novo</span>':'')+'</span>'+
+        '<span class="cc-nome">'+(destaque?'<span class="cc-star">⭐ </span>':'')+ccEsc(ccNomeCartao(c))+' <span class="cc-fim">'+ccEsc(ccFinal(c))+'</span>'+(c._extraId?' <span class="cc-novo-selo" title="Cadastrado pela tela">novo</span>':'')+
+          (alertaFixo?' <span class="cc-led-alerta" title="'+ccEsc(alertaFixo)+'"></span>':'')+'</span>'+
         '<span class="cc-tit">'+ccEsc(c.tit)+'</span>'+
         /* (·206) SALDO no resumo, exatamente no espaço entre o titular e os
            melhores dias, como pedido. Sem valor sai um TRAÇO apagado e não
@@ -18940,6 +18977,7 @@ function excluirNotaUI(id){
     var c=ccPorId(id); if(!c) return;
     var hoje=new Date(); var on=ccNaJanela(c,hoje.getDate()); var prazo=ccPrazoDias(c,hoje);
     var ov=document.getElementById('ccOv'), md=document.getElementById('ccModal');
+    var alertaFixo=ccAlertaFixo(c);
     function fld(l,v,copia){
       return '<div class="cc-fld'+(l==='Número do cartão'?' full':'')+'"><div class="l">'+l+'</div><div class="v"><span>'+ccEsc(v||'—')+'</span>'+
         (copia&&v?'<button type="button" class="cc-copy" data-cc-copy="'+ccEsc(v.replace(/\s/g,''))+'">copiar</button>':'')+'</div></div>';
@@ -18947,6 +18985,7 @@ function excluirNotaUI(id){
     md.innerHTML=
       '<div class="cl-mhead"><h2>💳 '+ccEsc(ccNomeCartao(c))+' '+ccEsc(ccFinal(c))+'</h2><button type="button" class="cl-x" id="ccX">&times;</button></div>'+
       '<div class="cl-mbody">'+
+        (alertaFixo?('<div class="cc-alerta-fixo"><span class="cc-led-alerta"></span><span>'+ccEsc(alertaFixo)+'</span></div>'):'')+
         '<div class="'+(on?'cc-mnota':'cc-mnota warn')+'">'+(on
           ? '✅ <b>Na melhor janela hoje</b> ('+ccJanTxt(c)+'). Comprando agora, a fatura vence em ≈ <b>'+prazo+' dias</b>.'
           : '⚠️ <b>Fora da janela ideal hoje</b> (melhores dias: '+ccJanTxt(c)+'). Se puder, prefira um cartão em destaque na lista.')+
