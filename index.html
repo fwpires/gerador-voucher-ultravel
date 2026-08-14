@@ -4033,7 +4033,7 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 258;
+var UV_BUILD_NUM = 259;
 const UV_BUILD='HUB-v3\u00b7'+UV_BUILD_NUM;
 try{ console.info('%c[Hub Ultravel] build '+UV_BUILD, 'color:#6FBAFF;font-weight:bold'); }catch(e){}
 try{
@@ -6738,7 +6738,10 @@ function renderCdNotifs(){
   // PESSOAL (só quem está logado e foi marcado), e misturá-las num mesmo quadrado
   // faria uma caixa aparecer diferente em cada máquina.
   var _acHtml=''; try{ if(typeof window.acNotifHtml==='function') _acHtml=window.acNotifHtml()||''; }catch(e){ _acHtml=''; }
-  box.innerHTML=html.join('')+_acHtml;
+  // (·258) caixa de CONFIRMAÇÃO de marcação — persistente, mesmo estilo,
+  // aparece assim que a marcação acontece (sem exigir mensagem não lida).
+  var _acConfirmHtml=''; try{ if(typeof window.acConfirmMarcacaoHtml==='function') _acConfirmHtml=window.acConfirmMarcacaoHtml()||''; }catch(e){ _acConfirmHtml=''; }
+  box.innerHTML=html.join('')+_acHtml+_acConfirmHtml;
   // Clique: o botão "Verificado" tem prioridade e NÃO abre/fecha a caixa (ele vive
   // dentro do corpo expandido). Fora dele, clicar no cabeçalho alterna aberto/fechado.
   box.onclick=(e)=>{
@@ -20372,6 +20375,21 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
   var acEditandoTit='';     // (·254) id do card com o TÍTULO em edição
   var acRascunho='';        // texto em digitação, preservado entre re-renders
   var acNovoAberto=false;   // formulário de novo tópico
+  // (·258) CONFIRMAÇÃO DE MARCAÇÃO — fila EM MEMÓRIA (não vai pra nuvem, é
+  // por isso que cada PC monta a própria lista a partir dos MESMOS eventos
+  // que já chegam via WebSocket ou clique local). O toast (·254) sumia em
+  // 3,2s e o Nando não estava vendo — esta caixa fica no Control Desk, no
+  // MESMO estilo visual (.cd-notif) das cobranças que ele já reconhece na
+  // tela, e só desaparece quando o item VENCE (3 minutos) ou quando não há
+  // mais nada pendente — não depende de pegar o instante exato do piscar.
+  var ACG_JANELA_MS=3*60*1000;
+  var acConfirmacoesRecentes=[];   // [{id, texto, ts}]
+  function acRegistrarConfirmacao(texto){
+    var agora=Date.now();
+    acConfirmacoesRecentes=acConfirmacoesRecentes.filter(function(x){ return (agora-x.ts)<ACG_JANELA_MS; });
+    acConfirmacoesRecentes.push({ id:'acc'+agora+Math.floor(Math.random()*1e6), texto:texto, ts:agora });
+    if(acConfirmacoesRecentes.length>6) acConfirmacoesRecentes=acConfirmacoesRecentes.slice(-6);
+  }
 
   /* ---------- escrita ---------- */
   function acNovoCard(tit){
@@ -20455,7 +20473,13 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
           // toast() já escapa via esc() internamente — passar texto CRU aqui,
           // escapar de novo deixaria "&" virando "&amp;amp;" na tela.
           var quem=souEu?'Você foi':((nomeMarcado||'—')+' foi');
-          toast('👥 '+quem+' marcado(a) no tópico "'+(novo.tit||'—')+'"', 'info');
+          var texto=quem+' marcado(a) no tópico "'+(novo.tit||'—')+'"';
+          toast('👥 '+texto, 'info');
+          // (·258) além do toast (rápido, some em 3s), registra uma confirmação
+          // PERSISTENTE que aparece como caixa no Control Desk — é essa que
+          // resolve o bug relatado: o toast pode passar despercebido, a caixa fica.
+          acRegistrarConfirmacao(texto);
+          try{ if(typeof window.renderCdNotifs==='function') window.renderCdNotifs(); }catch(er){}
         });
       });
     }catch(e){}
@@ -20752,6 +20776,34 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
         +'<div class="cd-notif-body"><div class="cd-bloco cd-bloco-acoes">'
         +linhas
         +'<div class="ac-notif-rodape">Abrir o tópico marca as mensagens como lidas e esta cobrança desaparece sozinha.</div>'
+        +'</div></div></div>';
+    }catch(e){ return ''; }
+  };
+
+  /* (·258) CAIXA DE CONFIRMAÇÃO DE MARCAÇÃO — mesma classe .cd-notif das
+     cobranças que já existem no Control Desk, para não introduzir um estilo
+     visual novo que o Nando teria de aprender a reconhecer. Diferente do
+     acNotifHtml de cima (que exige MENSAGEM não lida), esta aparece assim
+     que a MARCAÇÃO acontece, sem depender de ninguém escrever nada — é
+     literalmente a prova de que a marcação foi recebida. Só renderiza pra
+     quem tem algo a ver: a própria pessoa marcada, o admin ou o Diego —
+     a mesma checagem de acVerificarNovasMarcacoes, e por isso a lista já
+     vem filtrada desde o registro (acRegistrarConfirmacao só é chamada
+     depois de passar por esse filtro). */
+  window.acConfirmMarcacaoHtml=function(){
+    try{
+      var agora=Date.now();
+      acConfirmacoesRecentes=acConfirmacoesRecentes.filter(function(x){ return (agora-x.ts)<ACG_JANELA_MS; });
+      if(!acConfirmacoesRecentes.length) return '';
+      var linhas=acConfirmacoesRecentes.slice().reverse().map(function(c){
+        return '<div class="ac-notif-linha"><div class="cd-bloco-txt">'+acEsc(c.texto)+'</div></div>';
+      }).join('');
+      return '<div class="cd-notif">'
+        +'<div class="cd-notif-head aberta"><div class="cd-notif-tit">'
+        +'✅ <span class="cd-chamada">CONFIRMAÇÃO DE MARCAÇÃO — AÇÕES COMERCIAIS</span>'
+        +'</div></div>'
+        +'<div class="cd-notif-body"><div class="cd-bloco cd-bloco-acoes">'
+        +linhas
         +'</div></div></div>';
     }catch(e){ return ''; }
   };
