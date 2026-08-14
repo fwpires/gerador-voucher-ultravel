@@ -4033,7 +4033,7 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 260;
+var UV_BUILD_NUM = 261;
 const UV_BUILD='HUB-v3\u00b7'+UV_BUILD_NUM;
 try{ console.info('%c[Hub Ultravel] build '+UV_BUILD, 'color:#6FBAFF;font-weight:bold'); }catch(e){}
 try{
@@ -20393,11 +20393,11 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
   // tela, e só desaparece quando o item VENCE (3 minutos) ou quando não há
   // mais nada pendente — não depende de pegar o instante exato do piscar.
   var ACG_JANELA_MS=3*60*1000;
-  var acConfirmacoesRecentes=[];   // [{id, texto, ts}]
-  function acRegistrarConfirmacao(texto){
+  var acConfirmacoesRecentes=[];   // [{id, texto, ts, cardId}]
+  function acRegistrarConfirmacao(texto, cardId){
     var agora=Date.now();
     acConfirmacoesRecentes=acConfirmacoesRecentes.filter(function(x){ return (agora-x.ts)<ACG_JANELA_MS; });
-    acConfirmacoesRecentes.push({ id:'acc'+agora+Math.floor(Math.random()*1e6), texto:texto, ts:agora });
+    acConfirmacoesRecentes.push({ id:'acc'+agora+Math.floor(Math.random()*1e6), texto:texto, ts:agora, cardId:cardId||'' });
     if(acConfirmacoesRecentes.length>6) acConfirmacoesRecentes=acConfirmacoesRecentes.slice(-6);
   }
 
@@ -20488,7 +20488,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
           // (·258) além do toast (rápido, some em 3s), registra uma confirmação
           // PERSISTENTE que aparece como caixa no Control Desk — é essa que
           // resolve o bug relatado: o toast pode passar despercebido, a caixa fica.
-          acRegistrarConfirmacao(texto);
+          acRegistrarConfirmacao(texto, id);
           try{ if(typeof window.renderCdNotifs==='function') window.renderCdNotifs(); }catch(er){}
         });
       });
@@ -20805,12 +20805,17 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       var agora=Date.now();
       acConfirmacoesRecentes=acConfirmacoesRecentes.filter(function(x){ return (agora-x.ts)<ACG_JANELA_MS; });
       if(!acConfirmacoesRecentes.length) return '';
+      // (BUG reportado) faltava o botão "Abrir" que leva direto pro card onde a
+      // marcação aconteceu — mesmo botão/handler que a notificação de mensagem
+      // não lida (acNotifHtml, logo acima) já usa, reaproveitado aqui por linha.
       var linhas=acConfirmacoesRecentes.slice().reverse().map(function(c){
-        return '<div class="ac-notif-linha"><div class="cd-bloco-txt">'+acEsc(c.texto)+'</div></div>';
+        return '<div class="ac-notif-linha">'
+          +'<div class="cd-bloco-txt">'+acEsc(c.texto)+'</div>'
+          + (c.cardId?'<button type="button" class="cd-notif-btn" data-acgo="'+acEsc(c.cardId)+'">Abrir</button>':'')
+          +'</div>';
       }).join('');
-      // (BUG reportado) faltava um jeito de dar baixa e "sair do painel" — o
-      // botão some COM a caixa inteira (todas as confirmações pendentes de
-      // uma vez, mesmo padrão do ✓ Verificado das outras cobranças do CD).
+      // O botão "✓ Visualizado" some COM a caixa inteira (todas as confirmações
+      // pendentes de uma vez, mesmo padrão do ✓ Verificado das outras cobranças).
       return '<div class="cd-notif">'
         +'<div class="cd-notif-head aberta"><div class="cd-notif-tit">'
         +'✅ <span class="cd-chamada">CONFIRMAÇÃO DE MARCAÇÃO — AÇÕES COMERCIAIS</span>'
