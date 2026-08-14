@@ -4033,7 +4033,7 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 257;
+var UV_BUILD_NUM = 258;
 const UV_BUILD='HUB-v3\u00b7'+UV_BUILD_NUM;
 try{ console.info('%c[Hub Ultravel] build '+UV_BUILD, 'color:#6FBAFF;font-weight:bold'); }catch(e){}
 try{
@@ -20669,8 +20669,29 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     var st=e.target.closest('[data-ac-st]');
     if(st){ acSetStatus(acAberto, st.getAttribute('data-ac-st')); window.renderAcoes(); return; }
     var mc=e.target.closest('[data-ac-marc]');
-    if(mc){ acToggleMarcado(acAberto, mc.getAttribute('data-ac-marc')); window.renderAcoes();
-            try{ if(typeof window.renderCdNotifs==='function') window.renderCdNotifs(); }catch(er){} return; }
+    if(mc){
+      // (BUG reportado) o toast só disparava quando a marcação CHEGAVA de outro
+      // PC pelo WebSocket — mas quem faz a marcação no PRÓPRIO PC nunca passa
+      // por aplicarEstado(), então nunca via a confirmação, mesmo sendo admin
+      // ou Diego. Correção: captura o card ANTES do toggle e roda a MESMA
+      // verificação localmente, na hora, sem depender de nenhum round-trip de
+      // rede — e o caminho do WebSocket (para os OUTROS PCs conectados)
+      // continua intacto, cobrindo quem não fez a ação.
+      var cardAntes=null; try{ cardAntes=JSON.parse(JSON.stringify(acStore().cards[acAberto]||null)); }catch(er){}
+      acToggleMarcado(acAberto, mc.getAttribute('data-ac-marc'));
+      window.renderAcoes();
+      try{ if(typeof window.renderCdNotifs==='function') window.renderCdNotifs(); }catch(er){}
+      try{
+        if(typeof window.acVerificarNovasMarcacoes==='function'){
+          var cardsAntes={}, cardsDepois={};
+          if(cardAntes) cardsAntes[acAberto]=cardAntes;
+          var cardDepois=acStore().cards[acAberto];
+          if(cardDepois) cardsDepois[acAberto]=cardDepois;
+          window.acVerificarNovasMarcacoes(cardsAntes, cardsDepois);
+        }
+      }catch(er){}
+      return;
+    }
     var rp=e.target.closest('[data-ac-resp]');
     if(rp){ acRespondendo=rp.getAttribute('data-ac-resp'); acEditando=''; window.renderAcoes();
             var t2=document.getElementById('acTexto'); if(t2){ try{ t2.focus(); }catch(er){} } return; }
