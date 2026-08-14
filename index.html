@@ -4033,7 +4033,7 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 256;
+var UV_BUILD_NUM = 257;
 const UV_BUILD='HUB-v3\u00b7'+UV_BUILD_NUM;
 try{ console.info('%c[Hub Ultravel] build '+UV_BUILD, 'color:#6FBAFF;font-weight:bold'); }catch(e){}
 try{
@@ -17279,6 +17279,7 @@ function excluirNotaUI(id){
         var antesNot =JSON.stringify(appConfig.notifVerificado||{});
         var antesOcp =JSON.stringify(appConfig.ocupacaoAtendentes||{});
         var antesAus =JSON.stringify(appConfig.ausenciasProgramadas||{});
+        var antesAcoes=JSON.stringify(appConfig.acoes||{});
 
         // --- Kanban: carteira + arquivados (carimbo mais recente vence) ---
         if(typeof uvMesclarCarteiraArq==='function'){
@@ -17338,6 +17339,17 @@ function excluirNotaUI(id){
           appConfig.ocupacaoClientes={ adicionados:uq(lA.concat(rA)), removidos:uq(lR.concat(rR)), ts:mT };
         }
 
+        // --- Ações Comerciais (·254) — tempo real para marcações e mensagens ---
+        // Antes esse campo só era lido no boot (carregarConfig) e no polling de
+        // 60s: marcar alguém ou postar uma mensagem só aparecia na tela da
+        // pessoa marcada depois de até 1 minuto, ou ao trocar de tela. Reusa o
+        // MESMO merge (uvMesclarAcoes) que já protege o dado no boot — nenhuma
+        // regra nova, só mais um caminho chamando a função existente.
+        var acCardsAntes=(appConfig.acoes && appConfig.acoes.cards) || {};
+        if(remoto.acoes && typeof window.uvMesclarAcoes==='function'){
+          var mac=window.uvMesclarAcoes(appConfig.acoes, remoto.acoes);
+          appConfig.acoes={ cards:mac.cards, lido:mac.lido };
+        }
         try{ localStorage.setItem('uv_config',JSON.stringify(appConfig)); }catch(e){}
 
         // Só re-renderiza o que REALMENTE mudou (evita piscar tela à toa)
@@ -17346,11 +17358,23 @@ function excluirNotaUI(id){
         var mudouNotif  = (JSON.stringify(appConfig.notifVerificado||{})!==antesNot);
         var mudouOcp    = (JSON.stringify(appConfig.ocupacaoAtendentes||{})!==antesOcp);
         var mudouAus    = (JSON.stringify(appConfig.ausenciasProgramadas||{})!==antesAus);
+        var mudouAcoes  = (JSON.stringify(appConfig.acoes||{})!==antesAcoes);
 
         if(mudouKanban){ try{ if(typeof renderStatusColunas==='function') renderStatusColunas(); }catch(e){} }
         if(mudouKanban || mudouNotif){ try{ if(typeof window.renderCdNotifs==='function') window.renderCdNotifs(); }catch(e){} }
         if(mudouOcp){ try{ if(typeof window.renderOcupacao==='function') window.renderOcupacao(); }catch(e){} }
         if(mudouAus){ try{ if(typeof window.renderAusProg==='function') window.renderAusProg(); }catch(e){} }
+        // (·254) Ações Comerciais entrando em tempo real: redesenha a TELA (se
+        // estiver aberta — renderAcoes já sai de graça se #acoesWrap não existir)
+        // e o Control Desk (a caixa de "você foi marcado" precisa acender/apagar
+        // sem esperar o atendente trocar de tela).
+        if(mudouAcoes){
+          try{ if(typeof window.renderAcoes==='function') window.renderAcoes(); }catch(e){}
+          try{ if(typeof window.renderCdNotifs==='function') window.renderCdNotifs(); }catch(e){}
+          // confirmação visual — toast para quem acabou de ser marcado, o admin
+          // e o Diego, comparando o "antes" (acCardsAntes) com o resultado do merge
+          try{ if(typeof window.acVerificarNovasMarcacoes==='function') window.acVerificarNovasMarcacoes(acCardsAntes, (appConfig.acoes||{}).cards); }catch(e){}
+        }
       }catch(e){ /* nunca deixa o tempo real derrubar a tela */ }
       aplicando=false;
     }
@@ -20117,6 +20141,12 @@ function excluirNotaUI(id){
 /* THREAD */
 #scr-acoes .ac-thread-card{background:var(--card);border:2px solid #243849;border-radius:12px;padding:15px;margin-bottom:14px}
 #scr-acoes .ac-thread-tit{margin:0;color:#E6EEF3;font-size:1.15rem;font-weight:800;line-height:1.3}
+/* (·254) lápis de editar título + linha de edição inline, mesmo padrão visual
+   dos outros botões .ac-mini/.ac-btn já usados no módulo */
+#scr-acoes .ac-tit-lapis{background:none;border:none;color:#6c7a90;cursor:pointer;font-size:.95rem;margin-left:8px;padding:2px 6px;border-radius:6px;vertical-align:middle}
+#scr-acoes .ac-tit-lapis:hover{color:#E6EEF3;background:rgba(255,255,255,.08)}
+#scr-acoes .ac-tit-edit{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+#scr-acoes .ac-tit-edit .ac-inp{flex:1;min-width:200px}
 #scr-acoes .ac-st-sel,#scr-acoes .ac-marc-sel{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:12px;padding-top:11px;border-top:1px dashed rgba(255,255,255,.09)}
 #scr-acoes .ac-st-lab{color:#8CA3B3;font-size:.76rem;font-weight:700;margin-right:3px}
 #scr-acoes .ac-st-op,#scr-acoes .ac-marc-op{cursor:pointer;font-family:inherit;font-size:.73rem;font-weight:700;border-radius:20px;padding:5px 11px;background:rgba(255,255,255,.04);border:1px solid #2c4356;color:#8CA3B3;transition:all .14s}
@@ -20339,6 +20369,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
   var acAberto=null;        // id do card aberto na thread (null = lista)
   var acRespondendo='';     // id da mensagem sendo respondida
   var acEditando='';        // id da mensagem sendo editada
+  var acEditandoTit='';     // (·254) id do card com o TÍTULO em edição
   var acRascunho='';        // texto em digitação, preservado entre re-renders
   var acNovoAberto=false;   // formulário de novo tópico
 
@@ -20367,26 +20398,86 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
   function acEditarMsg(cardId, mid, txt){
     txt=(txt||'').trim(); if(!txt) return;
     var S=acStore(), c=S.cards[cardId]; if(!c || !c.msgs || !c.msgs[mid]) return;
-    if(c.msgs[mid].autorU!==acUsuario()) return;               // trava de autoria (defesa 2)
+    // (·254) trava de autoria (defesa 2) — autor da MENSAGEM OU Diego Oliveira,
+    // que ganhou acesso total de edição em qualquer card nesta build.
+    if(c.msgs[mid].autorU!==acUsuario() && !acEhDiego()) return;
     c.msgs[mid].txt=txt.slice(0,4000); c.msgs[mid].mts=Date.now(); c.msgs[mid].edt=1;
     acSalvar();
     try{ if(typeof logRemoto==='function') logRemoto('acoes_comerciais','Mensagem editada no tópico "'+(c.tit||'—')+'"',{topico:c.tit}); }catch(e){}
   }
   function acExcluirMsg(cardId, mid){
     var S=acStore(), c=S.cards[cardId]; if(!c || !c.msgs || !c.msgs[mid]) return;
-    if(c.msgs[mid].autorU!==acUsuario()) return;
+    if(c.msgs[mid].autorU!==acUsuario() && !acEhDiego()) return;
     c.msgs[mid].del=1; c.msgs[mid].mts=Date.now();             // soft delete: o merge precisa dele
     acSalvar();
     try{ if(typeof logRemoto==='function') logRemoto('acoes_comerciais','Mensagem excluída no tópico "'+(c.tit||'—')+'"',{topico:c.tit}); }catch(e){}
   }
-  // (·218) admin livre há mais de um autor confia — vê o quadro inteiro e precisa
+  // (·254) admin livre há mais de um autor confia — vê o quadro inteiro e precisa
   // poder limpar tópicos perdidos/errados sem depender de achar a pessoa certa.
   function acSouAdmin(){ try{ return (typeof uvAuthPerfil==='function') && uvAuthPerfil()==='admin'; }catch(e){ return false; } }
+  // (·254) DIEGO OLIVEIRA — acesso total de edição em QUALQUER card: editar
+  // título/assunto e mensagens de qualquer autor, e apagar mensagem de qualquer
+  // usuário. Reusa a MESMA cautela conta≠nome que acMesmaPessoa já aplica em
+  // "sou marcado" — igualdade normalizada primeiro, só cai pro primeiro nome se
+  // for único entre os 12, e "Diego Oliveira" (·AC_ATENDENTES) é único no
+  // catálogo, então a comparação nunca precisa do degrau ambíguo na prática.
+  function acEhDiego(){ return acMesmaPessoa('Diego Oliveira', acNome()); }
+  // pode editar TÍTULO/mensagens de QUALQUER card: autor do próprio tópico
+  // (comportamento que já fazia sentido e nunca tinha UI própria), admin, ou
+  // Diego — os TRÊS caem na mesma checagem porque a build ·254 pediu "acesso
+  // total" pra Diego, não uma trava nova só para ele.
+  function acPodeEditarTudo(c){ return !!c && (c.autorU===acUsuario() || acSouAdmin() || acEhDiego()); }
+
+  // (·254) CONFIRMAÇÃO VISUAL DE MARCAÇÃO — toast em tempo real quando uma
+  // marcação NOVA chega pelo WebSocket (chamada de aplicarEstado, comparando o
+  // "antes" e o "depois" do merge). Dispara para TRÊS públicos, cada um vendo
+  // a MESMA marcação por um motivo diferente: (a) a PRÓPRIA pessoa marcada,
+  // que é quem a notificação sempre serviu; (b) o ADMIN, que supervisiona o
+  // quadro inteiro; (c) o DIEGO, que ganhou edição total nesta build e por
+  // isso também acompanha as marcações de qualquer card. Comparar LISTAS
+  // inteiras (não só "aumentou o tamanho") é o que permite distinguir marcar
+  // de desmarcar sem acusar toast em quem SAIU da lista.
+  window.acVerificarNovasMarcacoes=function(cardsAntes, cardsDepois){
+    try{
+      var meu=acNome(); if(!meu) return;
+      var souAdmin=acSouAdmin(), souDiego=acEhDiego();
+      cardsAntes=cardsAntes||{}; cardsDepois=cardsDepois||{};
+      Object.keys(cardsDepois).forEach(function(id){
+        var novo=cardsDepois[id]; if(!novo || novo.del) return;
+        var velho=cardsAntes[id];
+        var listaAntes=(velho&&velho.marcados)||[];
+        var listaDepois=novo.marcados||[];
+        listaDepois.forEach(function(nomeMarcado){
+          var jaEstava=listaAntes.some(function(n){ return acNorm(n)===acNorm(nomeMarcado); });
+          if(jaEstava) return;                       // marcação antiga, não é novidade
+          var souEu=acMesmaPessoa(nomeMarcado, meu);
+          if(!(souEu || souAdmin || souDiego)) return;
+          // toast() já escapa via esc() internamente — passar texto CRU aqui,
+          // escapar de novo deixaria "&" virando "&amp;amp;" na tela.
+          var quem=souEu?'Você foi':((nomeMarcado||'—')+' foi');
+          toast('👥 '+quem+' marcado(a) no tópico "'+(novo.tit||'—')+'"', 'info');
+        });
+      });
+    }catch(e){}
+  };
+
   function acExcluirCard(cardId){
     var S=acStore(), c=S.cards[cardId]; if(!c) return;
-    if(c.autorU!==acUsuario() && !acSouAdmin()) return;   // (·218) autor OU admin
+    if(c.autorU!==acUsuario() && !acSouAdmin() && !acEhDiego()) return;   // (·218 admin, ·254 Diego)
     c.del=1; c.mts=Date.now(); acSalvar();
     try{ if(typeof logRemoto==='function') logRemoto('acoes_comerciais','Tópico "'+(c.tit||'—')+'" excluído',{topico:c.tit}); }catch(e){}
+  }
+  // (·254) EDITAR TÍTULO/ASSUNTO DO TÓPICO — capacidade nova (não existia para
+  // ninguém antes desta build). Segue a MESMA regra de quem pode mexer no
+  // status do card: autor do tópico, admin, ou Diego Oliveira — os três
+  // "donos" do card, e não uma trava exclusiva do Diego, porque o pedido foi
+  // "acesso total de edição", e título é edição tanto quanto status já era.
+  function acEditarTitulo(cardId, novoTit){
+    novoTit=(novoTit||'').trim(); if(!novoTit) return;
+    var S=acStore(), c=S.cards[cardId]; if(!c) return;
+    if(!acPodeEditarTudo(c)) return;
+    c.tit=novoTit.slice(0,180); c.mts=Date.now(); acSalvar();
+    try{ if(typeof logRemoto==='function') logRemoto('acoes_comerciais','Título do tópico alterado para "'+c.tit+'"',{topico:c.tit}); }catch(e){}
   }
   function acSetStatus(cardId, cod){
     var S=acStore(), c=S.cards[cardId]; if(!c) return;
@@ -20395,7 +20486,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     // porteiros que já protege editar/excluir MENSAGEM, agora também no status
     // do CARD. A defesa vive aqui (na função que grava), não só na tela: mesmo
     // que alguém force o clique via console, a gravação recusa.
-    if(c.autorU!==acUsuario() && !acSouAdmin()) return;
+    if(c.autorU!==acUsuario() && !acSouAdmin() && !acEhDiego()) return;
     c.status=cod||''; c.mts=Date.now(); acSalvar();
     try{ if(typeof logRemoto==='function') logRemoto('acoes_comerciais','Status do tópico "'+(c.tit||'—')+'" alterado para '+(acStatusDef(cod)?acStatusDef(cod).rot:'sem status'),{topico:c.tit}); }catch(e){}
   }
@@ -20456,9 +20547,11 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
   function acHtmlThread(c){
     var u=acUsuario(), st=acStatusDef(c.status), msgs=acMsgsVivas(c);
     var mapa={}; msgs.forEach(function(m){ mapa[m.id]=m; });
-    // (·218) só o autor do tópico ou o admin podem MUDAR o status — os demais
-    // continuam vendo o status atual, só não conseguem clicar para trocá-lo.
-    var podeStatus = !!u && (c.autorU===u || acSouAdmin());
+    // (·254) status/título agora usam a MESMA checagem — autor do tópico, admin
+    // ou Diego Oliveira (acesso total desta build) — em vez de duas regras que
+    // podiam se desencontrar no futuro.
+    var podeStatus = !!u && acPodeEditarTudo(c);
+    var podeTit    = podeStatus;
 
     var seletorSt = podeStatus
       ? ('<div class="ac-st-sel">'
@@ -20471,8 +20564,22 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       : ('<div class="ac-st-sel ac-st-somenteleitura">'
         +'<span class="ac-st-lab">Status:</span>'
         + (st ? ('<span class="ac-st-op on" style="--acc:'+st.cor+'">● '+acEsc(st.rot)+'</span>') : '<span class="ac-st-op">— sem status —</span>')
-        +'<span class="ac-marc-nota">Somente o autor do tópico ou o administrador podem alterar o status.</span>'
+        +'<span class="ac-marc-nota">Somente o autor do tópico, o administrador ou Diego Oliveira podem alterar o status.</span>'
         +'</div>');
+
+    // (·254) TÍTULO EDITÁVEL — nasce como texto simples com um lápis ao lado
+    // pra quem pode editar; clicar troca por um campo + Salvar/Cancelar, no
+    // MESMO padrão de "nada grava até confirmar" que o resto do módulo usa.
+    var tituloHtml = (acEditandoTit===c.id)
+      ? ('<div class="ac-tit-edit">'
+        +'<input type="text" id="acTitEdit" class="ac-inp" maxlength="180" value="'+acEsc(c.tit)+'">'
+        +'<button type="button" class="ac-btn ac-btn-ok" id="acTitOk">Salvar</button>'
+        +'<button type="button" class="ac-btn" id="acTitCancel">Cancelar</button>'
+        +'</div>')
+      : ('<h2 class="ac-thread-tit">'+acEsc(c.tit)
+        + (podeTit?'<button type="button" class="ac-mini ac-tit-lapis" id="acTitEditar" title="Editar título">✎</button>':'')
+        +'</h2>');
+
 
     var seletorMarc='<div class="ac-marc-sel">'
       +'<span class="ac-st-lab">Marcar atendentes:</span>'
@@ -20485,8 +20592,9 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
 
     var linhas = msgs.length ? msgs.map(function(m){
       var meu=(m.autorU===u && !!u);
+      var podeMexerMsg = meu || acEhDiego();     // (·254) Diego edita/exclui qualquer mensagem
       var citado=(m.resp && mapa[m.resp]) ? mapa[m.resp] : null;
-      if(acEditando===m.id && meu){
+      if(acEditando===m.id && podeMexerMsg){
         return '<div class="ac-msg ac-msg-edit">'
           +'<textarea class="ac-ta" id="acTexto" maxlength="4000">'+acEsc(m.txt)+'</textarea>'
           +'<div class="ac-msg-acoes">'
@@ -20500,8 +20608,8 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
         + '<div class="ac-msg-txt">'+acEsc(m.txt)+'</div>'
         + '<div class="ac-msg-acoes">'
         + (u?'<button type="button" class="ac-mini" data-ac-resp="'+acEsc(m.id)+'">↩ Responder</button>':'')
-        + (meu?'<button type="button" class="ac-mini" data-ac-edit="'+acEsc(m.id)+'">✎ Editar</button>':'')
-        + (meu?'<button type="button" class="ac-mini ac-mini-del" data-ac-del="'+acEsc(m.id)+'">🗑 Excluir</button>':'')
+        + (podeMexerMsg?'<button type="button" class="ac-mini" data-ac-edit="'+acEsc(m.id)+'">✎ Editar</button>':'')
+        + (podeMexerMsg?'<button type="button" class="ac-mini ac-mini-del" data-ac-del="'+acEsc(m.id)+'">🗑 Excluir</button>':'')
         + '</div></div>';
     }).join('') : '<div class="ac-vazio">Nenhuma mensagem neste tópico ainda.</div>';
 
@@ -20516,11 +20624,11 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
 
     return '<div class="ac-head">'
       +'<div><button type="button" class="ac-btn" id="acVoltar">← Voltar aos tópicos</button></div>'
-      +((c.autorU===u || acSouAdmin()) && u ? '<button type="button" class="ac-btn ac-btn-del" id="acDelCard">🗑 Excluir tópico</button>':'')
+      +((c.autorU===u || acSouAdmin() || acEhDiego()) && u ? '<button type="button" class="ac-btn ac-btn-del" id="acDelCard">🗑 Excluir tópico</button>':'')
       +'</div>'
       +'<div class="ac-thread-card'+(st?' st-'+st.cod:'')+'">'
       + (st ? '<div class="ac-st-topo" style="color:'+st.cor+'">● '+acEsc(st.rot)+'</div>' : '')
-      + '<h2 class="ac-thread-tit">'+acEsc(c.tit)+'</h2>'
+      + tituloHtml
       + '<div class="ac-card-meta">🗓 '+acData(c.ts)+' · ✍️ criado por <b>'+acEsc(c.autor||'—')+'</b></div>'
       + seletorSt + seletorMarc
       +'</div>'
@@ -20534,12 +20642,12 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     var wrap=document.getElementById('acoesWrap'); if(!wrap || !wrap.contains(e.target)) return;
 
     var ab=e.target.closest('[data-ac-abrir]');
-    if(ab){ acAberto=ab.getAttribute('data-ac-abrir'); acRascunho=''; acRespondendo=''; acEditando='';
+    if(ab){ acAberto=ab.getAttribute('data-ac-abrir'); acRascunho=''; acRespondendo=''; acEditando=''; acEditandoTit='';
             acMarcarLido(acAberto); window.renderAcoes();
             try{ if(typeof window.renderCdNotifs==='function') window.renderCdNotifs(); }catch(er){}
             return; }
 
-    if(e.target.closest('#acVoltar')){ acAberto=null; acRascunho=''; acRespondendo=''; acEditando=''; window.renderAcoes(); return; }
+    if(e.target.closest('#acVoltar')){ acAberto=null; acRascunho=''; acRespondendo=''; acEditando=''; acEditandoTit=''; window.renderAcoes(); return; }
     if(e.target.closest('#acNovoBtn')){ acNovoAberto=true; window.renderAcoes(); var i=document.getElementById('acNovoTit'); if(i){ try{ i.focus(); }catch(er){} } return; }
     if(e.target.closest('#acNovoCancel')){ acNovoAberto=false; window.renderAcoes(); return; }
     if(e.target.closest('#acNovoOk')){
@@ -20574,6 +20682,14 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     if(eo){ var te=document.getElementById('acTexto'); acEditarMsg(acAberto, eo.getAttribute('data-ac-editok'), te?te.value:''); acEditando=''; window.renderAcoes(); return; }
     var dl=e.target.closest('[data-ac-del]');
     if(dl){ if(window.confirm('Excluir esta mensagem?')){ acExcluirMsg(acAberto, dl.getAttribute('data-ac-del')); window.renderAcoes(); } return; }
+    // (·254) editar título/assunto do tópico — mesmo padrão "nada grava até confirmar"
+    if(e.target.closest('#acTitEditar')){ acEditandoTit=acAberto; window.renderAcoes();
+            var ti=document.getElementById('acTitEdit'); if(ti){ try{ ti.focus(); ti.select(); }catch(er){} } return; }
+    if(e.target.closest('#acTitCancel')){ acEditandoTit=''; window.renderAcoes(); return; }
+    if(e.target.closest('#acTitOk')){
+      var tin=document.getElementById('acTitEdit');
+      acEditarTitulo(acAberto, tin?tin.value:''); acEditandoTit=''; window.renderAcoes(); return;
+    }
   });
 
   // rascunho preservado: sem isto, qualquer re-render (marcar alguém, trocar status)
