@@ -4033,7 +4033,7 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 259;
+var UV_BUILD_NUM = 260;
 const UV_BUILD='HUB-v3\u00b7'+UV_BUILD_NUM;
 try{ console.info('%c[Hub Ultravel] build '+UV_BUILD, 'color:#6FBAFF;font-weight:bold'); }catch(e){}
 try{
@@ -4358,12 +4358,19 @@ async function carregarConfig(){
       /* (·215) AÇÕES COMERCIAIS: merge em DOIS níveis — meta do card por carimbo,
          MENSAGENS unidas por id. Sem o nível de baixo, duas pessoas postando no
          mesmo tópico quase junto apagariam a mensagem uma da outra. */
+      var _acCardsAntesBoot=(local.acoes && local.acoes.cards) || (appConfig.acoes && appConfig.acoes.cards) || {};
       if(local.acoes || c.acoes){
         if(typeof window.uvMesclarAcoes==='function'){
           appConfig.acoes=window.uvMesclarAcoes(local.acoes||appConfig.acoes||{}, c.acoes||{});
         } else if(c.acoes && typeof c.acoes==='object'){
           appConfig.acoes=Object.assign({}, c.acoes, appConfig.acoes||local.acoes||{});
         }
+        // (BUG reportado) a pessoa marcada só recebia confirmação se JÁ estivesse
+        // com o Hub aberto no exato instante da marcação (via WebSocket). Quem
+        // faz login DEPOIS — o caso mais comum — nunca via nada, porque o boot
+        // nunca comparava "antes vs depois". Mesma verificação do WebSocket,
+        // agora também no carregamento da página.
+        try{ if(typeof window.acVerificarNovasMarcacoes==='function') window.acVerificarNovasMarcacoes(_acCardsAntesBoot, (appConfig.acoes||{}).cards); }catch(er){}
       }
       localStorage.setItem('uv_config',JSON.stringify(appConfig));
     }
@@ -6749,6 +6756,9 @@ function renderCdNotifs(){
     if(g){ e.stopPropagation(); try{ window.acIrParaCard(g.getAttribute('data-acgo')); }catch(er){} return; }
     const b=e.target.closest('[data-cdver]');
     if(b){ e.stopPropagation(); cdVerificado(b.getAttribute('data-cdver')); return; }
+    // (BUG reportado) botão "Visualizado" da caixa de confirmação de marcação
+    const ac=e.target.closest('[data-acconfirmok]');
+    if(ac){ e.stopPropagation(); try{ window.acConfirmarLidoTudo(); }catch(er){} return; }
     const h=e.target.closest('[data-cdtoggle]');
     if(h) cdToggleNotif(h.getAttribute('data-cdtoggle'));
   };
@@ -20798,14 +20808,24 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       var linhas=acConfirmacoesRecentes.slice().reverse().map(function(c){
         return '<div class="ac-notif-linha"><div class="cd-bloco-txt">'+acEsc(c.texto)+'</div></div>';
       }).join('');
+      // (BUG reportado) faltava um jeito de dar baixa e "sair do painel" — o
+      // botão some COM a caixa inteira (todas as confirmações pendentes de
+      // uma vez, mesmo padrão do ✓ Verificado das outras cobranças do CD).
       return '<div class="cd-notif">'
         +'<div class="cd-notif-head aberta"><div class="cd-notif-tit">'
         +'✅ <span class="cd-chamada">CONFIRMAÇÃO DE MARCAÇÃO — AÇÕES COMERCIAIS</span>'
         +'</div></div>'
         +'<div class="cd-notif-body"><div class="cd-bloco cd-bloco-acoes">'
         +linhas
+        +'<button type="button" class="cd-notif-btn" data-acconfirmok="1">✓ Visualizado</button>'
         +'</div></div></div>';
     }catch(e){ return ''; }
+  };
+
+  // dá baixa em TODAS as confirmações pendentes — chamado pelo listener global do CD
+  window.acConfirmarLidoTudo=function(){
+    acConfirmacoesRecentes=[];
+    try{ if(typeof window.renderCdNotifs==='function') window.renderCdNotifs(); }catch(e){}
   };
 
   // clique no "Abrir" da notificação: navega para a tela e já abre o card
