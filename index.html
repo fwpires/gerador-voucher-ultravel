@@ -913,7 +913,7 @@ body:not(.dark) .fn-aviso-ed{color:#8a6100}
 .fn-busca{flex:1 1 260px;min-width:180px;background:var(--azul-claro);border:1px solid var(--borda);border-radius:10px;color:var(--texto);font-size:13px;font-weight:600;padding:10px 13px;outline:none}
 .fn-busca:focus{border-color:var(--azul)}
 .fn-cont{font-size:12px;font-weight:800;color:var(--texto-fraco);white-space:nowrap}
-.fn-grid{display:flex;flex-direction:column;gap:10px}
+.fn-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;align-items:start}
 .fn-card{background:var(--card);border:1px solid var(--borda);border-left:4px solid #f0a500;border-radius:12px;padding:12px 14px;transition:all .15s}
 body.dark .fn-card{background:rgba(255,255,255,.04)}
 .fn-card:hover{border-color:var(--borda-forte);box-shadow:0 3px 12px rgba(0,0,0,.12)}
@@ -21984,7 +21984,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
         '</div>';
       }
       var pencil = ctModoEdPastas
-        ? '<button type="button" class="ct-pencil" data-ct-pencil="'+fnEsc(c.chave)+'" title="Editar esta pasta">\u270f\ufe0f</button>'
+        ? '<span role="button" tabindex="0" class="ct-pencil" data-ct-pencil="'+fnEsc(c.chave)+'" title="Editar esta pasta">\u270f\ufe0f</span>'
         : '';
       return '<button type="button" class="ct-folder-btn" data-ct-abrir="'+fnEsc(c.chave)+'" '+
           (ctModoEdPastas?'disabled':'')+' style="--ct-a:'+ctSombra(c.cor,28)+';--ct-b:'+ctSombra(c.cor,-22)+'">'+
@@ -23027,7 +23027,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
         '</div>';
       }
       var pencil = psModoEdPastas
-        ? '<button type="button" class="ct-pencil" data-ps-pencil="'+psEsc(c.chave)+'" title="Editar esta pasta">\u270f\ufe0f</button>'
+        ? '<span role="button" tabindex="0" class="ct-pencil" data-ps-pencil="'+psEsc(c.chave)+'" title="Editar esta pasta">\u270f\ufe0f</span>'
         : '';
       return '<button type="button" class="ct-folder-btn" data-ps-abrir="'+psEsc(c.chave)+'" '+
           (psModoEdPastas?'disabled':'')+' style="--ct-a:'+psSombra(c.cor,28)+';--ct-b:'+psSombra(c.cor,-22)+'">'+
