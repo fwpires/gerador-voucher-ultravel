@@ -927,24 +927,39 @@ body.dark .fn-card{background:rgba(255,255,255,.04)}
 .fn-check.on::after{content:'\2713';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:900}
 .fn-selo-origem{display:inline-block;font-size:10px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:.3px;padding:3px 9px;border-radius:999px;margin:-2px 0 8px;box-shadow:0 2px 5px rgba(0,0,0,.25)}
 /* (·266) Gestores de Leads — cards colapsáveis abaixo da grade de pastas */
-.pg-secao{margin-top:28px}
-.pg-titulo{font-size:16px;font-weight:900;color:var(--texto);margin:0 0 12px;display:flex;align-items:center;gap:8px}
-.pg-lista{display:flex;flex-direction:column;gap:10px}
-.pg-card{background:var(--card);border:1px solid var(--borda);border-radius:12px;overflow:hidden}
-body.dark .pg-card{background:rgba(255,255,255,.04)}
-.pg-card-head{display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer}
-.pg-card-head:hover{background:var(--azul-claro)}
-.pg-seta{color:var(--texto-suave);font-size:11px;width:12px;flex:0 0 auto}
-.pg-nome{font-weight:800;font-size:14.5px;color:var(--texto);flex:0 0 auto;white-space:nowrap}
-.pg-qtd{color:var(--texto-suave);font-size:12.5px;font-weight:700;flex:1 1 auto}
-.pg-contatos{border-top:1px solid var(--borda);padding:10px 16px;display:flex;flex-direction:column;gap:4px}
-.pg-contato-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:9px 0;border-bottom:1px solid var(--borda)}
-.pg-contato-row:last-child{border-bottom:none}
-.pg-contato-nome{font-weight:700;font-size:13.5px;color:var(--texto);flex:1 1 160px;min-width:120px}
-.pg-contato-acoes{display:flex;gap:6px;margin-left:auto}
-.pg-atendente-lista{display:flex;flex-direction:column;gap:6px;max-height:50vh;overflow:auto}
-.pg-atendente-btn{width:100%;text-align:left;background:transparent;border:1px solid var(--borda);color:var(--texto);border-radius:9px;padding:11px 14px;font-size:13.5px;font-weight:700;cursor:pointer;transition:all .15s;font-family:inherit}
-.pg-atendente-btn:hover{border-color:var(--azul);background:var(--azul-claro);color:var(--azul)}
+/* (·266) Gestores de Leads — cards colapsáveis abaixo da grade de pastas.
+   Prefixo gl- (não pg-) de propósito: o sistema já tem um componente de
+   PAGINAÇÃO com classes .pg-* (.pg-btn/.pg-seta/etc, telas de listagem
+   antigas) — usar pg- aqui colidiria (mesmo nome, cascata desempatando
+   errado) e bagunçaria a paginação em outras telas sem eu perceber. */
+.gl-secao{margin-top:28px}
+.gl-titulo{font-size:16px;font-weight:900;color:var(--texto);margin:0 0 12px;display:flex;align-items:center;gap:8px}
+.gl-lista{display:flex;flex-direction:column;gap:10px}
+.gl-card{background:var(--card);border:1px solid var(--borda);border-radius:12px;overflow:hidden}
+body.dark .gl-card{background:rgba(255,255,255,.04)}
+/* (·267) cabeçalho do card no MESMO azul do item ativo do menu lateral
+   (var(--azul)) — pedido do Nando, com o texto em branco por cima. Padding
+   reduzido pra encostar o botão "Gerar CSV" no conteúdo (não mais esticado
+   lá pro canto) e deixar a linha mais baixa. */
+.gl-card-head{display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;background:var(--azul)}
+.gl-card-head:hover{background:var(--azul-escuro)}
+.gl-seta{color:rgba(255,255,255,.8);font-size:11px;width:12px;flex:0 0 auto}
+.gl-nome{font-weight:800;font-size:14.5px;color:#fff;flex:0 0 auto;white-space:nowrap}
+.gl-qtd{color:rgba(255,255,255,.75);font-size:12.5px;font-weight:700}
+.gl-csv-btn{padding:6px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.5);background:rgba(255,255,255,.08);color:#fff;font-size:12px;font-weight:800;cursor:pointer;transition:all .15s;white-space:nowrap;font-family:inherit;margin-left:auto}
+.gl-csv-btn:hover{background:rgba(255,255,255,.22)}
+/* (·267) painel interno (contatos do gestor) em azul BEM escuro — pedido do
+   Nando. var(--azul-claro) já É essa cor no tema escuro (#0D2235); no tema
+   claro ela vira um azul pastel, então segue coerente com o resto do
+   sistema em qualquer um dos dois temas. */
+.gl-contatos{border-top:1px solid var(--borda);padding:10px 16px;display:flex;flex-direction:column;gap:4px;background:var(--azul-claro)}
+.gl-contato-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:9px 0;border-bottom:1px solid var(--borda)}
+.gl-contato-row:last-child{border-bottom:none}
+.gl-contato-nome{font-weight:700;font-size:13.5px;color:var(--texto);flex:1 1 160px;min-width:120px}
+.gl-contato-acoes{display:flex;gap:6px;margin-left:auto}
+.gl-atendente-lista{display:flex;flex-direction:column;gap:6px;max-height:50vh;overflow:auto}
+.gl-atendente-btn{width:100%;text-align:left;background:transparent;border:1px solid var(--borda);color:var(--texto);border-radius:9px;padding:11px 14px;font-size:13.5px;font-weight:700;cursor:pointer;transition:all .15s;font-family:inherit}
+.gl-atendente-btn:hover{border-color:var(--azul);background:var(--azul-claro);color:var(--azul)}
 .fn-nome{font-size:15px;font-weight:900;color:var(--texto)}
 .fn-dados{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:7px 16px}
 .fn-campo{display:flex;flex-direction:column;gap:1px;min-width:0}
@@ -23239,10 +23254,10 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
   function psAbreEscolherAtendente(titulo, excluirNome, aoEscolher){
     psGarantirOverlay();
     var opcoes=PS_ATENDENTES.filter(function(n){ return n!==excluirNome; }).map(function(nome){
-      return '<button type="button" class="pg-atendente-btn" data-pg-escolher="'+psEsc(nome)+'">'+psEsc(nome)+'</button>';
+      return '<button type="button" class="gl-atendente-btn" data-pg-escolher="'+psEsc(nome)+'">'+psEsc(nome)+'</button>';
     }).join('');
     var h='<div class="cl-mhead"><h2>'+psEsc(titulo)+'</h2><button type="button" class="cl-x" id="psTX">&times;</button></div>'+
-      '<div class="cl-mbody"><div class="pg-atendente-lista">'+opcoes+'</div></div>';
+      '<div class="cl-mbody"><div class="gl-atendente-lista">'+opcoes+'</div></div>';
     document.getElementById('psModal').innerHTML=h;
     document.getElementById('psOv').classList.add('on');
     document.getElementById('psTX').onclick=psFechaModal;
@@ -23292,26 +23307,26 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       var linhasContatos = aberto ? (lista.length ? lista.map(function(p){
         var origemBadge = p.origemTitulo ? '<span class="fn-selo-origem" style="background:'+psEsc(p.origemCor)+'">'+psEsc(p.origemTitulo)+'</span>' : '';
         var telBadge = p.tel ? '<span class="cl-tel-badge">'+psEsc(p.tel)+'</span>' : '<span class="cl-tel-vazio">\u2014</span>';
-        return '<div class="pg-contato-row">'+
-          '<span class="pg-contato-nome">'+psEsc(p.nome)+'</span>'+
+        return '<div class="gl-contato-row">'+
+          '<span class="gl-contato-nome">'+psEsc(p.nome)+'</span>'+
           telBadge+origemBadge+
-          '<span class="pg-contato-acoes">'+
+          '<span class="gl-contato-acoes">'+
             '<button type="button" class="cl-b-ed" data-pg-retransferir-at="'+psEsc(at)+'" data-pg-retransferir-id="'+psEsc(p.id)+'" title="Retransferir para outro atendente">\ud83d\udd01</button>'+
             '<button type="button" class="cl-b-del" data-pg-remover-at="'+psEsc(at)+'" data-pg-remover-id="'+psEsc(p.id)+'" title="Remover da lista deste atendente">\ud83d\uddd1</button>'+
           '</span>'+
         '</div>';
       }).join('') : '<div class="cl-vazio" style="padding:16px">Nenhum contato nesta lista.</div>') : '';
-      return '<div class="pg-card">'+
-        '<div class="pg-card-head" data-pg-toggle="'+psEsc(at)+'">'+
-          '<span class="pg-seta">'+(aberto?'\u25be':'\u25b8')+'</span>'+
-          '<span class="pg-nome">'+psEsc(at)+'</span>'+
-          '<span class="pg-qtd">'+lista.length+' contato'+(lista.length===1?'':'s')+'</span>'+
-          '<button type="button" class="fn-bt" data-pg-csv="'+psEsc(at)+'" title="Baixar CSV desta lista">\ud83d\udcc4 Gerar CSV</button>'+
+      return '<div class="gl-card">'+
+        '<div class="gl-card-head" data-pg-toggle="'+psEsc(at)+'">'+
+          '<span class="gl-seta">'+(aberto?'\u25be':'\u25b8')+'</span>'+
+          '<span class="gl-nome">'+psEsc(at)+'</span>'+
+          '<span class="gl-qtd">'+lista.length+' contato'+(lista.length===1?'':'s')+'</span>'+
+          '<button type="button" class="gl-csv-btn" data-pg-csv="'+psEsc(at)+'" title="Baixar CSV desta lista">\ud83d\udcc4 Gerar CSV</button>'+
         '</div>'+
-        (aberto ? '<div class="pg-contatos">'+linhasContatos+'</div>' : '')+
+        (aberto ? '<div class="gl-contatos">'+linhasContatos+'</div>' : '')+
       '</div>';
     }).join('');
-    return '<div class="pg-secao"><h3 class="pg-titulo">\ud83d\udc65 Gestores de Leads</h3><div class="pg-lista">'+blocos+'</div></div>';
+    return '<div class="gl-secao"><h3 class="gl-titulo">\ud83d\udc65 Gestores de Leads</h3><div class="gl-lista">'+blocos+'</div></div>';
   }
 
   function psRenderGrid(w){
