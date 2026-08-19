@@ -941,6 +941,15 @@ body.dark .fn-card{background:rgba(255,255,255,.04)}
 .ps-chip-led.amarelo{border-color:#e0b400;color:#e0b400}
 .ps-chip-led.verde.on{background:rgba(46,199,165,.18)}
 .ps-chip-led.amarelo.on{background:rgba(224,180,0,.18)}
+/* (·276) SELEÇÃO RÁPIDA POR QUANTIDADE — pílula com o mesmo espírito visual
+   dos chips ao lado (borda arredondada, altura igual), mas em ciano pra não
+   ser confundida com os filtros verde/amarelo. */
+.ps-qtd-rapida{display:inline-flex;align-items:center;gap:6px;padding:5px 12px 5px 12px;border-radius:999px;border:1.5px solid rgba(18,176,255,.55);background:rgba(18,176,255,.08)}
+.ps-qtd-rapida-ic{font-size:13px;line-height:1;flex:0 0 auto}
+.ps-qtd-rapida-inp{width:46px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:7px;color:#fff;font-size:13px;font-weight:800;text-align:center;padding:5px 4px;outline:none;font-family:inherit;font-variant-numeric:tabular-nums}
+.ps-qtd-rapida-inp:focus{border-color:#12b0ff;box-shadow:0 0 0 2px rgba(18,176,255,.25)}
+.ps-qtd-rapida-inp::placeholder{color:rgba(255,255,255,.35);font-weight:700}
+.ps-qtd-rapida-lbl{font-size:12px;font-weight:700;color:#7fd3ff;text-transform:lowercase;white-space:nowrap}
 /* (·266) Gestores de Leads — cards colapsáveis abaixo da grade de pastas.
    Prefixo gl- (não pg-) de propósito: o sistema já tem um componente de
    PAGINAÇÃO com classes .pg-* (.pg-btn/.pg-seta/etc, telas de listagem
@@ -23685,6 +23694,15 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
   var psVisaoGeral=false, psContatosSelecionados={}, psGestorAberto=null;
   var psOrdemCampo='nome', psOrdemDir='asc'; // (·269) ordenação da Lista Geral: 'nome' ou 'origem', 'asc'/'desc'
   var psFiltroTag=''; // (·275) '' | 'feito' | 'semtag' — filtro por etiqueta na Lista Geral
+  // (·276) SELEÇÃO RÁPIDA POR QUANTIDADE — pedido do Nando: campo numérico
+  // que seleciona sozinho os N primeiros contatos da lista que está sendo
+  // exibida NA HORA (já filtrada/ordenada), sem precisar clicar um por um.
+  // psQtdRapidaTxt guarda o texto digitado por ESCOPO (a chave da pasta
+  // aberta, ou "__geral__" na Lista Geral) — cada tela tem o próprio campo.
+  // psListaVisivelAtual guarda os ids NA ORDEM EXIBIDA no render mais
+  // recente (folha ou lista geral), pra aplicar a seleção sem precisar
+  // refiltrar/reordenar de novo no clique.
+  var psQtdRapidaTxt={}, psListaVisivelAtual=[];
 
   var PS_ATENDENTES=['Eduardo Vinícius','Ghabriella Bressan','Liliane Gaspar','Israel Hespanhol','Maria Eduarda','Juliana Lupo','Diego Oliveira','Fernando Pires','Ana Maria','Hynaê Teston','Ruth Alves','Mayara Marcelli'];
 
@@ -23829,7 +23847,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     psAbreEscolherAtendente('\ud83d\udce4 Transferir '+idsSel.length+' contato'+(idsSel.length===1?'':'s')+' para qual atendente?', null, function(atendente){
       var qtd=0;
       idsSel.forEach(function(id){ var c=psAcharContato(id); if(c){ pgTransferir(atendente, c); qtd++; } });
-      psContatosSelecionados={};
+      psContatosSelecionados={}; psQtdRapidaTxt={};
       window.renderProspeccao();
       try{ if(typeof toast==='function') toast(qtd+' contato(s) transferido(s) para '+atendente+' \u2705','ok'); }catch(e){}
     });
@@ -23868,6 +23886,35 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       el.classList.toggle('on', marcado);
       el.setAttribute('aria-checked', marcado?'true':'false');
     });
+  }
+  // (·276) SELEÇÃO RÁPIDA POR QUANTIDADE — campo livre (só números) que,
+  // ao digitar, seleciona sozinho os N primeiros contatos da lista visível
+  // NA HORA (psListaVisivelAtual, já filtrada/ordenada pelo render mais
+  // recente) — SUBSTITUI a seleção anterior por inteiro, então digitar "5"
+  // sempre marca exatamente os 5 primeiros, nunca soma em cima do que já
+  // estava marcado. Mesma técnica de atualização PARCIAL do DOM que o
+  // círculo individual já usa (·270): nada de window.renderProspeccao()
+  // aqui, senão digitar cada dígito reconstruiria a lista inteira de novo.
+  function psHtmlSelecaoRapida(escopo){
+    return '<span class="ps-qtd-rapida" title="Digite quantos contatos marcar — o sistema seleciona os primeiros da lista sozinho">'
+      +'<span class="ps-qtd-rapida-ic">🔢</span>'
+      +'<input type="text" class="ps-qtd-rapida-inp" inputmode="numeric" maxlength="4" autocomplete="off" '
+      +'data-ps-qtd-rapida="'+psEsc(escopo)+'" value="'+psEsc(psQtdRapidaTxt[escopo]||'')+'" placeholder="Qtd.">'
+      +'<span class="ps-qtd-rapida-lbl">selecionar</span>'
+      +'</span>';
+  }
+  function psAplicarSelecaoRapida(qtd){
+    var n=Math.max(0, Math.min(qtd||0, psListaVisivelAtual.length));
+    var alvo={};
+    for(var i=0;i<n;i++){ alvo[psListaVisivelAtual[i]]=true; }
+    psContatosSelecionados=alvo;
+    document.querySelectorAll('[data-ps-marcar-contato]').forEach(function(el){
+      var id=el.getAttribute('data-ps-marcar-contato');
+      var marcado=!!alvo[id];
+      el.classList.toggle('on', marcado);
+      el.setAttribute('aria-checked', marcado?'true':'false');
+    });
+    psAtualizarBarraSelecao();
   }
   // exclusão em lote de contatos (usada pelo botão de seleção múltipla) —
   // marca del:1 em cada um e salva UMA vez só no final, em vez de chamar
@@ -23991,6 +24038,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       if(dig && (p.tel||'').replace(/\D/g,'').indexOf(dig)>=0) return true;
       return false;
     }).sort(function(a,b){ return psNorm(a.nome).localeCompare(psNorm(b.nome),'pt-BR'); });
+    psListaVisivelAtual=lista.map(function(p){ return p.id; });
 
     function campoLeitura(rot, val, largo, ehLink, tipo){
       var vazio=!val;
@@ -24043,6 +24091,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
         '<div class="fn-sub">'+todos.length+' contato'+(todos.length===1?'':'s')+' cadastrado'+(todos.length===1?'':'s')+'</div></div>'+
         '<div class="fn-acoes">'+
           '<span id="psBarraSelecaoContatos">'+psHtmlBarraSelecaoContatos()+'</span>'+
+          psHtmlSelecaoRapida(cat)+
           '<button type="button" class="ps-chip-led verde'+(psFiltroTag==='feito'?' on':'')+'" data-ps-filtro-tag="feito"><span class="ps-chip-ic">\u2713</span>contato feito</button>'+
           '<button type="button" class="ps-chip-led amarelo'+(psFiltroTag==='semtag'?' on':'')+'" data-ps-filtro-tag="semtag"><span class="ps-chip-ic">\ud83c\udff7\ufe0f</span>sem etiqueta</button>'+
           (editando?'<button type="button" class="fn-bt primario" data-ps-novo="'+psEsc(cat)+'">+ Adicionar contato</button>':'')+
@@ -24223,6 +24272,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       if(cmp===0) cmp=a._chaveNome.localeCompare(b._chaveNome,'pt-BR'); // desempate: sempre por nome
       return psOrdemDir==='desc' ? -cmp : cmp;
     });
+    psListaVisivelAtual=lista.map(function(p){ return p.id; });
 
     var linhas = lista.length ? lista.map(function(p){
       var telCel = p.tel
@@ -24253,6 +24303,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
         '<div class="cl-sub">'+cats.length+' listas \u00b7 '+todos.length+' contatos no total</div></div>'+
         '<div class="cl-acoes">'+
           '<span id="psBarraSelecaoContatos">'+psHtmlBarraSelecaoContatos()+'</span>'+
+          psHtmlSelecaoRapida('__geral__')+
           '<button type="button" class="ps-chip-led verde'+(psFiltroTag==='feito'?' on':'')+'" data-ps-filtro-tag="feito"><span class="ps-chip-ic">\u2713</span>contato feito</button>'+
           '<button type="button" class="ps-chip-led amarelo'+(psFiltroTag==='semtag'?' on':'')+'" data-ps-filtro-tag="semtag"><span class="ps-chip-ic">\ud83c\udff7\ufe0f</span>sem etiqueta</button>'+
           '<button type="button" class="fn-bt" data-ps-toggle-visao="1">\ud83d\uddc2\ufe0f Visualizar em Pasta</button>'+
@@ -24292,6 +24343,14 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     if(t.classList && t.classList.contains('ps-edit-nome')){
       var cc=t.getAttribute('data-ps-cat');
       if(cc) psCatsSet(cc, 'titulo', t.value);
+    }
+    if(t.hasAttribute && t.hasAttribute('data-ps-qtd-rapida')){
+      var escopoQr=t.getAttribute('data-ps-qtd-rapida');
+      var soDigitos=(t.value||'').replace(/\D/g,'').slice(0,4);
+      if(t.value!==soDigitos){ t.value=soDigitos; try{ t.setSelectionRange(soDigitos.length,soDigitos.length); }catch(_){} }
+      psQtdRapidaTxt[escopoQr]=soDigitos;
+      psAplicarSelecaoRapida(soDigitos?parseInt(soDigitos,10):0);
+      return;
     }
   });
   document.addEventListener('click', function(e){
@@ -24342,7 +24401,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
         : 'Remover '+achados.length+' contatos selecionados ('+nomesSel.slice(0,6).join(', ')+(achados.length>6?', ...':'')+')?';
       if(window.confirm(msgC)){
         psDelMultiplos(achados);
-        psContatosSelecionados={};
+        psContatosSelecionados={}; psQtdRapidaTxt={};
         window.renderProspeccao();
       }
       return;
@@ -24384,9 +24443,9 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
 
     // ---- navegação Prospecção ----
     var voltar=e.target.closest('#psVoltar');
-    if(voltar){ prospeccaoAberto=null; psContatosSelecionados={}; window.renderProspeccao(); return; }
+    if(voltar){ prospeccaoAberto=null; psContatosSelecionados={}; psQtdRapidaTxt={}; window.renderProspeccao(); return; }
     var toggleVisao=e.target.closest('#psToggleVisao, [data-ps-toggle-visao]');
-    if(toggleVisao){ psVisaoGeral=!psVisaoGeral; psContatosSelecionados={}; window.renderProspeccao(); return; }
+    if(toggleVisao){ psVisaoGeral=!psVisaoGeral; psContatosSelecionados={}; psQtdRapidaTxt={}; window.renderProspeccao(); return; }
     var ordenar=e.target.closest('[data-ps-ordenar]');
     if(ordenar){
       var campoOrd=ordenar.getAttribute('data-ps-ordenar');
@@ -24403,7 +24462,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       window.renderProspeccao(); return;
     }
     var abrir=e.target.closest('[data-ps-abrir]');
-    if(abrir && !psModoEdPastas){ prospeccaoAberto=abrir.getAttribute('data-ps-abrir'); psContatosSelecionados={}; window.renderProspeccao(); return; }
+    if(abrir && !psModoEdPastas){ prospeccaoAberto=abrir.getAttribute('data-ps-abrir'); psContatosSelecionados={}; psQtdRapidaTxt={}; window.renderProspeccao(); return; }
 
     // ---- edição das PASTAS (nome/cor/exclusão) ----
     var togglePastas=e.target.closest('#psEditarPastas');
