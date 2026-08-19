@@ -926,7 +926,6 @@ body.dark .fn-card{background:rgba(255,255,255,.04)}
 .fn-check.on{background:#e02222;border-color:#e02222}
 .fn-check.on::after{content:'\2713';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:900}
 .fn-selo-origem{display:inline-block;font-size:10px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:.3px;padding:3px 9px;border-radius:999px;margin:-2px 0 8px;box-shadow:0 2px 5px rgba(0,0,0,.25)}
-/* (·266) Gestores de Leads — cards colapsáveis abaixo da grade de pastas */
 /* (·266) Gestores de Leads — cards colapsáveis abaixo da grade de pastas.
    Prefixo gl- (não pg-) de propósito: o sistema já tem um componente de
    PAGINAÇÃO com classes .pg-* (.pg-btn/.pg-seta/etc, telas de listagem
@@ -934,8 +933,13 @@ body.dark .fn-card{background:rgba(255,255,255,.04)}
    errado) e bagunçaria a paginação em outras telas sem eu perceber. */
 .gl-secao{margin-top:28px}
 .gl-titulo{font-size:16px;font-weight:900;color:var(--texto);margin:0 0 12px;display:flex;align-items:center;gap:8px}
-.gl-lista{display:flex;flex-direction:column;gap:10px}
-.gl-card{background:var(--card);border:1px solid var(--borda);border-radius:12px;overflow:hidden}
+/* (·268) largura do card = MESMA fórmula de colunas do grid de pastas
+   (repeat(auto-fill,minmax(168px,1fr))) — span:4 faz o card terminar
+   exatamente onde termina a 4ª pasta de uma fileira, em vez de esticar até
+   a borda da tela. Como usa a mesma fórmula responsiva do .ct-grid (não um
+   px fixo), o alinhamento se mantém certo em qualquer largura de tela. */
+.gl-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:10px 18px}
+.gl-card{grid-column:span 4;background:var(--card);border:1px solid var(--borda);border-radius:12px;overflow:hidden}
 body.dark .gl-card{background:rgba(255,255,255,.04)}
 /* (·267) cabeçalho do card no MESMO azul do item ativo do menu lateral
    (var(--azul)) — pedido do Nando, com o texto em branco por cima. Padding
