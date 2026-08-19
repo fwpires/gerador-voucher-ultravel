@@ -17604,8 +17604,11 @@ function excluirNotaUI(id){
     });
     window.addEventListener('online', function(){ tentativas=0; conectar(); });
 
-    // Sobe a conexão logo após o carregamento (dá tempo do carregarConfig rodar)
-    setTimeout(conectar, 2500);
+    // (·278) Sobe a conexão quase imediatamente — antes eram 2,5s de espera
+    // "pra dar tempo do carregarConfig rodar", mas o WS já lida com isso
+    // sozinho (aplicarEstado adia 1,5s se uvCfgPronta ainda não terminou —
+    // ver ws.onmessage acima), então não precisa atrasar a CONEXÃO em si.
+    setTimeout(conectar, 200);
 
     // exposto para diagnóstico manual no console, se precisar
     try{ window.uvLiveStatus=function(){ return { pronto: !!(ws&&ws.readyState===1), ver: ultimaVer }; }; }catch(e){}
@@ -17856,7 +17859,12 @@ function excluirNotaUI(id){
    for 100% seguro — protegendo qualquer alteração não salva e evitando
    "saltos" visuais no meio de uma interação sua. */
 (function(){
-  var INTERVALO = 10 * 60 * 1000;                    // a cada 10 minutos: baixa dados
+  var INTERVALO = 15 * 1000;                         // (·278) era 10 MINUTOS — pedido do Nando: "remova todo delay".
+                                                       // O WebSocket em tempo real (·277) já avisa na hora quando
+                                                       // qualquer PC cria/edita/exclui um voucher; este polling agora
+                                                       // é só a REDE DE SEGURANÇA (aba que perdeu o WS por um instante,
+                                                       // ou o Worker ainda não foi atualizado com o aviso em tempo real)
+                                                       // — e mesmo assim o atraso MÁXIMO caiu de 10 minutos pra 15-30s.
   var CHECAGEM  = 15 * 1000;                         // verifica a cada 15s se pode aplicar
   var proximo   = Date.now() + INTERVALO;            // horário do próximo refresh
   var pendente  = false;                             // true = chegou a hora, ainda não aplicou
