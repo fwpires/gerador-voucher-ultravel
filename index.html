@@ -17560,6 +17560,17 @@ function excluirNotaUI(id){
         var msg;
         try{ msg=JSON.parse(evt.data); }catch(e){ return; }
         if(msg.t==='pong') return;
+        // (·277) TEMPO REAL PARA VOUCHERS SALVOS — pedido do Nando: "voucher
+        // cadastrado demora para aparecer na lista". O Worker manda este
+        // aviso leve pelo MESMO WebSocket sempre que outro PC cria, edita ou
+        // exclui um voucher (POST/DELETE /api/vouchers); ao receber, busca a
+        // lista fresca na hora — sem esperar o polling de 10 minutos, que
+        // continua existindo só como rede de segurança (ex.: aba que perdeu
+        // a conexão de tempo real por um instante).
+        if(msg.t==='vouchers'){
+          try{ if(typeof loadSaved==='function') loadSaved(); }catch(e){}
+          return;
+        }
         if((msg.t==='estado' || msg.t==='ok') && msg.estado){
           // ignora repetição da mesma versão (evita re-render redundante)
           if(msg.ver && msg.ver<=ultimaVer) return;
