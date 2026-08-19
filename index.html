@@ -926,6 +926,11 @@ body.dark .fn-card{background:rgba(255,255,255,.04)}
 .fn-check.on{background:#e02222;border-color:#e02222}
 .fn-check.on::after{content:'\2713';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:900}
 .fn-selo-origem{display:inline-block;font-size:10px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:.3px;padding:3px 9px;border-radius:999px;margin:-2px 0 8px;box-shadow:0 2px 5px rgba(0,0,0,.25)}
+/* (·272) etiqueta "Contato Iniciado" — inserida automaticamente quando o
+   card vinculado é arrastado pra essa coluna no Kanban Ação Lazer. */
+.fn-tag-iniciado{display:inline-block;font-size:10.5px;font-weight:800;color:#0d3a1f;background:linear-gradient(180deg,#6FE39A,#2ec7a5);border-radius:999px;padding:3px 10px;white-space:nowrap;box-shadow:0 2px 5px rgba(0,0,0,.2)}
+.fn-tag-x{display:inline-block;margin-left:6px;padding:0 3px;font-weight:900;color:rgba(13,58,31,.55);cursor:pointer;border-radius:4px}
+.fn-tag-x:hover{color:#0d3a1f;background:rgba(13,58,31,.18)}
 /* (·266) Gestores de Leads — cards colapsáveis abaixo da grade de pastas.
    Prefixo gl- (não pg-) de propósito: o sistema já tem um componente de
    PAGINAÇÃO com classes .pg-* (.pg-btn/.pg-seta/etc, telas de listagem
@@ -16224,6 +16229,7 @@ function excluirNotaUI(id){
   function ocpPaxAdminConfere(senha){
     return (typeof window.mtSha256==='function') && window.mtSha256('uvPaxLib::'+(senha||''))===ocpPaxAdminHash();
   }
+  window.ocpPaxAdminConfere = ocpPaxAdminConfere; // (·273) exposto pra Prospecção reaproveitar no gate de remover etiqueta
   function ocpPaxAdminDefinir(novaSenha){
     if(typeof window.mtSha256!=='function') return false;
     appConfig.uvPaxAdmin={ hash:window.mtSha256('uvPaxLib::'+novaSenha), ts:Date.now() };
@@ -23048,7 +23054,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     {id:"ps11_006", nome:"Alex Blayher", tel:"(47) 99613-6336", email:'', obs:''},
   ];
 
-  var PS_CAMPOS = ['nome','tel','email','obs'];
+  var PS_CAMPOS = ['nome','tel','email','obs','iniciado'];
 
   /* ---------------------------------------------------------------
      CAMADA DE DADOS por lista: appConfig.prosp = {
@@ -23270,6 +23276,15 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
     try{ if(typeof logRemoto==='function') logRemoto('prospeccao','Contato removido da lista de '+atendente,{area:'Prospecção', atendente:atendente}); }catch(e){}
   }
+  // (·272) remoção em lote — usada ao gerar CSV: some com o controle do
+  // atendente em Gestores de Leads de uma vez, com UM salvarConfig só
+  // (em vez de chamar pgRemover() um por um, que salvaria N vezes).
+  function pgRemoverMultiplos(atendente, ids){
+    var ed=pgStore(atendente);
+    ids.forEach(function(id){ var o=ed[id]||{}; o.del=1; o.ts=Date.now(); ed[id]=o; });
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+    try{ if(typeof logRemoto==='function') logRemoto('prospeccao', ids.length+' contato(s) removido(s) do controle de '+atendente+' — registro agora só no Kanban',{area:'Prospecção', atendente:atendente}); }catch(e){}
+  }
   function pgRetransferir(de, para, id){
     var edDe=pgStore(de); var reg=edDe[id]; if(!reg) return;
     pgRemover(de, id);
@@ -23323,6 +23338,15 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
        travar a geração do CSV se o módulo Kanban não tiver carregado por
        algum motivo, daí o try/catch. */
     try{ if(typeof window.klAdicionarCardsAutomatico==='function') window.klAdicionarCardsAutomatico(atendente, lista); }catch(e){}
+    /* (·272) pedido do Nando: depois de copiar pro Kanban, o registro
+       PASSA A VIVER SÓ LÁ — remove esses contatos do controle do atendente
+       aqui em Gestores de Leads (soft delete, igual todo o resto: os dados
+       originais na pasta de Prospecção nunca são tocados, só essa cópia
+       "de trabalho" do atendente some). Se essa foi a última leva de
+       contatos dele, o próprio atendente some da lista de Gestores de
+       Leads sozinho (pgAtendentesComContatos só mostra quem tem 1+). */
+    pgRemoverMultiplos(atendente, lista.map(function(p){ return p.id; }));
+    try{ if(typeof window.renderProspeccao==='function') window.renderProspeccao(); }catch(e){}
   }
   // Modal genérico de "escolher um atendente" — usado tanto por Transferir
   // quanto por Retransferir (passando quem já está de fora da lista).
@@ -23524,20 +23548,21 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
 
     var cards = lista.length ? lista.map(function(p){
       var cab, corpo;
+      var tagIniciado = p.iniciado ? '<span class="fn-tag-iniciado">\u2705 Contato Iniciado'+(psSouAdmin()?'<span class="fn-tag-x" data-ps-remover-tag="'+psEsc(p.id)+'" title="Remover etiqueta (só admin)">\u00d7</span>':'')+'</span>' : '';
       if(editando){
         cab='<div class="fn-l1">'+psCirculoContato(p.id)+
               '<input type="text" class="fn-inp fn-inp-nome" data-ps-cat="'+psEsc(cat)+'" data-ps-id="'+psEsc(p.id)+'" '+
                 'data-ps-campo="nome" value="'+psEsc(p.nome)+'" placeholder="Nome do contato">'+
               '<button type="button" class="fn-del" data-ps-del-cat="'+psEsc(cat)+'" data-ps-del="'+psEsc(p.id)+'" '+
                 'title="Remover este contato">\ud83d\uddd1</button>'+
-            '</div>';
+            '</div>'+tagIniciado;
         corpo='<div class="fn-dados">'+
           campoEdicao('Telefone / WhatsApp', p.id, 'tel', p.tel, '(00) 00000-0000', false, 'tel')+
           campoEdicao('E-mail', p.id, 'email', p.email, 'contato@email.com', false, 'email')+
           campoEdicao('Observações', p.id, 'obs', p.obs, '', true, 'obs')+
         '</div>';
       } else {
-        cab='<div class="fn-l1">'+psCirculoContato(p.id)+'<span class="fn-nome">'+psEsc(p.nome)+'</span></div>';
+        cab='<div class="fn-l1">'+psCirculoContato(p.id)+'<span class="fn-nome">'+psEsc(p.nome)+'</span></div>'+tagIniciado;
         corpo='<div class="fn-dados">'+
           campoLeitura('Telefone / WhatsApp', p.tel, false, false, 'tel')+
           campoLeitura('E-mail', p.email, false, false, 'email')+
@@ -23604,12 +23629,40 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       for(var j=0;j<lista.length;j++){
         if(lista[j].id===id){
           var p=lista[j];
-          return {id:p.id, nome:p.nome, tel:p.tel, email:p.email, obs:p.obs,
+          return {id:p.id, nome:p.nome, tel:p.tel, email:p.email, obs:p.obs, iniciado:!!p.iniciado,
             cat:cats[i].chave, catTitulo:cats[i].titulo, catCor:cats[i].cor};
         }
       }
     }
     return null;
+  }
+  /* (·272) Chamada de FORA (Kanban) quando um card vinculado a este contato é
+     arrastado pra coluna "Contato Iniciado" — marca a etiqueta aqui na
+     Prospecção, refletindo tanto na pasta quanto na Lista Geral. Nunca some
+     sozinha (é histórico: "esse contato já foi trabalhado"), só quem edita
+     o contato manualmente poderia tirar — não há botão pra isso ainda,
+     de propósito, pra não apagar o rastro sem querer. */
+  function psMarcarIniciado(contatoId){
+    var c=psAcharContato(contatoId); if(!c || c.iniciado) return;
+    psSet(c.cat, contatoId, 'iniciado', 'true');
+    try{ if(typeof window.renderProspeccao==='function') window.renderProspeccao(); }catch(e){}
+  }
+  window.psMarcarIniciado = psMarcarIniciado;
+  /* (·274) Remover a etiqueta "Contato Iniciado" — pedido do Nando: SEM
+     senha, liberado só pra quem está logado como ADMIN (uvAuthPerfil()).
+     O "x" nem aparece na tela pra quem não é admin (mesmo padrão já usado
+     no resto do Hub pra botões admin-only: esconder na origem, não só
+     bloquear o clique — ver comentário do ·220 sobre "senhas internas
+     redundantes pro admin"). */
+  function psSouAdmin(){
+    try{ return typeof window.uvAuthPerfil==='function' && window.uvAuthPerfil()==='admin'; }catch(e){ return false; }
+  }
+  function psRemoverIniciado(contatoId){
+    if(!psSouAdmin()){ try{ window.alert('Apenas o administrador pode remover esta etiqueta.'); }catch(e){} return; }
+    var c=psAcharContato(contatoId); if(!c) return;
+    psSet(c.cat, contatoId, 'iniciado', '');
+    try{ if(typeof logRemoto==='function') logRemoto('prospeccao','Etiqueta "Contato Iniciado" removida (admin) de '+(c.nome||contatoId),{area:'Prospecção'}); }catch(e){}
+    try{ if(typeof window.renderProspeccao==='function') window.renderProspeccao(); }catch(e){}
   }
   function psFld(lbl,val,box){
     if(!val) return '';
@@ -23679,7 +23732,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     var todos=[];
     cats.forEach(function(c){
       psLista(c.chave).forEach(function(p){
-        todos.push({id:p.id, nome:p.nome, tel:p.tel, email:p.email, obs:p.obs,
+        todos.push({id:p.id, nome:p.nome, tel:p.tel, email:p.email, obs:p.obs, iniciado:!!p.iniciado,
           _cat:c.chave, _catTitulo:c.titulo, _catCor:c.cor});
       });
     });
@@ -23714,8 +23767,9 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       var acoes = '<button type="button" class="cl-b-ver" data-ps-ver="'+psEsc(p.id)+'" title="Ver detalhes"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></button>'+
         '<button type="button" class="cl-b-ed" data-ps-ed="'+psEsc(p.id)+'" title="Editar">\u270f\ufe0f</button>'+
         '<button type="button" class="cl-b-del" data-ps-del-modal="'+psEsc(p.id)+'" title="Excluir">\ud83d\uddd1</button>';
+      var nomeCel = '<div class="cl-nome">'+psEsc(p.nome)+(p.iniciado?' <span class="fn-tag-iniciado">\u2705 Contato Iniciado'+(psSouAdmin()?'<span class="fn-tag-x" data-ps-remover-tag="'+psEsc(p.id)+'" title="Remover etiqueta (só admin)">\u00d7</span>':'')+'</span>':'')+'</div>';
       return '<div class="cl-row">'+psCirculoContato(p.id)+
-        '<div class="cl-nome">'+psEsc(p.nome)+'</div>'+
+        nomeCel+
         telCel+origemCel+
         '<div class="cl-det">'+acoes+'</div>'+
       '</div>';
@@ -23871,6 +23925,8 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       else { psOrdemCampo=campoOrd; psOrdemDir='asc'; }
       window.renderProspeccao(); return;
     }
+    var removerTag=e.target.closest('[data-ps-remover-tag]');
+    if(removerTag){ psRemoverIniciado(removerTag.getAttribute('data-ps-remover-tag')); return; }
     var abrir=e.target.closest('[data-ps-abrir]');
     if(abrir && !psModoEdPastas){ prospeccaoAberto=abrir.getAttribute('data-ps-abrir'); psContatosSelecionados={}; window.renderProspeccao(); return; }
 
@@ -24096,20 +24152,43 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
   };
 
   /* ---------------- AUTOMAÇÃO (chamada de fora, pelo módulo Prospecção) --
-     Nunca puxa de volta pra "Sem Retorno" um card que o time já arrastou
-     pra outra coluna — só ATUALIZA nome/telefone/origem se já existir. */
+     (·272) REGRA ANTI-DUPLICIDADE por NOME (pedido do Nando): antes o
+     card era indexado por atendente+id, então o MESMO contato transferido
+     pra 2 atendentes diferentes virava 2 cards separados. Agora, antes de
+     criar um card novo, procura por QUALQUER card já existente (de
+     QUALQUER atendente) com o MESMO NOME normalizado:
+       - achou, e é do MESMO atendente → só atualiza os dados (mesmo
+         comportamento de antes, sem duplicar nem mexer na coluna).
+       - achou, mas é de OUTRO atendente → apaga a versão antiga e cria
+         a nova já com o atendente atual, preservando a coluna em que
+         estava (não reseta o progresso do time pra "Sem Retorno" só
+         porque o contato mudou de mão).
+       - não achou nenhum → cria novo, direto em "Sem Retorno".
+     Nomes duplicados de PESSOAS DIFERENTES (mesmo nome e sobrenome, gente
+     distinta) são um risco assumido aqui — o pedido foi explicitamente
+     "se o nome já existir", então é o critério usado. */
   function klAdicionarCardsAutomatico(atendente, contatos){
     klGarantirBoardPadrao();
     var cs=klCardsStore(KL_BOARD_PADRAO);
     var qtd=0;
     (contatos||[]).forEach(function(c){
-      var cardId='klc_'+klNorm(atendente).replace(/\s+/g,'_')+'_'+c.id;
-      var existente=cs[cardId];
-      cs[cardId]={
+      var nomeNorm=klNorm(c.nome);
+      var idNovo='klc_'+klNorm(atendente).replace(/\s+/g,'_')+'_'+c.id;
+      var idExistente=null, existente=null;
+      Object.keys(cs).forEach(function(id){
+        var cc=cs[id];
+        if(cc && !cc.del && klNorm(cc.nome)===nomeNorm){ idExistente=id; existente=cc; }
+      });
+      // já existia com OUTRO atendente (chave de card diferente) → apaga a versão antiga
+      if(idExistente && idExistente!==idNovo){
+        cs[idExistente]=Object.assign({}, existente, {del:1, ts:Date.now()});
+      }
+      cs[idNovo]={
         colunaId: existente ? existente.colunaId : KL_COLUNA_SEM_RETORNO,
         nome:c.nome||'', tel:c.tel||'', origemTitulo:c.origemTitulo||'', origemCor:c.origemCor||'#3B8FD4',
-        atendente:atendente, obs:(existente&&existente.obs)||'', ts:Date.now(), del:0
+        atendente:atendente, origemContatoId:c.id, obs:(existente&&existente.obs)||'', ts:Date.now(), del:0
       };
+      klChecarTagIniciado(KL_BOARD_PADRAO, idNovo); // idempotente: só marca se a coluna preservada for "Contato Iniciado"
       qtd++;
     });
     try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
@@ -24117,6 +24196,25 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     try{ if(document.getElementById('scr-kanbanleads') && document.getElementById('scr-kanbanleads').classList.contains('active') && typeof window.renderKanbanLeads==='function') window.renderKanbanLeads(); }catch(e){}
   }
   window.klAdicionarCardsAutomatico = klAdicionarCardsAutomatico;
+
+  /* (·272) quando um card cai (ou já nasce/permanece) na coluna "Contato
+     Iniciado", avisa a Prospecção pra marcar a etiqueta no contato de
+     origem — casa pelo TÍTULO da coluna (normalizado), não pelo id, pra
+     continuar funcionando mesmo se essa coluna for recriada. Cards
+     criados manualmente (sem origemContatoId, sem vínculo com a
+     Prospecção) são ignorados, não tem o que marcar. */
+  function klColunaEhContatoIniciado(boardId, colunaId){
+    var board=klBoardsGet(boardId); if(!board || !Array.isArray(board.colunas)) return false;
+    for(var i=0;i<board.colunas.length;i++){
+      if(board.colunas[i].id===colunaId) return klNorm(board.colunas[i].titulo)==='contato iniciado';
+    }
+    return false;
+  }
+  function klChecarTagIniciado(boardId, cardId){
+    var cs=klCardsStore(boardId); var c=cs[cardId]; if(!c || !c.origemContatoId) return;
+    if(!klColunaEhContatoIniciado(boardId, c.colunaId)) return;
+    try{ if(typeof window.psMarcarIniciado==='function') window.psMarcarIniciado(c.origemContatoId); }catch(e){}
+  }
 
   /* ---------------- ESTADO DA TELA ---------------- */
   var klBoardAberto=null, klBuscaTxt='', klFiltroAtendente='';
@@ -24379,7 +24477,9 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     e.preventDefault();
     colBody.classList.remove('kl-col-body-over');
     var novaColunaId=colBody.getAttribute('data-kl-coluna-body');
-    klCardMover(klDragBoardId, klDragCardId, novaColunaId);
+    var boardMovido=klDragBoardId, cardMovido=klDragCardId;
+    klCardMover(boardMovido, cardMovido, novaColunaId);
+    klChecarTagIniciado(boardMovido, cardMovido); // (·272) marca "Contato Iniciado" na Prospecção se for o caso
     klDragCardId=null; klDragBoardId=null;
     window.renderKanbanLeads();
   });
