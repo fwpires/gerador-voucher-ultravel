@@ -23294,6 +23294,31 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     return '<span role="checkbox" tabindex="0" aria-checked="'+(marcado?'true':'false')+'" '+
       'class="fn-check'+(marcado?' on':'')+'" data-ps-marcar-contato="'+psEsc(id)+'" title="Selecionar este contato"></span>';
   }
+  /* (·270) DESEMPENHO — pedido do Nando: marcar um contato (ou trocar de
+     página) ficava com "delay" numa lista de 597 linhas. A causa raiz era
+     window.renderProspeccao() no clique do círculo: isso reconstruía as
+     597 linhas inteiras (filtra + ordena + monta HTML de novo) só pra
+     alternar 1 checkbox. Agora o clique do círculo NÃO chama mais o render
+     completo — só troca a classe/aria-checked daquele elemento específico
+     (psAtualizarCirculoDOM) e atualiza só a barrinha de botões de seleção
+     (psAtualizarBarraSelecao), sem tocar no resto da lista. */
+  function psHtmlBarraSelecaoContatos(){
+    var qtd=Object.keys(psContatosSelecionados).filter(function(k){ return psContatosSelecionados[k]; }).length;
+    if(!qtd) return '';
+    return '<button type="button" class="fn-bt perigo" id="psExcluirContatosSelecionados">\ud83d\uddd1\ufe0f Excluir '+qtd+' selecionado'+(qtd===1?'':'s')+'</button>'+
+      '<button type="button" class="fn-bt primario" id="psTransferirSelecionados">\ud83d\udce4 Transferir para Atendente</button>';
+  }
+  function psAtualizarBarraSelecao(){
+    var el=document.getElementById('psBarraSelecaoContatos');
+    if(el) el.innerHTML=psHtmlBarraSelecaoContatos();
+  }
+  function psAtualizarCirculoDOM(id){
+    var marcado=!!psContatosSelecionados[id];
+    document.querySelectorAll('[data-ps-marcar-contato="'+id+'"]').forEach(function(el){
+      el.classList.toggle('on', marcado);
+      el.setAttribute('aria-checked', marcado?'true':'false');
+    });
+  }
   // exclusão em lote de contatos (usada pelo botão de seleção múltipla) —
   // marca del:1 em cada um e salva UMA vez só no final, em vez de chamar
   // psDel() repetidas vezes (que salvaria na nuvem uma vez por contato).
@@ -23464,8 +23489,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
         '<div><h2 class="fn-title"><span class="fn-ic" style="color:'+psEsc(meta.cor)+'">\ud83d\udcc2</span> '+psEsc(meta.titulo)+'</h2>'+
         '<div class="fn-sub">'+todos.length+' contato'+(todos.length===1?'':'s')+' cadastrado'+(todos.length===1?'':'s')+'</div></div>'+
         '<div class="fn-acoes">'+
-          (qtdSelCt>0 ? '<button type="button" class="fn-bt perigo" id="psExcluirContatosSelecionados">\ud83d\uddd1\ufe0f Excluir '+qtdSelCt+' selecionado'+(qtdSelCt===1?'':'s')+'</button>' : '')+
-          (qtdSelCt>0 ? '<button type="button" class="fn-bt primario" id="psTransferirSelecionados">\ud83d\udce4 Transferir para Atendente</button>' : '')+
+          '<span id="psBarraSelecaoContatos">'+psHtmlBarraSelecaoContatos()+'</span>'+
           (editando?'<button type="button" class="fn-bt primario" data-ps-novo="'+psEsc(cat)+'">+ Adicionar contato</button>':'')+
           '<button type="button" class="fn-bt'+(editando?' on':'')+'" data-ps-editar="'+psEsc(cat)+'">'+
             (editando?'\u2713 Concluir edição':'\u270f\ufe0f Editar')+'</button>'+
@@ -23602,12 +23626,16 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       var dig=q.replace(/\D/g,'');
       if(dig && (p.tel||'').replace(/\D/g,'').indexOf(dig)>=0) return true;
       return false;
+    }).map(function(p){
+      // pré-calcula as chaves de ordenação UMA vez por item, em vez de
+      // rodar psNorm() (normalize+regex) várias vezes por comparação
+      // dentro do sort — muda de O(n log n) chamadas pra O(n).
+      p._chaveOrdem = (psOrdemCampo==='origem') ? psNorm(p._catTitulo) : psNorm(p.nome);
+      p._chaveNome = psNorm(p.nome);
+      return p;
     }).sort(function(a,b){
-      var va, vb;
-      if(psOrdemCampo==='origem'){ va=psNorm(a._catTitulo); vb=psNorm(b._catTitulo); }
-      else { va=psNorm(a.nome); vb=psNorm(b.nome); }
-      var cmp=va.localeCompare(vb,'pt-BR');
-      if(cmp===0) cmp=psNorm(a.nome).localeCompare(psNorm(b.nome),'pt-BR'); // desempate: sempre por nome
+      var cmp=a._chaveOrdem.localeCompare(b._chaveOrdem,'pt-BR');
+      if(cmp===0) cmp=a._chaveNome.localeCompare(b._chaveNome,'pt-BR'); // desempate: sempre por nome
       return psOrdemDir==='desc' ? -cmp : cmp;
     });
 
@@ -23637,8 +23665,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       '<div class="cl-head">'+
         '<div><h2 class="cl-title">\ud83d\udccb Lista Geral</h2>'+
         '<div class="cl-sub">'+cats.length+' listas \u00b7 '+todos.length+' contatos no total</div></div>'+
-        (qtdSelCt>0 ? '<button type="button" class="fn-bt perigo" id="psExcluirContatosSelecionados">\ud83d\uddd1\ufe0f Excluir '+qtdSelCt+' selecionado'+(qtdSelCt===1?'':'s')+'</button>' : '')+
-        (qtdSelCt>0 ? '<button type="button" class="fn-bt primario" id="psTransferirSelecionados">\ud83d\udce4 Transferir para Atendente</button>' : '')+
+        '<span id="psBarraSelecaoContatos">'+psHtmlBarraSelecaoContatos()+'</span>'+
         '<button type="button" class="fn-bt" data-ps-toggle-visao="1">\ud83d\uddc2\ufe0f Visualizar em Pasta</button>'+
       '</div>'+
       '<input type="text" class="cl-busca" data-ps-busca="__geral__" placeholder="\ud83d\udd0e Buscar por nome, telefone, e-mail, observação ou pasta de origem..." value="'+psEsc(psBuscaTxt['__geral__']||'')+'">'+
@@ -23704,7 +23731,9 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     if(marcarContato){
       var idMc=marcarContato.getAttribute('data-ps-marcar-contato');
       if(psContatosSelecionados[idMc]) delete psContatosSelecionados[idMc]; else psContatosSelecionados[idMc]=true;
-      window.renderProspeccao(); return;
+      psAtualizarCirculoDOM(idMc);
+      psAtualizarBarraSelecao();
+      return;
     }
     var btnExclContatos=e.target.closest('#psExcluirContatosSelecionados');
     if(btnExclContatos){
