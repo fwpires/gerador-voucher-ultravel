@@ -20489,6 +20489,9 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       var out={};
       ['id','tit','autor','autorU','ts'].forEach(function(f){ out[f]=(x[f]!==undefined?x[f]:y[f]); });
       out.tit=meta.tit; out.status=meta.status||''; out.marcados=meta.marcados||[]; out.del=meta.del||0; out.mts=Math.max(x.mts||0,y.mts||0);
+      // (·259) marcTs viaja junto com o meta vencedor — mesma regra do marcados,
+      // do qual ele é derivado (é o carimbo de QUANDO cada nome entrou na lista).
+      out.marcTs=(meta.marcTs&&typeof meta.marcTs==='object')?meta.marcTs:{};
       // MENSAGENS: união por id, cada uma com o próprio carimbo — é isto que impede
       // dois posts quase simultâneos no mesmo card de se apagarem.
       var mx=(x.msgs&&typeof x.msgs==='object')?x.msgs:{}, my=(y.msgs&&typeof y.msgs==='object')?y.msgs:{};
@@ -20565,21 +20568,23 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
   var acEditandoTit='';     // (·254) id do card com o TÍTULO em edição
   var acRascunho='';        // texto em digitação, preservado entre re-renders
   var acNovoAberto=false;   // formulário de novo tópico
-  // (·258) CONFIRMAÇÃO DE MARCAÇÃO — fila EM MEMÓRIA (não vai pra nuvem, é
-  // por isso que cada PC monta a própria lista a partir dos MESMOS eventos
-  // que já chegam via WebSocket ou clique local). O toast (·254) sumia em
-  // 3,2s e o Nando não estava vendo — esta caixa fica no Control Desk, no
-  // MESMO estilo visual (.cd-notif) das cobranças que ele já reconhece na
-  // tela, e só desaparece quando o item VENCE (3 minutos) ou quando não há
-  // mais nada pendente — não depende de pegar o instante exato do piscar.
-  var ACG_JANELA_MS=3*60*1000;
-  var acConfirmacoesRecentes=[];   // [{id, texto, ts, cardId}]
-  function acRegistrarConfirmacao(texto, cardId){
-    var agora=Date.now();
-    acConfirmacoesRecentes=acConfirmacoesRecentes.filter(function(x){ return (agora-x.ts)<ACG_JANELA_MS; });
-    acConfirmacoesRecentes.push({ id:'acc'+agora+Math.floor(Math.random()*1e6), texto:texto, ts:agora, cardId:cardId||'' });
-    if(acConfirmacoesRecentes.length>6) acConfirmacoesRecentes=acConfirmacoesRecentes.slice(-6);
-  }
+  // (·259) CONFIRMAÇÃO DE MARCAÇÃO — PERSISTENTE DE VERDADE.
+  // BUG ENCONTRADO (relato do Nando: "só chegou por e-mail", cards de hoje da
+  // Ruth 10:22 e da Ana Maria 11:18): a caixa do ·258 já reconhecia no próprio
+  // comentário que vivia numa fila EM MEMÓRIA e "desaparecia sozinha em 3
+  // minutos" — ou seja, quem não abrisse o Control Desk DENTRO desses 3
+  // minutos nunca via a notificação, e ela não deixava rastro nenhum: só o
+  // e-mail (que não expira) sobrava como prova de que a marcação aconteceu.
+  // Era a MESMA classe de bug que o ·258 dizia ter corrigido (toast sumindo
+  // em 3,2s) — só que adiado de segundos para minutos, não eliminado.
+  // CORREÇÃO: a marcação já é carimbada DENTRO do próprio card (c.marcTs,
+  // ver acToggleMarcado), sincronizado como qualquer outro dado de Ações
+  // Comerciais — nunca expira sozinho. A caixa deixa de guardar uma fila
+  // própria e passa a COMPARAR, a cada render: marcTs (quando a pessoa foi
+  // marcada) contra S.lido (quando ela última vez abriu aquele card) — o
+  // MESMO relógio "já vi" que a Cobrança de mensagens não lidas (acNaoLidas)
+  // já usa. Só some quando alguém de fato abre o card ou clica em
+  // "✓ Visualizado" — nunca pelo relógio andar sozinho.
 
   /* ---------- escrita ---------- */
   function acNovoCard(tit){
@@ -20665,10 +20670,10 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
           var quem=souEu?'Você foi':((nomeMarcado||'—')+' foi');
           var texto=quem+' marcado(a) no tópico "'+(novo.tit||'—')+'"';
           toast('👥 '+texto, 'info');
-          // (·258) além do toast (rápido, some em 3s), registra uma confirmação
-          // PERSISTENTE que aparece como caixa no Control Desk — é essa que
-          // resolve o bug relatado: o toast pode passar despercebido, a caixa fica.
-          acRegistrarConfirmacao(texto, id);
+          // (·259) a confirmação PERSISTENTE não depende mais de registrar nada
+          // aqui — ela é derivada de c.marcTs (já gravado por acToggleMarcado no
+          // caso local, ou já chegando pronto dentro do card no caso remoto) vs.
+          // S.lido; renderCdNotifs recalcula sozinho a cada chamada.
           try{ if(typeof window.renderCdNotifs==='function') window.renderCdNotifs(); }catch(er){}
         });
       });
@@ -20708,8 +20713,19 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     var S=acStore(), c=S.cards[cardId]; if(!c) return;
     var lst=(c.marcados||[]).slice(), i=-1;
     for(var k=0;k<lst.length;k++){ if(acNorm(lst[k])===acNorm(nome)){ i=k; break; } }
-    if(i>=0) lst.splice(i,1); else lst.push(nome);
-    c.marcados=lst; c.mts=Date.now(); acSalvar();
+    var agora=Date.now();
+    if(i>=0) lst.splice(i,1);
+    else{
+      lst.push(nome);
+      // (·259) carimbo PERSISTENTE de marcação — grava DENTRO do card (sincroniza
+      // como o resto da meta) em vez de numa fila em memória que expirava sozinha
+      // em 3 minutos. É contra isto que a caixa de confirmação do Control Desk
+      // compara "já vi" (S.lido), então a notificação nunca some sozinha — só some
+      // quando alguém de fato vê. Ver acConfirmMarcacaoHtml mais abaixo.
+      if(!c.marcTs || typeof c.marcTs!=='object') c.marcTs={};
+      c.marcTs[acNorm(nome)]=agora;
+    }
+    c.marcados=lst; c.mts=agora; acSalvar();
     try{ if(typeof logRemoto==='function') logRemoto('acoes_comerciais','Marcações do tópico "'+(c.tit||'—')+'" alteradas',{topico:c.tit,marcados:lst.join(', ')}); }catch(e){}
   }
 
@@ -20970,28 +20986,54 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     }catch(e){ return ''; }
   };
 
-  /* (·258) CAIXA DE CONFIRMAÇÃO DE MARCAÇÃO — mesma classe .cd-notif das
-     cobranças que já existem no Control Desk, para não introduzir um estilo
-     visual novo que o Nando teria de aprender a reconhecer. Diferente do
-     acNotifHtml de cima (que exige MENSAGEM não lida), esta aparece assim
-     que a MARCAÇÃO acontece, sem depender de ninguém escrever nada — é
-     literalmente a prova de que a marcação foi recebida. Só renderiza pra
-     quem tem algo a ver: a própria pessoa marcada, o admin ou o Diego —
-     a mesma checagem de acVerificarNovasMarcacoes, e por isso a lista já
-     vem filtrada desde o registro (acRegistrarConfirmacao só é chamada
-     depois de passar por esse filtro). */
+  /* (·259) DE ONDE VÊM AS PENDÊNCIAS DE MARCAÇÃO — cálculo puro, sem fila
+     própria: para cada card vivo, cada nome em c.marcTs cujo carimbo é MAIS
+     NOVO que a última vez que ESTE usuário abriu aquele card (S.lido) está
+     pendente — e só entra na lista de quem tem o que ver: o próprio marcado,
+     o admin, ou o Diego (mesmo critério de sempre). Como S.lido é o MESMO
+     relógio "já vi" da caixa de mensagens não lidas (acNaoLidas), abrir o
+     card por QUALQUER caminho (inclusive o botão "Abrir" desta própria caixa,
+     via acIrParaCard→acMarcarLido) já dá baixa aqui também — sem precisar de
+     um segundo mecanismo de leitura para o mesmo fato. */
+  function acNomeOriginalMarcado(c, chaveNorm){
+    var lst=(c&&c.marcados)||[];
+    for(var i=0;i<lst.length;i++){ if(acNorm(lst[i])===chaveNorm) return lst[i]; }
+    return chaveNorm;
+  }
+  function acPendentesMarcacao(){
+    var meu=acNome(), u=acUsuario(); if(!meu || !u) return [];
+    var souAdmin=acSouAdmin(), souDiego=acEhDiego();
+    var S=acStore(), out=[];
+    acCardsVivos().forEach(function(c){
+      var mt=(c.marcTs&&typeof c.marcTs==='object')?c.marcTs:{};
+      var vistoEm=S.lido[acChaveLido(c.id)]||0;
+      var itens=[];
+      Object.keys(mt).forEach(function(chave){
+        var ts=mt[chave]||0; if(ts<=vistoEm) return;      // já vi este card desde então
+        var souAlvo=acMesmaPessoa(chave, meu);
+        if(!(souAlvo || souAdmin || souDiego)) return;      // nada a ver com esta pessoa
+        itens.push({ nome:acNomeOriginalMarcado(c,chave), ts:ts, souAlvo:souAlvo });
+      });
+      if(itens.length){ itens.sort(function(a,b){ return b.ts-a.ts; }); out.push({ c:c, itens:itens }); }
+    });
+    out.sort(function(a,b){ return b.itens[0].ts-a.itens[0].ts; });
+    return out;
+  }
+
+  /* CAIXA DE CONFIRMAÇÃO DE MARCAÇÃO — mesma classe .cd-notif das cobranças
+     já existentes no Control Desk. Aparece assim que a marcação acontece
+     (sem exigir mensagem), e permanece PERSISTENTE de verdade: só some
+     quando a pessoa abre o card ou clica em "✓ Visualizado" — nunca sozinha
+     por tempo, que era o bug relatado (chegava só o e-mail). */
   window.acConfirmMarcacaoHtml=function(){
     try{
-      var agora=Date.now();
-      acConfirmacoesRecentes=acConfirmacoesRecentes.filter(function(x){ return (agora-x.ts)<ACG_JANELA_MS; });
-      if(!acConfirmacoesRecentes.length) return '';
-      // (BUG reportado) faltava o botão "Abrir" que leva direto pro card onde a
-      // marcação aconteceu — mesmo botão/handler que a notificação de mensagem
-      // não lida (acNotifHtml, logo acima) já usa, reaproveitado aqui por linha.
-      var linhas=acConfirmacoesRecentes.slice().reverse().map(function(c){
+      var pend=acPendentesMarcacao();
+      if(!pend.length) return '';
+      var linhas=pend.map(function(p){
+        var quem=p.itens.map(function(it){ return it.souAlvo?'Você':acEsc(it.nome); }).join(', ');
         return '<div class="ac-notif-linha">'
-          +'<div class="cd-bloco-txt">'+acEsc(c.texto)+'</div>'
-          + (c.cardId?'<button type="button" class="cd-notif-btn" data-acgo="'+acEsc(c.cardId)+'">Abrir</button>':'')
+          +'<div class="cd-bloco-txt">'+quem+' marcado(a) no tópico <b>'+acEsc(p.c.tit)+'</b>.</div>'
+          +'<button type="button" class="cd-notif-btn" data-acgo="'+acEsc(p.c.id)+'">Abrir</button>'
           +'</div>';
       }).join('');
       // O botão "✓ Visualizado" some COM a caixa inteira (todas as confirmações
@@ -21007,9 +21049,17 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     }catch(e){ return ''; }
   };
 
-  // dá baixa em TODAS as confirmações pendentes — chamado pelo listener global do CD
+  // dá baixa em TODAS as pendências: grava S.lido para cada card pendente (o
+  // MESMO relógio "já vi" das mensagens), então a baixa é PERSISTENTE — não
+  // volta a aparecer no próximo render nem noutro PC/reload deste usuário.
   window.acConfirmarLidoTudo=function(){
-    acConfirmacoesRecentes=[];
+    try{
+      var S=acStore(), agora=Date.now();
+      acPendentesMarcacao().forEach(function(p){
+        var ch=acChaveLido(p.c.id); if(ch) S.lido[ch]=Math.max(S.lido[ch]||0, agora);
+      });
+      acSalvar();
+    }catch(e){}
     try{ if(typeof window.renderCdNotifs==='function') window.renderCdNotifs(); }catch(e){}
   };
 
