@@ -18286,6 +18286,30 @@ function excluirNotaUI(id){
   #scr-cliente .cl-b-del{background:#16232F;color:#E6EEF3;border:1px solid #243849}
   #scr-cliente .cl-b-del:hover{background:#3a1d1d;border-color:#c0392b}
   #scr-cliente .cl-vazio{text-align:center;color:#8CA3B3;padding:40px;font-size:.9rem}
+  /* (·265) mesmo formato de lista, agora também na tela Prospecção (Lista
+     Geral) — escopo próprio pra não mudar nada na tela Cliente. Só diferença:
+     uma coluna extra e estreita no começo pra caber o círculo de seleção. */
+  #scr-prospeccao .cl-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+  #scr-prospeccao .cl-title{font-size:1.25rem;font-weight:700;margin:0;color:#E6EEF3}
+  #scr-prospeccao .cl-sub{color:#8CA3B3;font-size:.82rem;margin-top:3px}
+  #scr-prospeccao .cl-busca{width:100%;background:#16232F;border:1px solid #243849;border-radius:11px;color:#E6EEF3;padding:12px 14px;font-size:.95rem;outline:none;margin-bottom:14px;transition:border .15s}
+  #scr-prospeccao .cl-busca:focus{border-color:#2ec7a5}
+  #scr-prospeccao .cl-colhead{display:grid;grid-template-columns:26px 1fr 1.25fr 132px;gap:14px;padding:0 18px 8px;color:#8CA3B3;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.7px}
+  #scr-prospeccao .cl-colhead .r{text-align:right}
+  #scr-prospeccao .cl-list{display:flex;flex-direction:column;gap:8px}
+  #scr-prospeccao .cl-row{display:grid;grid-template-columns:26px 1fr 1.25fr 132px;gap:14px;align-items:center;background:#16232F;border:1px solid #243849;border-radius:12px;padding:13px 18px;transition:border .15s}
+  #scr-prospeccao .cl-row:hover{border-color:#33586b}
+  #scr-prospeccao .cl-nome{font-weight:650;font-size:1rem;line-height:1.25;color:#E6EEF3}
+  #scr-prospeccao .cl-regra{color:#cfe8e0;font-size:.9rem;line-height:1.4;display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+  #scr-prospeccao .cl-det{justify-self:end;display:flex;gap:6px;align-items:center}
+  #scr-prospeccao .cl-det button{border-radius:9px;padding:7px 9px;font-size:.85rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;min-width:34px;transition:background .15s,border-color .15s}
+  #scr-prospeccao .cl-b-ver{background:#0d2a24;color:#2ec7a5;border:1px solid #1f9e83}
+  #scr-prospeccao .cl-b-ver:hover{background:#123a32}
+  #scr-prospeccao .cl-b-ed{background:#16232F;color:#E6EEF3;border:1px solid #243849}
+  #scr-prospeccao .cl-b-ed:hover{background:#1e3040;border-color:#33586b}
+  #scr-prospeccao .cl-b-del{background:#16232F;color:#E6EEF3;border:1px solid #243849}
+  #scr-prospeccao .cl-b-del:hover{background:#3a1d1d;border-color:#c0392b}
+  #scr-prospeccao .cl-vazio{text-align:center;color:#8CA3B3;padding:40px;font-size:.9rem}
   /* Modal de edição / novo cadastro */
   .cl-mbody .cl-efield{display:flex;flex-direction:column;gap:5px}
   .cl-mbody .cl-efield label{color:#2ec7a5;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.7px}
@@ -23263,7 +23287,94 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
      continuam funcionando sem precisar de nenhuma lógica nova — só passei
      a pasta certa em cada atributo data-ps-cat/data-ps-del-cat por item.
      Edição e busca reaproveitam os MESMOS mapas (psEditando/psBuscaTxt),
-     só usando a chave especial "__geral__" em vez do nome de uma pasta. */
+     só usando a chave especial "__geral__" em vez do nome de uma pasta.
+
+     (·265) LAYOUT EM LISTA (pedido do Nando): trocado de cards pra linhas,
+     no MESMO formato/classes CSS já usadas pela tela Cliente (Matriz
+     Operacional) — cl-row/cl-colhead/cl-det/cl-b-ver/cl-b-ed/cl-b-del — só
+     que com escopo próprio (#scr-prospeccao .cl-row{...}) pra não mudar
+     nada na tela Cliente. Ver/editar/excluir agora abrem um MODAL (mesmo
+     componente cl-ov/cl-modal que Cliente/Cartões/Cias Aéreas já usam,
+     instância própria psOv/psModal), em vez de editar campo a campo dentro
+     do card. O círculo de seleção (bulk delete) continua, agora no início
+     de cada linha. */
+  function psAcharContato(id){
+    var cats=psCatsLista();
+    for(var i=0;i<cats.length;i++){
+      var lista=psLista(cats[i].chave);
+      for(var j=0;j<lista.length;j++){
+        if(lista[j].id===id){
+          var p=lista[j];
+          return {id:p.id, nome:p.nome, tel:p.tel, email:p.email, obs:p.obs,
+            cat:cats[i].chave, catTitulo:cats[i].titulo, catCor:cats[i].cor};
+        }
+      }
+    }
+    return null;
+  }
+  function psFld(lbl,val,box){
+    if(!val) return '';
+    return '<div class="cl-fld'+(box?' cl-regrabox':'')+'"><div class="cl-lbl">'+lbl+'</div><div class="cl-val">'+psEsc(val)+'</div></div>';
+  }
+  function psGarantirOverlay(){
+    if(document.getElementById('psOv')) return;
+    var ov=document.createElement('div'); ov.className='cl-ov'; ov.id='psOv';
+    ov.innerHTML='<div class="cl-modal" id="psModal"></div>';
+    ov.addEventListener('click', function(e){ if(e.target===ov) psFechaModal(); });
+    document.body.appendChild(ov);
+  }
+  function psFechaModal(){ var ov=document.getElementById('psOv'); if(ov) ov.classList.remove('on'); }
+  function psAbreVer(id){
+    var c=psAcharContato(id); if(!c) return;
+    psGarantirOverlay();
+    var h='<div class="cl-mhead"><h2>'+psEsc(c.nome||'(sem nome)')+'</h2><button type="button" class="cl-x" id="psVX">&times;</button></div><div class="cl-mbody">';
+    h+='<div class="cl-fld cl-regrabox"><div class="cl-lbl">Pasta de origem</div><div class="cl-val">'+psEsc(c.catTitulo)+'</div></div>';
+    h+=psFld('Telefone / WhatsApp', c.tel);
+    h+=psFld('E-mail', c.email);
+    h+=psFld('Observações', c.obs);
+    h+='</div>';
+    document.getElementById('psModal').innerHTML=h;
+    document.getElementById('psOv').classList.add('on');
+    document.getElementById('psVX').onclick=psFechaModal;
+  }
+  function psAbreEditar(id){
+    var c=psAcharContato(id); if(!c) return;
+    psGarantirOverlay();
+    function campoTxt(lbl,key,val,ph){ return '<div class="cl-efield"><label>'+lbl+'</label><input type="text" data-psf="'+key+'" value="'+psEsc(val||'')+'" placeholder="'+psEsc(ph||'')+'" autocomplete="off"></div>'; }
+    function campoArea(lbl,key,val,ph){ return '<div class="cl-efield"><label>'+lbl+'</label><textarea data-psf="'+key+'" placeholder="'+psEsc(ph||'')+'">'+psEsc(val||'')+'</textarea></div>'; }
+    var h='<div class="cl-mhead"><h2>\u270f\ufe0f Editar contato</h2><button type="button" class="cl-x" id="psEX">&times;</button></div><div class="cl-mbody">'+
+      '<div class="cl-fld cl-regrabox"><div class="cl-lbl">Pasta de origem</div><div class="cl-val">'+psEsc(c.catTitulo)+'</div></div>'+
+      campoTxt('Nome do contato','nome',c.nome,'Nome do contato')+
+      campoTxt('Telefone / WhatsApp','tel',c.tel,'(00) 00000-0000')+
+      campoTxt('E-mail','email',c.email,'contato@email.com')+
+      campoArea('Observações','obs',c.obs,'')+
+      '</div>'+
+      '<div class="cl-mfoot"><button type="button" class="cl-cancel" id="psECancel">Cancelar</button><button type="button" class="cl-savebtn" id="psESave">Salvar</button></div>';
+    document.getElementById('psModal').innerHTML=h;
+    document.getElementById('psOv').classList.add('on');
+    document.getElementById('psEX').onclick=psFechaModal;
+    document.getElementById('psECancel').onclick=psFechaModal;
+    document.getElementById('psESave').onclick=function(){
+      document.querySelectorAll('#psModal [data-psf]').forEach(function(el){
+        psSet(c.cat, id, el.getAttribute('data-psf'), el.value);
+      });
+      psFechaModal(); window.renderProspeccao();
+    };
+    var f=document.querySelector('#psModal [data-psf="nome"]'); if(f){ try{ f.focus(); }catch(e){} }
+  }
+  function psAbreExcluirConfirm(id){
+    var c=psAcharContato(id); if(!c) return;
+    psGarantirOverlay();
+    var h='<div class="cl-mhead"><h2>\ud83d\uddd1 Excluir contato</h2><button type="button" class="cl-x" id="psDX">&times;</button></div>'+
+      '<div class="cl-mbody"><p style="margin:0;line-height:1.55;color:#E6EEF3">Tem certeza que deseja excluir <b>'+psEsc(c.nome||'este contato')+'</b> (pasta '+psEsc(c.catTitulo)+')?<br><span style="color:#8CA3B3;font-size:.88rem">Os dados não são apagados de verdade, só ficam ocultos.</span></p></div>'+
+      '<div class="cl-mfoot"><button type="button" class="cl-cancel" id="psDCancel">Cancelar</button><button type="button" class="cl-savebtn cl-danger" id="psDOk">Excluir</button></div>';
+    document.getElementById('psModal').innerHTML=h;
+    document.getElementById('psOv').classList.add('on');
+    document.getElementById('psDX').onclick=psFechaModal;
+    document.getElementById('psDCancel').onclick=psFechaModal;
+    document.getElementById('psDOk').onclick=function(){ psFechaModal(); psDel(c.cat, id); };
+  }
+
   function psRenderListaGeral(w){
     var cats=psCatsLista();
     var todos=[];
@@ -23273,7 +23384,6 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
           _cat:c.chave, _catTitulo:c.titulo, _catCor:c.cor});
       });
     });
-    var editando=!!psEditando['__geral__'];
     var q=psNorm(psBuscaTxt['__geral__']||'');
     var lista=todos.filter(function(p){
       if(!q) return true;
@@ -23286,67 +23396,30 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       return false;
     }).sort(function(a,b){ return psNorm(a.nome).localeCompare(psNorm(b.nome),'pt-BR'); });
 
-    function campoLeitura(rot, val, largo, ehLink, tipo){
-      var vazio=!val;
-      var conteudo = (!vazio && ehLink)
-        ? '<a href="'+psEsc(val.indexOf('http')===0?val:'https://'+val)+'" target="_blank" rel="noopener" class="fn-val">'+psEsc(val)+'</a>'
-        : '<span class="fn-val'+(vazio?' fn-vazio':'')+'">'+psEsc(vazio?'\u2014':val)+'</span>';
-      return '<div class="fn-campo'+(largo?' fn-campo-largo':'')+'">'+
-        '<span class="fn-rot'+(tipo?' fn-rot-'+tipo:'')+'">'+psEsc(rot)+'</span>'+conteudo+'</div>';
-    }
-    function campoEdicao(rot, catP, id, campo, val, ph, largo, tipo){
-      return '<div class="fn-campo'+(largo?' fn-campo-largo':'')+'">'+
-        '<span class="fn-rot'+(tipo?' fn-rot-'+tipo:'')+'">'+psEsc(rot)+'</span>'+
-        '<input type="text" class="fn-inp" data-ps-cat="'+psEsc(catP)+'" data-ps-id="'+psEsc(id)+'" '+
-          'data-ps-campo="'+campo+'" value="'+psEsc(val)+'" placeholder="'+psEsc(ph||'')+'"></div>';
-    }
-
-    var cards = lista.length ? lista.map(function(p){
-      var selo='<span class="fn-selo-origem" style="background:'+psEsc(p._catCor)+'">'+psEsc(p._catTitulo)+'</span>';
-      var cab, corpo;
-      if(editando){
-        cab='<div class="fn-l1">'+psCirculoContato(p.id)+
-              '<input type="text" class="fn-inp fn-inp-nome" data-ps-cat="'+psEsc(p._cat)+'" data-ps-id="'+psEsc(p.id)+'" '+
-                'data-ps-campo="nome" value="'+psEsc(p.nome)+'" placeholder="Nome do contato">'+
-              '<button type="button" class="fn-del" data-ps-del-cat="'+psEsc(p._cat)+'" data-ps-del="'+psEsc(p.id)+'" '+
-                'title="Remover este contato">\ud83d\uddd1</button>'+
-            '</div>'+selo;
-        corpo='<div class="fn-dados">'+
-          campoEdicao('Telefone / WhatsApp', p._cat, p.id, 'tel', p.tel, '(00) 00000-0000', false, 'tel')+
-          campoEdicao('E-mail', p._cat, p.id, 'email', p.email, 'contato@email.com', false, 'email')+
-          campoEdicao('Observações', p._cat, p.id, 'obs', p.obs, '', true, 'obs')+
-        '</div>';
-      } else {
-        cab='<div class="fn-l1">'+psCirculoContato(p.id)+'<span class="fn-nome">'+psEsc(p.nome)+'</span></div>'+selo;
-        corpo='<div class="fn-dados">'+
-          campoLeitura('Telefone / WhatsApp', p.tel, false, false, 'tel')+
-          campoLeitura('E-mail', p.email, false, false, 'email')+
-          campoLeitura('Observações', p.obs, true, false, 'obs')+
-        '</div>';
-      }
-      return '<div class="fn-card'+(editando?' fn-editando':'')+'" style="border-left-color:'+psEsc(p._catCor)+'" '+
-             'data-ps-card-cat="'+psEsc(p._cat)+'" data-ps-card="'+psEsc(p.id)+'">'+cab+corpo+'</div>';
-    }).join('') : '<div class="fn-vazio-lista">Nenhum contato encontrado'+(q?' para essa busca':'')+'.</div>';
+    var linhas = lista.length ? lista.map(function(p){
+      var origemTag='<span class="fn-selo-origem" style="background:'+psEsc(p._catCor)+'">'+psEsc(p._catTitulo)+'</span>';
+      var resumo='<div class="cl-regra">'+origemTag+(p.tel?' &nbsp; '+psEsc(p.tel):'')+'</div>';
+      var acoes = '<button type="button" class="cl-b-ver" data-ps-ver="'+psEsc(p.id)+'" title="Ver detalhes"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></button>'+
+        '<button type="button" class="cl-b-ed" data-ps-ed="'+psEsc(p.id)+'" title="Editar">\u270f\ufe0f</button>'+
+        '<button type="button" class="cl-b-del" data-ps-del-modal="'+psEsc(p.id)+'" title="Excluir">\ud83d\uddd1</button>';
+      return '<div class="cl-row">'+psCirculoContato(p.id)+
+        '<div class="cl-nome">'+psEsc(p.nome)+'</div>'+resumo+
+        '<div class="cl-det">'+acoes+'</div>'+
+      '</div>';
+    }).join('') : '<div class="cl-vazio">Nenhum contato encontrado'+(q?' para essa busca':'')+'.</div>';
 
     var qtdSelCt = Object.keys(psContatosSelecionados).filter(function(k){ return psContatosSelecionados[k]; }).length;
 
     w.innerHTML =
       '<button type="button" class="ct-voltar" id="psToggleVisao">\u2190 Voltar para Prospecção (por pastas)</button>'+
-      '<div class="fn-head">'+
-        '<div><h2 class="fn-title"><span class="fn-ic">\ud83d\udccb</span> Lista Geral</h2>'+
-        '<div class="fn-sub">'+cats.length+' listas \u00b7 '+todos.length+' contatos no total</div></div>'+
-        '<div class="fn-acoes">'+
-          (qtdSelCt>0 ? '<button type="button" class="fn-bt perigo" id="psExcluirContatosSelecionados">\ud83d\uddd1\ufe0f Excluir '+qtdSelCt+' selecionado'+(qtdSelCt===1?'':'s')+'</button>' : '')+
-          '<button type="button" class="fn-bt'+(editando?' on':'')+'" data-ps-editar="__geral__">'+
-            (editando?'\u2713 Concluir edição':'\u270f\ufe0f Editar')+'</button>'+
-        '</div>'+
+      '<div class="cl-head">'+
+        '<div><h2 class="cl-title">\ud83d\udccb Lista Geral</h2>'+
+        '<div class="cl-sub">'+cats.length+' listas \u00b7 '+todos.length+' contatos no total</div></div>'+
+        (qtdSelCt>0 ? '<button type="button" class="fn-bt perigo" id="psExcluirContatosSelecionados">\ud83d\uddd1\ufe0f Excluir '+qtdSelCt+' selecionado'+(qtdSelCt===1?'':'s')+'</button>' : '')+
       '</div>'+
-      (editando?'<div class="fn-aviso-ed">\u270f\ufe0f Modo de edição ativo \u2014 tudo o que você alterar é salvo sozinho, na pasta de origem de cada contato.</div>':'')+
-      '<div class="fn-toolbar">'+
-        '<input type="text" class="fn-busca" data-ps-busca="__geral__" placeholder="Buscar por nome, telefone, e-mail, observação ou pasta de origem..." value="'+psEsc(psBuscaTxt['__geral__']||'')+'">'+
-        '<span class="fn-cont">'+lista.length+' de '+todos.length+'</span>'+
-      '</div>'+
-      '<div class="fn-grid">'+cards+'</div>';
+      '<input type="text" class="cl-busca" data-ps-busca="__geral__" placeholder="\ud83d\udd0e Buscar por nome, telefone, e-mail, observação ou pasta de origem..." value="'+psEsc(psBuscaTxt['__geral__']||'')+'">'+
+      '<div class="cl-colhead"><span></span><span>Contato</span><span>Origem / Telefone</span><span class="r">Ações</span></div>'+
+      '<div class="cl-list">'+linhas+'</div>';
 
     var b=w.querySelector('[data-ps-busca]');
     if(b && psBuscaTxt['__geral__']){ try{ b.focus(); b.setSelectionRange(b.value.length,b.value.length); }catch(e){} }
@@ -23358,6 +23431,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     else if(psVisaoGeral) psRenderListaGeral(w);
     else psRenderGrid(w);
   };
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') psFechaModal(); });
 
   document.addEventListener('input', function(e){
     var t=e.target; if(!t) return;
@@ -23376,6 +23450,14 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
   });
   document.addEventListener('click', function(e){
     if(!e.target || !e.target.closest) return;
+
+    // ---- Lista Geral: ver/editar/excluir via modal (mesmo padrão da tela Cliente) ----
+    var verC=e.target.closest('[data-ps-ver]');
+    if(verC){ psAbreVer(verC.getAttribute('data-ps-ver')); return; }
+    var edC=e.target.closest('[data-ps-ed]');
+    if(edC){ psAbreEditar(edC.getAttribute('data-ps-ed')); return; }
+    var delModal=e.target.closest('[data-ps-del-modal]');
+    if(delModal){ psAbreExcluirConfirm(delModal.getAttribute('data-ps-del-modal')); return; }
 
     // ---- contatos dentro de uma lista aberta (ou na Lista Geral) ----
     var ed=e.target.closest('[data-ps-editar]');
