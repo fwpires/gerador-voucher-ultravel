@@ -2403,6 +2403,9 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
    ao lado (gradiente sólido + glow no hover), só trocando a cor. */
 .mt-btn-checkin{background:linear-gradient(180deg,#FF9A2E,#E8600C);border-color:transparent;color:#fff;text-shadow:0 0 8px rgba(255,154,46,.5)}
 .mt-btn-checkin:hover{background:linear-gradient(180deg,#FFAB4D,#FF7A1F);box-shadow:0 0 16px rgba(255,138,26,.65),0 0 4px rgba(255,180,90,.8)}
+/* (·264) agora sozinho, logo abaixo do quadro — largura cheia pra marcar a
+   transição visual entre o quadro de notas e o histórico de check-in. */
+.mt-btn-checkin-abaixo{display:flex;justify-content:center;width:100%;margin:14px 0 22px;padding:11px 14px}
 /* seletor de cor de post-it (popover) */
 .mt-corpop{position:absolute;z-index:10000;background:#141C26;border:1px solid rgba(255,255,255,.16);border-radius:14px;box-shadow:0 16px 44px rgba(0,0,0,.55);padding:14px;width:236px}
 .mt-corpop-tit{color:#fff;font-size:12.5px;font-weight:800;margin-bottom:10px}
@@ -2413,7 +2416,12 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
    usuário já protege o acesso, o quadro decorativo tinha virado só estética
    sem função de segurança nenhuma) --- */
 .mt-board{position:relative;border-radius:18px;padding:34px 30px;min-height:420px;
-  background:var(--card);border:1px solid var(--borda);box-shadow:var(--sombra)}
+  background:var(--card);border:1px solid var(--borda);box-shadow:var(--sombra);
+  transition:min-height .15s ease,padding .15s ease}
+/* (·264) 60% menor enquanto não há nenhuma nota — some sozinho quando a
+   primeira nota nasce, porque a classe some do HTML no próximo render. */
+.mt-board.mt-board-vazio{min-height:168px;padding:14px 30px}
+.mt-board-vazio .mt-vazio{padding:26px 20px}
 .mt-grid{position:relative;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:30px;z-index:1}
 .mt-vazio{position:relative;z-index:1;text-align:center;color:var(--texto-suave);font-size:14px;font-weight:700;padding:70px 20px}
 /* --- post-it --- */
@@ -20223,14 +20231,21 @@ function excluirNotaUI(id){
       .sort(function(a,b){ return (g.postits[a].criado||0)-(g.postits[b].criado||0); });
     root.innerHTML=''
     +'<div class="mt-topo">'
-    +  '<button type="button" class="mt-btn mt-btn-novo" id="mtNovo">＋ Novo post-it</button>'
-    +  '<button type="button" class="mt-btn mt-btn-checkin" id="ciAbrirBtn">🛫 Controle de Check-in</button>'
+    +  '<button type="button" class="mt-btn mt-btn-novo" id="mtNovo">＋ Nota</button>'
     +'</div>'
     + mtToolbarHtml()
-    +'<div class="mt-board"><div class="mt-grid" id="mtGrid">'
+    // (·264) o quadro nasce COMPACTO (·mt-board-vazio, 60% menor) quando não
+    // há nenhuma nota — e volta ao tamanho normal sozinho assim que a
+    // primeira nota é criada, porque a classe é decidida por ids.length a
+    // cada render (nenhum estado próprio pra manter em sincronia).
+    +'<div class="mt-board'+(ids.length?'':' mt-board-vazio')+'"><div class="mt-grid" id="mtGrid">'
     +   (ids.length? ids.map(function(id){ return mtPostitHtml(id, g.postits[id]); }).join('')
-                   : '<div class="mt-vazio">Nenhum post-it ainda.<br>Clique em “＋ Novo post-it” e escolha a cor do papel. 🗒️</div>')
+                   : '<div class="mt-vazio">Nenhuma nota ainda.<br>Clique em “＋ Nota” e escolha a cor do papel. 🗒️</div>')
     +'</div></div>'
+    // (·264) Controle de Check-in migrou do topo pra logo ABAIXO do quadro,
+    // como pedido — sozinho, na largura toda, marcando a transição pro
+    // histórico de agendamentos que vem em seguida.
+    +'<button type="button" class="mt-btn mt-btn-checkin mt-btn-checkin-abaixo" id="ciAbrirBtn">🛫 Controle de Check-in</button>'
     // (·261) HISTÓRICO DE AGENDAMENTOS DE CHECK-IN — logo abaixo do quadro de
     // post-its, sempre visível (não precisa abrir o modal pra conferir o que
     // já foi agendado). Mesma função de listagem que o modal usa (ciListaAgendadosHtml),
