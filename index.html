@@ -921,6 +921,11 @@ body.dark .fn-card{background:rgba(255,255,255,.04)}
 .fn-card:hover{border-color:var(--borda-forte);box-shadow:0 3px 12px rgba(0,0,0,.12)}
 .fn-card.fn-editando{border-left-color:#12B0FF}
 .fn-l1{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.fn-check{position:relative;flex:0 0 auto;width:20px;height:20px;border-radius:50%;border:2px solid var(--borda-forte);background:transparent;cursor:pointer;box-sizing:border-box;transition:all .15s}
+.fn-check:hover{border-color:#e02222;transform:scale(1.08)}
+.fn-check.on{background:#e02222;border-color:#e02222}
+.fn-check.on::after{content:'\2713';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:900}
+.fn-selo-origem{display:inline-block;font-size:10px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:.3px;padding:3px 9px;border-radius:999px;margin:-2px 0 8px;box-shadow:0 2px 5px rgba(0,0,0,.25)}
 .fn-nome{font-size:15px;font-weight:900;color:var(--texto)}
 .fn-dados{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:7px 16px}
 .fn-campo{display:flex;flex-direction:column;gap:1px;min-width:0}
@@ -23079,6 +23084,28 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
   }
 
   var prospeccaoAberto=null, psModoEdPastas=false, psEditandoCat=null, psFocarNovaCat=null, psPastasSelecionadas={};
+  var psVisaoGeral=false, psContatosSelecionados={};
+
+  // círculo de seleção reaproveitado tanto dentro de uma pasta aberta quanto
+  // na Lista Geral — chave é sempre o ID do contato, que já nasce prefixado
+  // pela pasta (ex: "ps01_001"), então é globalmente único mesmo misturando
+  // várias pastas na mesma tela.
+  function psCirculoContato(id){
+    var marcado=!!psContatosSelecionados[id];
+    return '<span role="checkbox" tabindex="0" aria-checked="'+(marcado?'true':'false')+'" '+
+      'class="fn-check'+(marcado?' on':'')+'" data-ps-marcar-contato="'+psEsc(id)+'" title="Selecionar este contato"></span>';
+  }
+  // exclusão em lote de contatos (usada pelo botão de seleção múltipla) —
+  // marca del:1 em cada um e salva UMA vez só no final, em vez de chamar
+  // psDel() repetidas vezes (que salvaria na nuvem uma vez por contato).
+  function psDelMultiplos(itens){ // itens: [{cat, id, nome}]
+    itens.forEach(function(it){
+      var ed=psStore(it.cat);
+      var o=ed[it.id]||{}; o.del=1; o.ts=Date.now(); ed[it.id]=o;
+    });
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+    try{ if(typeof logRemoto==='function') logRemoto('prospeccao', itens.length+' contato(s) removido(s) em lote',{area:'Prospecção', qtd:itens.length}); }catch(e){}
+  }
 
   function psRenderGrid(w){
     var cats=psCatsLista();
@@ -23125,6 +23152,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
         '<div class="fn-sub">'+cats.length+' listas \u00b7 '+totalContatos+' contatos</div></div>'+
         '<div class="fn-acoes">'+
           (psModoEdPastas && qtdSel>0 ? '<button type="button" class="fn-bt perigo" id="psExcluirSelecionadas">\ud83d\uddd1\ufe0f Excluir '+qtdSel+' pasta'+(qtdSel===1?'':'s')+'</button>' : '')+
+          '<button type="button" class="fn-bt" id="psToggleVisao">\ud83d\udccb Visualizar Lista Geral</button>'+
           '<button type="button" class="fn-bt'+(psModoEdPastas?' on':'')+'" id="psEditarPastas">'+
             (psModoEdPastas?'\u2713 Concluir edição':'\u270f\ufe0f Editar pastas')+'</button>'+
         '</div>'+
@@ -23174,7 +23202,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     var cards = lista.length ? lista.map(function(p){
       var cab, corpo;
       if(editando){
-        cab='<div class="fn-l1">'+
+        cab='<div class="fn-l1">'+psCirculoContato(p.id)+
               '<input type="text" class="fn-inp fn-inp-nome" data-ps-cat="'+psEsc(cat)+'" data-ps-id="'+psEsc(p.id)+'" '+
                 'data-ps-campo="nome" value="'+psEsc(p.nome)+'" placeholder="Nome do contato">'+
               '<button type="button" class="fn-del" data-ps-del-cat="'+psEsc(cat)+'" data-ps-del="'+psEsc(p.id)+'" '+
@@ -23186,7 +23214,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
           campoEdicao('Observações', p.id, 'obs', p.obs, '', true, 'obs')+
         '</div>';
       } else {
-        cab='<div class="fn-l1"><span class="fn-nome">'+psEsc(p.nome)+'</span></div>';
+        cab='<div class="fn-l1">'+psCirculoContato(p.id)+'<span class="fn-nome">'+psEsc(p.nome)+'</span></div>';
         corpo='<div class="fn-dados">'+
           campoLeitura('Telefone / WhatsApp', p.tel, false, false, 'tel')+
           campoLeitura('E-mail', p.email, false, false, 'email')+
@@ -23197,12 +23225,15 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
              'data-ps-card-cat="'+psEsc(cat)+'" data-ps-card="'+psEsc(p.id)+'">'+cab+corpo+'</div>';
     }).join('') : '<div class="fn-vazio-lista">Nenhum contato encontrado'+(q?' para essa busca':' nesta lista ainda')+'.</div>';
 
+    var qtdSelCt = Object.keys(psContatosSelecionados).filter(function(k){ return psContatosSelecionados[k]; }).length;
+
     w.innerHTML =
       '<button type="button" class="ct-voltar" id="psVoltar">\u2190 Voltar para Prospecção</button>'+
       '<div class="fn-head">'+
         '<div><h2 class="fn-title"><span class="fn-ic" style="color:'+psEsc(meta.cor)+'">\ud83d\udcc2</span> '+psEsc(meta.titulo)+'</h2>'+
         '<div class="fn-sub">'+todos.length+' contato'+(todos.length===1?'':'s')+' cadastrado'+(todos.length===1?'':'s')+'</div></div>'+
         '<div class="fn-acoes">'+
+          (qtdSelCt>0 ? '<button type="button" class="fn-bt perigo" id="psExcluirContatosSelecionados">\ud83d\uddd1\ufe0f Excluir '+qtdSelCt+' selecionado'+(qtdSelCt===1?'':'s')+'</button>' : '')+
           (editando?'<button type="button" class="fn-bt primario" data-ps-novo="'+psEsc(cat)+'">+ Adicionar contato</button>':'')+
           '<button type="button" class="fn-bt'+(editando?' on':'')+'" data-ps-editar="'+psEsc(cat)+'">'+
             (editando?'\u2713 Concluir edição':'\u270f\ufe0f Editar')+'</button>'+
@@ -23224,9 +23255,107 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     }
   }
 
+  /* (·264) LISTA GERAL — pedido do Nando: alternar entre ver por pastas ou
+     ver TODOS os contatos de TODAS as pastas numa lista só. Reaproveita ao
+     máximo os handlers já existentes de psRenderDetalhe: os inputs/botões
+     de cada card carregam o `_cat` de origem daquele contato específico
+     (em vez de um `cat` fixo da pasta aberta), então psSet/psDel/psNovo
+     continuam funcionando sem precisar de nenhuma lógica nova — só passei
+     a pasta certa em cada atributo data-ps-cat/data-ps-del-cat por item.
+     Edição e busca reaproveitam os MESMOS mapas (psEditando/psBuscaTxt),
+     só usando a chave especial "__geral__" em vez do nome de uma pasta. */
+  function psRenderListaGeral(w){
+    var cats=psCatsLista();
+    var todos=[];
+    cats.forEach(function(c){
+      psLista(c.chave).forEach(function(p){
+        todos.push({id:p.id, nome:p.nome, tel:p.tel, email:p.email, obs:p.obs,
+          _cat:c.chave, _catTitulo:c.titulo, _catCor:c.cor});
+      });
+    });
+    var editando=!!psEditando['__geral__'];
+    var q=psNorm(psBuscaTxt['__geral__']||'');
+    var lista=todos.filter(function(p){
+      if(!q) return true;
+      if(psNorm(p.nome).indexOf(q)>=0) return true;
+      if(psNorm(p.email).indexOf(q)>=0) return true;
+      if(psNorm(p.obs).indexOf(q)>=0) return true;
+      if(psNorm(p._catTitulo).indexOf(q)>=0) return true;
+      var dig=q.replace(/\D/g,'');
+      if(dig && (p.tel||'').replace(/\D/g,'').indexOf(dig)>=0) return true;
+      return false;
+    }).sort(function(a,b){ return psNorm(a.nome).localeCompare(psNorm(b.nome),'pt-BR'); });
+
+    function campoLeitura(rot, val, largo, ehLink, tipo){
+      var vazio=!val;
+      var conteudo = (!vazio && ehLink)
+        ? '<a href="'+psEsc(val.indexOf('http')===0?val:'https://'+val)+'" target="_blank" rel="noopener" class="fn-val">'+psEsc(val)+'</a>'
+        : '<span class="fn-val'+(vazio?' fn-vazio':'')+'">'+psEsc(vazio?'\u2014':val)+'</span>';
+      return '<div class="fn-campo'+(largo?' fn-campo-largo':'')+'">'+
+        '<span class="fn-rot'+(tipo?' fn-rot-'+tipo:'')+'">'+psEsc(rot)+'</span>'+conteudo+'</div>';
+    }
+    function campoEdicao(rot, catP, id, campo, val, ph, largo, tipo){
+      return '<div class="fn-campo'+(largo?' fn-campo-largo':'')+'">'+
+        '<span class="fn-rot'+(tipo?' fn-rot-'+tipo:'')+'">'+psEsc(rot)+'</span>'+
+        '<input type="text" class="fn-inp" data-ps-cat="'+psEsc(catP)+'" data-ps-id="'+psEsc(id)+'" '+
+          'data-ps-campo="'+campo+'" value="'+psEsc(val)+'" placeholder="'+psEsc(ph||'')+'"></div>';
+    }
+
+    var cards = lista.length ? lista.map(function(p){
+      var selo='<span class="fn-selo-origem" style="background:'+psEsc(p._catCor)+'">'+psEsc(p._catTitulo)+'</span>';
+      var cab, corpo;
+      if(editando){
+        cab='<div class="fn-l1">'+psCirculoContato(p.id)+
+              '<input type="text" class="fn-inp fn-inp-nome" data-ps-cat="'+psEsc(p._cat)+'" data-ps-id="'+psEsc(p.id)+'" '+
+                'data-ps-campo="nome" value="'+psEsc(p.nome)+'" placeholder="Nome do contato">'+
+              '<button type="button" class="fn-del" data-ps-del-cat="'+psEsc(p._cat)+'" data-ps-del="'+psEsc(p.id)+'" '+
+                'title="Remover este contato">\ud83d\uddd1</button>'+
+            '</div>'+selo;
+        corpo='<div class="fn-dados">'+
+          campoEdicao('Telefone / WhatsApp', p._cat, p.id, 'tel', p.tel, '(00) 00000-0000', false, 'tel')+
+          campoEdicao('E-mail', p._cat, p.id, 'email', p.email, 'contato@email.com', false, 'email')+
+          campoEdicao('Observações', p._cat, p.id, 'obs', p.obs, '', true, 'obs')+
+        '</div>';
+      } else {
+        cab='<div class="fn-l1">'+psCirculoContato(p.id)+'<span class="fn-nome">'+psEsc(p.nome)+'</span></div>'+selo;
+        corpo='<div class="fn-dados">'+
+          campoLeitura('Telefone / WhatsApp', p.tel, false, false, 'tel')+
+          campoLeitura('E-mail', p.email, false, false, 'email')+
+          campoLeitura('Observações', p.obs, true, false, 'obs')+
+        '</div>';
+      }
+      return '<div class="fn-card'+(editando?' fn-editando':'')+'" style="border-left-color:'+psEsc(p._catCor)+'" '+
+             'data-ps-card-cat="'+psEsc(p._cat)+'" data-ps-card="'+psEsc(p.id)+'">'+cab+corpo+'</div>';
+    }).join('') : '<div class="fn-vazio-lista">Nenhum contato encontrado'+(q?' para essa busca':'')+'.</div>';
+
+    var qtdSelCt = Object.keys(psContatosSelecionados).filter(function(k){ return psContatosSelecionados[k]; }).length;
+
+    w.innerHTML =
+      '<button type="button" class="ct-voltar" id="psToggleVisao">\u2190 Voltar para Prospecção (por pastas)</button>'+
+      '<div class="fn-head">'+
+        '<div><h2 class="fn-title"><span class="fn-ic">\ud83d\udccb</span> Lista Geral</h2>'+
+        '<div class="fn-sub">'+cats.length+' listas \u00b7 '+todos.length+' contatos no total</div></div>'+
+        '<div class="fn-acoes">'+
+          (qtdSelCt>0 ? '<button type="button" class="fn-bt perigo" id="psExcluirContatosSelecionados">\ud83d\uddd1\ufe0f Excluir '+qtdSelCt+' selecionado'+(qtdSelCt===1?'':'s')+'</button>' : '')+
+          '<button type="button" class="fn-bt'+(editando?' on':'')+'" data-ps-editar="__geral__">'+
+            (editando?'\u2713 Concluir edição':'\u270f\ufe0f Editar')+'</button>'+
+        '</div>'+
+      '</div>'+
+      (editando?'<div class="fn-aviso-ed">\u270f\ufe0f Modo de edição ativo \u2014 tudo o que você alterar é salvo sozinho, na pasta de origem de cada contato.</div>':'')+
+      '<div class="fn-toolbar">'+
+        '<input type="text" class="fn-busca" data-ps-busca="__geral__" placeholder="Buscar por nome, telefone, e-mail, observação ou pasta de origem..." value="'+psEsc(psBuscaTxt['__geral__']||'')+'">'+
+        '<span class="fn-cont">'+lista.length+' de '+todos.length+'</span>'+
+      '</div>'+
+      '<div class="fn-grid">'+cards+'</div>';
+
+    var b=w.querySelector('[data-ps-busca]');
+    if(b && psBuscaTxt['__geral__']){ try{ b.focus(); b.setSelectionRange(b.value.length,b.value.length); }catch(e){} }
+  }
+
   window.renderProspeccao=function(){
     var w=document.getElementById('prospeccaoWrap'); if(!w) return;
     if(prospeccaoAberto) psRenderDetalhe(w, prospeccaoAberto);
+    else if(psVisaoGeral) psRenderListaGeral(w);
     else psRenderGrid(w);
   };
 
@@ -23248,7 +23377,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
   document.addEventListener('click', function(e){
     if(!e.target || !e.target.closest) return;
 
-    // ---- contatos dentro de uma lista aberta ----
+    // ---- contatos dentro de uma lista aberta (ou na Lista Geral) ----
     var ed=e.target.closest('[data-ps-editar]');
     if(ed){ var cat=ed.getAttribute('data-ps-editar'); psEditando[cat]=!psEditando[cat]; window.renderProspeccao(); return; }
     var nv=e.target.closest('[data-ps-novo]');
@@ -23260,12 +23389,42 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       if(window.confirm('Remover '+(nome||'este contato')+' desta lista?')) psDel(cat3, id3);
       return;
     }
+    var marcarContato=e.target.closest('[data-ps-marcar-contato]');
+    if(marcarContato){
+      var idMc=marcarContato.getAttribute('data-ps-marcar-contato');
+      if(psContatosSelecionados[idMc]) delete psContatosSelecionados[idMc]; else psContatosSelecionados[idMc]=true;
+      window.renderProspeccao(); return;
+    }
+    var btnExclContatos=e.target.closest('#psExcluirContatosSelecionados');
+    if(btnExclContatos){
+      var idsSel=Object.keys(psContatosSelecionados).filter(function(k){ return psContatosSelecionados[k]; });
+      if(!idsSel.length) return;
+      var achados=[];
+      psCatsLista().forEach(function(c){
+        psLista(c.chave).forEach(function(p){
+          if(psContatosSelecionados[p.id]) achados.push({cat:c.chave, id:p.id, nome:p.nome});
+        });
+      });
+      if(!achados.length) return;
+      var nomesSel=achados.map(function(a){ return a.nome; });
+      var msgC=(achados.length===1)
+        ? 'Remover '+(nomesSel[0]||'este contato')+' da lista?'
+        : 'Remover '+achados.length+' contatos selecionados ('+nomesSel.slice(0,6).join(', ')+(achados.length>6?', ...':'')+')?';
+      if(window.confirm(msgC)){
+        psDelMultiplos(achados);
+        psContatosSelecionados={};
+        window.renderProspeccao();
+      }
+      return;
+    }
 
     // ---- navegação Prospecção ----
     var voltar=e.target.closest('#psVoltar');
-    if(voltar){ prospeccaoAberto=null; window.renderProspeccao(); return; }
+    if(voltar){ prospeccaoAberto=null; psContatosSelecionados={}; window.renderProspeccao(); return; }
+    var toggleVisao=e.target.closest('#psToggleVisao');
+    if(toggleVisao){ psVisaoGeral=!psVisaoGeral; psContatosSelecionados={}; window.renderProspeccao(); return; }
     var abrir=e.target.closest('[data-ps-abrir]');
-    if(abrir && !psModoEdPastas){ prospeccaoAberto=abrir.getAttribute('data-ps-abrir'); window.renderProspeccao(); return; }
+    if(abrir && !psModoEdPastas){ prospeccaoAberto=abrir.getAttribute('data-ps-abrir'); psContatosSelecionados={}; window.renderProspeccao(); return; }
 
     // ---- edição das PASTAS (nome/cor/exclusão) ----
     var togglePastas=e.target.closest('#psEditarPastas');
