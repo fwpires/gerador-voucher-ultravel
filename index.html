@@ -955,7 +955,7 @@ body.dark .fn-card{background:rgba(255,255,255,.04)}
 .ct-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:22px 18px;padding:6px 2px 20px}
 .ct-folder-btn{position:relative;border:none;background:none;padding:14px 0 0;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;transition:transform .15s}
 .ct-folder-btn:not([disabled]):hover{transform:translateY(-3px)}
-.ct-folder-btn[disabled]{cursor:default;opacity:.55}
+.ct-folder-btn[aria-disabled="true"]{cursor:default;opacity:.55}
 .ct-folder-tab{width:44%;height:16px;align-self:flex-start;margin-left:10%;background:var(--ct-a);border-radius:8px 8px 0 0;box-shadow:0 -1px 0 rgba(0,0,0,.08) inset}
 .ct-folder-body{width:100%;aspect-ratio:4/3;border-radius:12px;background:linear-gradient(160deg,var(--ct-a),var(--ct-b));box-shadow:inset 0 -14px 22px rgba(0,0,0,.18),inset 0 2px 0 rgba(255,255,255,.25),0 6px 14px rgba(0,0,0,.28);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;position:relative;overflow:hidden}
 .ct-folder-shine{position:absolute;top:8%;left:6%;width:60%;height:30%;background:rgba(255,255,255,.22);border-radius:50%;filter:blur(6px);pointer-events:none}
@@ -21987,7 +21987,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
         ? '<span role="button" tabindex="0" class="ct-pencil" data-ct-pencil="'+fnEsc(c.chave)+'" title="Editar esta pasta">\u270f\ufe0f</span>'
         : '';
       return '<button type="button" class="ct-folder-btn" data-ct-abrir="'+fnEsc(c.chave)+'" '+
-          (ctModoEdPastas?'disabled':'')+' style="--ct-a:'+ctSombra(c.cor,28)+';--ct-b:'+ctSombra(c.cor,-22)+'">'+
+          (ctModoEdPastas?'aria-disabled="true"':'')+' style="--ct-a:'+ctSombra(c.cor,28)+';--ct-b:'+ctSombra(c.cor,-22)+'">'+
         pencil+
         '<span class="ct-folder-tab"></span>'+
         '<span class="ct-folder-body">'+
@@ -23030,7 +23030,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
         ? '<span role="button" tabindex="0" class="ct-pencil" data-ps-pencil="'+psEsc(c.chave)+'" title="Editar esta pasta">\u270f\ufe0f</span>'
         : '';
       return '<button type="button" class="ct-folder-btn" data-ps-abrir="'+psEsc(c.chave)+'" '+
-          (psModoEdPastas?'disabled':'')+' style="--ct-a:'+psSombra(c.cor,28)+';--ct-b:'+psSombra(c.cor,-22)+'">'+
+          (psModoEdPastas?'aria-disabled="true"':'')+' style="--ct-a:'+psSombra(c.cor,28)+';--ct-b:'+psSombra(c.cor,-22)+'">'+
         pencil+
         '<span class="ct-folder-tab"></span>'+
         '<span class="ct-folder-body">'+
