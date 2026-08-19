@@ -3125,6 +3125,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
         <button class="nav-item open" data-tree="comercial"><span class="nav-ic">📣</span><span>Comercial</span><b class="nav-caret">▾</b></button>
         <div class="nav-children show" data-tree-body="comercial">
           <button class="nav-item nav-sub" data-screen="acoes"><span>Ações Comerciais</span></button>
+          <button class="nav-item nav-sub" data-screen="prospeccao"><span>Prospecção</span></button>
         </div>
         <button class="nav-item open" data-tree="matriz"><span class="nav-ic nav-ic-mx"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#2ec7a5" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="9.5" x2="21" y2="9.5"/><line x1="9" y1="9.5" x2="9" y2="20"/><line x1="15" y1="9.5" x2="15" y2="20"/></svg></span><span>Matriz Operacional</span><b class="nav-caret">▾</b></button>
         <div class="nav-children show" data-tree-body="matriz">
@@ -3463,6 +3464,9 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
 
       <section class="screen" id="scr-acoes">
         <div id="acoesWrap"></div>
+      </section>
+      <section class="screen" id="scr-prospeccao">
+        <div id="prospeccaoWrap"></div>
       </section>
       <section class="screen" id="scr-matriz">
         <div id="matrizWrap"></div>
@@ -4253,6 +4257,13 @@ async function carregarConfig(){
       if(typeof window.ctCatsMergeMaps==='function'){
         appConfig.contatosCats=window.ctCatsMergeMaps(local.contatosCats, c.contatosCats);
       }
+      /* (·262) PROSPECÇÃO — mesma proteção de união, em namespace próprio. */
+      if(typeof window.psMergeMaps==='function'){
+        appConfig.prosp=window.psMergeMaps(local.prosp, c.prosp);
+      }
+      if(typeof window.psCatsMergeMaps==='function'){
+        appConfig.prospCats=window.psCatsMergeMaps(local.prospCats, c.prospCats);
+      }
       /* (·250) CARTÕES CADASTRADOS PELO USUÁRIO — mesma proteção de união. */
       if(typeof window.ccExtrasMergeMaps==='function'){
         appConfig.ccExtras=window.ccExtrasMergeMaps(local.ccExtras, c.ccExtras);
@@ -4564,6 +4575,12 @@ async function salvarConfig(){
     }
     if(typeof window.ctCatsMergeMaps==='function'){          // (·235) Contatos
       appConfig.contatosCats=window.ctCatsMergeMaps(appConfig.contatosCats, cloud.contatosCats);
+    }
+    if(typeof window.psMergeMaps==='function'){               // (·262) Prospecção
+      appConfig.prosp=window.psMergeMaps(appConfig.prosp, cloud.prosp);
+    }
+    if(typeof window.psCatsMergeMaps==='function'){
+      appConfig.prospCats=window.psCatsMergeMaps(appConfig.prospCats, cloud.prospCats);
     }
     if(typeof window.ccExtrasMergeMaps==='function'){         // (·250) Cartões cadastrados
       appConfig.ccExtras=window.ccExtrasMergeMaps(appConfig.ccExtras, cloud.ccExtras);
@@ -8654,6 +8671,7 @@ init();
       if(scr==='equipe' && typeof window.renderEquipe==='function') window.renderEquipe();
       if(scr==='contatos' && typeof window.renderContatos==='function') window.renderContatos();
       if(scr==='acoes' && typeof window.renderAcoes==='function') window.renderAcoes();
+      if(scr==='prospeccao' && typeof window.renderProspeccao==='function') window.renderProspeccao();
       if(scr==='matriz' && typeof window.renderMatriz==='function') window.renderMatriz();
       if(scr==='cliente' && typeof window.renderCliente==='function') window.renderCliente();
       if(scr==='cartoes' && typeof window.renderCartoes==='function') window.renderCartoes();
@@ -22156,6 +22174,1044 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     }
   });
 })();
+
+  /* ---------------------------------------------------------------
+     (·262) PROSPECÇÃO — pedido do Nando: nova aba dentro de Comercial
+     (ao lado de Ações Comerciais), pra trabalhar as listas de leads
+     separadas dos fornecedores. MESMO padrão "semente + edições" do
+     módulo Contatos/Fornecedores acima (pastas coloridas, merge por
+     carimbo, soft delete) — mas em NAMESPACE PRÓPRIO (appConfig.prosp /
+     appConfig.prospCats, funções ps*, atributos data-ps-*) pra nunca
+     se misturar com os dados de Fornecedores, mesmo reaproveitando as
+     MESMAS classes CSS (.ct-folder*, .fn-*) — são só estilo, os
+     seletores de clique/edição são todos independentes.
+
+     IMPORTAÇÃO INICIAL (planilha Listagem_Total_organizada.xlsx, aba
+     "Contatos"): 708 linhas, coluna ORIGEM virou 1 pasta por valor
+     (11 pastas). 111 linhas eram duplicata EXATA — mesmo nome E mesmo
+     telefone dentro da MESMA origem (103 só em "Israel Confirmados")
+     — e foram removidas antes de importar: é a mesma pessoa repetida
+     na planilha, nada de gente diferente foi descartado. Resultado:
+     597 contatos, distribuídos assim:
+       ps01 Israel Confirmados                    184
+       ps02 Convergência                           89
+       ps03 Leads Copa                              85
+       ps04 Futuro                                  69
+       ps05 Grupo Drakkar                           45
+       ps06 Fernando Noronha Quero Mais Crédito     40
+       ps07 PF Sem Comprar a mais de 6 meses        35
+       ps08 Futuro Colaboradores                    26
+       ps09 PF Sem Comprar a mais de 60 dias         9
+       ps10 PF Sem Comprar a mais de 90 dias         9
+       ps11 Grupo Ezequiel                           6
+     --------------------------------------------------------------- */
+(function(){
+  'use strict';
+
+  function psEsc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function psNorm(s){ return (s||'').toString().trim().toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' '); }
+
+  var PS_CATS_BASE = [
+    {chave:'ps01', titulo:"Israel Confirmados", cor:'#2E9E5B'},
+    {chave:'ps02', titulo:"Convergência", cor:'#3B8FD4'},
+    {chave:'ps03', titulo:"Leads Copa", cor:'#F0A030'},
+    {chave:'ps04', titulo:"Futuro", cor:'#7B4FBE'},
+    {chave:'ps05', titulo:"Grupo Drakkar", cor:'#C0503A'},
+    {chave:'ps06', titulo:"Fernando Noronha Quero Mais Crédito", cor:'#3FBFA0'},
+    {chave:'ps07', titulo:"PF Sem Comprar a mais de 6 meses", cor:'#D753C9'},
+    {chave:'ps08', titulo:"Futuro Colaboradores", cor:'#8D6E63'},
+    {chave:'ps09', titulo:"PF Sem Comprar a mais de 60 dias", cor:'#E0524A'},
+    {chave:'ps10', titulo:"PF Sem Comprar a mais de 90 dias", cor:'#5B6470'},
+    {chave:'ps11', titulo:"Grupo Ezequiel", cor:'#F0C94E'},
+  ];
+
+  var PS_SEED = {};
+  PS_SEED['ps01'] = [
+    {id:"ps01_001", nome:"Alexandre Soong", tel:"(11) 99217-0783", email:'', obs:''},
+    {id:"ps01_002", nome:"Maristela Chan Ng Soong", tel:"(11) 99598-8019", email:'', obs:''},
+    {id:"ps01_003", nome:"Bruno Maro Goulart", tel:"(31) 99489-7033", email:'', obs:''},
+    {id:"ps01_004", nome:"Carolina Grabner Reis", tel:"(19) 99162-8750", email:'', obs:''},
+    {id:"ps01_005", nome:"Cibelle Fernanda Vieira dos Santos", tel:"(11) 98500-1258", email:'', obs:''},
+    {id:"ps01_006", nome:"David Leite Batista", tel:"(11) 94021-6697", email:'', obs:''},
+    {id:"ps01_007", nome:"Emerson dos Santos Zeni", tel:"(47) 99209-4499", email:'', obs:''},
+    {id:"ps01_008", nome:"Ferdinando Oliveira Carvalho", tel:"(87) 98855-0442", email:'', obs:''},
+    {id:"ps01_009", nome:"Flávio Márcio Ferreira da Silva", tel:"(34) 99989-0708", email:'', obs:''},
+    {id:"ps01_010", nome:"Frances Carlos Lima Madrid", tel:"(94) 99291-2130", email:'', obs:''},
+    {id:"ps01_011", nome:"Fabiola Martins Bizerra Madrid", tel:"(94) 99270-9093", email:'', obs:''},
+    {id:"ps01_012", nome:"Iago Santos Cerqueira", tel:"(75) 99158-5121", email:'', obs:''},
+    {id:"ps01_013", nome:"Thais Maria Campos Costa Cerqueira", tel:"(75) 99293-7554", email:'', obs:''},
+    {id:"ps01_014", nome:"Maria Mathilde Benfica Ferreira", tel:"(27) 99951-4924", email:'', obs:''},
+    {id:"ps01_015", nome:"Odair Marcolino de Barros Neto", tel:"(48) 99167-0249", email:'', obs:''},
+    {id:"ps01_016", nome:"Cleomar Jose Guerra Ereno", tel:"(55) 99974-1895", email:'', obs:''},
+    {id:"ps01_017", nome:"Marcia Sofia Siqueira Serevincis", tel:"(11) 98118-3493", email:'', obs:''},
+    {id:"ps01_018", nome:"Carmem Beatriz Linhares Mariano", tel:"(41) 99994-3698", email:'', obs:''},
+    {id:"ps01_019", nome:"Paulo Henrique Pereira de Oliveira", tel:"(31) 98775-5622", email:'', obs:''},
+    {id:"ps01_020", nome:"Sonia Maria dos Santos Rodrigues", tel:"(44) 99927-7878", email:'', obs:''},
+    {id:"ps01_021", nome:"Talita Esteves Saraiva", tel:"(31) 98626-1053", email:'', obs:''},
+    {id:"ps01_022", nome:"Bruno Ericeira Valente da Silva", tel:"(21) 97201-1406", email:'', obs:''},
+    {id:"ps01_023", nome:"Daniel Duraes dos Reis", tel:"(11) 97188-3812", email:'', obs:''},
+    {id:"ps01_024", nome:"Diogo Henrique Zambetta", tel:"(19) 99661-3597", email:'', obs:''},
+    {id:"ps01_025", nome:"Lais Moraes Zambetta", tel:"(19) 99661-3597", email:'', obs:''},
+    {id:"ps01_026", nome:"Georgia Carion", tel:"(11) 98152-7448", email:'', obs:''},
+    {id:"ps01_027", nome:"João Pedro Frutuoso", tel:"(19) 99209-0877", email:'', obs:''},
+    {id:"ps01_028", nome:"Marcus Vinicius Flores Barros V F Serra", tel:"(11) 97505-9005", email:'', obs:''},
+    {id:"ps01_029", nome:"Juliana Isac de Oliveira Serra", tel:"(11) 99919-5792", email:'', obs:''},
+    {id:"ps01_030", nome:"Rosani Brange", tel:"(48) 99110-9616", email:'', obs:''},
+    {id:"ps01_031", nome:"Jéssica Mendonça Rodrigues", tel:"(11) 97536-8699", email:'', obs:''},
+    {id:"ps01_032", nome:"Andre Volpi Guimarães Brolio", tel:"(11) 97666-7246", email:'', obs:''},
+    {id:"ps01_033", nome:"Felipe Rodrigues Damasceno", tel:"(11) 96354-6619", email:'', obs:''},
+    {id:"ps01_034", nome:"Helena Maria Woitexen", tel:"(47) 98825-9745", email:'', obs:''},
+    {id:"ps01_035", nome:"Luciano Ferreira da Silva", tel:"(42) 99102-1214", email:'', obs:''},
+    {id:"ps01_036", nome:"David Muriel de Jesus", tel:"(11) 97458-9274", email:'', obs:''},
+    {id:"ps01_037", nome:"Guilherme do Nascimento Alves Moreira", tel:"(13) 99785-9826", email:'', obs:''},
+    {id:"ps01_038", nome:"Débora Garcia Prieto", tel:"(11) 96822-2287", email:'', obs:''},
+    {id:"ps01_039", nome:"Alisprai Autiolis Araújo", tel:"(35) 99823-5411", email:'', obs:''},
+    {id:"ps01_040", nome:"Marcelo de Jesus Maia Galiego", tel:"(11) 97133-8371", email:'', obs:''},
+    {id:"ps01_041", nome:"Valeria Esperidião", tel:"(11) 99651-9467", email:'', obs:''},
+    {id:"ps01_042", nome:"Salmir Batista Alves Junior", tel:"(48) 99189-8743", email:'', obs:''},
+    {id:"ps01_043", nome:"Itaelson Rodrigues da Silva", tel:"(61) 99875-2521", email:'', obs:''},
+    {id:"ps01_044", nome:"João Norberto Franca Gomes", tel:"(43) 99957-2696", email:'', obs:''},
+    {id:"ps01_045", nome:"Juliana Nunes Nacamura", tel:"(43) 99145-4764", email:'', obs:''},
+    {id:"ps01_046", nome:"Ivo Lima Brasil Junior", tel:"(21) 99161-0927", email:'', obs:''},
+    {id:"ps01_047", nome:"Ricardo Augusto Borges da Silva", tel:"(11) 96770-8090", email:'', obs:''},
+    {id:"ps01_048", nome:"Juliano Pastorelli Dutra", tel:"(19) 99304-4478", email:'', obs:''},
+    {id:"ps01_049", nome:"Milena Carvalho de Godoy Geremias", tel:"(19) 99611-2024", email:'', obs:''},
+    {id:"ps01_050", nome:"Rodrigo Clemente Kherlakian", tel:"(11) 98443-8949", email:'', obs:''},
+    {id:"ps01_051", nome:"Karol Lopes dos Santos Rocha", tel:"(11) 97575-5157", email:'', obs:''},
+    {id:"ps01_052", nome:"Wanderson Xavier Rocha", tel:"(11) 94066-0202", email:'', obs:''},
+    {id:"ps01_053", nome:"Henrique Toledo", tel:"(11) 99021-2032", email:'', obs:''},
+    {id:"ps01_054", nome:"Bruno de Aguiar Nascimento", tel:"(21) 96580-7000", email:'', obs:''},
+    {id:"ps01_055", nome:"Cristiane de Oliveira Carvalho", tel:"(21) 98194-6000", email:'', obs:''},
+    {id:"ps01_056", nome:"Gabriel Oliveira Carvalho de Andrade", tel:"(21) 99476-6874", email:'', obs:''},
+    {id:"ps01_057", nome:"Luiza Oliveira Carvalho de Andrade", tel:"(21) 97183-3677", email:'', obs:''},
+    {id:"ps01_058", nome:"Walter Flaminio de Abreu", tel:"(12) 99116-6125", email:'', obs:''},
+    {id:"ps01_059", nome:"Lorena Alves Teixeira", tel:"(16) 98139-7575", email:'', obs:''},
+    {id:"ps01_060", nome:"Paula Regina Colombi Orlando", tel:"(11) 97479-5028", email:'', obs:''},
+    {id:"ps01_061", nome:"Fabio Kniphoff", tel:"(45) 99834-1819", email:'', obs:''},
+    {id:"ps01_062", nome:"Luciano de Santa Clara Wanderlei", tel:"(81) 98161-8181", email:'', obs:''},
+    {id:"ps01_063", nome:"Anna Catharina Correia de Santa Clara", tel:"(81) 99812-5355", email:'', obs:''},
+    {id:"ps01_064", nome:"Marcelo Cardoso", tel:"(51) 98406-4603", email:'', obs:''},
+    {id:"ps01_065", nome:"Yandro Dickson Germanio de Souza", tel:"(84) 99929-3455", email:'', obs:''},
+    {id:"ps01_066", nome:"Vitor Eugênio de Oliveira", tel:"(12) 99116-6125", email:'', obs:''},
+    {id:"ps01_067", nome:"Aristoteles Emidio Amora da Silveira", tel:"(85) 99929-8118", email:'', obs:''},
+    {id:"ps01_068", nome:"Marina de Castro Sales Silveira", tel:"(85) 98766-9189", email:'', obs:''},
+    {id:"ps01_069", nome:"Renato Andreassa", tel:"(11) 99244-6067", email:'', obs:''},
+    {id:"ps01_070", nome:"Gisella Gimenez Andreassa", tel:"(11) 97575-1545", email:'', obs:''},
+    {id:"ps01_071", nome:"Aurora Andreassa", tel:"(11) 97575-1545", email:'', obs:''},
+    {id:"ps01_072", nome:"Betina Andreassa", tel:"(11) 97575-1545", email:'', obs:''},
+    {id:"ps01_073", nome:"Luiz Antonio Miranda Filho", tel:"(11) 91129-8213", email:'', obs:''},
+    {id:"ps01_074", nome:"Layane Karoline Demasio de Melo", tel:"(48) 98428-1918", email:'', obs:''},
+    {id:"ps01_075", nome:"Vanderson de Melo", tel:"(48) 99617-9119", email:'', obs:''},
+    {id:"ps01_076", nome:"Lucas Pickering", tel:"(11) 94575-7957", email:'', obs:''},
+    {id:"ps01_077", nome:"Michele Branco dos Santos", tel:"(11) 91870-2505", email:'', obs:''},
+    {id:"ps01_078", nome:"Daniel Fabiano dos Santos", tel:"(11) 99875-3048", email:'', obs:''},
+    {id:"ps01_079", nome:"Diego Cabrera Hernandes", tel:"(17) 99106-1414", email:'', obs:''},
+    {id:"ps01_080", nome:"Fabio Freitas Tenorio", tel:"(11) 91669-1204", email:'', obs:''},
+    {id:"ps01_081", nome:"Guido Icaro Fritsch", tel:"(65) 99908-4278", email:'', obs:''},
+    {id:"ps01_082", nome:"Lucas Baccan", tel:"(11) 94555-9508", email:'', obs:''},
+    {id:"ps01_083", nome:"Ghisa Benchimol", tel:"(92) 98433-8386", email:'', obs:''},
+    {id:"ps01_084", nome:"Allan de Lima Paixão e Silva", tel:"(64) 99956-2899", email:'', obs:''},
+    {id:"ps01_085", nome:"Ana Rubia Goncalves Viegas", tel:"(98) 98806-5024", email:'', obs:''},
+    {id:"ps01_086", nome:"Andreza Kraus Cararo Hilgert", tel:"(41) 92004-7593", email:'', obs:''},
+    {id:"ps01_087", nome:"Daniel Montagner Soares Silva", tel:"(48) 99624-6113", email:'', obs:''},
+    {id:"ps01_088", nome:"Daniel Pedroso de Lima", tel:"(11) 98781-7198", email:'', obs:''},
+    {id:"ps01_089", nome:"Erasmo Cirqueira Lino", tel:"(61) 99919-1544", email:'', obs:''},
+    {id:"ps01_090", nome:"Evaldo Alvarenga da Silveira", tel:"(61) 98149-9463", email:'', obs:''},
+    {id:"ps01_091", nome:"Flavia Ribeiro Borges Manzano", tel:"(11) 99939-8327", email:'', obs:''},
+    {id:"ps01_092", nome:"Maria Ivete Alves Ferreira Kaiser", tel:"(31) 99717-7793", email:'', obs:''},
+    {id:"ps01_093", nome:"Gleidisson de Oliveira Souza", tel:"(11) 98156-0584", email:'', obs:''},
+    {id:"ps01_094", nome:"Gustavo e Silva Nunes", tel:"(41) 99550-9142", email:'', obs:''},
+    {id:"ps01_095", nome:"Leandra Lima Soares Alvarenga", tel:"(61) 99143-7890", email:'', obs:''},
+    {id:"ps01_096", nome:"Leonardo Borrelli Achtschin", tel:"(21) 98789-6607", email:'', obs:''},
+    {id:"ps01_097", nome:"Luciana Carmen Zattar", tel:"(48) 98409-9876", email:'', obs:''},
+    {id:"ps01_098", nome:"Marissa Fernandes", tel:"(11) 99990-2310", email:'', obs:''},
+    {id:"ps01_099", nome:"Marco Antonio Marques Guedes", tel:"(43) 99909-9649", email:'', obs:''},
+    {id:"ps01_100", nome:"Maycon Jhonnathan Hilgert", tel:"(41) 99810-7070", email:'', obs:''},
+    {id:"ps01_101", nome:"Nahuel Gómez Medina", tel:"(66) 98440-2189", email:'', obs:''},
+    {id:"ps01_102", nome:"Paulo Henrique Soares Corrales", tel:"(67) 99255-0664", email:'', obs:''},
+    {id:"ps01_103", nome:"Pedro Cláudio de Azevedo Rehn", tel:"(61) 99673-6116", email:'', obs:''},
+    {id:"ps01_104", nome:"Raissa Amaral Espinola Corrales", tel:"(67) 99983-8702", email:'', obs:''},
+    {id:"ps01_105", nome:"Thalita Moreira Nunes", tel:"(11) 97660-8424", email:'', obs:''},
+    {id:"ps01_106", nome:"Tiago de Almeida Silva", tel:"(11) 98204-4454", email:'', obs:''},
+    {id:"ps01_107", nome:"Vanderleia Maria Balbino de Azevedo", tel:"(34) 99801-7436", email:'', obs:''},
+    {id:"ps01_108", nome:"Vania Sibeli Meira", tel:"(47) 99937-3649", email:'', obs:''},
+    {id:"ps01_109", nome:"Sereja Leiko Nakahara", tel:"(41) 99804-7887", email:'', obs:''},
+    {id:"ps01_110", nome:"Amanda Corrêa da Silva", tel:"(31) 99494-5470", email:'', obs:''},
+    {id:"ps01_111", nome:"Marcos Antonio Rodrigues de Arruda Filho", tel:"(12) 99178-0694", email:'', obs:''},
+    {id:"ps01_112", nome:"Maria Luiza Emmendorfer", tel:"(48) 99191-1810", email:'', obs:''},
+    {id:"ps01_113", nome:"Bruno Turtera Pierro", tel:"(11) 93343-9393", email:'', obs:''},
+    {id:"ps01_114", nome:"Thalita Goes Ribeiro", tel:"(11) 98150-0469", email:'', obs:''},
+    {id:"ps01_115", nome:"Maria Cristina Lourenço de Faria Gonfiantini", tel:"(18) 99131-3132", email:'', obs:''},
+    {id:"ps01_116", nome:"Aya Shimamura", tel:"(11) 98278-7557", email:'', obs:''},
+    {id:"ps01_117", nome:"Vilmar Canarin dos Santos", tel:"(51) 98187-1290", email:'', obs:''},
+    {id:"ps01_118", nome:"Antonio Nelson Silverio Fogaça Junior", tel:"(11) 92956-7739", email:'', obs:''},
+    {id:"ps01_119", nome:"Maynara Bimbato Salgueiro", tel:"(41) 99106-2145", email:'', obs:''},
+    {id:"ps01_120", nome:"Diego Fernandes", tel:"(11) 99768-5060", email:'', obs:''},
+    {id:"ps01_121", nome:"Ruthery Gonçalves Nunes", tel:"(93) 99123-9198", email:'', obs:''},
+    {id:"ps01_122", nome:"Dhara Louise Nascimento Silva", tel:"(11) 94513-7523", email:'', obs:''},
+    {id:"ps01_123", nome:"Roselâine Ferreira Moreira", tel:"(24) 98815-6235", email:'', obs:''},
+    {id:"ps01_124", nome:"Talles Rodrigues Silva Barreto", tel:"(11) 91942-8412", email:'', obs:''},
+    {id:"ps01_125", nome:"Tamiris Barreto Crespo Rodrigues", tel:"(22) 99975-5692", email:'', obs:''},
+    {id:"ps01_126", nome:"Tatiane Forte Pedroso Lima", tel:"(11) 95998-8094", email:'', obs:''},
+    {id:"ps01_127", nome:"Thaise Dias Lima de Oliveira", tel:"(13) 98172-6178", email:'', obs:''},
+    {id:"ps01_128", nome:"Diego de Oliveira", tel:"(48) 98405-5852", email:'', obs:''},
+    {id:"ps01_129", nome:"Ana Maria Gill Souza", tel:"(48) 98428-1918", email:'', obs:''},
+    {id:"ps01_130", nome:"Matheus Lopes Duarte", tel:"(81) 98202-8200", email:'', obs:''},
+    {id:"ps01_131", nome:"Karina Maria Pedroso Lopes Duarte", tel:"(81) 98210-8300", email:'', obs:''},
+    {id:"ps01_132", nome:"Weliton Branco Mattos", tel:"(49) 99815-0142", email:'', obs:''},
+    {id:"ps01_133", nome:"Djuan Daniel Dubiela", tel:"(47) 99196-8171", email:'', obs:''},
+    {id:"ps01_134", nome:"Ana Flavia Oliveira Gomes Eufrazio", tel:"(21) 99982-4485", email:'', obs:''},
+    {id:"ps01_135", nome:"Raffinan Fiorentino", tel:"(14) 98154-6001", email:'', obs:''},
+    {id:"ps01_136", nome:"Rosiane Leite de Carvalho Batista", tel:"(14) 99841-4230", email:'', obs:''},
+    {id:"ps01_137", nome:"Cinthia Ayumi Matsubara", tel:"(41) 99138-2400", email:'', obs:''},
+    {id:"ps01_138", nome:"Paulo Henrique Soares de Carvalho", tel:"(21) 99932-7722", email:'', obs:''},
+    {id:"ps01_139", nome:"Priscilla Costa Henriques", tel:"(21) 99871-3141", email:'', obs:''},
+    {id:"ps01_140", nome:"Ulisses Tuma Gonçalves", tel:"(11) 99302-7038", email:'', obs:''},
+    {id:"ps01_141", nome:"Marcia Yoshimi Aoki Takiuti", tel:"(34) 99902-7204", email:'', obs:''},
+    {id:"ps01_142", nome:"Luciane Pimentell Nunes Galvão", tel:"(38) 99831-5242", email:'', obs:''},
+    {id:"ps01_143", nome:"Marcia Bubeck", tel:"(47) 98422-0975", email:'', obs:''},
+    {id:"ps01_144", nome:"Petterson do Amaral", tel:"(11) 94742-7898", email:'', obs:''},
+    {id:"ps01_145", nome:"Bianca Agostinho Nabechima Abeba", tel:"(44) 99807-9998", email:'', obs:''},
+    {id:"ps01_146", nome:"Fabiana Haddad", tel:"(11) 98111-8423", email:'', obs:''},
+    {id:"ps01_147", nome:"Karoline Alexandre Lana Ferreira", tel:"(37) 99902-7782", email:'', obs:''},
+    {id:"ps01_148", nome:"Spencer Ferreira", tel:"(37) 99984-0032", email:'', obs:''},
+    {id:"ps01_149", nome:"Arthur Lana Ferreira", tel:"(37) 99984-0032", email:'', obs:''},
+    {id:"ps01_150", nome:"Maria Eduarda Lana Ferreira", tel:"(37) 99984-0032", email:'', obs:''},
+    {id:"ps01_151", nome:"Matheus Jose Nascimento dos Santos", tel:"(45) 99816-7329", email:'', obs:''},
+    {id:"ps01_152", nome:"Alline Garcia Oliveira", tel:"(11) 96446-3543", email:'', obs:''},
+    {id:"ps01_153", nome:"Bruna Sampaio Gonçalves Soares", tel:"(22) 97400-1360", email:'', obs:''},
+    {id:"ps01_154", nome:"Gilmar Soares de Queiroz", tel:"(19) 97413-2336", email:'', obs:''},
+    {id:"ps01_155", nome:"Karin H Ishikawa", tel:"(11) 97196-3922", email:'', obs:''},
+    {id:"ps01_156", nome:"João Jacob de Andrade", tel:"(48) 99105-5556", email:'', obs:''},
+    {id:"ps01_157", nome:"Leticia Dalla Nora", tel:"(47) 99128-9821", email:'', obs:''},
+    {id:"ps01_158", nome:"Thales Cardoso Umzebeiro", tel:"(62) 98516-3189", email:'', obs:''},
+    {id:"ps01_159", nome:"Elaine Pimentel", tel:"(41) 99559-2637", email:'', obs:''},
+    {id:"ps01_160", nome:"Mateus Martins Lima Vidigal", tel:"(31) 99396-3045", email:'', obs:''},
+    {id:"ps01_161", nome:"Filipe Tadeu Campos", tel:"(81) 99515-8009", email:'', obs:''},
+    {id:"ps01_162", nome:"Antonio Bungestab de Lima", tel:"(27) 99931-8364", email:'', obs:''},
+    {id:"ps01_163", nome:"Filipe Barbosa Lima", tel:"(11) 91002-8067", email:'', obs:''},
+    {id:"ps01_164", nome:"Fernando Hajel Berteli", tel:"(31) 99198-6423", email:'', obs:''},
+    {id:"ps01_165", nome:"Renato de Castro Ferreira", tel:"(11) 94922-4902", email:'', obs:''},
+    {id:"ps01_166", nome:"Ana Caroline Gontijo Luquine", tel:"(31) 99799-7195", email:'', obs:''},
+    {id:"ps01_167", nome:"Bernardo Gontijo Guedes", tel:"(31) 98420-7195", email:'', obs:''},
+    {id:"ps01_168", nome:"Helley Peixoto Guedes", tel:"(31) 98878-7195", email:'', obs:''},
+    {id:"ps01_169", nome:"Henrique Camara Ferreira", tel:"(62) 98345-1777", email:'', obs:''},
+    {id:"ps01_170", nome:"William Antonio Garcez", tel:"(43) 99937-3865", email:'', obs:''},
+    {id:"ps01_171", nome:"Filippe Borges Neto", tel:"(48) 99908-9896", email:'', obs:''},
+    {id:"ps01_172", nome:"Ana Claudia Ferraz de Oliveira", tel:"(47) 98419-6082", email:'', obs:''},
+    {id:"ps01_173", nome:"Sandra Ciraudo Aristocolo", tel:"(21) 99986-4727", email:'', obs:''},
+    {id:"ps01_174", nome:"Thiago Hernanne da Silva e Sousa", tel:"(64) 99643-0628", email:'', obs:''},
+    {id:"ps01_175", nome:"Regiane Cristina Silva do Amaral", tel:"(31) 99806-0643", email:'', obs:''},
+    {id:"ps01_176", nome:"Silvio Cesar Alcantara Velho B Brandão", tel:"(71) 99664-0216", email:'', obs:''},
+    {id:"ps01_177", nome:"Ivo Lima Brasil Jr.", tel:"(21) 99161-0927", email:'', obs:''},
+    {id:"ps01_178", nome:"Maycon Hilgert", tel:"(41) 99810-7070", email:'', obs:''},
+    {id:"ps01_179", nome:"Andreza Hilgert", tel:"(41) 99810-7070", email:'', obs:''},
+    {id:"ps01_180", nome:"Georgia Baldin", tel:"(11) 99258-6145", email:'', obs:''},
+    {id:"ps01_181", nome:"Diego Fernandes de Matos", tel:"(11) 99768-5060", email:'', obs:''},
+    {id:"ps01_182", nome:"Antonio Bungenstab", tel:"(27) 99931-8364", email:'', obs:''},
+    {id:"ps01_183", nome:"Vitor Eugenio de Oliveira", tel:"(12) 99116-6125", email:'', obs:''},
+    {id:"ps01_184", nome:"Gustavo Silva Nunes", tel:"(41) 99550-9142", email:'', obs:''},
+  ];
+
+  PS_SEED['ps02'] = [
+    {id:"ps02_001", nome:"Wellington Antonio Firmino dos Santos", tel:"(85) 99939-7417", email:'', obs:''},
+    {id:"ps02_002", nome:"Mariana Jorge Vieira Albuquerque", tel:"(81) 99151-1026", email:'', obs:''},
+    {id:"ps02_003", nome:"Carolina de Barros Borba Lira", tel:"(81) 98801-7581", email:'', obs:''},
+    {id:"ps02_004", nome:"Danilo Matias Pimentel", tel:"(81) 97908-7708", email:'', obs:''},
+    {id:"ps02_005", nome:"Janaina Soares Carneiro da Silva", tel:"(81) 98748-2094", email:'', obs:''},
+    {id:"ps02_006", nome:"Sorandra Maria de Souza", tel:"(81) 98594-3370", email:'', obs:''},
+    {id:"ps02_007", nome:"Carlos da Silva Cruz", tel:"(71) 98318-4614", email:'', obs:''},
+    {id:"ps02_008", nome:"Ana Beatriz Pimenta Lisboa", tel:"(71) 99167-5940", email:'', obs:''},
+    {id:"ps02_009", nome:"Marcelle Dyane de Oliveira Lopes", tel:"(71) 98317-4869", email:'', obs:''},
+    {id:"ps02_010", nome:"Tatiana Teixeira Moraes", tel:"(71) 99121-5139", email:'', obs:''},
+    {id:"ps02_011", nome:"Elisangela Andrade Fiuza", tel:"(71) 99998-3806", email:'', obs:''},
+    {id:"ps02_012", nome:"Sueli de Oliveira Pereira", tel:"(77) 98847-1583", email:'', obs:''},
+    {id:"ps02_013", nome:"Jonas Araujo dos Santos", tel:"(74) 99105-2716", email:'', obs:''},
+    {id:"ps02_014", nome:"Rickson Felipe de Souza Soares", tel:"(82) 99622-4150", email:'', obs:''},
+    {id:"ps02_015", nome:"Hugo Delean Nunes dos Santos", tel:"(82) 98809-0729", email:'', obs:''},
+    {id:"ps02_016", nome:"Iury Windel Machado Freitas dos Santos", tel:"(79) 99659-9629", email:'', obs:''},
+    {id:"ps02_017", nome:"Alessandra Alves Lobo", tel:"(82) 98801-0654", email:'', obs:''},
+    {id:"ps02_018", nome:"Camila Idalino Silva", tel:"(84) 98891-2711", email:'', obs:''},
+    {id:"ps02_019", nome:"Saymon Victor Tomaz Basilio de Oliveira", tel:"(84) 99982-9334", email:'', obs:''},
+    {id:"ps02_020", nome:"Edmilson Marcelino de Medeiros Filho", tel:"(84) 98818-3013", email:'', obs:''},
+    {id:"ps02_021", nome:"Luciele Patricia Lima", tel:"(86) 99815-7013", email:'', obs:''},
+    {id:"ps02_022", nome:"Ricardo Pereira de Lima", tel:"(69) 99381-3971", email:'', obs:''},
+    {id:"ps02_023", nome:"Rodrigo Rozendo Buzatto", tel:"(67) 99846-8727", email:'', obs:''},
+    {id:"ps02_024", nome:"Alan Guimarães Spindola", tel:"(22) 99780-1423", email:'', obs:''},
+    {id:"ps02_025", nome:"Joyce Ferreira Chaves", tel:"(21) 97380-7188", email:'', obs:''},
+    {id:"ps02_026", nome:"Itana Pagganucci Souza", tel:"(41) 99131-1211", email:'', obs:''},
+    {id:"ps02_027", nome:"Frank Yamomato Sadayosshi", tel:"(11) 95580-8000", email:'', obs:''},
+    {id:"ps02_028", nome:"Bruna Angelica Carvalho Leite Pedon", tel:"(12) 99124-6423", email:'', obs:''},
+    {id:"ps02_029", nome:"Mariana Russo Zorzin", tel:"(11) 99111-3613", email:'', obs:''},
+    {id:"ps02_030", nome:"Kleber dos Santos", tel:"(15) 98106-3128", email:'', obs:''},
+    {id:"ps02_031", nome:"Fredson Matildes Santos", tel:"(11) 95806-7403", email:'', obs:''},
+    {id:"ps02_032", nome:"Flavia Carolina Santos", tel:"(11) 91696-2707", email:'', obs:''},
+    {id:"ps02_033", nome:"Vitor Hugo Cruz Bernardo", tel:"(11) 94909-7712", email:'', obs:''},
+    {id:"ps02_034", nome:"Breno Alves Melo", tel:"(14) 99181-9495", email:'', obs:''},
+    {id:"ps02_035", nome:"Luiz Henrique Metzker", tel:"(48) 98407-8393", email:'', obs:''},
+    {id:"ps02_036", nome:"Camila Machado da Silva", tel:"(49) 98410-9798", email:'', obs:''},
+    {id:"ps02_037", nome:"Mayara Machado da Silva Francisco", tel:"(48) 99966-1120", email:'', obs:''},
+    {id:"ps02_038", nome:"Simone Ferreira Pinto", tel:"(31) 99826-6852", email:'', obs:''},
+    {id:"ps02_039", nome:"Kellen Cristina Abrantes Silva", tel:"(48) 99965-1855", email:'', obs:''},
+    {id:"ps02_040", nome:"Daniel Terry Pucci", tel:"(41) 98845-2446", email:'', obs:''},
+    {id:"ps02_041", nome:"Eduardo Augusto Leitão", tel:"(41) 99626-0675", email:'', obs:''},
+    {id:"ps02_042", nome:"Isabela Carolina Badotti", tel:"(45) 99947-5008", email:'', obs:''},
+    {id:"ps02_043", nome:"Cassia Thais Rocha de Mello", tel:"(51) 99264-5705", email:'', obs:''},
+    {id:"ps02_044", nome:"Elisabeth Alves Goncalves", tel:"(83) 98892-3020", email:'', obs:''},
+    {id:"ps02_045", nome:"Amanda Sabino da Silva", tel:"(88) 99928-0049", email:'', obs:''},
+    {id:"ps02_046", nome:"Elisangela do Nascimento Souza", tel:"(92) 98205-0004", email:'', obs:''},
+    {id:"ps02_047", nome:"Eliciano Luciano Furtado", tel:"(92) 98417-3934", email:'', obs:''},
+    {id:"ps02_048", nome:"Jessica Comape da Cruz", tel:"(92) 99254-5009", email:'', obs:''},
+    {id:"ps02_049", nome:"Samires de Souza Santana", tel:"(92) 98118-6651", email:'', obs:''},
+    {id:"ps02_050", nome:"Milene Alves Rodrigues", tel:"(91) 98259-0066", email:'', obs:''},
+    {id:"ps02_051", nome:"Larisse de Oliveira Vasconcelos", tel:"(91) 98109-5210", email:'', obs:''},
+    {id:"ps02_052", nome:"Francineide Oliveira dos Santos", tel:"(91) 99343-5443", email:'', obs:''},
+    {id:"ps02_053", nome:"Joana Darc", tel:"(85) 99621-9999", email:'', obs:''},
+    {id:"ps02_054", nome:"Leonardo Albuquerque", tel:"(85) 99101-0602", email:'', obs:''},
+    {id:"ps02_055", nome:"Julian Silva", tel:"(85) 99787-5757", email:'', obs:''},
+    {id:"ps02_056", nome:"Francisco Elton Mateus Jacinto", tel:"(91) 98029-1112", email:'', obs:''},
+    {id:"ps02_057", nome:"Francisco de Assis Oliveira Junior", tel:"(85) 99953-3226", email:'', obs:''},
+    {id:"ps02_058", nome:"Jefferson Oliveira Cajazeiras", tel:"(85) 99973-8857", email:'', obs:''},
+    {id:"ps02_059", nome:"Jessika do Nascimento Nobre Pires Costa", tel:"(85) 98421-3907", email:'', obs:''},
+    {id:"ps02_060", nome:"Wagner de Lemos Cunha", tel:"(85) 98679-6452", email:'', obs:''},
+    {id:"ps02_061", nome:"Ageu de Oliveira Moura", tel:"(85) 99993-1208", email:'', obs:''},
+    {id:"ps02_062", nome:"Carlos Alberto de Oliveira Lopes Filho", tel:"(85) 99822-8207", email:'', obs:''},
+    {id:"ps02_063", nome:"Carlos Eugenio de Lima", tel:"(88) 99611-4276", email:'', obs:''},
+    {id:"ps02_064", nome:"Maiara Cordulino de Abreu", tel:"(85) 99754-6460", email:'', obs:''},
+    {id:"ps02_065", nome:"Meline Sousa", tel:"(85) 98742-4401", email:'', obs:''},
+    {id:"ps02_066", nome:"Zenilia de Sousa Menezes", tel:"(85) 99275-2919", email:'', obs:''},
+    {id:"ps02_067", nome:"Natália Feitosa", tel:"(85) 99669-4492", email:'', obs:''},
+    {id:"ps02_068", nome:"Luna Morgana", tel:"(85) 99940-4672", email:'', obs:''},
+    {id:"ps02_069", nome:"Marcela Maria da Silva Ferreira", tel:"(85) 99996-3522", email:'', obs:''},
+    {id:"ps02_070", nome:"Sandra Teixeira Beserra", tel:"(85) 99909-5456", email:'', obs:''},
+    {id:"ps02_071", nome:"Natália Gurgel", tel:"(85) 99910-5640", email:'', obs:''},
+    {id:"ps02_072", nome:"Mary Stela Ti", tel:"(85) 99707-1959", email:'', obs:''},
+    {id:"ps02_073", nome:"Dilson César Antonelli", tel:"(11) 98140-7119", email:'', obs:''},
+    {id:"ps02_074", nome:"Aline Rosada Silva Matos Verzegnassi", tel:"(11) 99443-2333", email:'', obs:''},
+    {id:"ps02_075", nome:"Fernando Desselmam", tel:"(41) 99809-5818", email:'', obs:''},
+    {id:"ps02_076", nome:"Roberta Christini Sousa Lira", tel:"(81) 99302-2000", email:'', obs:''},
+    {id:"ps02_077", nome:"Gerson Biral", tel:"(85) 99146-8991", email:'', obs:''},
+    {id:"ps02_078", nome:"Paulo Alcantara", tel:"(85) 98144-1815", email:'', obs:''},
+    {id:"ps02_079", nome:"Igor de Moraes Alcantara", tel:"(85) 98673-7080", email:'', obs:''},
+    {id:"ps02_080", nome:"Gerson Jorge da Fonseca", tel:"(85) 99620-2001", email:'', obs:''},
+    {id:"ps02_081", nome:"Ennes Carlos Simões Maciel", tel:"(85) 98521-2215", email:'', obs:''},
+    {id:"ps02_082", nome:"Jesse James", tel:"(88) 99244-8220", email:'', obs:''},
+    {id:"ps02_083", nome:"Lucas Diogo", tel:"(88) 98814-4903", email:'', obs:''},
+    {id:"ps02_084", nome:"Wallasse Cesar Correa", tel:"(91) 98854-4799", email:'', obs:''},
+    {id:"ps02_085", nome:"Heloisa Mendes", tel:"(91) 99994-1574", email:'', obs:''},
+    {id:"ps02_086", nome:"Rodolfo Barreto", tel:"(81) 98541-2013", email:'', obs:''},
+    {id:"ps02_087", nome:"Mariana Franco Fernandes", tel:"(19) 97407-2147", email:'', obs:''},
+    {id:"ps02_088", nome:"Lyndon Lima Lavor", tel:"(88) 98806-1662", email:'', obs:''},
+    {id:"ps02_089", nome:"Cláudio Sacramento da Luz", tel:"(71) 99298-0184", email:'', obs:''},
+  ];
+
+  PS_SEED['ps03'] = [
+    {id:"ps03_001", nome:"Fabio", tel:"(55) 99623-4420", email:'', obs:''},
+    {id:"ps03_002", nome:"Felipe", tel:"(47) 99997-6232", email:'', obs:''},
+    {id:"ps03_003", nome:"Junior Galvão", tel:"(44) 99728-0746", email:'', obs:''},
+    {id:"ps03_004", nome:"Ricardo", tel:"(47) 99628-4886", email:'', obs:''},
+    {id:"ps03_005", nome:"Marcio", tel:"(47) 99610-5554", email:'', obs:''},
+    {id:"ps03_006", nome:"Rodrigo", tel:"(47) 98826-9920", email:'', obs:''},
+    {id:"ps03_007", nome:"Rafael Lemos", tel:"(47) 99114-1416", email:'', obs:''},
+    {id:"ps03_008", nome:"Arli", tel:"(51) 99854-1733", email:'', obs:''},
+    {id:"ps03_009", nome:"Azeredo", tel:"(45) 99151-0069", email:'', obs:''},
+    {id:"ps03_010", nome:"Gustavo Horodenski", tel:"(47) 99986-0793", email:'', obs:''},
+    {id:"ps03_011", nome:"Gabriel", tel:"(11) 97371-2506", email:'', obs:''},
+    {id:"ps03_012", nome:"Andréa Campigotto", tel:"(47) 99110-0091", email:'', obs:''},
+    {id:"ps03_013", nome:"Ericsson Pires", tel:"(42) 98844-4574", email:'', obs:''},
+    {id:"ps03_014", nome:"Josi", tel:"(42) 98860-4747", email:'', obs:''},
+    {id:"ps03_015", nome:"Flavio Brunini", tel:"(65) 99644-2018", email:'', obs:''},
+    {id:"ps03_016", nome:"Antonio Crosara", tel:"(41) 99245-0407", email:'', obs:''},
+    {id:"ps03_017", nome:"Tharles", tel:"(51) 99312-1807", email:'', obs:''},
+    {id:"ps03_018", nome:"Mateus Maria", tel:"(91) 99263-7048", email:'', obs:''},
+    {id:"ps03_019", nome:"Ghizoni", tel:"(48) 98838-7719", email:'', obs:''},
+    {id:"ps03_020", nome:"Afonso Geomarcio", tel:"(91) 99222-9899", email:'', obs:''},
+    {id:"ps03_021", nome:"Paulo Henrique", tel:"(31) 98887-1000", email:'', obs:''},
+    {id:"ps03_022", nome:"Felipe de Mello da Cunha", tel:"(48) 99645-6688", email:'', obs:''},
+    {id:"ps03_023", nome:"Rurik", tel:"(16) 98121-7030", email:'', obs:''},
+    {id:"ps03_024", nome:"Serginho Abrao", tel:"(43) 99936-1227", email:'', obs:''},
+    {id:"ps03_025", nome:"Tiago Guimaraes", tel:"(21) 99757-0670", email:'', obs:''},
+    {id:"ps03_026", nome:"Adriano Collegio Alves", tel:"(65) 99908-0109", email:'', obs:''},
+    {id:"ps03_027", nome:"Roni Belford Roxo", tel:"(21) 99425-4480", email:'', obs:''},
+    {id:"ps03_028", nome:"Rodrigo Yamamoto", tel:"(19) 98202-0084", email:'', obs:''},
+    {id:"ps03_029", nome:"Eduardo Walczewski", tel:"(48) 99983-1213", email:'', obs:''},
+    {id:"ps03_030", nome:"Johnny do Balão", tel:"(11) 98382-9996", email:'', obs:''},
+    {id:"ps03_031", nome:"Bruno Campos", tel:"(11) 94481-3602", email:'', obs:''},
+    {id:"ps03_032", nome:"Christian", tel:"(47) 99668-3447", email:'', obs:''},
+    {id:"ps03_033", nome:"Ailton", tel:"(47) 99661-8888", email:'', obs:''},
+    {id:"ps03_034", nome:"Bruno Barbosa", tel:"(48) 99952-8008", email:'', obs:''},
+    {id:"ps03_035", nome:"Ivan Reis", tel:"(47) 99934-1117", email:'', obs:''},
+    {id:"ps03_036", nome:"Julio Manzieri", tel:"(11) 98217-9434", email:'', obs:''},
+    {id:"ps03_037", nome:"Marcelo Vitale", tel:"(11) 94761-0302", email:'', obs:''},
+    {id:"ps03_038", nome:"Alessandro Barbosa", tel:"(62) 98597-4664", email:'', obs:''},
+    {id:"ps03_039", nome:"Raffael de Jesus", tel:"(11) 97354-2034", email:'', obs:''},
+    {id:"ps03_040", nome:"Hector Santos", tel:"(17) 99200-6044", email:'', obs:''},
+    {id:"ps03_041", nome:"Fernando", tel:"(41) 99972-4519", email:'', obs:''},
+    {id:"ps03_042", nome:"Reynaldo Magri", tel:"(11) 98111-2800", email:'', obs:''},
+    {id:"ps03_043", nome:"Henrique", tel:"(37) 99936-8807", email:'', obs:''},
+    {id:"ps03_044", nome:"Norton", tel:"(51) 99916-7216", email:'', obs:''},
+    {id:"ps03_045", nome:"Arnóbio Jr.", tel:"(84) 99614-9390", email:'', obs:''},
+    {id:"ps03_046", nome:"Silas Gustavo", tel:"(43) 99977-0948", email:'', obs:''},
+    {id:"ps03_047", nome:"Matheus Leitão", tel:"(19) 99900-9595", email:'', obs:''},
+    {id:"ps03_048", nome:"Samuka", tel:"(11) 99611-1299", email:'', obs:''},
+    {id:"ps03_049", nome:"Amândio Cândido", tel:"(51) 99967-4470", email:'', obs:''},
+    {id:"ps03_050", nome:"Jair Bonifacio Batista", tel:"(34) 98411-1816", email:'', obs:''},
+    {id:"ps03_051", nome:"Marcos Viveiros", tel:"(85) 98869-0121", email:'', obs:''},
+    {id:"ps03_052", nome:"Gabriel Sequinel", tel:"(19) 99971-0580", email:'', obs:''},
+    {id:"ps03_053", nome:"Claudinei Lange", tel:"(47) 98812-8788", email:'', obs:''},
+    {id:"ps03_054", nome:"Antonio", tel:"(16) 99858-3030", email:'', obs:''},
+    {id:"ps03_055", nome:"Roberto Lopes", tel:"(16) 98114-8790", email:'', obs:''},
+    {id:"ps03_056", nome:"Ricardo Santos", tel:"(41) 99955-1235", email:'', obs:''},
+    {id:"ps03_057", nome:"André Limeira", tel:"(19) 98426-2076", email:'', obs:''},
+    {id:"ps03_058", nome:"Gustavo Sausen", tel:"(66) 99991-4375", email:'', obs:''},
+    {id:"ps03_059", nome:"Filipi Eustaquio", tel:"(61) 99217-9856", email:'', obs:''},
+    {id:"ps03_060", nome:"Paulo Soares", tel:"(11) 99820-4437", email:'', obs:''},
+    {id:"ps03_061", nome:"Valtinho", tel:"(11) 97667-2984", email:'', obs:''},
+    {id:"ps03_062", nome:"Gabriel Velluto", tel:"(16) 99613-6147", email:'', obs:''},
+    {id:"ps03_063", nome:"Alexandre", tel:"(31) 99955-0128", email:'', obs:''},
+    {id:"ps03_064", nome:"Frederico Fedatto", tel:"(41) 99997-4475", email:'', obs:''},
+    {id:"ps03_065", nome:"André", tel:"(27) 99222-5859", email:'', obs:''},
+    {id:"ps03_066", nome:"Leonardo Azevedo", tel:"(21) 96435-9658", email:'', obs:''},
+    {id:"ps03_067", nome:"Gabriel B", tel:"(11) 98299-1861", email:'', obs:''},
+    {id:"ps03_068", nome:"Luan Rogge", tel:"(47) 99149-7331", email:'', obs:''},
+    {id:"ps03_069", nome:"Manfredo", tel:"(81) 98644-6197", email:'', obs:''},
+    {id:"ps03_070", nome:"Roberto Silva", tel:"(99) 99229-0200", email:'', obs:''},
+    {id:"ps03_071", nome:"Geazzer", tel:"(47) 99997-7435", email:'', obs:''},
+    {id:"ps03_072", nome:"Vinicius Teixeira", tel:"(53) 99121-4294", email:'', obs:''},
+    {id:"ps03_073", nome:"Sérgio Sá", tel:"(63) 99983-7568", email:'', obs:''},
+    {id:"ps03_074", nome:"Heros di Jorge", tel:"(31) 99532-8473", email:'', obs:''},
+    {id:"ps03_075", nome:"Eugenio", tel:"(48) 99965-3991", email:'', obs:''},
+    {id:"ps03_076", nome:"Eduardo Lira", tel:"(61) 98335-3444", email:'', obs:''},
+    {id:"ps03_077", nome:"Alexander Guimaraes", tel:"(69) 99955-1000", email:'', obs:''},
+    {id:"ps03_078", nome:"Francisco Farah", tel:"(41) 99985-5002", email:'', obs:''},
+    {id:"ps03_079", nome:"Anderson", tel:"(31) 98637-0367", email:'', obs:''},
+    {id:"ps03_080", nome:"Rodrigo Dias", tel:"(11) 98685-2128", email:'', obs:''},
+    {id:"ps03_081", nome:"Rafael Ferreira", tel:"(31) 99291-9676", email:'', obs:''},
+    {id:"ps03_082", nome:"Jocyley", tel:"(28) 99883-8853", email:'', obs:''},
+    {id:"ps03_083", nome:"Heberton Melchior", tel:"(81) 99685-0573", email:'', obs:''},
+    {id:"ps03_084", nome:"Luis Leal", tel:"(18) 99792-6866", email:'', obs:''},
+    {id:"ps03_085", nome:"Fausto Leal", tel:"(31) 99308-9523", email:'', obs:''},
+  ];
+
+  PS_SEED['ps04'] = [
+    {id:"ps04_001", nome:"Maria Aparecida de Amorim Dias", tel:"(65) 99270-6662", email:'', obs:''},
+    {id:"ps04_002", nome:"Ocymar Luiz Ribeiro", tel:"(65) 99270-6662", email:'', obs:''},
+    {id:"ps04_003", nome:"Orlando Zotelli Júnior", tel:"(67) 99274-9795", email:'', obs:''},
+    {id:"ps04_004", nome:"Joao Araoka Matsuura Borralho", tel:"(65) 98474-3815", email:'', obs:''},
+    {id:"ps04_005", nome:"Valéria BeckLenz", tel:"(65) 99311-3977", email:'', obs:''},
+    {id:"ps04_006", nome:"Alax Kley da Silva Montenegro", tel:"(68) 99229-4657", email:'', obs:''},
+    {id:"ps04_007", nome:"Thalia Evelin Ferreira", tel:"(65) 99959-9985", email:'', obs:''},
+    {id:"ps04_008", nome:"Ronaldo Adriano Galbero", tel:"(65) 99248-2935", email:'', obs:''},
+    {id:"ps04_009", nome:"Marcio Fernandes dos Santos", tel:"(65) 99247-3979", email:'', obs:''},
+    {id:"ps04_010", nome:"Julio Cesar Michelin de Azevedo", tel:"(61) 98377-0151", email:'', obs:''},
+    {id:"ps04_011", nome:"Claudia Regina Cavalcante Azevedo", tel:"(65) 99636-5246", email:'', obs:''},
+    {id:"ps04_012", nome:"Allan Carlos de Oliveira", tel:"(61) 99372-6792", email:'', obs:''},
+    {id:"ps04_013", nome:"Adriana Lima Santos Oliveira", tel:"(65) 99968-0793", email:'', obs:''},
+    {id:"ps04_014", nome:"Nathalia Thifany Auler Machado", tel:"(51) 98332-1910", email:'', obs:''},
+    {id:"ps04_015", nome:"Radamés Teixeira Dutra", tel:"(55) 98115-5290", email:'', obs:''},
+    {id:"ps04_016", nome:"Daniel Troglio", tel:"(51) 98431-5253", email:'', obs:''},
+    {id:"ps04_017", nome:"Cristiane Barbosa Scheibler", tel:"(51) 99668-0176", email:'', obs:''},
+    {id:"ps04_018", nome:"Elizangela Rodrigues Chaveiro", tel:"(61) 99186-9650", email:'', obs:''},
+    {id:"ps04_019", nome:"Cassia Regis Blanco", tel:"(41) 99789-5805", email:'', obs:''},
+    {id:"ps04_020", nome:"Samanta de Oliveira de Almeida", tel:"(51) 99651-2006", email:'', obs:''},
+    {id:"ps04_021", nome:"Adonai Alves Monteiro", tel:"(51) 99596-0991", email:'', obs:''},
+    {id:"ps04_022", nome:"Simone Nascimento Moreira", tel:"(51) 99172-9266", email:'', obs:''},
+    {id:"ps04_023", nome:"Guilherme Costa da Silva", tel:"(48) 98855-2487", email:'', obs:''},
+    {id:"ps04_024", nome:"Angelo Luciano Lunardeli", tel:"(48) 99987-0829", email:'', obs:''},
+    {id:"ps04_025", nome:"Bruno Filomeno", tel:"(48) 99944-9780", email:'', obs:''},
+    {id:"ps04_026", nome:"Luiz Carlos Lacerda Junior", tel:"(48) 99644-5915", email:'', obs:''},
+    {id:"ps04_027", nome:"Thaís Pereira Afonso Andrade", tel:"(48) 99864-5949", email:'', obs:''},
+    {id:"ps04_028", nome:"Renata Zaboti Pacheco", tel:"(48) 99147-5737", email:'', obs:''},
+    {id:"ps04_029", nome:"Walker Nascimento Menezes Neto", tel:"(21) 98108-7958", email:'', obs:''},
+    {id:"ps04_030", nome:"Evandro da Silva Rodrigues", tel:"(51) 99269-6064", email:'', obs:''},
+    {id:"ps04_031", nome:"Maria Cidiane Alves dos Santos", tel:"(51) 99299-8780", email:'', obs:''},
+    {id:"ps04_032", nome:"Felipe Wiesbauer", tel:"(51) 98144-1458", email:'', obs:''},
+    {id:"ps04_033", nome:"Anderson Ramos Francisco", tel:"(61) 99888-2880", email:'', obs:''},
+    {id:"ps04_034", nome:"Michele Campos de Souza", tel:"(21) 97901-0709", email:'', obs:''},
+    {id:"ps04_035", nome:"Valero Guidotti", tel:"(81) 99938-0052", email:'', obs:''},
+    {id:"ps04_036", nome:"Luis Claudio Pinto Martins", tel:"(31) 99625-7332", email:'', obs:''},
+    {id:"ps04_037", nome:"Bergson Arrais", tel:"(85) 99981-9123", email:'', obs:''},
+    {id:"ps04_038", nome:"Leonardo Miranda Góis Mendonça", tel:"(21) 97840-0505", email:'', obs:''},
+    {id:"ps04_039", nome:"Lucas Alves Fiuza Roma", tel:"(71) 99933-4649", email:'', obs:''},
+    {id:"ps04_040", nome:"Lucas do Valle Gaino", tel:"(43) 98868-7150", email:'', obs:''},
+    {id:"ps04_041", nome:"Fabio Damasceno Ribeiro", tel:"(71) 99286-4444", email:'', obs:''},
+    {id:"ps04_042", nome:"Marcos Guimaraes Anjos", tel:"(71) 99188-1490", email:'', obs:''},
+    {id:"ps04_043", nome:"Daniele Andrade da Silva", tel:"(21) 99679-9913", email:'', obs:''},
+    {id:"ps04_044", nome:"Fernanda Almeida Santos", tel:"(21) 98733-2766", email:'', obs:''},
+    {id:"ps04_045", nome:"Arlan Gouveia de Oiveira", tel:"(61) 98442-1350", email:'', obs:''},
+    {id:"ps04_046", nome:"Francisco Elton Mateus Jacinto", tel:"(91) 98029-1112", email:'', obs:''},
+    {id:"ps04_047", nome:"Elisangela do Nascimento de Souza", tel:"(92) 98205-0004", email:'', obs:''},
+    {id:"ps04_048", nome:"Lucas de Araujo", tel:"(79) 99634-7111", email:'', obs:''},
+    {id:"ps04_049", nome:"Reinan Nascimneto", tel:"(79) 99966-4587", email:'', obs:''},
+    {id:"ps04_050", nome:"Alberto Rodrigo Freitas Folletto", tel:"(48) 98818-6448", email:'', obs:''},
+    {id:"ps04_051", nome:"Gustavo Magalães Carletto Neto", tel:"(82) 99126-9162", email:'', obs:''},
+    {id:"ps04_052", nome:"Cristiane Lima dos Anjos", tel:"(88) 99993-6363", email:'', obs:''},
+    {id:"ps04_053", nome:"Felipe Nazareno Duarte de Araújo Carvalho", tel:"(85) 99834-0101", email:'', obs:''},
+    {id:"ps04_054", nome:"Anderson Ribas da Silva", tel:"(41) 98855-1132", email:'', obs:''},
+    {id:"ps04_055", nome:"João Felipe Leal Cordeiro", tel:"(51) 98052-6272", email:'', obs:''},
+    {id:"ps04_056", nome:"Carlos Dubois Neto", tel:"(51) 99199-0419", email:'', obs:''},
+    {id:"ps04_057", nome:"Elaine Carolina Moraes", tel:"(48) 99201-4605", email:'', obs:''},
+    {id:"ps04_058", nome:"Claudia Cassia da Cunha", tel:"(51) 99562-0673", email:'', obs:''},
+    {id:"ps04_059", nome:"Camila Belíssimo Gonçalves", tel:"(51) 99226-4452", email:'', obs:''},
+    {id:"ps04_060", nome:"Débora Sabóia", tel:"(51) 99758-9491", email:'', obs:''},
+    {id:"ps04_061", nome:"Thiago Oliveira Bitencourt", tel:"(51) 99341-7755", email:'', obs:''},
+    {id:"ps04_062", nome:"Kamila Pinheiro Albres", tel:"(65) 99981-1798", email:'', obs:''},
+    {id:"ps04_063", nome:"Jullya Katherine Severo dos Santos", tel:"(51) 98403-4479", email:'', obs:''},
+    {id:"ps04_064", nome:"Micarla Inacio", tel:"(84) 99446-9167", email:'', obs:''},
+    {id:"ps04_065", nome:"Janaína Franca Castro de Medeiros", tel:"(21) 99587-1104", email:'', obs:''},
+    {id:"ps04_066", nome:"Leonardo Farto Chaves", tel:"(51) 99771-4386", email:'', obs:''},
+    {id:"ps04_067", nome:"Aline Mayara Apoitia", tel:"(51) 92227-4329", email:'', obs:''},
+    {id:"ps04_068", nome:"Michel Roberto da Silva", tel:"(21) 97288-5239", email:'', obs:''},
+    {id:"ps04_069", nome:"Maria Angela Rocha Gonçalves", tel:"(21) 97288-5239", email:'', obs:''},
+  ];
+
+  PS_SEED['ps05'] = [
+    {id:"ps05_001", nome:"Alex Sandro Pereira Ferraz", tel:"(11) 94059-4802", email:'', obs:''},
+    {id:"ps05_002", nome:"Ana Karoline Rodrigues Tavares Barbosa", tel:"(11) 99766-8704", email:'', obs:''},
+    {id:"ps05_003", nome:"Beatriz Souza dos Santos", tel:"(11) 98402-7122", email:'', obs:''},
+    {id:"ps05_004", nome:"Daniela de Morais Villani", tel:"(11) 93906-1292", email:'', obs:''},
+    {id:"ps05_005", nome:"Eliane Ferreira", tel:"(11) 95032-1525", email:'', obs:''},
+    {id:"ps05_006", nome:"Eliete Regina Alves Vianna", tel:"(11) 98020-6478", email:'', obs:''},
+    {id:"ps05_007", nome:"Elmison Gomes de Sousa", tel:"(11) 95405-0516", email:'', obs:''},
+    {id:"ps05_008", nome:"Felipe da Costa de Santana", tel:"(11) 94028-0818", email:'', obs:''},
+    {id:"ps05_009", nome:"Flavia Cristina Tereza de Santana", tel:"(11) 96377-6066", email:'', obs:''},
+    {id:"ps05_010", nome:"Gabriel Cordon D Onofrio Gomes", tel:"(11) 94442-1511", email:'', obs:''},
+    {id:"ps05_011", nome:"Gabriela Paixao Alves da Silva", tel:"(71) 99742-1083", email:'', obs:''},
+    {id:"ps05_012", nome:"Getson Silva Carvalho Junior", tel:"(11) 99638-8363", email:'', obs:''},
+    {id:"ps05_013", nome:"Gislaine Cristina da Silva Dias", tel:"(11) 96369-0256", email:'', obs:''},
+    {id:"ps05_014", nome:"Greici Kelly da Silva Furquim", tel:"(11) 96274-8725", email:'', obs:''},
+    {id:"ps05_015", nome:"Igor Constantino Ricci", tel:"(11) 95927-2396", email:'', obs:''},
+    {id:"ps05_016", nome:"Jessica da Silva Santos", tel:"(11) 94015-1221", email:'', obs:''},
+    {id:"ps05_017", nome:"Joice Fernandes Lins", tel:"(11) 97726-7821", email:'', obs:''},
+    {id:"ps05_018", nome:"Juliana Cunha de Jesus Martin", tel:"(11) 98163-8283", email:'', obs:''},
+    {id:"ps05_019", nome:"Karina da Silva Carvalho", tel:"(11) 95391-5844", email:'', obs:''},
+    {id:"ps05_020", nome:"Lais Mariano de Souza", tel:"(11) 98509-9853", email:'', obs:''},
+    {id:"ps05_021", nome:"Larissia da Silva Tominaga", tel:"(11) 98576-5213", email:'', obs:''},
+    {id:"ps05_022", nome:"Luana Carolina Romana Damasceno", tel:"(11) 99500-3976", email:'', obs:''},
+    {id:"ps05_023", nome:"Luiz Miguel Reis Viana Miranda", tel:"(11) 97785-7802", email:'', obs:''},
+    {id:"ps05_024", nome:"Maike de Oliveira Santos", tel:"(11) 98136-8043", email:'', obs:''},
+    {id:"ps05_025", nome:"Matheus Pereira de Almeida", tel:"(31) 99525-3558", email:'', obs:''},
+    {id:"ps05_026", nome:"Mayara Nubia Oliveira do Nascimento", tel:"(11) 93921-7281", email:'', obs:''},
+    {id:"ps05_027", nome:"Michel Silva dos Santos", tel:"(11) 99100-4820", email:'', obs:''},
+    {id:"ps05_028", nome:"Michelly Carolyn da Silva", tel:"(11) 96392-7037", email:'', obs:''},
+    {id:"ps05_029", nome:"Mirela Carla Ferreira da Silva", tel:"(11) 94834-8011", email:'', obs:''},
+    {id:"ps05_030", nome:"Natalia Aparecida de Oliveira Santos", tel:"(11) 98171-2802", email:'', obs:''},
+    {id:"ps05_031", nome:"Nayra Grazielly Santana dos Santos", tel:"(11) 97849-6420", email:'', obs:''},
+    {id:"ps05_032", nome:"Paulo Roberto Damaceno dos Santos", tel:"(11) 98134-1218", email:'', obs:''},
+    {id:"ps05_033", nome:"Priscila Castro de Araujo Cesario", tel:"(11) 95122-3402", email:'', obs:''},
+    {id:"ps05_034", nome:"Reijane dos Santos Souza Reis", tel:"(11) 99718-8262", email:'', obs:''},
+    {id:"ps05_035", nome:"Renildo Crispim da Silva", tel:"(11) 97347-1570", email:'', obs:''},
+    {id:"ps05_036", nome:"Ricardo Julio Batista Grimaldo", tel:"(11) 97988-7024", email:'', obs:''},
+    {id:"ps05_037", nome:"Robson Augusto da Silva Formigoni", tel:"(11) 95366-2562", email:'', obs:''},
+    {id:"ps05_038", nome:"Ronyvon Alves Lacerda", tel:"(11) 96342-4650", email:'', obs:''},
+    {id:"ps05_039", nome:"Sabrina Roberta Batista Freitas", tel:"(11) 95704-0854", email:'', obs:''},
+    {id:"ps05_040", nome:"Sayhaka Myhuk Guimaraes Martins", tel:"(11) 96250-0428", email:'', obs:''},
+    {id:"ps05_041", nome:"Simone Cristina de Carvalho", tel:"(11) 96206-7142", email:'', obs:''},
+    {id:"ps05_042", nome:"Tatiane Ribeiro de Sousa", tel:"(11) 94258-8631", email:'', obs:''},
+    {id:"ps05_043", nome:"Vanessa Alves Mastrocezari", tel:"(11) 93718-1974", email:'', obs:''},
+    {id:"ps05_044", nome:"Vanessa Silvestre da Silva", tel:"(11) 96773-9749", email:'', obs:''},
+    {id:"ps05_045", nome:"Willian Gomes Rocha", tel:"(11) 93156-3242", email:'', obs:''},
+  ];
+
+  PS_SEED['ps06'] = [
+    {id:"ps06_001", nome:"Odimar Morzelle", tel:"(31) 99741-1243", email:'', obs:''},
+    {id:"ps06_002", nome:"Maria Fatima Juliana de Moraes Morzelle", tel:"(31) 99865-1620", email:'', obs:''},
+    {id:"ps06_003", nome:"Thais do Carmo Silva", tel:"(31) 97314-2078", email:'', obs:''},
+    {id:"ps06_004", nome:"Kenia Anacleta Braga", tel:"(31) 98575-5495", email:'', obs:''},
+    {id:"ps06_005", nome:"José Leonardo Mota de França", tel:"(81) 98203-2701", email:'', obs:''},
+    {id:"ps06_006", nome:"Sinval Georgios Agrevis", tel:"(11) 97109-0769", email:'', obs:''},
+    {id:"ps06_007", nome:"Luiz Otávio Pereira Fracassi", tel:"(14) 99747-1919", email:'', obs:''},
+    {id:"ps06_008", nome:"Francisco Eduardo Gomes Brito", tel:"(95) 99176-6001", email:'', obs:''},
+    {id:"ps06_009", nome:"Daiana Lilia Saraiva", tel:"(48) 99653-1208", email:'', obs:''},
+    {id:"ps06_010", nome:"Thais do Prado", tel:"(11) 98496-3359", email:'', obs:''},
+    {id:"ps06_011", nome:"Marcelo Tomiazi Peres", tel:"(18) 99766-0504", email:'', obs:''},
+    {id:"ps06_012", nome:"Ricardo Georgios Agrevis", tel:"(11) 94212-3888", email:'', obs:''},
+    {id:"ps06_013", nome:"Vanessa Emy Correia Shintani", tel:"(11) 93416-0121", email:'', obs:''},
+    {id:"ps06_014", nome:"Ronald dos Passos", tel:"(13) 99186-4980", email:'', obs:''},
+    {id:"ps06_015", nome:"Otávio Arrabal", tel:"(11) 99238-9495", email:'', obs:''},
+    {id:"ps06_016", nome:"Thiago Copadjic", tel:"(11) 94371-1057", email:'', obs:''},
+    {id:"ps06_017", nome:"Derek Simoes del Valhe dos Santos", tel:"(11) 97465-2722", email:'', obs:''},
+    {id:"ps06_018", nome:"Thamires Velista Cavalcante", tel:"(11) 94475-6254", email:'', obs:''},
+    {id:"ps06_019", nome:"Nubia Fernanda Pinto", tel:"(31) 98855-5591", email:'', obs:''},
+    {id:"ps06_020", nome:"Fabricio Fernandes Cunha", tel:"(31) 99537-2250", email:'', obs:''},
+    {id:"ps06_021", nome:"Mara Lucia Fernandes", tel:"(34) 99806-8844", email:'', obs:''},
+    {id:"ps06_022", nome:"Wanda Maria Martins", tel:"(31) 98235-0063", email:'', obs:''},
+    {id:"ps06_023", nome:"Larissa de Barros Sobral", tel:"(31) 99738-6045", email:'', obs:''},
+    {id:"ps06_024", nome:"Julio Cezar de Paula Alano", tel:"(48) 99969-6317", email:'', obs:''},
+    {id:"ps06_025", nome:"Ana Paula Ribeiro", tel:"(11) 97359-7772", email:'', obs:''},
+    {id:"ps06_026", nome:"Caio Henrique Rebollo Furlaneto", tel:"(11) 99466-1388", email:'', obs:''},
+    {id:"ps06_027", nome:"Janaína Soares Carneiro da Silva", tel:"(81) 99528-7022", email:'', obs:''},
+    {id:"ps06_028", nome:"Jessica do Nascimento Nobre Pires Costa", tel:"(85) 98421-3907", email:'', obs:''},
+    {id:"ps06_029", nome:"Rickson Felipe de Souza Soares", tel:"(82) 99622-4150", email:'', obs:''},
+    {id:"ps06_030", nome:"Francisco Elton Mateus Jacinto", tel:"(91) 98029-1112", email:'', obs:''},
+    {id:"ps06_031", nome:"Thiago Longatti de Moura", tel:"(11) 99631-1030", email:'', obs:''},
+    {id:"ps06_032", nome:"Emily Silva Padrão", tel:"(11) 99655-4653", email:'', obs:''},
+    {id:"ps06_033", nome:"Bruno Giovani da Silveira Iacomini", tel:"(31) 99122-6000", email:'', obs:''},
+    {id:"ps06_034", nome:"Erika Raniery Aguiar dos Santos Nascimento", tel:"(84) 99665-3677", email:'', obs:''},
+    {id:"ps06_035", nome:"Marina Alves Moura Ribeiro", tel:"(11) 96681-2444", email:'', obs:''},
+    {id:"ps06_036", nome:"Cosmo Rodrigues Trindade Junior", tel:"(11) 97244-6060", email:'', obs:''},
+    {id:"ps06_037", nome:"Milena Xavier Molina", tel:"(18) 99806-0040", email:'', obs:''},
+    {id:"ps06_038", nome:"Thiago Silva Andreu", tel:"(11) 99140-0699", email:'', obs:''},
+    {id:"ps06_039", nome:"Airla Oliveira Alves de Morais Melo", tel:"(81) 98940-1313", email:'', obs:''},
+    {id:"ps06_040", nome:"Vanessa Garcia Cassab Viaro", tel:"(11) 98325-2585", email:'', obs:''},
+  ];
+
+  PS_SEED['ps07'] = [
+    {id:"ps07_001", nome:"Mauro Dias das Neves", tel:"(48) 99937-1313", email:'', obs:''},
+    {id:"ps07_002", nome:"Sergio Kiryat da Silva", tel:"(48) 99625-0153", email:'', obs:''},
+    {id:"ps07_003", nome:"Jeziel Vinícius Koehler Saraiva", tel:"(51) 98480-1022", email:'', obs:''},
+    {id:"ps07_004", nome:"Lucelena Fernandes", tel:"(48) 98808-7668", email:'', obs:''},
+    {id:"ps07_005", nome:"Dassayeve Santos Moreira", tel:"(31) 98814-5941", email:'', obs:''},
+    {id:"ps07_006", nome:"Dileia Gomes", tel:"(73) 99118-2264", email:'', obs:''},
+    {id:"ps07_007", nome:"Manoel Felinto de Souza", tel:"(98) 98816-2496", email:'', obs:''},
+    {id:"ps07_008", nome:"Cleiton Agenor dos Santos", tel:"(11) 94007-4472", email:'', obs:''},
+    {id:"ps07_009", nome:"Juliana Mesquita", tel:"(48) 99689-4339", email:'', obs:''},
+    {id:"ps07_010", nome:"Joao Pedro Hubner Fajardo", tel:"(21) 99934-6774", email:'', obs:''},
+    {id:"ps07_011", nome:"Alina Vasilyev Cardoso", tel:"(47) 99637-5999", email:'', obs:''},
+    {id:"ps07_012", nome:"Wendel Correia de Melo", tel:"(81) 99146-1934", email:'', obs:''},
+    {id:"ps07_013", nome:"Vinicios Queiroz Rodrigues", tel:"(11) 98776-3189", email:'', obs:''},
+    {id:"ps07_014", nome:"Liomar Henrique Eleuterio", tel:"(21) 96442-8373", email:'', obs:''},
+    {id:"ps07_015", nome:"Gustavo Real Rabelo", tel:"(48) 99174-4920", email:'', obs:''},
+    {id:"ps07_016", nome:"Raudryn Jose Lima de Gusmao", tel:"(75) 99897-3582", email:'', obs:''},
+    {id:"ps07_017", nome:"Rodolfo Oliveira Nogueira", tel:"(67) 99971-1292", email:'', obs:''},
+    {id:"ps07_018", nome:"Fabiola Dias Almeida", tel:"(45) 99138-1698", email:'', obs:''},
+    {id:"ps07_019", nome:"Ana Carolina Cabral", tel:"(48) 99912-3475", email:'', obs:''},
+    {id:"ps07_020", nome:"Joao Paulo Ferreira", tel:"(61) 99968-9531", email:'', obs:''},
+    {id:"ps07_021", nome:"Jessica Azevedo", tel:"(48) 98439-3519", email:'', obs:''},
+    {id:"ps07_022", nome:"Harold McLaryea", tel:"(42) 98816-8890", email:'', obs:''},
+    {id:"ps07_023", nome:"Adriana Regis Pereira Bonomo", tel:"(48) 99923-8156", email:'', obs:''},
+    {id:"ps07_024", nome:"Ademir Persch", tel:"(12) 98875-2093", email:'', obs:''},
+    {id:"ps07_025", nome:"Leandro Francisco Eleotero", tel:"(48) 98452-9999", email:'', obs:''},
+    {id:"ps07_026", nome:"Joab Miranda Jesus", tel:"(48) 99947-5190", email:'', obs:''},
+    {id:"ps07_027", nome:"Denise Furtado", tel:"(48) 98474-9787", email:'', obs:''},
+    {id:"ps07_028", nome:"Laura Schneider", tel:"(51) 98326-0022", email:'', obs:''},
+    {id:"ps07_029", nome:"Valeria Blanc", tel:"(62) 99610-5747", email:'', obs:''},
+    {id:"ps07_030", nome:"Jairo Gund", tel:"(47) 99693-1270", email:'', obs:''},
+    {id:"ps07_031", nome:"Eduardo Brandl da Silva", tel:"(48) 99169-7499", email:'', obs:''},
+    {id:"ps07_032", nome:"Marcio de Almeida", tel:"(48) 99644-5167", email:'', obs:''},
+    {id:"ps07_033", nome:"Gilberto Machado", tel:"(47) 99637-8585", email:'', obs:''},
+    {id:"ps07_034", nome:"Nadia Regina Wiethorn", tel:"(48) 99164-9233", email:'', obs:''},
+    {id:"ps07_035", nome:"Abdiel da Silva Cruz Arsenio", tel:"(21) 97065-4916", email:'', obs:''},
+  ];
+
+  PS_SEED['ps08'] = [
+    {id:"ps08_001", nome:"Aline Mayara Apoitia", tel:"(51) 92227-4329", email:'', obs:''},
+    {id:"ps08_002", nome:"Janaína Franca Castro de Medeiros", tel:"(21) 99587-1104", email:'', obs:''},
+    {id:"ps08_003", nome:"Jullya Katherine Severo dos Santos", tel:"(51) 98403-4479", email:'', obs:''},
+    {id:"ps08_004", nome:"Pamela Chagas Colombo", tel:"(51) 99600-6084", email:'', obs:''},
+    {id:"ps08_005", nome:"Alysson Fernando", tel:"(51) 99112-1792", email:'', obs:''},
+    {id:"ps08_006", nome:"Sofia da Silva Dill", tel:"(51) 98350-8313", email:'', obs:''},
+    {id:"ps08_007", nome:"Rayssa da Silva Rusniak", tel:"(51) 98237-1324", email:'', obs:''},
+    {id:"ps08_008", nome:"Claudia Cassia da Cunha", tel:"(51) 99562-0673", email:'', obs:''},
+    {id:"ps08_009", nome:"José Adao Silva de Paula", tel:"(48) 99986-3425", email:'', obs:''},
+    {id:"ps08_010", nome:"Débora Saboia", tel:"(51) 99758-9491", email:'', obs:''},
+    {id:"ps08_011", nome:"Leonardo Farto Chaves", tel:"(51) 99771-4386", email:'', obs:''},
+    {id:"ps08_012", nome:"Karin Paola Stec Viera", tel:"(51) 99795-4565", email:'', obs:''},
+    {id:"ps08_013", nome:"Talita Carneiro Cardoso Silva", tel:"(51) 99263-5509", email:'', obs:''},
+    {id:"ps08_014", nome:"Ramon de Souza Silva", tel:"(51) 98314-2984", email:'', obs:''},
+    {id:"ps08_015", nome:"Nina Karla Casarin Zavareze", tel:"(51) 99867-4404", email:'', obs:''},
+    {id:"ps08_016", nome:"Lucas da Silva Baldissera", tel:"(51) 99554-7358", email:'', obs:''},
+    {id:"ps08_017", nome:"Yasmin Suppi de Moura", tel:"(51) 99158-7982", email:'', obs:''},
+    {id:"ps08_018", nome:"Lucas Salgado Figueiredo", tel:"(51) 99277-5600", email:'', obs:''},
+    {id:"ps08_019", nome:"Matheus Souza Claus", tel:"(51) 99372-6627", email:'', obs:''},
+    {id:"ps08_020", nome:"Renata Zorzetto", tel:"(54) 99137-7150", email:'', obs:''},
+    {id:"ps08_021", nome:"Jeniffer Winnye dos Santos Fagundes", tel:"(51) 98510-0110", email:'', obs:''},
+    {id:"ps08_022", nome:"Ariane Beatriz Santos dos Santos", tel:"(51) 98236-8759", email:'', obs:''},
+    {id:"ps08_023", nome:"Adriele da Silva Mattos", tel:"(51) 99482-6100", email:'', obs:''},
+    {id:"ps08_024", nome:"Priscila de Lima Loureiro", tel:"(51) 99510-5570", email:'', obs:''},
+    {id:"ps08_025", nome:"Jefferson Alberto Rodrigues", tel:"(51) 99489-4268", email:'', obs:''},
+    {id:"ps08_026", nome:"Josele do Amaral da Rosa", tel:"(51) 98438-8420", email:'', obs:''},
+  ];
+
+  PS_SEED['ps09'] = [
+    {id:"ps09_001", nome:"Ana Carolina Cabral", tel:"(48) 99912-3475", email:'', obs:''},
+    {id:"ps09_002", nome:"Joao Paulo Ferreira", tel:"(61) 99968-9531", email:'', obs:''},
+    {id:"ps09_003", nome:"Harold McLaryea", tel:"(42) 98816-8890", email:'', obs:''},
+    {id:"ps09_004", nome:"Adriana Regis Pereira Bonomo", tel:"(48) 99923-8156", email:'', obs:''},
+    {id:"ps09_005", nome:"Denise Furtado", tel:"(48) 98474-9787", email:'', obs:''},
+    {id:"ps09_006", nome:"Jairo Gund", tel:"(47) 99693-1270", email:'', obs:''},
+    {id:"ps09_007", nome:"Marcio de Almeida", tel:"(48) 99644-5167", email:'', obs:''},
+    {id:"ps09_008", nome:"Gilberto Machado", tel:"(47) 99637-8585", email:'', obs:''},
+    {id:"ps09_009", nome:"Nadia Regina Wiethorn", tel:"(48) 99164-9233", email:'', obs:''},
+  ];
+
+  PS_SEED['ps10'] = [
+    {id:"ps10_001", nome:"Ana Carolina Cabral", tel:"(48) 99912-3475", email:'', obs:''},
+    {id:"ps10_002", nome:"Joao Paulo Ferreira", tel:"(61) 99968-9531", email:'', obs:''},
+    {id:"ps10_003", nome:"Harold McLaryea", tel:"(42) 98816-8890", email:'', obs:''},
+    {id:"ps10_004", nome:"Adriana Regis Pereira Bonomo", tel:"(48) 99923-8156", email:'', obs:''},
+    {id:"ps10_005", nome:"Denise Furtado", tel:"(48) 98474-9787", email:'', obs:''},
+    {id:"ps10_006", nome:"Jairo Gund", tel:"(47) 99693-1270", email:'', obs:''},
+    {id:"ps10_007", nome:"Marcio de Almeida", tel:"(48) 99644-5167", email:'', obs:''},
+    {id:"ps10_008", nome:"Gilberto Machado", tel:"(47) 99637-8585", email:'', obs:''},
+    {id:"ps10_009", nome:"Nadia Regina Wiethorn", tel:"(48) 99164-9233", email:'', obs:''},
+  ];
+
+  PS_SEED['ps11'] = [
+    {id:"ps11_001", nome:"Ezequiel Domingues Rabello", tel:"(48) 98482-0001", email:'', obs:''},
+    {id:"ps11_002", nome:"Rodrigo da Silva Oliveira", tel:"(47) 99709-7116", email:'', obs:''},
+    {id:"ps11_003", nome:"Geison Cordova Modinger", tel:"(47) 99208-2717", email:'', obs:''},
+    {id:"ps11_004", nome:"Daniel Bordin Schumacher", tel:"(11) 99244-7334", email:'', obs:''},
+    {id:"ps11_005", nome:"Jordan Kaspary", tel:"(51) 99992-9324", email:'', obs:''},
+    {id:"ps11_006", nome:"Alex Blayher", tel:"(47) 99613-6336", email:'', obs:''},
+  ];
+
+  var PS_CAMPOS = ['nome','tel','email','obs'];
+
+  /* ---------------------------------------------------------------
+     CAMADA DE DADOS por lista: appConfig.prosp = {
+       ps01: { id:{nome,tel,email,obs,ts,del}, ... }, ps02: {...}, ...
+     } — MESMO desenho de fnStore/fnLista/fnSet/fnNovo/fnDel, só que
+     apontando pra appConfig.prosp (nunca appConfig.fornecedores).
+     --------------------------------------------------------------- */
+  function psStore(cat){
+    if(!appConfig.prosp || typeof appConfig.prosp!=='object') appConfig.prosp={};
+    if(!appConfig.prosp[cat] || typeof appConfig.prosp[cat]!=='object') appConfig.prosp[cat]={};
+    return appConfig.prosp[cat];
+  }
+  function psLista(cat){
+    var seed=PS_SEED[cat]||[], ed=psStore(cat), vistos={}, out=[];
+    seed.forEach(function(p){
+      var e=ed[p.id]||{};
+      if(e.del){ vistos[p.id]=1; return; }
+      var o={id:p.id};
+      PS_CAMPOS.forEach(function(c){ o[c]=(e[c]!==undefined? e[c] : p[c])||''; });
+      vistos[p.id]=1; out.push(o);
+    });
+    Object.keys(ed).forEach(function(id){
+      if(vistos[id]) return;
+      var e=ed[id]||{}; if(e.del) return;
+      var o={id:id}; PS_CAMPOS.forEach(function(c){ o[c]=e[c]||''; });
+      if(!o.nome) return;
+      out.push(o);
+    });
+    return out;
+  }
+  window.UV_PS_LISTA = psLista;
+
+  function psSet(cat, id, campo, valor){
+    if(PS_CAMPOS.indexOf(campo)<0) return;
+    var ed=psStore(cat);
+    var seed=PS_SEED[cat]||[], base=null;
+    for(var i=0;i<seed.length;i++){ if(seed[i].id===id){ base=seed[i]; break; } }
+    var atual=ed[id]||{};
+    var novo={ts:Date.now(), del:0};
+    PS_CAMPOS.forEach(function(c){ novo[c]=(atual[c]!==undefined ? atual[c] : (base?base[c]:'')) || ''; });
+    novo[campo]=(valor==null?'':String(valor)).slice(0,600);
+    ed[id]=novo;
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+    try{ if(typeof logRemoto==='function') logRemoto('prospeccao','Contato '+(novo.nome||'(sem nome)')+' editado ('+campo+')',{area:'Prospecção', cat:cat, id:id}); }catch(e){}
+  }
+  function psNovo(cat){
+    var ed=psStore(cat);
+    var id=cat+'_novo'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+    var o={ts:Date.now(), del:0}; PS_CAMPOS.forEach(function(c){ o[c]=''; });
+    o.nome='Novo contato';
+    ed[id]=o;
+    psFocarNovo=id;
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+    try{ if(typeof logRemoto==='function') logRemoto('prospeccao','Novo contato criado em '+cat,{area:'Prospecção', cat:cat, id:id}); }catch(e){}
+    window.renderProspeccao();
+  }
+  function psDel(cat, id){
+    var ed=psStore(cat);
+    var nome=''; psLista(cat).forEach(function(p){ if(p.id===id) nome=p.nome; });
+    var o=ed[id]||{}; o.del=1; o.ts=Date.now(); ed[id]=o;
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+    try{ if(typeof logRemoto==='function') logRemoto('prospeccao','Contato '+(nome||id)+' removido de '+cat,{area:'Prospecção', cat:cat, id:id}); }catch(e){}
+    window.renderProspeccao();
+  }
+  /* Merge multi-PC — MESMA forma de fnMergeMaps, dois níveis (lista, depois
+     id-dentro-da-lista), porque appConfig.prosp agrupa as 11 listas num
+     único objeto. */
+  window.psMergeMaps=function(a,b){
+    a=a||{}; b=b||{}; var out={}, cats={};
+    Object.keys(a).forEach(function(k){cats[k]=1;}); Object.keys(b).forEach(function(k){cats[k]=1;});
+    Object.keys(cats).forEach(function(cat){
+      var ma=a[cat]||{}, mb=b[cat]||{}, mo={}, ids={};
+      Object.keys(ma).forEach(function(k){ids[k]=1;}); Object.keys(mb).forEach(function(k){ids[k]=1;});
+      Object.keys(ids).forEach(function(id){
+        var x=ma[id], y=mb[id];
+        mo[id]=(x&&y)?(((x.ts||0)>=(y.ts||0))?x:y):(x||y);
+      });
+      out[cat]=mo;
+    });
+    return out;
+  };
+  window.UV_PS_STORE = psStore;
+
+  var psBuscaTxt={}, psEditando={}, psFocarNovo=null;
+
+  /* ---- pastas (categorias/origens) de Prospecção: mesmo padrão de ctCats* ---- */
+  function psCatsStore(){
+    if(!appConfig.prospCats || typeof appConfig.prospCats!=='object') appConfig.prospCats={};
+    return appConfig.prospCats;
+  }
+  function psCatsLista(){
+    var over=psCatsStore(), vistos={}, out=[];
+    PS_CATS_BASE.forEach(function(b){
+      var o=over[b.chave]||{};
+      out.push({chave:b.chave, titulo:(o.titulo!==undefined&&o.titulo!==''?o.titulo:b.titulo),
+                cor:(o.cor||b.cor)});
+      vistos[b.chave]=1;
+    });
+    Object.keys(over).forEach(function(k){
+      if(vistos[k]) return;
+      var o=over[k]; if(!o || !o.titulo) return;
+      out.push({chave:k, titulo:o.titulo, cor:o.cor||'#3B8FD4'});
+    });
+    return out;
+  }
+  window.UV_PS_CATS_LISTA = psCatsLista;
+  function psCatsSet(chave, campo, valor){
+    if(campo!=='titulo' && campo!=='cor') return;
+    var over=psCatsStore();
+    var base=null; for(var i=0;i<PS_CATS_BASE.length;i++){ if(PS_CATS_BASE[i].chave===chave){ base=PS_CATS_BASE[i]; break; } }
+    var atual=over[chave]||{};
+    var novo={ts:Date.now()};
+    novo.titulo=(atual.titulo!==undefined?atual.titulo:(base?base.titulo:''));
+    novo.cor=(atual.cor!==undefined?atual.cor:(base?base.cor:'#3B8FD4'));
+    novo[campo]=(campo==='titulo')?(valor||'').toString().slice(0,60):valor;
+    over[chave]=novo;
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+    try{ if(typeof logRemoto==='function') logRemoto('prospeccao','Pasta '+(novo.titulo||chave)+' editada ('+campo+')',{area:'Prospecção', chave:chave}); }catch(e){}
+  }
+  var PS_PALETA = ['#3B8FD4','#7B4FBE','#5B6470','#F0A030','#F0C94E','#C0503A','#7CB342','#3FBFA0','#8D6E63','#D753C9','#E0524A','#2E9E5B'];
+  function psCatsNovo(){
+    var over=psCatsStore();
+    var chave='pscustom_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+    var usadas=psCatsLista().map(function(c){return c.cor;});
+    var cor=PS_PALETA.find(function(c){return usadas.indexOf(c)<0;}) || PS_PALETA[usadas.length%PS_PALETA.length];
+    over[chave]={titulo:'Nova pasta', cor:cor, ts:Date.now()};
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+    try{ if(typeof logRemoto==='function') logRemoto('prospeccao','Nova pasta de prospecção criada',{area:'Prospecção', chave:chave}); }catch(e){}
+    return chave;
+  }
+  /* Merge multi-PC de 1 nível só (chave da pasta -> {titulo,cor,ts}). */
+  window.psCatsMergeMaps=function(a,b){
+    a=a||{}; b=b||{}; var out={}, ks={};
+    Object.keys(a).forEach(function(k){ks[k]=1;}); Object.keys(b).forEach(function(k){ks[k]=1;});
+    Object.keys(ks).forEach(function(k){ var x=a[k], y=b[k]; out[k]=(x&&y)?(((x.ts||0)>=(y.ts||0))?x:y):(x||y); });
+    return out;
+  };
+
+  // clareia/escurece uma cor hex em `pct` (-100..100) — mesmo degradê do
+  // ficheiro que a Contatos já usa, código duplicado de propósito (namespace
+  // independente, sem depender de função de outro módulo).
+  function psSombra(hex, pct){
+    hex=(hex||'#3B8FD4').replace('#','');
+    if(hex.length===3) hex=hex.split('').map(function(c){return c+c;}).join('');
+    var num=parseInt(hex,16), r=(num>>16)&255, g=(num>>8)&255, b=num&255;
+    var f=function(v){ v=pct<0 ? v*(1+pct/100) : v+(255-v)*(pct/100); return Math.max(0,Math.min(255,Math.round(v))); };
+    r=f(r); g=f(g); b=f(b);
+    return '#'+[r,g,b].map(function(v){var s=v.toString(16); return s.length<2?'0'+s:s;}).join('');
+  }
+
+  var prospeccaoAberto=null, psModoEdPastas=false, psEditandoCat=null, psFocarNovaCat=null;
+
+  function psRenderGrid(w){
+    var cats=psCatsLista();
+    var tiles=cats.map(function(c){
+      var qtd=psLista(c.chave).length;
+      if(psModoEdPastas && psEditandoCat===c.chave){
+        return '<div class="ct-folder ct-folder-edit">'+
+          '<input type="text" class="ct-edit-nome ps-edit-nome" data-ps-cat="'+psEsc(c.chave)+'" data-ps-campo="titulo" '+
+            'value="'+psEsc(c.titulo)+'" placeholder="Nome da pasta" maxlength="60">'+
+          '<div class="ct-edit-cores">'+PS_PALETA.map(function(cor){
+            return '<button type="button" class="ct-swatch'+(psNorm(cor)===psNorm(c.cor)?' on':'')+'" '+
+              'style="background:'+cor+'" data-ps-cor-cat="'+psEsc(c.chave)+'" data-ps-cor="'+cor+'" title="'+cor+'"></button>';
+          }).join('')+'</div>'+
+          '<button type="button" class="ct-edit-ok" data-ps-ok="'+psEsc(c.chave)+'">\u2713 Pronto</button>'+
+        '</div>';
+      }
+      var pencil = psModoEdPastas
+        ? '<button type="button" class="ct-pencil" data-ps-pencil="'+psEsc(c.chave)+'" title="Editar esta pasta">\u270f\ufe0f</button>'
+        : '';
+      return '<button type="button" class="ct-folder-btn" data-ps-abrir="'+psEsc(c.chave)+'" '+
+          (psModoEdPastas?'disabled':'')+' style="--ct-a:'+psSombra(c.cor,28)+';--ct-b:'+psSombra(c.cor,-22)+'">'+
+        pencil+
+        '<span class="ct-folder-tab"></span>'+
+        '<span class="ct-folder-body">'+
+          '<span class="ct-folder-shine"></span>'+
+          '<span class="ct-folder-label">'+psEsc(c.titulo)+'</span>'+
+          '<span class="ct-folder-qtd">'+qtd+'</span>'+
+        '</span>'+
+      '</button>';
+    }).join('');
+    var novaTile = (psModoEdPastas && psEditandoCat===null)
+      ? '<button type="button" class="ct-nova-pasta" data-ps-nova="1">+<br>Nova pasta</button>' : '';
+    var totalContatos = cats.reduce(function(s,c){ return s+psLista(c.chave).length; }, 0);
+
+    w.innerHTML =
+      '<div class="fn-head">'+
+        '<div><h2 class="fn-title"><span class="fn-ic">\ud83c\udfaf</span> Prospecção</h2>'+
+        '<div class="fn-sub">'+cats.length+' listas \u00b7 '+totalContatos+' contatos</div></div>'+
+        '<div class="fn-acoes">'+
+          '<button type="button" class="fn-bt'+(psModoEdPastas?' on':'')+'" id="psEditarPastas">'+
+            (psModoEdPastas?'\u2713 Concluir edição':'\u270f\ufe0f Editar pastas')+'</button>'+
+        '</div>'+
+      '</div>'+
+      (psModoEdPastas?'<div class="fn-aviso-ed">\u270f\ufe0f Toque no lápis de uma pasta para renomeá-la ou trocar a cor, ou crie uma pasta nova. Tudo salva sozinho.</div>':'')+
+      '<div class="ct-grid">'+tiles+novaTile+'</div>';
+
+    if(psFocarNovaCat){
+      var alvo=w.querySelector('[data-ps-cat="'+psFocarNovaCat+'"]');
+      psFocarNovaCat=null;
+      if(alvo){ try{ alvo.focus(); alvo.select(); }catch(e){} }
+    }
+  }
+
+  function psRenderDetalhe(w, cat){
+    var cats=psCatsLista();
+    var meta=null; for(var i=0;i<cats.length;i++){ if(cats[i].chave===cat){ meta=cats[i]; break; } }
+    if(!meta){ prospeccaoAberto=null; psRenderGrid(w); return; }
+    var editando=!!psEditando[cat];
+    var todos=psLista(cat);
+    var q=psNorm(psBuscaTxt[cat]||'');
+    var lista=todos.filter(function(p){
+      if(!q) return true;
+      if(psNorm(p.nome).indexOf(q)>=0) return true;
+      if(psNorm(p.email).indexOf(q)>=0) return true;
+      if(psNorm(p.obs).indexOf(q)>=0) return true;
+      var dig=q.replace(/\D/g,'');
+      if(dig && (p.tel||'').replace(/\D/g,'').indexOf(dig)>=0) return true;
+      return false;
+    }).sort(function(a,b){ return psNorm(a.nome).localeCompare(psNorm(b.nome),'pt-BR'); });
+
+    function campoLeitura(rot, val, largo, ehLink, tipo){
+      var vazio=!val;
+      var conteudo = (!vazio && ehLink)
+        ? '<a href="'+psEsc(val.indexOf('http')===0?val:'https://'+val)+'" target="_blank" rel="noopener" class="fn-val">'+psEsc(val)+'</a>'
+        : '<span class="fn-val'+(vazio?' fn-vazio':'')+'">'+psEsc(vazio?'\u2014':val)+'</span>';
+      return '<div class="fn-campo'+(largo?' fn-campo-largo':'')+'">'+
+        '<span class="fn-rot'+(tipo?' fn-rot-'+tipo:'')+'">'+psEsc(rot)+'</span>'+conteudo+'</div>';
+    }
+    function campoEdicao(rot, id, campo, val, ph, largo, tipo){
+      return '<div class="fn-campo'+(largo?' fn-campo-largo':'')+'">'+
+        '<span class="fn-rot'+(tipo?' fn-rot-'+tipo:'')+'">'+psEsc(rot)+'</span>'+
+        '<input type="text" class="fn-inp" data-ps-cat="'+psEsc(cat)+'" data-ps-id="'+psEsc(id)+'" '+
+          'data-ps-campo="'+campo+'" value="'+psEsc(val)+'" placeholder="'+psEsc(ph||'')+'"></div>';
+    }
+
+    var cards = lista.length ? lista.map(function(p){
+      var cab, corpo;
+      if(editando){
+        cab='<div class="fn-l1">'+
+              '<input type="text" class="fn-inp fn-inp-nome" data-ps-cat="'+psEsc(cat)+'" data-ps-id="'+psEsc(p.id)+'" '+
+                'data-ps-campo="nome" value="'+psEsc(p.nome)+'" placeholder="Nome do contato">'+
+              '<button type="button" class="fn-del" data-ps-del-cat="'+psEsc(cat)+'" data-ps-del="'+psEsc(p.id)+'" '+
+                'title="Remover este contato">\ud83d\uddd1</button>'+
+            '</div>';
+        corpo='<div class="fn-dados">'+
+          campoEdicao('Telefone / WhatsApp', p.id, 'tel', p.tel, '(00) 00000-0000', false, 'tel')+
+          campoEdicao('E-mail', p.id, 'email', p.email, 'contato@email.com', false, 'email')+
+          campoEdicao('Observações', p.id, 'obs', p.obs, '', true, 'obs')+
+        '</div>';
+      } else {
+        cab='<div class="fn-l1"><span class="fn-nome">'+psEsc(p.nome)+'</span></div>';
+        corpo='<div class="fn-dados">'+
+          campoLeitura('Telefone / WhatsApp', p.tel, false, false, 'tel')+
+          campoLeitura('E-mail', p.email, false, false, 'email')+
+          campoLeitura('Observações', p.obs, true, false, 'obs')+
+        '</div>';
+      }
+      return '<div class="fn-card'+(editando?' fn-editando':'')+'" style="border-left-color:'+psEsc(meta.cor)+'" '+
+             'data-ps-card-cat="'+psEsc(cat)+'" data-ps-card="'+psEsc(p.id)+'">'+cab+corpo+'</div>';
+    }).join('') : '<div class="fn-vazio-lista">Nenhum contato encontrado'+(q?' para essa busca':' nesta lista ainda')+'.</div>';
+
+    w.innerHTML =
+      '<button type="button" class="ct-voltar" id="psVoltar">\u2190 Voltar para Prospecção</button>'+
+      '<div class="fn-head">'+
+        '<div><h2 class="fn-title"><span class="fn-ic" style="color:'+psEsc(meta.cor)+'">\ud83d\udcc2</span> '+psEsc(meta.titulo)+'</h2>'+
+        '<div class="fn-sub">'+todos.length+' contato'+(todos.length===1?'':'s')+' cadastrado'+(todos.length===1?'':'s')+'</div></div>'+
+        '<div class="fn-acoes">'+
+          (editando?'<button type="button" class="fn-bt primario" data-ps-novo="'+psEsc(cat)+'">+ Adicionar contato</button>':'')+
+          '<button type="button" class="fn-bt'+(editando?' on':'')+'" data-ps-editar="'+psEsc(cat)+'">'+
+            (editando?'\u2713 Concluir edição':'\u270f\ufe0f Editar')+'</button>'+
+        '</div>'+
+      '</div>'+
+      (editando?'<div class="fn-aviso-ed">\u270f\ufe0f Modo de edição ativo \u2014 tudo o que você alterar é salvo sozinho e aparece nos outros computadores em segundos.</div>':'')+
+      '<div class="fn-toolbar">'+
+        '<input type="text" class="fn-busca" data-ps-busca="'+psEsc(cat)+'" placeholder="Buscar por nome, telefone, e-mail ou observação..." value="'+psEsc(psBuscaTxt[cat]||'')+'">'+
+        '<span class="fn-cont">'+lista.length+' de '+todos.length+'</span>'+
+      '</div>'+
+      '<div class="fn-grid">'+cards+'</div>';
+
+    var b=w.querySelector('[data-ps-busca]');
+    if(b && psBuscaTxt[cat]){ try{ b.focus(); b.setSelectionRange(b.value.length,b.value.length); }catch(e){} }
+    if(psFocarNovo && psFocarNovo.indexOf(cat+'_novo')===0){
+      var alvo=w.querySelector('[data-ps-card="'+psFocarNovo+'"] .fn-inp-nome');
+      psFocarNovo=null;
+      if(alvo){ try{ alvo.scrollIntoView({block:'center'}); alvo.focus(); alvo.select(); }catch(e){} }
+    }
+  }
+
+  window.renderProspeccao=function(){
+    var w=document.getElementById('prospeccaoWrap'); if(!w) return;
+    if(prospeccaoAberto) psRenderDetalhe(w, prospeccaoAberto);
+    else psRenderGrid(w);
+  };
+
+  document.addEventListener('input', function(e){
+    var t=e.target; if(!t) return;
+    if(t.hasAttribute && t.hasAttribute('data-ps-busca')){
+      var cat=t.getAttribute('data-ps-busca'); psBuscaTxt[cat]=t.value; window.renderProspeccao(); return;
+    }
+    if(t.classList && t.classList.contains('fn-inp') && t.hasAttribute('data-ps-cat')){
+      var cat2=t.getAttribute('data-ps-cat'), id=t.getAttribute('data-ps-id'), c=t.getAttribute('data-ps-campo');
+      if(cat2 && id && c) psSet(cat2, id, c, t.value);
+      return;
+    }
+    if(t.classList && t.classList.contains('ps-edit-nome')){
+      var cc=t.getAttribute('data-ps-cat');
+      if(cc) psCatsSet(cc, 'titulo', t.value);
+    }
+  });
+  document.addEventListener('click', function(e){
+    if(!e.target || !e.target.closest) return;
+
+    // ---- contatos dentro de uma lista aberta ----
+    var ed=e.target.closest('[data-ps-editar]');
+    if(ed){ var cat=ed.getAttribute('data-ps-editar'); psEditando[cat]=!psEditando[cat]; window.renderProspeccao(); return; }
+    var nv=e.target.closest('[data-ps-novo]');
+    if(nv){ psNovo(nv.getAttribute('data-ps-novo')); return; }
+    var d=e.target.closest('[data-ps-del]');
+    if(d){
+      var cat3=d.getAttribute('data-ps-del-cat'), id3=d.getAttribute('data-ps-del');
+      var nome=''; psLista(cat3).forEach(function(p){ if(p.id===id3) nome=p.nome; });
+      if(window.confirm('Remover '+(nome||'este contato')+' desta lista?')) psDel(cat3, id3);
+      return;
+    }
+
+    // ---- navegação Prospecção ----
+    var voltar=e.target.closest('#psVoltar');
+    if(voltar){ prospeccaoAberto=null; window.renderProspeccao(); return; }
+    var abrir=e.target.closest('[data-ps-abrir]');
+    if(abrir && !psModoEdPastas){ prospeccaoAberto=abrir.getAttribute('data-ps-abrir'); window.renderProspeccao(); return; }
+
+    // ---- edição das PASTAS (nome/cor) ----
+    var togglePastas=e.target.closest('#psEditarPastas');
+    if(togglePastas){ psModoEdPastas=!psModoEdPastas; psEditandoCat=null; window.renderProspeccao(); return; }
+    var pencil=e.target.closest('[data-ps-pencil]');
+    if(pencil){ psEditandoCat=pencil.getAttribute('data-ps-pencil'); window.renderProspeccao(); return; }
+    var ok=e.target.closest('[data-ps-ok]');
+    if(ok){ psEditandoCat=null; window.renderProspeccao(); return; }
+    var swatch=e.target.closest('[data-ps-cor]');
+    if(swatch){
+      psCatsSet(swatch.getAttribute('data-ps-cor-cat'), 'cor', swatch.getAttribute('data-ps-cor'));
+      window.renderProspeccao(); return;
+    }
+    var nova=e.target.closest('[data-ps-nova]');
+    if(nova){
+      var chave=psCatsNovo();
+      psEditandoCat=chave; psFocarNovaCat=chave;
+      window.renderProspeccao(); return;
+    }
+  });
+})();
+
 </script>
 </body>
 </html>
