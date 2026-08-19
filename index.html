@@ -24126,7 +24126,14 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     board.ts=Date.now();
     try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
   }
+  // (·260) só admin exclui um Kanban — checagem no PONTO QUE GRAVA, não só na
+  // tela: mesmo padrão de defesa em dois níveis já usado no cadeado de Pax e
+  // no botão de excluir tópico de Ações Comerciais (a visibilidade do botão
+  // esconde para quem não é admin; esta linha recusa mesmo se alguém forçar
+  // o clique via console, sem admin logado).
+  function klSouAdmin(){ try{ return typeof uvAuthPerfil==='function' && uvAuthPerfil()==='admin'; }catch(e){ return false; } }
   function klBoardsDel(id){
+    if(!klSouAdmin()) return;
     var b=klBoardsStore(); var board=b[id]; if(!board) return;
     board.del=1; board.ts=Date.now();
     try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
@@ -24430,7 +24437,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       '<div class="kl-tabs">'+tabsHtml+'</div>'+
       '<div class="kl-board-head">'+
         '<h3 class="kl-board-titulo" data-kl-board-renomear="'+klEsc(board.id)+'" title="Clique para renomear">\u270f\ufe0f '+klEsc(board.titulo)+'</h3>'+
-        '<button type="button" class="fn-bt perigo" data-kl-board-del="'+klEsc(board.id)+'">\ud83d\uddd1\ufe0f Excluir Kanban</button>'+
+        (klSouAdmin()?('<button type="button" class="fn-bt perigo" data-kl-board-del="'+klEsc(board.id)+'">\ud83d\uddd1\ufe0f Excluir Kanban</button>'):'')+
       '</div>'+
       '<div class="kl-toolbar">'+
         '<input type="text" class="cl-busca" id="klBusca" placeholder="\ud83d\udd0e Buscar por nome ou telefone..." value="'+klEsc(klBuscaTxt)+'" style="flex:1 1 260px">'+
