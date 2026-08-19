@@ -931,6 +931,17 @@ body.dark .fn-card{background:rgba(255,255,255,.04)}
 .fn-tag-iniciado{display:inline-block;font-size:10.5px;font-weight:800;color:#0d3a1f;background:linear-gradient(180deg,#6FE39A,#2ec7a5);border-radius:999px;padding:3px 10px;white-space:nowrap;box-shadow:0 2px 5px rgba(0,0,0,.2)}
 .fn-tag-x{display:inline-block;margin-left:6px;padding:0 3px;font-weight:900;color:rgba(13,58,31,.55);cursor:pointer;border-radius:4px}
 .fn-tag-x:hover{color:#0d3a1f;background:rgba(13,58,31,.18)}
+/* (·275) chips de filtro "contato feito"/"sem etiqueta" — estilo tag/LED,
+   texto minúsculo, na Lista Geral da Prospecção. */
+.ps-chip-led{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:999px;border:1px solid var(--borda);background:transparent;color:var(--texto-suave);font-size:12.5px;font-weight:700;text-transform:lowercase;cursor:pointer;transition:all .15s;font-family:inherit;white-space:nowrap}
+.ps-chip-led:hover{border-color:var(--borda-forte);color:var(--texto)}
+.ps-chip-led .ps-led-dot{width:9px;height:9px;border-radius:50%;background:#5a6472;box-shadow:0 0 0 rgba(0,0,0,0);transition:all .15s;flex:0 0 auto}
+.ps-chip-led.verde .ps-led-dot{background:#2ec7a5}
+.ps-chip-led.amarelo .ps-led-dot{background:#e0b400}
+.ps-chip-led.verde.on{border-color:#2ec7a5;background:rgba(46,199,165,.14);color:#2ec7a5}
+.ps-chip-led.verde.on .ps-led-dot{background:#5fe0c0;box-shadow:0 0 8px rgba(95,224,192,.9)}
+.ps-chip-led.amarelo.on{border-color:#e0b400;background:rgba(224,180,0,.14);color:#e0b400}
+.ps-chip-led.amarelo.on .ps-led-dot{background:#ffd84d;box-shadow:0 0 8px rgba(255,216,77,.9)}
 /* (·266) Gestores de Leads — cards colapsáveis abaixo da grade de pastas.
    Prefixo gl- (não pg-) de propósito: o sistema já tem um componente de
    PAGINAÇÃO com classes .pg-* (.pg-btn/.pg-seta/etc, telas de listagem
@@ -23226,6 +23237,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
   var prospeccaoAberto=null, psModoEdPastas=false, psEditandoCat=null, psFocarNovaCat=null, psPastasSelecionadas={};
   var psVisaoGeral=false, psContatosSelecionados={}, psGestorAberto=null;
   var psOrdemCampo='nome', psOrdemDir='asc'; // (·269) ordenação da Lista Geral: 'nome' ou 'origem', 'asc'/'desc'
+  var psFiltroTag=''; // (·275) '' | 'feito' | 'semtag' — filtro por etiqueta na Lista Geral
 
   var PS_ATENDENTES=['Eduardo Vinícius','Ghabriella Bressan','Liliane Gaspar','Israel Hespanhol','Maria Eduarda','Juliana Lupo','Diego Oliveira','Fernando Pires','Ana Maria','Hynaê Teston','Ruth Alves','Mayara Marcelli'];
 
@@ -23738,6 +23750,8 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     });
     var q=psNorm(psBuscaTxt['__geral__']||'');
     var lista=todos.filter(function(p){
+      if(psFiltroTag==='feito' && !p.iniciado) return false;
+      if(psFiltroTag==='semtag' && p.iniciado) return false;
       if(!q) return true;
       if(psNorm(p.nome).indexOf(q)>=0) return true;
       if(psNorm(p.email).indexOf(q)>=0) return true;
@@ -23787,6 +23801,8 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
         '<div><h2 class="cl-title">\ud83d\udccb Lista Geral</h2>'+
         '<div class="cl-sub">'+cats.length+' listas \u00b7 '+todos.length+' contatos no total</div></div>'+
         '<span id="psBarraSelecaoContatos">'+psHtmlBarraSelecaoContatos()+'</span>'+
+        '<button type="button" class="ps-chip-led verde'+(psFiltroTag==='feito'?' on':'')+'" data-ps-filtro-tag="feito"><span class="ps-led-dot"></span>contato feito</button>'+
+        '<button type="button" class="ps-chip-led amarelo'+(psFiltroTag==='semtag'?' on':'')+'" data-ps-filtro-tag="semtag"><span class="ps-led-dot"></span>sem etiqueta</button>'+
         '<button type="button" class="fn-bt" data-ps-toggle-visao="1">\ud83d\uddc2\ufe0f Visualizar em Pasta</button>'+
       '</div>'+
       '<input type="text" class="cl-busca" data-ps-busca="__geral__" placeholder="\ud83d\udd0e Buscar por nome, telefone, e-mail, observação ou pasta de origem..." value="'+psEsc(psBuscaTxt['__geral__']||'')+'">'+
@@ -23927,6 +23943,12 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     }
     var removerTag=e.target.closest('[data-ps-remover-tag]');
     if(removerTag){ psRemoverIniciado(removerTag.getAttribute('data-ps-remover-tag')); return; }
+    var filtroTag=e.target.closest('[data-ps-filtro-tag]');
+    if(filtroTag){
+      var alvoFiltro=filtroTag.getAttribute('data-ps-filtro-tag');
+      psFiltroTag=(psFiltroTag===alvoFiltro) ? '' : alvoFiltro; // clicar de novo desliga
+      window.renderProspeccao(); return;
+    }
     var abrir=e.target.closest('[data-ps-abrir]');
     if(abrir && !psModoEdPastas){ prospeccaoAberto=abrir.getAttribute('data-ps-abrir'); psContatosSelecionados={}; window.renderProspeccao(); return; }
 
