@@ -19939,7 +19939,7 @@ function excluirNotaUI(id){
         +'<div class="cl-tel-cell">Disparo: '+ciEsc(ciFmtData(new Date(c.quandoTs).toISOString().slice(0,10)))+' às '+ciEsc(new Date(c.quandoTs).toTimeString().slice(0,5))+(jaPassou?' <b style="color:#ff8fb1">· já disparou</b>':'')+'</div>'
         +'<div class="cl-tel-cell">Agendado por: '+ciEsc(c.criador||'—')+'</div>'
         +'</div>'
-        +(podeExcluir?('<button type="button" class="fn-del" data-ci-del="'+ciEsc(c.id)+'" title="Excluir este check-in" style="align-self:flex-end;margin-top:6px">🗑 Excluir</button>'):'')
+        +(podeExcluir?('<button type="button" class="fn-del" data-ci-del="'+ciEsc(c.id)+'" title="Excluir este check-in" style="align-self:flex-end;margin-top:6px">🗑</button>'):'')
         +'</div>';
     }).join('');
   }
@@ -20029,11 +20029,25 @@ function excluirNotaUI(id){
     ciNovo({ cia:cia, localizador:loc, trecho:trecho, paxes:paxesLimpos, quandoTs:quandoTs });
     ciPick={ data:'', hora:'' }; ciPaxes=[''];
     document.getElementById('ciModal').innerHTML=ciModalConteudoHtml();
+    var hw=document.getElementById('ciHistoricoWrap'); if(hw) hw.innerHTML=ciListaAgendadosHtml();
     try{ if(typeof window.renderCdNotifs==='function') window.renderCdNotifs(); }catch(e){}
   }
   document.addEventListener('click', function(e){
     if(!e.target || !e.target.closest) return;
     if(e.target.closest('#ciAbrirBtn')){ ciAbrirModal(); return; }
+    // (·261) EXCLUIR roda ANTES do guard "clique fora fecha o modal" — o
+    // histórico fixo abaixo do quadro de post-its vive FORA do #ciOv, e o
+    // botão de excluir dele seria engolido pelo guard se ficasse depois.
+    var del=e.target.closest('[data-ci-del]');
+    if(del){
+      if(window.confirm('Excluir este check-in agendado?')){
+        ciExcluir(del.getAttribute('data-ci-del'));
+        var lw=document.getElementById('ciListaAgendados'); if(lw) lw.innerHTML=ciListaAgendadosHtml();
+        var hw=document.getElementById('ciHistoricoWrap'); if(hw) hw.innerHTML=ciListaAgendadosHtml();
+        try{ if(typeof window.renderCdNotifs==='function') window.renderCdNotifs(); }catch(er){}
+      }
+      return;
+    }
     if(!document.getElementById('ciOv') || !document.getElementById('ciOv').contains(e.target)){
       // clique fora do modal (no próprio overlay) fecha, igual ao padrão cl-ov
       if(e.target.id==='ciOv') ciFecharModal();
@@ -20057,15 +20071,6 @@ function excluirNotaUI(id){
       return;
     }
     if(e.target.closest('#ciSalvarBtn')){ ciSalvarClique(); return; }
-    var del=e.target.closest('[data-ci-del]');
-    if(del){
-      if(window.confirm('Excluir este check-in agendado?')){
-        ciExcluir(del.getAttribute('data-ci-del'));
-        var lw=document.getElementById('ciListaAgendados'); if(lw) lw.innerHTML=ciListaAgendadosHtml();
-        try{ if(typeof window.renderCdNotifs==='function') window.renderCdNotifs(); }catch(e){}
-      }
-      return;
-    }
   });
   // MESMA máscara digitada da hora já usada na Ausência Programada — só
   // números, ":" inserido sozinho durante a digitação.
@@ -20231,7 +20236,16 @@ function excluirNotaUI(id){
     +'<div class="mt-board"><div class="mt-grid" id="mtGrid">'
     +   (ids.length? ids.map(function(id){ return mtPostitHtml(id, g.postits[id]); }).join('')
                    : '<div class="mt-vazio">Nenhum post-it ainda.<br>Clique em “＋ Novo post-it” e escolha a cor do papel. 🗒️</div>')
-    +'</div></div>';
+    +'</div></div>'
+    // (·261) HISTÓRICO DE AGENDAMENTOS DE CHECK-IN — logo abaixo do quadro de
+    // post-its, sempre visível (não precisa abrir o modal pra conferir o que
+    // já foi agendado). Mesma função de listagem que o modal usa (ciListaAgendadosHtml),
+    // reaproveitada aqui — as duas listas nunca podem se desencontrar porque
+    // leem a MESMA fonte (appConfig.checkins).
+    +'<div class="mt-hist-wrap">'
+    +  '<h3 class="fn-title" style="margin:20px 0 10px;font-size:1rem">📋 Histórico de agendamentos de check-in</h3>'
+    +  '<div id="ciHistoricoWrap">'+(typeof ciListaAgendadosHtml==='function'?ciListaAgendadosHtml():'')+'</div>'
+    +'</div>';
   }
 
   /* ---------- render principal (roteador chama esta) ---------- */
