@@ -18294,13 +18294,18 @@ function excluirNotaUI(id){
   #scr-prospeccao .cl-sub{color:#8CA3B3;font-size:.82rem;margin-top:3px}
   #scr-prospeccao .cl-busca{width:100%;background:#16232F;border:1px solid #243849;border-radius:11px;color:#E6EEF3;padding:12px 14px;font-size:.95rem;outline:none;margin-bottom:14px;transition:border .15s}
   #scr-prospeccao .cl-busca:focus{border-color:#2ec7a5}
-  #scr-prospeccao .cl-colhead{display:grid;grid-template-columns:26px 1fr 1.25fr 132px;gap:14px;padding:0 18px 8px;color:#8CA3B3;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.7px}
+  #scr-prospeccao .cl-colhead{display:grid;grid-template-columns:26px 1fr 170px 1fr 132px;gap:20px;padding:0 18px 8px;color:#8CA3B3;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.7px}
   #scr-prospeccao .cl-colhead .r{text-align:right}
+  #scr-prospeccao .cl-colhead .c{text-align:center}
   #scr-prospeccao .cl-list{display:flex;flex-direction:column;gap:8px}
-  #scr-prospeccao .cl-row{display:grid;grid-template-columns:26px 1fr 1.25fr 132px;gap:14px;align-items:center;background:#16232F;border:1px solid #243849;border-radius:12px;padding:13px 18px;transition:border .15s}
+  #scr-prospeccao .cl-row{display:grid;grid-template-columns:26px 1fr 170px 1fr 132px;gap:20px;align-items:center;background:#16232F;border:1px solid #243849;border-radius:12px;padding:13px 18px;transition:border .15s}
   #scr-prospeccao .cl-row:hover{border-color:#33586b}
   #scr-prospeccao .cl-nome{font-weight:650;font-size:1rem;line-height:1.25;color:#E6EEF3}
-  #scr-prospeccao .cl-regra{color:#cfe8e0;font-size:.9rem;line-height:1.4;display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+  #scr-prospeccao .cl-tel-cell{display:flex;align-items:center;justify-content:center}
+  #scr-prospeccao .cl-tel-badge{display:inline-block;background:linear-gradient(180deg,#34C173,#1E9E56);color:#fff;font-weight:800;font-size:.82rem;padding:5px 14px;border-radius:20px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+  #scr-prospeccao .cl-tel-vazio{color:#5b6f80;font-size:.85rem}
+  #scr-prospeccao .cl-origem-cell{display:flex;align-items:center}
+  #scr-prospeccao .cl-origem-cell .fn-selo-origem{margin:0}
   #scr-prospeccao .cl-det{justify-self:end;display:flex;gap:6px;align-items:center}
   #scr-prospeccao .cl-det button{border-radius:9px;padding:7px 9px;font-size:.85rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;min-width:34px;transition:background .15s,border-color .15s}
   #scr-prospeccao .cl-b-ver{background:#0d2a24;color:#2ec7a5;border:1px solid #1f9e83}
@@ -23397,13 +23402,16 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     }).sort(function(a,b){ return psNorm(a.nome).localeCompare(psNorm(b.nome),'pt-BR'); });
 
     var linhas = lista.length ? lista.map(function(p){
-      var origemTag='<span class="fn-selo-origem" style="background:'+psEsc(p._catCor)+'">'+psEsc(p._catTitulo)+'</span>';
-      var resumo='<div class="cl-regra">'+origemTag+(p.tel?' &nbsp; '+psEsc(p.tel):'')+'</div>';
+      var telCel = p.tel
+        ? '<div class="cl-tel-cell"><span class="cl-tel-badge">'+psEsc(p.tel)+'</span></div>'
+        : '<div class="cl-tel-cell"><span class="cl-tel-vazio">\u2014</span></div>';
+      var origemCel = '<div class="cl-origem-cell"><span class="fn-selo-origem" style="background:'+psEsc(p._catCor)+'">'+psEsc(p._catTitulo)+'</span></div>';
       var acoes = '<button type="button" class="cl-b-ver" data-ps-ver="'+psEsc(p.id)+'" title="Ver detalhes"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></button>'+
         '<button type="button" class="cl-b-ed" data-ps-ed="'+psEsc(p.id)+'" title="Editar">\u270f\ufe0f</button>'+
         '<button type="button" class="cl-b-del" data-ps-del-modal="'+psEsc(p.id)+'" title="Excluir">\ud83d\uddd1</button>';
       return '<div class="cl-row">'+psCirculoContato(p.id)+
-        '<div class="cl-nome">'+psEsc(p.nome)+'</div>'+resumo+
+        '<div class="cl-nome">'+psEsc(p.nome)+'</div>'+
+        telCel+origemCel+
         '<div class="cl-det">'+acoes+'</div>'+
       '</div>';
     }).join('') : '<div class="cl-vazio">Nenhum contato encontrado'+(q?' para essa busca':'')+'.</div>';
@@ -23418,7 +23426,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
         (qtdSelCt>0 ? '<button type="button" class="fn-bt perigo" id="psExcluirContatosSelecionados">\ud83d\uddd1\ufe0f Excluir '+qtdSelCt+' selecionado'+(qtdSelCt===1?'':'s')+'</button>' : '')+
       '</div>'+
       '<input type="text" class="cl-busca" data-ps-busca="__geral__" placeholder="\ud83d\udd0e Buscar por nome, telefone, e-mail, observação ou pasta de origem..." value="'+psEsc(psBuscaTxt['__geral__']||'')+'">'+
-      '<div class="cl-colhead"><span></span><span>Contato</span><span>Origem / Telefone</span><span class="r">Ações</span></div>'+
+      '<div class="cl-colhead"><span></span><span>Contato</span><span class="c">Telefone</span><span>Origem</span><span class="r">Ações</span></div>'+
       '<div class="cl-list">'+linhas+'</div>';
 
     var b=w.querySelector('[data-ps-busca]');
