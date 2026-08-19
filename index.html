@@ -4444,6 +4444,16 @@ async function carregarConfig(){
           appConfig.minhasTarefas=Object.assign({}, c.minhasTarefas, appConfig.minhasTarefas||local.minhasTarefas||{});
         }
       }
+      // (·260) CONTROLE DE CHECK-IN — dentro de Minhas Tarefas, mas o DADO em si
+      // NÃO é privado (precisa ser visto por admin+Diego em cópia): merge por
+      // ts (meta vence) + vistoU por chave, mesmo padrão de acoes.lido.
+      if(local.checkins || c.checkins){
+        if(typeof window.uvMesclarCheckins==='function'){
+          appConfig.checkins=window.uvMesclarCheckins(local.checkins||appConfig.checkins||{}, c.checkins||{});
+        } else if(c.checkins && typeof c.checkins==='object'){
+          appConfig.checkins=Object.assign({}, c.checkins, appConfig.checkins||local.checkins||{});
+        }
+      }
       /* (·215) AÇÕES COMERCIAIS: merge em DOIS níveis — meta do card por carimbo,
          MENSAGENS unidas por id. Sem o nível de baixo, duas pessoas postando no
          mesmo tópico quase junto apagariam a mensagem uma da outra. */
@@ -4593,6 +4603,14 @@ async function salvarConfig(){
         appConfig.minhasTarefas=window.uvMesclarTarefas(appConfig.minhasTarefas||{}, cloud.minhasTarefas||{});
       } else if(cloud.minhasTarefas && typeof cloud.minhasTarefas==='object'){
         appConfig.minhasTarefas=Object.assign({}, cloud.minhasTarefas, appConfig.minhasTarefas||{});
+      }
+    }
+    // (·260) CONTROLE DE CHECK-IN — mesmo ponto padrão, união nuvem+local
+    if(cloud.checkins || appConfig.checkins){
+      if(typeof window.uvMesclarCheckins==='function'){
+        appConfig.checkins=window.uvMesclarCheckins(appConfig.checkins||{}, cloud.checkins||{});
+      } else if(cloud.checkins && typeof cloud.checkins==='object'){
+        appConfig.checkins=Object.assign({}, cloud.checkins, appConfig.checkins||{});
       }
     }
     // (·215) AÇÕES COMERCIAIS: une nuvem+local (card por mts; mensagens por id)
@@ -6852,7 +6870,10 @@ function renderCdNotifs(){
   // (·258) caixa de CONFIRMAÇÃO de marcação — persistente, mesmo estilo,
   // aparece assim que a marcação acontece (sem exigir mensagem não lida).
   var _acConfirmHtml=''; try{ if(typeof window.acConfirmMarcacaoHtml==='function') _acConfirmHtml=window.acConfirmMarcacaoHtml()||''; }catch(e){ _acConfirmHtml=''; }
-  box.innerHTML=html.join('')+_acHtml+_acConfirmHtml;
+  // (·260) CONTROLE DE CHECK-IN — mesma família visual, visível só para quem
+  // agendou + admin + Diego Oliveira (filtro já vem pronto de ciNotifHtml).
+  var _ciHtml=''; try{ if(typeof window.ciNotifHtml==='function') _ciHtml=window.ciNotifHtml()||''; }catch(e){ _ciHtml=''; }
+  box.innerHTML=html.join('')+_acHtml+_acConfirmHtml+_ciHtml;
   // Clique: o botão "Verificado" tem prioridade e NÃO abre/fecha a caixa (ele vive
   // dentro do corpo expandido). Fora dele, clicar no cabeçalho alterna aberto/fechado.
   box.onclick=(e)=>{
@@ -6863,6 +6884,8 @@ function renderCdNotifs(){
     // (BUG reportado) botão "Visualizado" da caixa de confirmação de marcação
     const ac=e.target.closest('[data-acconfirmok]');
     if(ac){ e.stopPropagation(); try{ window.acConfirmarLidoTudo(); }catch(er){} return; }
+    const ci=e.target.closest('[data-cicheckinok]');
+    if(ci){ e.stopPropagation(); try{ window.ciConfirmarVistoTudo(); }catch(er){} return; }
     const h=e.target.closest('[data-cdtoggle]');
     if(h) cdToggleNotif(h.getAttribute('data-cdtoggle'));
   };
@@ -19716,6 +19739,354 @@ function excluirNotaUI(id){
   }
   window.uvMesclarTarefas=uvMesclarTarefas;
 
+  /* ============================================================================
+     (·260) CONTROLE DE CHECK-IN — dentro de Minhas Tarefas (acesso individual),
+     mas o DADO não é privado feito os post-its: precisa ser visto por quem
+     agendou + admin + Diego Oliveira. Por isso vive em appConfig.checkins,
+     estrutura PRÓPRIA e separada da gaveta pessoal — mesmo padrão que Ações
+     Comerciais já usa (dado compartilhado, sync no KV, sem campo vivo/Worker).
+
+     PEDIDO DO NANDO: botão dentro de Minhas Tarefas que abre um formulário
+     (Cia Aérea, Localizador, Trecho, um ou mais Pax) com data (calendário fixo,
+     mesmo padrão da Ausência Programada) e hora (digitada, mesmo padrão da
+     Ausência Programada) do disparo da notificação — que deve aparecer só para
+     quem agendou, o admin e o Diego Oliveira, com a mensagem
+     "Faça o check-in para [Nome da Pessoa]".
+
+     PERSISTÊNCIA DA NOTIFICAÇÃO: mesma lição do bug corrigido em Ações
+     Comerciais (·259) — nada de fila em memória com expiração por tempo. A
+     pendência é CALCULADA a cada render comparando quandoTs (quando o
+     check-in deve disparar) contra vistoU[usuario] (quando esta pessoa deu
+     baixa) — só some quando alguém realmente vê, nunca sozinha. */
+  function ciStore(){
+    if(!appConfig.checkins || typeof appConfig.checkins!=='object') appConfig.checkins={};
+    return appConfig.checkins;
+  }
+  function ciSalvar(){ try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){} }
+  function ciNovoId(){ return 'ci'+Date.now().toString(36)+Math.floor(Math.random()*1e6).toString(36); }
+  function ciEsc(s){ return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  // MERGE MULTI-PC — meta do check-in (cia/localizador/trecho/paxes/quandoTs/del)
+  // decide pelo carimbo mts mais recente, igual ao card de Ações Comerciais;
+  // vistoU (quem já deu baixa) é UNIÃO com o maior ts por usuário — nunca regride,
+  // senão uma baixa já dada voltaria a piscar sozinha num PC atrasado.
+  function uvMesclarCheckins(base, outro){
+    base=(base&&typeof base==='object')?base:{}; outro=(outro&&typeof outro==='object')?outro:{};
+    var out={}, ids={};
+    Object.keys(base).forEach(function(k){ ids[k]=1; }); Object.keys(outro).forEach(function(k){ ids[k]=1; });
+    Object.keys(ids).forEach(function(id){
+      var x=base[id], y=outro[id];
+      if(!x || !y){ out[id]=x||y; return; }
+      var meta=(((x.mts||0)>=(y.mts||0))?x:y);
+      var o={};
+      ['id','criador','criadorU','criadoTs'].forEach(function(f){ o[f]=(x[f]!==undefined?x[f]:y[f]); });
+      o.cia=meta.cia||''; o.localizador=meta.localizador||''; o.trecho=meta.trecho||'';
+      o.paxes=meta.paxes||[]; o.quandoTs=meta.quandoTs||0; o.del=meta.del||0; o.mts=Math.max(x.mts||0,y.mts||0);
+      var vu={}, VA=(x.vistoU&&typeof x.vistoU==='object')?x.vistoU:{}, VB=(y.vistoU&&typeof y.vistoU==='object')?y.vistoU:{};
+      Object.keys(VA).forEach(function(k){ vu[k]=VA[k]||0; });
+      Object.keys(VB).forEach(function(k){ vu[k]=Math.max(vu[k]||0, VB[k]||0); });
+      o.vistoU=vu;
+      out[id]=o;
+    });
+    return out;
+  }
+  window.uvMesclarCheckins=uvMesclarCheckins;
+
+  function ciCardsVivos(){
+    var S=ciStore(), out=[];
+    Object.keys(S).forEach(function(id){ var c=S[id]; if(c && !c.del) out.push(c); });
+    out.sort(function(a,b){ return (a.quandoTs||0)-(b.quandoTs||0); });
+    return out;
+  }
+  function ciSouAdmin(){ try{ return typeof uvAuthPerfil==='function' && uvAuthPerfil()==='admin'; }catch(e){ return false; } }
+  // mesma cautela conta≠nome que Ações Comerciais/Minhas Tarefas já usam:
+  // igualdade normalizada primeiro; só primeiro nome se for ÚNICO entre os 12.
+  function ciMesmaPessoa(nomeMarcado, nomeConta){
+    var a=mtNorm(nomeMarcado), b=mtNorm(nomeConta);
+    if(!a || !b) return false;
+    if(a===b) return true;
+    var pa=a.split(' ')[0], pb=b.split(' ')[0];
+    if(pa!==pb) return false;
+    var ops=mtOperadores(), n=0;
+    for(var i=0;i<ops.length;i++){ if(mtNorm(ops[i]).split(' ')[0]===pa) n++; }
+    return n===1;
+  }
+  function ciEhDiego(){ var nome=''; try{ nome=(typeof uvAuthNome==='function'?uvAuthNome():'')||''; }catch(e){} return ciMesmaPessoa('Diego Oliveira', nome); }
+
+  function ciNovo(dados){
+    var meu=''; try{ meu=(typeof uvAuthNome==='function'?uvAuthNome():'')||''; }catch(e){}
+    var meuU=''; try{ meuU=(typeof uvAuthUsuario==='function'?uvAuthUsuario():'')||''; }catch(e){}
+    var S=ciStore(), id=ciNovoId(), agora=Date.now();
+    S[id]={ id:id, cia:(dados.cia||'').trim(), localizador:(dados.localizador||'').trim(),
+             trecho:(dados.trecho||'').trim(), paxes:(dados.paxes||[]).map(function(p){ return (p||'').trim(); }).filter(Boolean),
+             quandoTs:dados.quandoTs||0, criador:meu, criadorU:meuU, criadoTs:agora, mts:agora, del:0, vistoU:{} };
+    ciSalvar();
+    try{ if(typeof logRemoto==='function') logRemoto('minhas_tarefas','Check-in agendado: '+(dados.cia||'')+' '+(dados.localizador||''),{area:'Minhas Tarefas'}); }catch(e){}
+    return id;
+  }
+  function ciExcluir(id){
+    var S=ciStore(), c=S[id]; if(!c) return;
+    var meuU=''; try{ meuU=(typeof uvAuthUsuario==='function'?uvAuthUsuario():'')||''; }catch(e){}
+    // só quem criou ou admin pode apagar — mesma trava de dois porteiros já usada
+    // em Ações Comerciais para excluir tópico.
+    if(c.criadorU!==meuU && !ciSouAdmin()) return;
+    c.del=1; c.mts=Date.now(); ciSalvar();
+  }
+
+  /* PENDÊNCIAS — para quem agendou + admin + Diego, tudo que já passou do
+     horário e ainda não foi visto por ESTE usuário. */
+  function ciPendentes(){
+    var meuU=''; try{ meuU=(typeof uvAuthUsuario==='function'?uvAuthUsuario():'')||''; }catch(e){}
+    if(!meuU) return [];
+    var meu=''; try{ meu=(typeof uvAuthNome==='function'?uvAuthNome():'')||''; }catch(e){}
+    var souAdmin=ciSouAdmin(), souDiego=ciEhDiego(), agora=Date.now();
+    var out=[];
+    ciCardsVivos().forEach(function(c){
+      if(!c.quandoTs || c.quandoTs>agora) return;             // ainda não chegou a hora
+      var souCriador=(c.criadorU===meuU) || ciMesmaPessoa(c.criador, meu);
+      if(!(souCriador || souAdmin || souDiego)) return;
+      var vistoEm=(c.vistoU&&c.vistoU[meuU])||0;
+      if(vistoEm) return;                                     // já dei baixa
+      out.push(c);
+    });
+    return out;
+  }
+  window.ciPendentes=ciPendentes;
+
+  function ciConfirmarVistoTudo(){
+    var meuU=''; try{ meuU=(typeof uvAuthUsuario==='function'?uvAuthUsuario():'')||''; }catch(e){}
+    if(!meuU) return;
+    var agora=Date.now();
+    ciPendentes().forEach(function(c){
+      if(!c.vistoU || typeof c.vistoU!=='object') c.vistoU={};
+      c.vistoU[meuU]=agora;
+    });
+    ciSalvar();
+    try{ if(typeof window.renderCdNotifs==='function') window.renderCdNotifs(); }catch(e){}
+  }
+  window.ciConfirmarVistoTudo=ciConfirmarVistoTudo;
+
+  /* CAIXA DE NOTIFICAÇÃO NO CONTROL DESK — mesmo formato visual .cd-notif das
+     outras cobranças. Mensagem no formato pedido: "Faça o check-in para
+     [Nome da Pessoa]" — uma linha por Pax, já que um check-in pode ter vários. */
+  window.ciNotifHtml=function(){
+    try{
+      var pend=ciPendentes(); if(!pend.length) return '';
+      var linhas=[];
+      pend.forEach(function(c){
+        var paxes=(c.paxes&&c.paxes.length)?c.paxes:['—'];
+        paxes.forEach(function(nome){
+          linhas.push('<div class="ac-notif-linha"><div class="cd-bloco-txt">✈️ Faça o check-in para <b>'+ciEsc(nome)+'</b>'
+            +'<br><span style="opacity:.75;font-size:.85em">'+ciEsc(c.cia)+' · loc. '+ciEsc(c.localizador)+' · '+ciEsc(c.trecho)+'</span></div></div>');
+        });
+      });
+      return '<div class="cd-notif">'
+        +'<div class="cd-notif-head aberta"><div class="cd-notif-tit">'
+        +'🛫 <span class="cd-chamada">CONTROLE DE CHECK-IN</span>'
+        +'</div></div>'
+        +'<div class="cd-notif-body"><div class="cd-bloco cd-bloco-acoes">'
+        +linhas.join('')
+        +'<button type="button" class="cd-notif-btn" data-cicheckinok="1">✓ Visualizado</button>'
+        +'</div></div></div>';
+    }catch(e){ return ''; }
+  };
+
+  /* ========================= MODAL DO FORMULÁRIO =========================
+     Reaproveita o overlay/modal padrão do Hub (cl-ov/cl-modal/cl-mhead/
+     cl-mbody/cl-mfoot/cl-efield — o MESMO usado em Cliente/Cartões/
+     Prospecção), com instância própria (ciOv/ciModal). O calendário é o
+     MESMO padrão fixo já usado na Ausência Programada (grade de mês com
+     navegação ◀ ▶, clique no dia seleciona), só que de DATA ÚNICA (não
+     período) — e a hora usa a MESMA máscara digitada (ausProgHoraLive/
+     ausProgHoraNorm, já expostas em window) em vez de reescrever a lógica. */
+  var CI_MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  var CI_DOW=['D','S','T','Q','Q','S','S'];
+  var ciPick={ data:'', hora:'' };
+  var ciCalMes=null;
+  var ciPaxes=[''];
+
+  function ciFmtData(data){
+    if(!data) return '—';
+    var p=data.split('-'); return (p.length===3)?(p[2]+'/'+p[1]+'/'+p[0].slice(2)):data;
+  }
+  function ciCalGridHtml(){
+    var base=ciCalMes || (ciPick.data ? new Date(ciPick.data+'T12:00') : new Date());
+    var ano=base.getFullYear(), mes=base.getMonth();
+    var inicioSemana=new Date(ano,mes,1).getDay();
+    var diasNoMes=new Date(ano,mes+1,0).getDate();
+    var html='';
+    CI_DOW.forEach(function(d){ html+='<span class="apr-cal-dow">'+d+'</span>'; });
+    for(var i=0;i<inicioSemana;i++) html+='<span class="apr-cal-vazio"></span>';
+    for(var dia=1;dia<=diasNoMes;dia++){
+      var iso=ano+'-'+String(mes+1).padStart(2,'0')+'-'+String(dia).padStart(2,'0');
+      html+='<button type="button" class="apr-cal-dia'+(iso===ciPick.data?' sel sel-ini':'')+'" data-ci-dia="'+iso+'">'+dia+'</button>';
+    }
+    return { html:html, titulo:CI_MESES[mes]+' '+ano };
+  }
+  function ciListaAgendadosHtml(){
+    var lista=ciCardsVivos();
+    if(!lista.length) return '<div class="fn-vazio-lista">Nenhum check-in agendado ainda.</div>';
+    var meuU=''; try{ meuU=(typeof uvAuthUsuario==='function'?uvAuthUsuario():'')||''; }catch(e){}
+    var souAdmin=ciSouAdmin();
+    return lista.map(function(c){
+      var podeExcluir=(c.criadorU===meuU)||souAdmin;
+      var jaPassou=(c.quandoTs||0)<=Date.now();
+      return '<div class="fn-card" style="border-left-color:'+(jaPassou?'#ff8fb1':'#2ec7a5')+'">'
+        +'<div class="fn-l1"><span class="fn-nome">'+ciEsc(c.cia)+' — loc. '+ciEsc(c.localizador)+'</span></div>'
+        +'<div class="fn-dados">'
+        +'<div class="cl-tel-cell">Trecho: '+ciEsc(c.trecho)+'</div>'
+        +'<div class="cl-tel-cell">Pax: '+ciEsc((c.paxes||[]).join(', ')||'—')+'</div>'
+        +'<div class="cl-tel-cell">Disparo: '+ciEsc(ciFmtData(new Date(c.quandoTs).toISOString().slice(0,10)))+' às '+ciEsc(new Date(c.quandoTs).toTimeString().slice(0,5))+(jaPassou?' <b style="color:#ff8fb1">· já disparou</b>':'')+'</div>'
+        +'<div class="cl-tel-cell">Agendado por: '+ciEsc(c.criador||'—')+'</div>'
+        +'</div>'
+        +(podeExcluir?('<button type="button" class="fn-del" data-ci-del="'+ciEsc(c.id)+'" title="Excluir este check-in" style="align-self:flex-end;margin-top:6px">🗑 Excluir</button>'):'')
+        +'</div>';
+    }).join('');
+  }
+  function ciModalConteudoHtml(){
+    var cal=ciCalGridHtml();
+    return ''
+      +'<div class="cl-mhead"><h2 class="cl-title">🛫 Controle de Check-in</h2>'
+      +'<button type="button" class="ct-voltar" id="ciFechar" style="border:none;background:none;font-size:1.3rem;cursor:pointer">✕</button></div>'
+      +'<div class="cl-mbody">'
+      +  '<div class="cl-efield"><label>Cia Aérea</label><input type="text" id="ciCia" maxlength="60" autocomplete="off"></div>'
+      +  '<div class="cl-efield"><label>Localizador</label><input type="text" id="ciLoc" maxlength="20" autocomplete="off"></div>'
+      +  '<div class="cl-efield"><label>Trecho</label><input type="text" id="ciTrecho" maxlength="80" autocomplete="off" placeholder="Ex.: GRU → MIA"></div>'
+      +  '<div class="cl-efield"><label>Nome do Pax</label>'
+      +    '<div id="ciPaxLista">'+ciPaxes.map(function(v,i){
+             return '<div style="display:flex;gap:8px;margin-bottom:6px" data-ci-pax-row="'+i+'">'
+               +'<input type="text" class="ci-pax-inp" data-ci-pax-idx="'+i+'" value="'+ciEsc(v)+'" placeholder="Nome completo" autocomplete="off" style="flex:1">'
+               +(ciPaxes.length>1?('<button type="button" class="ocp-bcc-x" data-ci-pax-del="'+i+'" title="Remover">✕</button>'):'')
+             +'</div>';
+           }).join('')+'</div>'
+      +    '<button type="button" class="ocp-bcc-add" id="ciPaxAdd">+ adicionar pax</button>'
+      +  '</div>'
+      +  '<div class="cl-efield"><label>Data do disparo</label>'
+      +    '<div class="apr-cal-head"><button type="button" class="apr-cal-nav" data-ci-nav="-1">◀</button>'
+      +    '<span class="apr-cal-mes">'+ciEsc(cal.titulo)+'</span><button type="button" class="apr-cal-nav" data-ci-nav="1">▶</button></div>'
+      +    '<div class="apr-cal-grid" id="ciCalGrid">'+cal.html+'</div>'
+      +    '<div class="apr-cal-resumo">'+(ciPick.data?('Selecionado: <b>'+ciEsc(ciFmtData(ciPick.data))+'</b>'):'Clique num dia no calendário')+'</div>'
+      +  '</div>'
+      +  '<div class="cl-efield"><label>Hora do disparo</label>'
+      +    '<input type="text" id="ciHora" class="apr-cal-time" inputmode="numeric" maxlength="5" placeholder="--:--" autocomplete="off" value="'+ciEsc(ciPick.hora)+'" title="Digite 4 números (ex.: 1400) — o : é inserido sozinho" style="width:110px">'
+      +  '</div>'
+      +  '<div id="ciErro" style="color:#ff8fb1;font-size:.82rem;min-height:1.2em"></div>'
+      +  '<div style="display:flex;justify-content:flex-end;gap:10px"><button type="button" class="fn-bt primario" id="ciSalvarBtn">Salvar check-in</button></div>'
+      +  '<h3 class="fn-title" style="font-size:1rem;margin-top:8px">📋 Check-ins agendados</h3>'
+      +  '<div id="ciListaAgendados">'+ciListaAgendadosHtml()+'</div>'
+      +'</div>';
+  }
+  function ciAbrirModal(){
+    var ov=document.getElementById('ciOv');
+    if(!ov){
+      ov=document.createElement('div'); ov.className='cl-ov'; ov.id='ciOv';
+      ov.innerHTML='<div class="cl-modal" id="ciModal"></div>';
+      document.body.appendChild(ov);
+    }
+    ciPick={ data:'', hora:'' }; ciCalMes=new Date(); ciPaxes=[''];
+    document.getElementById('ciModal').innerHTML=ciModalConteudoHtml();
+    ov.style.display='flex';
+    var ci=document.getElementById('ciCia'); if(ci){ try{ ci.focus(); }catch(e){} }
+  }
+  function ciFecharModal(){ var ov=document.getElementById('ciOv'); if(ov) ov.style.display='none'; }
+  function ciAtualizarCalGrid(){
+    var g=document.getElementById('ciCalGrid'); if(!g) return;
+    var cal=ciCalGridHtml(); g.innerHTML=cal.html;
+    var lbl=document.querySelector('#ciOv .apr-cal-mes'); if(lbl) lbl.textContent=cal.titulo;
+    var res=document.querySelector('#ciOv .apr-cal-resumo');
+    if(res) res.innerHTML=(ciPick.data?('Selecionado: <b>'+ciEsc(ciFmtData(ciPick.data))+'</b>'):'Clique num dia no calendário');
+  }
+  function ciAtualizarPaxLista(){
+    var w=document.getElementById('ciPaxLista'); if(!w) return;
+    w.innerHTML=ciPaxes.map(function(v,i){
+      return '<div style="display:flex;gap:8px;margin-bottom:6px" data-ci-pax-row="'+i+'">'
+        +'<input type="text" class="ci-pax-inp" data-ci-pax-idx="'+i+'" value="'+ciEsc(v)+'" placeholder="Nome completo" autocomplete="off" style="flex:1">'
+        +(ciPaxes.length>1?('<button type="button" class="ocp-bcc-x" data-ci-pax-del="'+i+'" title="Remover">✕</button>'):'')
+        +'</div>';
+    }).join('');
+  }
+  function ciSalvarClique(){
+    var erroEl=document.getElementById('ciErro'); if(erroEl) erroEl.textContent='';
+    var cia=(document.getElementById('ciCia')||{}).value||'';
+    var loc=(document.getElementById('ciLoc')||{}).value||'';
+    var trecho=(document.getElementById('ciTrecho')||{}).value||'';
+    var horaInp=document.getElementById('ciHora');
+    var hora=horaInp? (typeof window.ausProgHoraNorm==='function'?window.ausProgHoraNorm(horaInp.value):horaInp.value) : '';
+    document.querySelectorAll('.ci-pax-inp').forEach(function(inp){
+      var idx=parseInt(inp.getAttribute('data-ci-pax-idx'),10); ciPaxes[idx]=inp.value;
+    });
+    var paxesLimpos=ciPaxes.map(function(p){ return (p||'').trim(); }).filter(Boolean);
+    // validação dos obrigatórios, apontando o campo exato — mesmo critério já
+    // usado no restante do Hub (aviso específico, não genérico).
+    if(!cia.trim()){ erroEl.textContent='Informe a Cia Aérea.'; document.getElementById('ciCia').focus(); return; }
+    if(!loc.trim()){ erroEl.textContent='Informe o Localizador.'; document.getElementById('ciLoc').focus(); return; }
+    if(!trecho.trim()){ erroEl.textContent='Informe o Trecho.'; document.getElementById('ciTrecho').focus(); return; }
+    if(!paxesLimpos.length){ erroEl.textContent='Informe pelo menos um Pax.'; return; }
+    if(!ciPick.data){ erroEl.textContent='Selecione a data do disparo no calendário.'; return; }
+    if(!hora){ erroEl.textContent='Informe a hora do disparo.'; if(horaInp) horaInp.focus(); return; }
+    var quandoTs=new Date(ciPick.data+'T'+hora+':00').getTime();
+    if(isNaN(quandoTs)){ erroEl.textContent='Data/hora inválidas.'; return; }
+    ciNovo({ cia:cia, localizador:loc, trecho:trecho, paxes:paxesLimpos, quandoTs:quandoTs });
+    ciPick={ data:'', hora:'' }; ciPaxes=[''];
+    document.getElementById('ciModal').innerHTML=ciModalConteudoHtml();
+    try{ if(typeof window.renderCdNotifs==='function') window.renderCdNotifs(); }catch(e){}
+  }
+  document.addEventListener('click', function(e){
+    if(!e.target || !e.target.closest) return;
+    if(e.target.closest('#ciAbrirBtn')){ ciAbrirModal(); return; }
+    if(!document.getElementById('ciOv') || !document.getElementById('ciOv').contains(e.target)){
+      // clique fora do modal (no próprio overlay) fecha, igual ao padrão cl-ov
+      if(e.target.id==='ciOv') ciFecharModal();
+      return;
+    }
+    if(e.target.closest('#ciFechar')){ ciFecharModal(); return; }
+    var nav=e.target.closest('[data-ci-nav]');
+    if(nav){ var base=ciCalMes||new Date(); ciCalMes=new Date(base.getFullYear(), base.getMonth()+parseInt(nav.getAttribute('data-ci-nav'),10), 1); ciAtualizarCalGrid(); return; }
+    var dia=e.target.closest('[data-ci-dia]');
+    if(dia){ ciPick.data=dia.getAttribute('data-ci-dia'); ciAtualizarCalGrid(); return; }
+    if(e.target.closest('#ciPaxAdd')){
+      document.querySelectorAll('.ci-pax-inp').forEach(function(inp){ var idx=parseInt(inp.getAttribute('data-ci-pax-idx'),10); ciPaxes[idx]=inp.value; });
+      ciPaxes.push(''); ciAtualizarPaxLista();
+      var novos=document.querySelectorAll('.ci-pax-inp'); var ultimo=novos[novos.length-1]; if(ultimo){ try{ ultimo.focus(); }catch(er){} }
+      return;
+    }
+    var pdel=e.target.closest('[data-ci-pax-del]');
+    if(pdel){
+      document.querySelectorAll('.ci-pax-inp').forEach(function(inp){ var idx=parseInt(inp.getAttribute('data-ci-pax-idx'),10); ciPaxes[idx]=inp.value; });
+      var di=parseInt(pdel.getAttribute('data-ci-pax-del'),10); ciPaxes.splice(di,1); ciAtualizarPaxLista();
+      return;
+    }
+    if(e.target.closest('#ciSalvarBtn')){ ciSalvarClique(); return; }
+    var del=e.target.closest('[data-ci-del]');
+    if(del){
+      if(window.confirm('Excluir este check-in agendado?')){
+        ciExcluir(del.getAttribute('data-ci-del'));
+        var lw=document.getElementById('ciListaAgendados'); if(lw) lw.innerHTML=ciListaAgendadosHtml();
+        try{ if(typeof window.renderCdNotifs==='function') window.renderCdNotifs(); }catch(e){}
+      }
+      return;
+    }
+  });
+  // MESMA máscara digitada da hora já usada na Ausência Programada — só
+  // números, ":" inserido sozinho durante a digitação.
+  document.addEventListener('input', function(e){
+    if(e.target && e.target.id==='ciHora' && typeof window.ausProgHoraLive==='function'){
+      var fmt=window.ausProgHoraLive(e.target.value);
+      if(e.target.value!==fmt){ e.target.value=fmt; try{ e.target.setSelectionRange(fmt.length,fmt.length); }catch(er){} }
+    }
+  });
+  document.addEventListener('blur', function(e){
+    if(e.target && e.target.id==='ciHora' && typeof window.ausProgHoraNorm==='function'){
+      e.target.value=window.ausProgHoraNorm(e.target.value);
+    }
+  }, true);
+  document.addEventListener('keydown', function(e){
+    if(e.key==='Escape' && document.getElementById('ciOv') && document.getElementById('ciOv').style.display==='flex') ciFecharModal();
+  });
+
+
+
+
   /* ---------- sessão ----------
      (·220) deixou de ser uma segunda SENHA por operador — agora é resolvida
      automaticamente a partir de quem já está logado no Hub. Continua vivendo
@@ -19853,6 +20224,7 @@ function excluirNotaUI(id){
     +'<div class="mt-topo">'
     +  '<span class="mt-topo-quem">👤 '+mtEsc(mtSessao)+' <span style="opacity:.7;font-weight:600">· gaveta aberta</span></span>'
     +  '<button type="button" class="mt-btn mt-btn-novo" id="mtNovo">＋ Novo post-it</button>'
+    +  '<button type="button" class="mt-btn mt-btn-checkin" id="ciAbrirBtn">🛫 Controle de Check-in</button>'
     +  '<button type="button" class="mt-btn mt-btn-lock" id="mtLock">🔒 Trancar</button>'
     +'</div>'
     + mtToolbarHtml()
