@@ -926,6 +926,25 @@ body.dark .fn-card{background:rgba(255,255,255,.04)}
 .fn-check.on{background:#e02222;border-color:#e02222}
 .fn-check.on::after{content:'\2713';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:900}
 .fn-selo-origem{display:inline-block;font-size:10px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:.3px;padding:3px 9px;border-radius:999px;margin:-2px 0 8px;box-shadow:0 2px 5px rgba(0,0,0,.25)}
+/* (·266) Gestores de Leads — cards colapsáveis abaixo da grade de pastas */
+.pg-secao{margin-top:28px}
+.pg-titulo{font-size:16px;font-weight:900;color:var(--texto);margin:0 0 12px;display:flex;align-items:center;gap:8px}
+.pg-lista{display:flex;flex-direction:column;gap:10px}
+.pg-card{background:var(--card);border:1px solid var(--borda);border-radius:12px;overflow:hidden}
+body.dark .pg-card{background:rgba(255,255,255,.04)}
+.pg-card-head{display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer}
+.pg-card-head:hover{background:var(--azul-claro)}
+.pg-seta{color:var(--texto-suave);font-size:11px;width:12px;flex:0 0 auto}
+.pg-nome{font-weight:800;font-size:14.5px;color:var(--texto);flex:0 0 auto;white-space:nowrap}
+.pg-qtd{color:var(--texto-suave);font-size:12.5px;font-weight:700;flex:1 1 auto}
+.pg-contatos{border-top:1px solid var(--borda);padding:10px 16px;display:flex;flex-direction:column;gap:4px}
+.pg-contato-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:9px 0;border-bottom:1px solid var(--borda)}
+.pg-contato-row:last-child{border-bottom:none}
+.pg-contato-nome{font-weight:700;font-size:13.5px;color:var(--texto);flex:1 1 160px;min-width:120px}
+.pg-contato-acoes{display:flex;gap:6px;margin-left:auto}
+.pg-atendente-lista{display:flex;flex-direction:column;gap:6px;max-height:50vh;overflow:auto}
+.pg-atendente-btn{width:100%;text-align:left;background:transparent;border:1px solid var(--borda);color:var(--texto);border-radius:9px;padding:11px 14px;font-size:13.5px;font-weight:700;cursor:pointer;transition:all .15s;font-family:inherit}
+.pg-atendente-btn:hover{border-color:var(--azul);background:var(--azul-claro);color:var(--azul)}
 .fn-nome{font-size:15px;font-weight:900;color:var(--texto)}
 .fn-dados{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:7px 16px}
 .fn-campo{display:flex;flex-direction:column;gap:1px;min-width:0}
@@ -4275,6 +4294,9 @@ async function carregarConfig(){
       if(typeof window.psCatsMergeMaps==='function'){
         appConfig.prospCats=window.psCatsMergeMaps(local.prospCats, c.prospCats);
       }
+      if(typeof window.pgMergeMaps==='function'){          // (·266) Gestores de Leads
+        appConfig.prospGestores=window.pgMergeMaps(local.prospGestores, c.prospGestores);
+      }
       /* (·250) CARTÕES CADASTRADOS PELO USUÁRIO — mesma proteção de união. */
       if(typeof window.ccExtrasMergeMaps==='function'){
         appConfig.ccExtras=window.ccExtrasMergeMaps(local.ccExtras, c.ccExtras);
@@ -4592,6 +4614,9 @@ async function salvarConfig(){
     }
     if(typeof window.psCatsMergeMaps==='function'){
       appConfig.prospCats=window.psCatsMergeMaps(appConfig.prospCats, cloud.prospCats);
+    }
+    if(typeof window.pgMergeMaps==='function'){                // (·266) Gestores de Leads
+      appConfig.prospGestores=window.pgMergeMaps(appConfig.prospGestores, cloud.prospGestores);
     }
     if(typeof window.ccExtrasMergeMaps==='function'){         // (·250) Cartões cadastrados
       appConfig.ccExtras=window.ccExtrasMergeMaps(appConfig.ccExtras, cloud.ccExtras);
@@ -23113,7 +23138,129 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
   }
 
   var prospeccaoAberto=null, psModoEdPastas=false, psEditandoCat=null, psFocarNovaCat=null, psPastasSelecionadas={};
-  var psVisaoGeral=false, psContatosSelecionados={};
+  var psVisaoGeral=false, psContatosSelecionados={}, psGestorAberto=null;
+
+  var PS_ATENDENTES=['Eduardo Vinícius','Ghabriella Bressan','Liliane Gaspar','Israel Hespanhol','Maria Eduarda','Juliana Lupo','Diego Oliveira','Fernando Pires','Ana Maria','Hynaê Teston','Ruth Alves','Mayara Marcelli'];
+
+  /* ---------------------------------------------------------------
+     (·266) GESTORES DE LEADS — pedido do Nando: transferir contatos de
+     Prospecção pra um atendente específico SEM tirar o contato da pasta
+     original — ou seja, uma CÓPIA vinculada ao atendente, não uma mudança
+     de dono. Por isso é um armazenamento SEPARADO (appConfig.prospGestores),
+     indexado por atendente e depois por id do contato — MESMO padrão de
+     dois níveis de appConfig.prosp (categoria → id), só que aqui o
+     primeiro nível é o NOME do atendente. Reaproveita o MESMO id do
+     contato original (não colide: são objetos/namespaces diferentes),
+     o que deixa fácil rastrear "essa cópia veio de qual contato".
+     --------------------------------------------------------------- */
+  function pgStore(atendente){
+    if(!appConfig.prospGestores || typeof appConfig.prospGestores!=='object') appConfig.prospGestores={};
+    if(!appConfig.prospGestores[atendente] || typeof appConfig.prospGestores[atendente]!=='object') appConfig.prospGestores[atendente]={};
+    return appConfig.prospGestores[atendente];
+  }
+  function pgLista(atendente){
+    var ed=pgStore(atendente), out=[];
+    Object.keys(ed).forEach(function(id){
+      var e=ed[id]; if(!e || e.del) return;
+      out.push({id:id, nome:e.nome||'', tel:e.tel||'', email:e.email||'', obs:e.obs||'',
+        origemChave:e.origemChave||'', origemTitulo:e.origemTitulo||'', origemCor:e.origemCor||'#3B8FD4'});
+    });
+    out.sort(function(a,b){ return psNorm(a.nome).localeCompare(psNorm(b.nome),'pt-BR'); });
+    return out;
+  }
+  window.UV_PG_LISTA = pgLista;
+  // só lista quem TEM contato de verdade — evita mostrar os 12 atendentes
+  // vazios na tela toda vez (só aparece quem já recebeu alguma transferência)
+  function pgAtendentesComContatos(){
+    var g=(appConfig.prospGestores && typeof appConfig.prospGestores==='object') ? appConfig.prospGestores : {};
+    return Object.keys(g).filter(function(at){ return pgLista(at).length>0; })
+      .sort(function(a,b){ return psNorm(a).localeCompare(psNorm(b),'pt-BR'); });
+  }
+  function pgTransferir(atendente, c){ // c: {id,nome,tel,email,obs,cat,catTitulo,catCor} — formato de psAcharContato()
+    var ed=pgStore(atendente);
+    ed[c.id]={nome:c.nome||'', tel:c.tel||'', email:c.email||'', obs:c.obs||'',
+      origemChave:c.cat||'', origemTitulo:c.catTitulo||'', origemCor:c.catCor||'#3B8FD4', ts:Date.now(), del:0};
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+    try{ if(typeof logRemoto==='function') logRemoto('prospeccao',(c.nome||'Contato')+' transferido para '+atendente,{area:'Prospecção', atendente:atendente}); }catch(e){}
+  }
+  function pgRemover(atendente, id){
+    var ed=pgStore(atendente);
+    var atual=ed[id]||{}; atual.del=1; atual.ts=Date.now(); ed[id]=atual;
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+    try{ if(typeof logRemoto==='function') logRemoto('prospeccao','Contato removido da lista de '+atendente,{area:'Prospecção', atendente:atendente}); }catch(e){}
+  }
+  function pgRetransferir(de, para, id){
+    var edDe=pgStore(de); var reg=edDe[id]; if(!reg) return;
+    pgRemover(de, id);
+    var edPara=pgStore(para);
+    edPara[id]={nome:reg.nome||'', tel:reg.tel||'', email:reg.email||'', obs:reg.obs||'',
+      origemChave:reg.origemChave||'', origemTitulo:reg.origemTitulo||'', origemCor:reg.origemCor||'#3B8FD4', ts:Date.now(), del:0};
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+    try{ if(typeof logRemoto==='function') logRemoto('prospeccao','Contato retransferido de '+de+' para '+para,{area:'Prospecção'}); }catch(e){}
+  }
+  /* Merge multi-PC — dois níveis (atendente, depois id-dentro-do-atendente),
+     mesma forma de psMergeMaps. */
+  window.pgMergeMaps=function(a,b){
+    a=a||{}; b=b||{}; var out={}, ats={};
+    Object.keys(a).forEach(function(k){ats[k]=1;}); Object.keys(b).forEach(function(k){ats[k]=1;});
+    Object.keys(ats).forEach(function(at){
+      var ma=a[at]||{}, mb=b[at]||{}, mo={}, ids={};
+      Object.keys(ma).forEach(function(k){ids[k]=1;}); Object.keys(mb).forEach(function(k){ids[k]=1;});
+      Object.keys(ids).forEach(function(id){
+        var x=ma[id], y=mb[id];
+        mo[id]=(x&&y)?(((x.ts||0)>=(y.ts||0))?x:y):(x||y);
+      });
+      out[at]=mo;
+    });
+    return out;
+  };
+  // Exporta CSV do atendente — nome só o primeiro (sem sobrenome), telefone
+  // só dígitos (DDD+número junto, sem espaço/hífen/parênteses).
+  function pgGerarCSV(atendente){
+    var lista=pgLista(atendente);
+    if(!lista.length){ try{ window.alert('Nenhum contato para exportar.'); }catch(e){} return; }
+    var linhas=['Nome,Telefone'];
+    lista.forEach(function(p){
+      var primeiroNome=(p.nome||'').trim().split(/\s+/)[0]||'';
+      var telDigitos=(p.tel||'').replace(/\D/g,'');
+      linhas.push('"'+primeiroNome.replace(/"/g,'""')+'","'+telDigitos+'"');
+    });
+    var conteudo=linhas.join('\r\n');
+    var blob=new Blob(['\uFEFF'+conteudo], {type:'text/csv;charset=utf-8;'});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');
+    a.href=url; a.download='leads_'+atendente.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'_')+'.csv';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);
+    try{ if(typeof logRemoto==='function') logRemoto('prospeccao','CSV de leads exportado para '+atendente+' ('+lista.length+' contatos)',{area:'Prospecção', atendente:atendente}); }catch(e){}
+  }
+  // Modal genérico de "escolher um atendente" — usado tanto por Transferir
+  // quanto por Retransferir (passando quem já está de fora da lista).
+  function psAbreEscolherAtendente(titulo, excluirNome, aoEscolher){
+    psGarantirOverlay();
+    var opcoes=PS_ATENDENTES.filter(function(n){ return n!==excluirNome; }).map(function(nome){
+      return '<button type="button" class="pg-atendente-btn" data-pg-escolher="'+psEsc(nome)+'">'+psEsc(nome)+'</button>';
+    }).join('');
+    var h='<div class="cl-mhead"><h2>'+psEsc(titulo)+'</h2><button type="button" class="cl-x" id="psTX">&times;</button></div>'+
+      '<div class="cl-mbody"><div class="pg-atendente-lista">'+opcoes+'</div></div>';
+    document.getElementById('psModal').innerHTML=h;
+    document.getElementById('psOv').classList.add('on');
+    document.getElementById('psTX').onclick=psFechaModal;
+    document.querySelectorAll('#psModal [data-pg-escolher]').forEach(function(btn){
+      btn.onclick=function(){ var nome=btn.getAttribute('data-pg-escolher'); psFechaModal(); aoEscolher(nome); };
+    });
+  }
+  function psTransferirSelecionadosParaAtendente(){
+    var idsSel=Object.keys(psContatosSelecionados).filter(function(k){ return psContatosSelecionados[k]; });
+    if(!idsSel.length) return;
+    psAbreEscolherAtendente('\ud83d\udce4 Transferir '+idsSel.length+' contato'+(idsSel.length===1?'':'s')+' para qual atendente?', null, function(atendente){
+      var qtd=0;
+      idsSel.forEach(function(id){ var c=psAcharContato(id); if(c){ pgTransferir(atendente, c); qtd++; } });
+      psContatosSelecionados={};
+      window.renderProspeccao();
+      try{ if(typeof toast==='function') toast(qtd+' contato(s) transferido(s) para '+atendente+' \u2705','ok'); }catch(e){}
+    });
+  }
 
   // círculo de seleção reaproveitado tanto dentro de uma pasta aberta quanto
   // na Lista Geral — chave é sempre o ID do contato, que já nasce prefixado
@@ -23134,6 +23281,37 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     });
     try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
     try{ if(typeof logRemoto==='function') logRemoto('prospeccao', itens.length+' contato(s) removido(s) em lote',{area:'Prospecção', qtd:itens.length}); }catch(e){}
+  }
+
+  function psRenderGestores(){
+    var atendentes=pgAtendentesComContatos();
+    if(!atendentes.length) return '';
+    var blocos=atendentes.map(function(at){
+      var lista=pgLista(at);
+      var aberto=(psGestorAberto===at);
+      var linhasContatos = aberto ? (lista.length ? lista.map(function(p){
+        var origemBadge = p.origemTitulo ? '<span class="fn-selo-origem" style="background:'+psEsc(p.origemCor)+'">'+psEsc(p.origemTitulo)+'</span>' : '';
+        var telBadge = p.tel ? '<span class="cl-tel-badge">'+psEsc(p.tel)+'</span>' : '<span class="cl-tel-vazio">\u2014</span>';
+        return '<div class="pg-contato-row">'+
+          '<span class="pg-contato-nome">'+psEsc(p.nome)+'</span>'+
+          telBadge+origemBadge+
+          '<span class="pg-contato-acoes">'+
+            '<button type="button" class="cl-b-ed" data-pg-retransferir-at="'+psEsc(at)+'" data-pg-retransferir-id="'+psEsc(p.id)+'" title="Retransferir para outro atendente">\ud83d\udd01</button>'+
+            '<button type="button" class="cl-b-del" data-pg-remover-at="'+psEsc(at)+'" data-pg-remover-id="'+psEsc(p.id)+'" title="Remover da lista deste atendente">\ud83d\uddd1</button>'+
+          '</span>'+
+        '</div>';
+      }).join('') : '<div class="cl-vazio" style="padding:16px">Nenhum contato nesta lista.</div>') : '';
+      return '<div class="pg-card">'+
+        '<div class="pg-card-head" data-pg-toggle="'+psEsc(at)+'">'+
+          '<span class="pg-seta">'+(aberto?'\u25be':'\u25b8')+'</span>'+
+          '<span class="pg-nome">'+psEsc(at)+'</span>'+
+          '<span class="pg-qtd">'+lista.length+' contato'+(lista.length===1?'':'s')+'</span>'+
+          '<button type="button" class="fn-bt" data-pg-csv="'+psEsc(at)+'" title="Baixar CSV desta lista">\ud83d\udcc4 Gerar CSV</button>'+
+        '</div>'+
+        (aberto ? '<div class="pg-contatos">'+linhasContatos+'</div>' : '')+
+      '</div>';
+    }).join('');
+    return '<div class="pg-secao"><h3 class="pg-titulo">\ud83d\udc65 Gestores de Leads</h3><div class="pg-lista">'+blocos+'</div></div>';
   }
 
   function psRenderGrid(w){
@@ -23187,7 +23365,8 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
         '</div>'+
       '</div>'+
       (psModoEdPastas?'<div class="fn-aviso-ed">\u270f\ufe0f Toque no lápis de uma pasta para renomeá-la ou trocar a cor, no círculo pra selecionar e excluir, ou crie uma pasta nova. Tudo salva sozinho.</div>':'')+
-      '<div class="ct-grid">'+tiles+novaTile+'</div>';
+      '<div class="ct-grid">'+tiles+novaTile+'</div>'+
+      psRenderGestores();
 
     if(psFocarNovaCat){
       var alvo=w.querySelector('[data-ps-cat="'+psFocarNovaCat+'"]');
@@ -23263,6 +23442,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
         '<div class="fn-sub">'+todos.length+' contato'+(todos.length===1?'':'s')+' cadastrado'+(todos.length===1?'':'s')+'</div></div>'+
         '<div class="fn-acoes">'+
           (qtdSelCt>0 ? '<button type="button" class="fn-bt perigo" id="psExcluirContatosSelecionados">\ud83d\uddd1\ufe0f Excluir '+qtdSelCt+' selecionado'+(qtdSelCt===1?'':'s')+'</button>' : '')+
+          (qtdSelCt>0 ? '<button type="button" class="fn-bt primario" id="psTransferirSelecionados">\ud83d\udce4 Transferir para Atendente</button>' : '')+
           (editando?'<button type="button" class="fn-bt primario" data-ps-novo="'+psEsc(cat)+'">+ Adicionar contato</button>':'')+
           '<button type="button" class="fn-bt'+(editando?' on':'')+'" data-ps-editar="'+psEsc(cat)+'">'+
             (editando?'\u2713 Concluir edição':'\u270f\ufe0f Editar')+'</button>'+
@@ -23424,6 +23604,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
         '<div><h2 class="cl-title">\ud83d\udccb Lista Geral</h2>'+
         '<div class="cl-sub">'+cats.length+' listas \u00b7 '+todos.length+' contatos no total</div></div>'+
         (qtdSelCt>0 ? '<button type="button" class="fn-bt perigo" id="psExcluirContatosSelecionados">\ud83d\uddd1\ufe0f Excluir '+qtdSelCt+' selecionado'+(qtdSelCt===1?'':'s')+'</button>' : '')+
+        (qtdSelCt>0 ? '<button type="button" class="fn-bt primario" id="psTransferirSelecionados">\ud83d\udce4 Transferir para Atendente</button>' : '')+
       '</div>'+
       '<input type="text" class="cl-busca" data-ps-busca="__geral__" placeholder="\ud83d\udd0e Buscar por nome, telefone, e-mail, observação ou pasta de origem..." value="'+psEsc(psBuscaTxt['__geral__']||'')+'">'+
       '<div class="cl-colhead"><span></span><span>Contato</span><span class="c">Telefone</span><span>Origem</span><span class="r">Ações</span></div>'+
@@ -23503,6 +23684,40 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       if(window.confirm(msgC)){
         psDelMultiplos(achados);
         psContatosSelecionados={};
+        window.renderProspeccao();
+      }
+      return;
+    }
+    var btnTransferir=e.target.closest('#psTransferirSelecionados');
+    if(btnTransferir){ psTransferirSelecionadosParaAtendente(); return; }
+
+    // ---- Gestores de Leads ----
+    // IMPORTANTE: o botão "Gerar CSV" fica DENTRO do cabeçalho clicável do
+    // card (data-pg-toggle) — precisa ser checado ANTES, senão o toggle
+    // "engole" o clique e o CSV nunca dispara (closest() acha os dois).
+    var btnCsv=e.target.closest('[data-pg-csv]');
+    if(btnCsv){ pgGerarCSV(btnCsv.getAttribute('data-pg-csv')); return; }
+    var toggleGestor=e.target.closest('[data-pg-toggle]');
+    if(toggleGestor){
+      var atT=toggleGestor.getAttribute('data-pg-toggle');
+      psGestorAberto=(psGestorAberto===atT)?null:atT;
+      window.renderProspeccao(); return;
+    }
+    var btnRetrans=e.target.closest('[data-pg-retransferir-id]');
+    if(btnRetrans){
+      var atAtual=btnRetrans.getAttribute('data-pg-retransferir-at'), idRetr=btnRetrans.getAttribute('data-pg-retransferir-id');
+      psAbreEscolherAtendente('\ud83d\udd01 Retransferir de '+atAtual+' para qual atendente?', atAtual, function(novoAt){
+        pgRetransferir(atAtual, novoAt, idRetr);
+        window.renderProspeccao();
+        try{ if(typeof toast==='function') toast('Contato retransferido para '+novoAt+' \u2705','ok'); }catch(e){}
+      });
+      return;
+    }
+    var btnRemoverG=e.target.closest('[data-pg-remover-id]');
+    if(btnRemoverG){
+      var atRem=btnRemoverG.getAttribute('data-pg-remover-at'), idRem=btnRemoverG.getAttribute('data-pg-remover-id');
+      if(window.confirm('Remover este contato da lista de '+atRem+'? (o contato original na pasta de Prospecção não é afetado)')){
+        pgRemover(atRem, idRem);
         window.renderProspeccao();
       }
       return;
