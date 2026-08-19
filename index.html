@@ -2405,7 +2405,11 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .mt-btn-checkin:hover{background:linear-gradient(180deg,#FFAB4D,#FF7A1F);box-shadow:0 0 16px rgba(255,138,26,.65),0 0 4px rgba(255,180,90,.8)}
 /* (·264) agora sozinho, logo abaixo do quadro — largura cheia pra marcar a
    transição visual entre o quadro de notas e o histórico de check-in. */
-.mt-btn-checkin-abaixo{display:flex;justify-content:center;width:100%;margin:14px 0 22px;padding:11px 14px}
+/* (·265) formato compartilhado — largura cheia, mesmo padding — usado tanto
+   pelo "＋ Nota" quanto pelo "Controle de Check-in" logo abaixo, pra ficarem
+   no MESMO formato de barra; só a cor de cada um continua diferente. */
+.mt-btn-full{display:flex;justify-content:center;width:100%;padding:11px 14px}
+.mt-btn-checkin-abaixo{margin:14px 0 22px}
 /* seletor de cor de post-it (popover) */
 .mt-corpop{position:absolute;z-index:10000;background:#141C26;border:1px solid rgba(255,255,255,.16);border-radius:14px;box-shadow:0 16px 44px rgba(0,0,0,.55);padding:14px;width:236px}
 .mt-corpop-tit{color:#fff;font-size:12.5px;font-weight:800;margin-bottom:10px}
@@ -20231,7 +20235,7 @@ function excluirNotaUI(id){
       .sort(function(a,b){ return (g.postits[a].criado||0)-(g.postits[b].criado||0); });
     root.innerHTML=''
     +'<div class="mt-topo">'
-    +  '<button type="button" class="mt-btn mt-btn-novo" id="mtNovo">＋ Nota</button>'
+    +  '<button type="button" class="mt-btn mt-btn-novo mt-btn-full" id="mtNovo">＋ Nota</button>'
     +'</div>'
     + mtToolbarHtml()
     // (·264) o quadro nasce COMPACTO (·mt-board-vazio, 60% menor) quando não
@@ -20245,7 +20249,7 @@ function excluirNotaUI(id){
     // (·264) Controle de Check-in migrou do topo pra logo ABAIXO do quadro,
     // como pedido — sozinho, na largura toda, marcando a transição pro
     // histórico de agendamentos que vem em seguida.
-    +'<button type="button" class="mt-btn mt-btn-checkin mt-btn-checkin-abaixo" id="ciAbrirBtn">🛫 Controle de Check-in</button>'
+    +'<button type="button" class="mt-btn mt-btn-checkin mt-btn-checkin-abaixo mt-btn-full" id="ciAbrirBtn">🛫 Controle de Check-in</button>'
     // (·261) HISTÓRICO DE AGENDAMENTOS DE CHECK-IN — logo abaixo do quadro de
     // post-its, sempre visível (não precisa abrir o modal pra conferir o que
     // já foi agendado). Mesma função de listagem que o modal usa (ciListaAgendadosHtml),
