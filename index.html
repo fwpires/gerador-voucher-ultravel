@@ -3176,6 +3176,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
         <div class="nav-children show" data-tree-body="comercial">
           <button class="nav-item nav-sub" data-screen="acoes"><span>Ações Comerciais</span></button>
           <button class="nav-item nav-sub" data-screen="prospeccao"><span>Prospecção</span></button>
+          <button class="nav-item nav-sub" data-screen="kanbanleads"><span>Kanban</span></button>
         </div>
         <button class="nav-item open" data-tree="matriz"><span class="nav-ic nav-ic-mx"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#2ec7a5" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="9.5" x2="21" y2="9.5"/><line x1="9" y1="9.5" x2="9" y2="20"/><line x1="15" y1="9.5" x2="15" y2="20"/></svg></span><span>Matriz Operacional</span><b class="nav-caret">▾</b></button>
         <div class="nav-children show" data-tree-body="matriz">
@@ -3517,6 +3518,9 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
       </section>
       <section class="screen" id="scr-prospeccao">
         <div id="prospeccaoWrap"></div>
+      </section>
+      <section class="screen" id="scr-kanbanleads">
+        <div id="kanbanLeadsWrap"></div>
       </section>
       <section class="screen" id="scr-matriz">
         <div id="matrizWrap"></div>
@@ -4317,6 +4321,12 @@ async function carregarConfig(){
       if(typeof window.pgMergeMaps==='function'){          // (·266) Gestores de Leads
         appConfig.prospGestores=window.pgMergeMaps(local.prospGestores, c.prospGestores);
       }
+      if(typeof window.klBoardsMergeMaps==='function'){     // (·271) Kanban Comercial
+        appConfig.klBoards=window.klBoardsMergeMaps(local.klBoards, c.klBoards);
+      }
+      if(typeof window.klCardsMergeMaps==='function'){
+        appConfig.klCards=window.klCardsMergeMaps(local.klCards, c.klCards);
+      }
       /* (·250) CARTÕES CADASTRADOS PELO USUÁRIO — mesma proteção de união. */
       if(typeof window.ccExtrasMergeMaps==='function'){
         appConfig.ccExtras=window.ccExtrasMergeMaps(local.ccExtras, c.ccExtras);
@@ -4637,6 +4647,12 @@ async function salvarConfig(){
     }
     if(typeof window.pgMergeMaps==='function'){                // (·266) Gestores de Leads
       appConfig.prospGestores=window.pgMergeMaps(appConfig.prospGestores, cloud.prospGestores);
+    }
+    if(typeof window.klBoardsMergeMaps==='function'){          // (·271) Kanban Comercial
+      appConfig.klBoards=window.klBoardsMergeMaps(appConfig.klBoards, cloud.klBoards);
+    }
+    if(typeof window.klCardsMergeMaps==='function'){
+      appConfig.klCards=window.klCardsMergeMaps(appConfig.klCards, cloud.klCards);
     }
     if(typeof window.ccExtrasMergeMaps==='function'){         // (·250) Cartões cadastrados
       appConfig.ccExtras=window.ccExtrasMergeMaps(appConfig.ccExtras, cloud.ccExtras);
@@ -8728,6 +8744,7 @@ init();
       if(scr==='contatos' && typeof window.renderContatos==='function') window.renderContatos();
       if(scr==='acoes' && typeof window.renderAcoes==='function') window.renderAcoes();
       if(scr==='prospeccao' && typeof window.renderProspeccao==='function') window.renderProspeccao();
+      if(scr==='kanbanleads' && typeof window.renderKanbanLeads==='function') window.renderKanbanLeads();
       if(scr==='matriz' && typeof window.renderMatriz==='function') window.renderMatriz();
       if(scr==='cliente' && typeof window.renderCliente==='function') window.renderCliente();
       if(scr==='cartoes' && typeof window.renderCartoes==='function') window.renderCartoes();
@@ -18362,6 +18379,47 @@ function excluirNotaUI(id){
   #scr-prospeccao .cl-b-del{background:#16232F;color:#E6EEF3;border:1px solid #243849}
   #scr-prospeccao .cl-b-del:hover{background:#3a1d1d;border-color:#c0392b}
   #scr-prospeccao .cl-vazio{text-align:center;color:#8CA3B3;padding:40px;font-size:.9rem}
+
+  /* (·271) KANBAN COMERCIAL — pedido do Nando: kanbans múltiplos dentro de
+     Comercial, abaixo de Prospecção. */
+  #scr-kanbanleads .kl-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+  #scr-kanbanleads .kl-tab{padding:8px 14px;border-radius:9px;border:1px solid var(--borda);background:transparent;color:var(--texto-suave);font-size:13px;font-weight:800;cursor:pointer;transition:all .15s;font-family:inherit}
+  #scr-kanbanleads .kl-tab:hover{border-color:var(--borda-forte)}
+  #scr-kanbanleads .kl-tab.on{background:var(--azul);border-color:var(--azul);color:#fff}
+  #scr-kanbanleads .kl-tab-novo{border-style:dashed}
+  #scr-kanbanleads .kl-board-head{display:flex;align-items:center;gap:12px;margin:6px 0 14px;flex-wrap:wrap}
+  #scr-kanbanleads .kl-board-titulo{font-size:18px;font-weight:900;color:var(--texto);margin:0;cursor:pointer;flex:1 1 auto}
+  #scr-kanbanleads .kl-board-titulo:hover{color:var(--azul)}
+  #scr-kanbanleads .kl-toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+  #scr-kanbanleads .kl-select{background:var(--azul-claro);border:1px solid var(--borda);border-radius:10px;color:var(--texto);font-size:13px;font-weight:600;padding:10px 13px;outline:none;font-family:inherit}
+  #scr-kanbanleads .kl-colunas-wrap{display:flex;gap:14px;align-items:flex-start;overflow-x:auto;padding-bottom:14px}
+  #scr-kanbanleads .kl-coluna{background:var(--card);border:1px solid var(--borda);border-radius:12px;min-width:270px;max-width:270px;flex:0 0 auto;display:flex;flex-direction:column;max-height:74vh}
+  body.dark #scr-kanbanleads .kl-coluna{background:rgba(255,255,255,.03)}
+  #scr-kanbanleads .kl-col-head{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--borda)}
+  #scr-kanbanleads .kl-col-titulo{font-weight:800;font-size:13.5px;color:var(--texto);cursor:pointer;flex:1 1 auto}
+  #scr-kanbanleads .kl-col-titulo:hover{color:var(--azul)}
+  #scr-kanbanleads .kl-col-qtd{color:var(--texto-suave);font-size:11.5px;font-weight:800;background:var(--azul-claro);border-radius:999px;padding:2px 8px}
+  #scr-kanbanleads .kl-col-del{background:transparent;border:none;color:var(--texto-suave);cursor:pointer;font-size:13px;padding:2px}
+  #scr-kanbanleads .kl-col-del:hover{color:#e02222}
+  #scr-kanbanleads .kl-col-body{padding:10px;display:flex;flex-direction:column;gap:8px;overflow-y:auto;flex:1 1 auto;min-height:60px;transition:background .15s}
+  #scr-kanbanleads .kl-col-body-over{background:var(--azul-claro)}
+  #scr-kanbanleads .kl-card{background:var(--card);border:1px solid var(--borda-forte);border-radius:10px;padding:10px 12px;cursor:grab;transition:box-shadow .15s,border-color .15s,opacity .15s}
+  body.dark #scr-kanbanleads .kl-card{background:rgba(255,255,255,.06)}
+  #scr-kanbanleads .kl-card:hover{border-color:var(--azul);box-shadow:0 3px 10px rgba(0,0,0,.15)}
+  #scr-kanbanleads .kl-card.kl-dragging{opacity:.35}
+  #scr-kanbanleads .kl-card-nome{font-weight:800;font-size:13px;color:var(--texto);margin-bottom:2px}
+  #scr-kanbanleads .kl-card-tel{font-size:12px;color:var(--texto-suave);margin-bottom:6px}
+  #scr-kanbanleads .kl-card-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px}
+  #scr-kanbanleads .kl-card-tags .fn-selo-origem{margin:0}
+  #scr-kanbanleads .kl-tag-atendente{display:inline-block;font-size:10px;font-weight:800;color:var(--texto);background:var(--azul-claro);border-radius:999px;padding:3px 9px}
+  #scr-kanbanleads .kl-card-acoes{display:flex;gap:6px;justify-content:flex-end}
+  #scr-kanbanleads .kl-card-btn{background:transparent;border:1px solid var(--borda);border-radius:7px;width:26px;height:26px;font-size:11px;cursor:pointer;color:var(--texto-suave)}
+  #scr-kanbanleads .kl-card-btn:hover{border-color:var(--borda-forte);color:var(--texto)}
+  #scr-kanbanleads .kl-add-card{background:transparent;border:1px dashed var(--borda);border-radius:9px;padding:8px;color:var(--texto-suave);font-size:12px;font-weight:700;cursor:pointer;margin-top:2px;font-family:inherit}
+  #scr-kanbanleads .kl-add-card:hover{border-color:var(--azul);color:var(--azul)}
+  #scr-kanbanleads .kl-coluna-nova{background:transparent;border:1px dashed var(--borda);align-items:center;justify-content:center;min-height:60px}
+  #scr-kanbanleads .kl-nova-coluna-btn{background:transparent;border:none;color:var(--texto-suave);font-size:13px;font-weight:800;cursor:pointer;padding:20px;width:100%;font-family:inherit}
+  #scr-kanbanleads .kl-nova-coluna-btn:hover{color:var(--azul)}
   /* Modal de edição / novo cadastro */
   .cl-mbody .cl-efield{display:flex;flex-direction:column;gap:5px}
   .cl-mbody .cl-efield label{color:#2ec7a5;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.7px}
@@ -23256,6 +23314,15 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);
     try{ if(typeof logRemoto==='function') logRemoto('prospeccao','CSV de leads exportado para '+atendente+' ('+lista.length+' contatos)',{area:'Prospecção', atendente:atendente}); }catch(e){}
+    /* (·271) AUTOMAÇÃO — pedido do Nando: ao gerar o CSV, também copia os
+       MESMOS contatos (dados completos: nome e sobrenome, telefone, origem
+       — diferente do CSV que só leva o primeiro nome) pro Kanban "Ação
+       Lazer", coluna "Sem Retorno", com uma etiqueta do nome do atendente.
+       pgLista() já devolve nome completo + tel + origemTitulo/origemCor,
+       então não precisa recalcular nada — só repassa pra frente. Nunca deve
+       travar a geração do CSV se o módulo Kanban não tiver carregado por
+       algum motivo, daí o try/catch. */
+    try{ if(typeof window.klAdicionarCardsAutomatico==='function') window.klAdicionarCardsAutomatico(atendente, lista); }catch(e){}
   }
   // Modal genérico de "escolher um atendente" — usado tanto por Transferir
   // quanto por Retransferir (passando quem já está de fora da lista).
@@ -23848,6 +23915,481 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       }
       return;
     }
+  });
+})();
+
+  /* ================================================================
+     (·271) KANBAN COMERCIAL — nova aba dentro de Comercial, abaixo de
+     Prospecção. Suporta múltiplos kanbans (cada um com título e colunas
+     próprias, 100% editável), cards arrastáveis entre QUALQUER coluna,
+     busca por nome e filtro por atendente.
+
+     KANBAN INICIAL "Ação Lazer": criado sozinho na primeira vez que a
+     tela abre (ou que a automação do CSV precisa dele) — depois disso é
+     só mais um kanban normal, editável/excluível como qualquer outro.
+
+     AUTOMAÇÃO: pgGerarCSV() (módulo Prospecção, arquivo mais acima) chama
+     window.klAdicionarCardsAutomatico(atendente, lista) toda vez que o
+     Nando gera um CSV pra um atendente — copia os contatos completos
+     (nome e sobrenome, telefone, origem) pra coluna "Sem Retorno" do
+     Ação Lazer, com etiqueta do nome do atendente. Reexportar o mesmo CSV
+     de novo NUNCA volta um card pra "Sem Retorno" se ele já foi arrastado
+     pra outra coluna — só atualiza os dados (nome/tel/origem), preserva
+     onde o time já colocou aquele lead.
+
+     Namespace kl- (não reaproveita atributos de dado ps- ou cl-, só
+     como CLASSE CSS quando já são genéricas — mesmo cuidado de isolamento
+     que os módulos Prospecção/Contatos já seguem entre si). ================================================================ */
+(function(){
+  'use strict';
+
+  function klEsc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function klNorm(s){ return (s||'').toString().trim().toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' '); }
+
+  var KL_BOARD_PADRAO = 'kl_acaolazer';
+  var KL_COLUNA_SEM_RETORNO = 'col_semretorno';
+
+  /* ---------------- BOARDS (kanbans) ---------------- */
+  function klBoardsStore(){
+    if(!appConfig.klBoards || typeof appConfig.klBoards!=='object') appConfig.klBoards={};
+    return appConfig.klBoards;
+  }
+  // cria "Ação Lazer" na primeira vez (chave AUSENTE) — se o Nando excluiu
+  // de propósito a chave existe com del:1 e não deve ressuscitar sozinha.
+  function klGarantirBoardPadrao(){
+    var b=klBoardsStore();
+    if(b[KL_BOARD_PADRAO]) return;
+    b[KL_BOARD_PADRAO]={
+      titulo:'Ação Lazer', ts:Date.now(), del:0,
+      colunas:[{id:KL_COLUNA_SEM_RETORNO,titulo:'Sem Retorno'},{id:'col_contatoiniciado',titulo:'Contato Iniciado'}]
+    };
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+  }
+  function klBoardsLista(){
+    klGarantirBoardPadrao();
+    var b=klBoardsStore();
+    return Object.keys(b).filter(function(id){ return b[id] && !b[id].del; })
+      .map(function(id){ return {id:id, titulo:b[id].titulo||'(sem nome)', colunas:Array.isArray(b[id].colunas)?b[id].colunas:[], ts:b[id].ts||0}; })
+      .sort(function(a,c){ return (a.ts||0)-(c.ts||0); });
+  }
+  window.UV_KL_BOARDS_LISTA = klBoardsLista;
+  function klBoardsGet(id){ var b=klBoardsStore(); return b[id]||null; }
+  function klBoardsNovo(titulo){
+    var b=klBoardsStore();
+    var id='kl_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+    b[id]={titulo:(titulo||'Novo Kanban').toString().slice(0,60), ts:Date.now(), del:0,
+      colunas:[{id:'col_'+Date.now().toString(36),titulo:'Nova coluna'}]};
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+    try{ if(typeof logRemoto==='function') logRemoto('kanban','Kanban "'+b[id].titulo+'" criado',{area:'Kanban'}); }catch(e){}
+    return id;
+  }
+  function klBoardsRenomear(id, titulo){
+    var b=klBoardsStore(); var board=b[id]; if(!board) return;
+    var t=(titulo||'').toString().trim().slice(0,60);
+    if(t) board.titulo=t;
+    board.ts=Date.now();
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+  }
+  function klBoardsDel(id){
+    var b=klBoardsStore(); var board=b[id]; if(!board) return;
+    board.del=1; board.ts=Date.now();
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+    try{ if(typeof logRemoto==='function') logRemoto('kanban','Kanban "'+(board.titulo||id)+'" excluído',{area:'Kanban'}); }catch(e){}
+  }
+  window.klBoardsMergeMaps=function(a,b){
+    a=a||{}; b=b||{}; var out={}, ks={};
+    Object.keys(a).forEach(function(k){ks[k]=1;}); Object.keys(b).forEach(function(k){ks[k]=1;});
+    Object.keys(ks).forEach(function(k){ var x=a[k], y=b[k]; out[k]=(x&&y)?(((x.ts||0)>=(y.ts||0))?x:y):(x||y); });
+    return out;
+  };
+
+  /* ---------------- COLUNAS (dentro de um board) ---------------- */
+  function klColunaNova(boardId, titulo){
+    var board=klBoardsGet(boardId); if(!board) return null;
+    if(!Array.isArray(board.colunas)) board.colunas=[];
+    var id='col_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+    board.colunas.push({id:id, titulo:(titulo||'Nova coluna').toString().slice(0,40)});
+    board.ts=Date.now();
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+    return id;
+  }
+  function klColunaRenomear(boardId, colId, titulo){
+    var board=klBoardsGet(boardId); if(!board || !Array.isArray(board.colunas)) return;
+    var col=null; for(var i=0;i<board.colunas.length;i++){ if(board.colunas[i].id===colId){ col=board.colunas[i]; break; } }
+    if(!col) return;
+    var t=(titulo||'').toString().trim().slice(0,40);
+    if(t) col.titulo=t;
+    board.ts=Date.now();
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+  }
+  // exclui a coluna E arquiva (soft-delete) os cards que estavam nela —
+  // não existe coluna "sem categoria" pra onde jogar os cards órfãos.
+  function klColunaDel(boardId, colId){
+    var board=klBoardsGet(boardId); if(!board || !Array.isArray(board.colunas)) return;
+    board.colunas=board.colunas.filter(function(c){ return c.id!==colId; });
+    board.ts=Date.now();
+    var cs=klCardsStore(boardId);
+    Object.keys(cs).forEach(function(cardId){
+      var c=cs[cardId]; if(c && c.colunaId===colId && !c.del){ c.del=1; c.ts=Date.now(); }
+    });
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+  }
+
+  /* ---------------- CARDS (dentro de um board) ---------------- */
+  function klCardsStore(boardId){
+    if(!appConfig.klCards || typeof appConfig.klCards!=='object') appConfig.klCards={};
+    if(!appConfig.klCards[boardId] || typeof appConfig.klCards[boardId]!=='object') appConfig.klCards[boardId]={};
+    return appConfig.klCards[boardId];
+  }
+  function klCardsLista(boardId){
+    var cs=klCardsStore(boardId), out=[];
+    Object.keys(cs).forEach(function(id){
+      var c=cs[id]; if(!c || c.del) return;
+      out.push({id:id, colunaId:c.colunaId||'', nome:c.nome||'', tel:c.tel||'',
+        origemTitulo:c.origemTitulo||'', origemCor:c.origemCor||'#3B8FD4', atendente:c.atendente||'', obs:c.obs||''});
+    });
+    return out;
+  }
+  window.UV_KL_CARDS_LISTA = klCardsLista;
+  function klCardNovo(boardId, colunaId, dados){
+    var cs=klCardsStore(boardId);
+    var id='klc_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+    cs[id]={colunaId:colunaId,
+      nome:(dados&&dados.nome)||'Novo contato', tel:(dados&&dados.tel)||'',
+      origemTitulo:(dados&&dados.origemTitulo)||'', origemCor:(dados&&dados.origemCor)||'#3B8FD4',
+      atendente:(dados&&dados.atendente)||'', obs:(dados&&dados.obs)||'', ts:Date.now(), del:0};
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+    return id;
+  }
+  var KL_CAMPOS_CARD=['nome','tel','origemTitulo','atendente','obs'];
+  function klCardSet(boardId, cardId, campo, valor){
+    if(KL_CAMPOS_CARD.indexOf(campo)<0) return;
+    var cs=klCardsStore(boardId); var c=cs[cardId]; if(!c) return;
+    c[campo]=(valor==null?'':String(valor)).slice(0,600); c.ts=Date.now();
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+  }
+  function klCardMover(boardId, cardId, novaColunaId){
+    var cs=klCardsStore(boardId); var c=cs[cardId]; if(!c) return;
+    c.colunaId=novaColunaId; c.ts=Date.now();
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+  }
+  function klCardDel(boardId, cardId){
+    var cs=klCardsStore(boardId); var c=cs[cardId]; if(!c) return;
+    c.del=1; c.ts=Date.now();
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+  }
+  window.klCardsMergeMaps=function(a,b){
+    a=a||{}; b=b||{}; var out={}, boardIds={};
+    Object.keys(a).forEach(function(k){boardIds[k]=1;}); Object.keys(b).forEach(function(k){boardIds[k]=1;});
+    Object.keys(boardIds).forEach(function(bid){
+      var ma=a[bid]||{}, mb=b[bid]||{}, mo={}, ids={};
+      Object.keys(ma).forEach(function(k){ids[k]=1;}); Object.keys(mb).forEach(function(k){ids[k]=1;});
+      Object.keys(ids).forEach(function(id){
+        var x=ma[id], y=mb[id];
+        mo[id]=(x&&y)?(((x.ts||0)>=(y.ts||0))?x:y):(x||y);
+      });
+      out[bid]=mo;
+    });
+    return out;
+  };
+
+  /* ---------------- AUTOMAÇÃO (chamada de fora, pelo módulo Prospecção) --
+     Nunca puxa de volta pra "Sem Retorno" um card que o time já arrastou
+     pra outra coluna — só ATUALIZA nome/telefone/origem se já existir. */
+  function klAdicionarCardsAutomatico(atendente, contatos){
+    klGarantirBoardPadrao();
+    var cs=klCardsStore(KL_BOARD_PADRAO);
+    var qtd=0;
+    (contatos||[]).forEach(function(c){
+      var cardId='klc_'+klNorm(atendente).replace(/\s+/g,'_')+'_'+c.id;
+      var existente=cs[cardId];
+      cs[cardId]={
+        colunaId: existente ? existente.colunaId : KL_COLUNA_SEM_RETORNO,
+        nome:c.nome||'', tel:c.tel||'', origemTitulo:c.origemTitulo||'', origemCor:c.origemCor||'#3B8FD4',
+        atendente:atendente, obs:(existente&&existente.obs)||'', ts:Date.now(), del:0
+      };
+      qtd++;
+    });
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+    try{ if(typeof logRemoto==='function') logRemoto('kanban', qtd+' contato(s) copiados automaticamente pro Kanban "Ação Lazer" (via CSV de '+atendente+')',{area:'Kanban', atendente:atendente}); }catch(e){}
+    try{ if(document.getElementById('scr-kanbanleads') && document.getElementById('scr-kanbanleads').classList.contains('active') && typeof window.renderKanbanLeads==='function') window.renderKanbanLeads(); }catch(e){}
+  }
+  window.klAdicionarCardsAutomatico = klAdicionarCardsAutomatico;
+
+  /* ---------------- ESTADO DA TELA ---------------- */
+  var klBoardAberto=null, klBuscaTxt='', klFiltroAtendente='';
+  var klDragCardId=null, klDragBoardId=null;
+
+  function klEnsureBoardAberto(){
+    var lista=klBoardsLista();
+    if(!lista.length){ klBoardAberto=null; return; }
+    var achou=false;
+    for(var i=0;i<lista.length;i++){ if(lista[i].id===klBoardAberto){ achou=true; break; } }
+    if(!achou) klBoardAberto=lista[0].id;
+  }
+  function klListaAtendentesDisponiveis(boardId){
+    var cards=klCardsLista(boardId), vistos={};
+    cards.forEach(function(c){ if(c.atendente) vistos[c.atendente]=1; });
+    return Object.keys(vistos).sort(function(a,b){ return a.localeCompare(b,'pt-BR'); });
+  }
+
+  /* ---------------- MODAL de editar/adicionar card (mesmo padrão visual
+     cl-modal/cl-mhead/cl-mbody/cl-mfoot/cl-efield já usado em Prospecção,
+     Cliente, Cartões — overlay PRÓPRIO klOv/klModal, sem depender de
+     nenhuma função privada de outro módulo). ---------------- */
+  function klGarantirOverlay(){
+    if(document.getElementById('klOv')) return;
+    var ov=document.createElement('div'); ov.className='cl-ov'; ov.id='klOv';
+    ov.innerHTML='<div class="cl-modal" id="klModal"></div>';
+    ov.addEventListener('click', function(e){ if(e.target===ov) klFecharModal(); });
+    document.body.appendChild(ov);
+  }
+  function klFecharModal(){ var ov=document.getElementById('klOv'); if(ov) ov.classList.remove('on'); }
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') klFecharModal(); });
+
+  function klAbreEditarCard(boardId, cardId){
+    var cs=klCardsStore(boardId); var c=cs[cardId]; if(!c) return;
+    klGarantirOverlay();
+    function campoTxt(lbl,key,val,ph){ return '<div class="cl-efield"><label>'+lbl+'</label><input type="text" data-klf="'+key+'" value="'+klEsc(val||'')+'" placeholder="'+klEsc(ph||'')+'" autocomplete="off"></div>'; }
+    function campoArea(lbl,key,val,ph){ return '<div class="cl-efield"><label>'+lbl+'</label><textarea data-klf="'+key+'" placeholder="'+klEsc(ph||'')+'">'+klEsc(val||'')+'</textarea></div>'; }
+    var h='<div class="cl-mhead"><h2>\u270f\ufe0f Editar contato</h2><button type="button" class="cl-x" id="klEX">&times;</button></div><div class="cl-mbody">'+
+      campoTxt('Nome do contato','nome',c.nome,'Nome e sobrenome')+
+      campoTxt('Telefone / WhatsApp','tel',c.tel,'(00) 00000-0000')+
+      campoTxt('Origem','origemTitulo',c.origemTitulo,'Ex: Indicação, Instagram...')+
+      campoTxt('Atendente','atendente',c.atendente,'Nome do atendente responsável')+
+      campoArea('Observações','obs',c.obs,'')+
+      '</div>'+
+      '<div class="cl-mfoot"><button type="button" class="cl-cancel" id="klECancel">Cancelar</button><button type="button" class="cl-savebtn" id="klESave">Salvar</button></div>';
+    document.getElementById('klModal').innerHTML=h;
+    document.getElementById('klOv').classList.add('on');
+    document.getElementById('klEX').onclick=klFecharModal;
+    document.getElementById('klECancel').onclick=klFecharModal;
+    document.getElementById('klESave').onclick=function(){
+      document.querySelectorAll('#klModal [data-klf]').forEach(function(el){
+        klCardSet(boardId, cardId, el.getAttribute('data-klf'), el.value);
+      });
+      klFecharModal(); window.renderKanbanLeads();
+    };
+    var f=document.querySelector('#klModal [data-klf="nome"]'); if(f){ try{ f.focus(); }catch(e){} }
+  }
+  function klAbreNovoCard(boardId, colunaId){
+    klGarantirOverlay();
+    function campoTxt(lbl,key,ph){ return '<div class="cl-efield"><label>'+lbl+'</label><input type="text" data-klf="'+key+'" value="" placeholder="'+klEsc(ph||'')+'" autocomplete="off"></div>'; }
+    var h='<div class="cl-mhead"><h2>\uff0b Adicionar contato</h2><button type="button" class="cl-x" id="klNX">&times;</button></div><div class="cl-mbody">'+
+      campoTxt('Nome do contato','nome','Nome e sobrenome')+
+      campoTxt('Telefone / WhatsApp','tel','(00) 00000-0000')+
+      campoTxt('Origem','origemTitulo','Ex: Indicação, Instagram...')+
+      campoTxt('Atendente','atendente','Nome do atendente responsável')+
+      '</div>'+
+      '<div class="cl-mfoot"><button type="button" class="cl-cancel" id="klNCancel">Cancelar</button><button type="button" class="cl-savebtn" id="klNSave">Adicionar</button></div>';
+    document.getElementById('klModal').innerHTML=h;
+    document.getElementById('klOv').classList.add('on');
+    document.getElementById('klNX').onclick=klFecharModal;
+    document.getElementById('klNCancel').onclick=klFecharModal;
+    document.getElementById('klNSave').onclick=function(){
+      var dados={};
+      document.querySelectorAll('#klModal [data-klf]').forEach(function(el){ dados[el.getAttribute('data-klf')]=el.value; });
+      if(!dados.nome || !dados.nome.trim()){ try{ window.alert('Informe ao menos o nome do contato.'); }catch(e){} return; }
+      klCardNovo(boardId, colunaId, dados);
+      klFecharModal(); window.renderKanbanLeads();
+    };
+    var f=document.querySelector('#klModal [data-klf="nome"]'); if(f){ try{ f.focus(); }catch(e){} }
+  }
+
+  /* ---------------- RENDER ---------------- */
+  function klCardHtml(boardId, c){
+    var origemTag = c.origemTitulo ? '<span class="fn-selo-origem" style="background:'+klEsc(c.origemCor)+'">'+klEsc(c.origemTitulo)+'</span>' : '';
+    var atendenteTag = c.atendente ? '<span class="kl-tag-atendente">\ud83d\udc64 '+klEsc(c.atendente)+'</span>' : '';
+    return '<div class="kl-card" draggable="true" data-kl-card="'+klEsc(c.id)+'" data-kl-board="'+klEsc(boardId)+'">'+
+      '<div class="kl-card-nome">'+klEsc(c.nome||'(sem nome)')+'</div>'+
+      (c.tel ? '<div class="kl-card-tel">'+klEsc(c.tel)+'</div>' : '')+
+      '<div class="kl-card-tags">'+origemTag+atendenteTag+'</div>'+
+      '<div class="kl-card-acoes">'+
+        '<button type="button" class="kl-card-btn" data-kl-card-ed="'+klEsc(c.id)+'" data-kl-card-ed-board="'+klEsc(boardId)+'" title="Editar">\u270f\ufe0f</button>'+
+        '<button type="button" class="kl-card-btn" data-kl-card-del="'+klEsc(c.id)+'" data-kl-card-del-board="'+klEsc(boardId)+'" title="Excluir">\ud83d\uddd1</button>'+
+      '</div>'+
+    '</div>';
+  }
+  function klRenderBoard(w, board){
+    var todos=klCardsLista(board.id);
+    var q=klNorm(klBuscaTxt);
+    var filtrados=todos.filter(function(c){
+      if(klFiltroAtendente && c.atendente!==klFiltroAtendente) return false;
+      if(!q) return true;
+      return klNorm(c.nome).indexOf(q)>=0 || klNorm(c.tel).indexOf(q)>=0;
+    });
+    var atendentesDisp=klListaAtendentesDisponiveis(board.id);
+
+    var colunasHtml=(board.colunas||[]).map(function(col){
+      var cardsCol=filtrados.filter(function(c){ return c.colunaId===col.id; });
+      return '<div class="kl-coluna" data-kl-coluna="'+klEsc(col.id)+'" data-kl-coluna-board="'+klEsc(board.id)+'">'+
+        '<div class="kl-col-head">'+
+          '<span class="kl-col-titulo" data-kl-col-editar="'+klEsc(col.id)+'" data-kl-col-editar-board="'+klEsc(board.id)+'" title="Clique para renomear">'+klEsc(col.titulo)+'</span>'+
+          '<span class="kl-col-qtd">'+cardsCol.length+'</span>'+
+          '<button type="button" class="kl-col-del" data-kl-coluna-del="'+klEsc(col.id)+'" data-kl-coluna-del-board="'+klEsc(board.id)+'" title="Excluir coluna">\ud83d\uddd1</button>'+
+        '</div>'+
+        '<div class="kl-col-body" data-kl-coluna-body="'+klEsc(col.id)+'">'+
+          cardsCol.map(function(c){ return klCardHtml(board.id, c); }).join('')+
+          '<button type="button" class="kl-add-card" data-kl-add-card="'+klEsc(col.id)+'" data-kl-add-card-board="'+klEsc(board.id)+'">+ Adicionar contato</button>'+
+        '</div>'+
+      '</div>';
+    }).join('');
+    var novaColunaTile='<div class="kl-coluna kl-coluna-nova"><button type="button" class="kl-nova-coluna-btn" data-kl-nova-coluna="'+klEsc(board.id)+'">+ Nova coluna</button></div>';
+
+    var tabsHtml=klBoardsLista().map(function(b){
+      return '<button type="button" class="kl-tab'+(b.id===board.id?' on':'')+'" data-kl-board-abrir="'+klEsc(b.id)+'">'+klEsc(b.titulo)+'</button>';
+    }).join('')+'<button type="button" class="kl-tab kl-tab-novo" id="klNovoBoard">+ Novo Kanban</button>';
+
+    var atendenteOpcoes='<option value="">Todos os atendentes</option>'+atendentesDisp.map(function(a){
+      return '<option value="'+klEsc(a)+'"'+(klFiltroAtendente===a?' selected':'')+'>'+klEsc(a)+'</option>';
+    }).join('');
+
+    w.innerHTML=
+      '<div class="fn-head">'+
+        '<div><h2 class="fn-title"><span class="fn-ic">\ud83d\uddc2\ufe0f</span> Kanban</h2>'+
+        '<div class="fn-sub">'+klBoardsLista().length+' kanban'+(klBoardsLista().length===1?'':'s')+'</div></div>'+
+      '</div>'+
+      '<div class="kl-tabs">'+tabsHtml+'</div>'+
+      '<div class="kl-board-head">'+
+        '<h3 class="kl-board-titulo" data-kl-board-renomear="'+klEsc(board.id)+'" title="Clique para renomear">\u270f\ufe0f '+klEsc(board.titulo)+'</h3>'+
+        '<button type="button" class="fn-bt perigo" data-kl-board-del="'+klEsc(board.id)+'">\ud83d\uddd1\ufe0f Excluir Kanban</button>'+
+      '</div>'+
+      '<div class="kl-toolbar">'+
+        '<input type="text" class="cl-busca" id="klBusca" placeholder="\ud83d\udd0e Buscar por nome ou telefone..." value="'+klEsc(klBuscaTxt)+'" style="flex:1 1 260px">'+
+        '<select class="kl-select" id="klFiltroAtendente">'+atendenteOpcoes+'</select>'+
+      '</div>'+
+      '<div class="kl-colunas-wrap">'+colunasHtml+novaColunaTile+'</div>';
+
+    var b=document.getElementById('klBusca');
+    if(b && klBuscaTxt){ try{ b.focus(); b.setSelectionRange(b.value.length,b.value.length); }catch(e){} }
+  }
+
+  window.renderKanbanLeads=function(){
+    var w=document.getElementById('kanbanLeadsWrap'); if(!w) return;
+    klEnsureBoardAberto();
+    var lista=klBoardsLista();
+    if(!lista.length || !klBoardAberto){ w.innerHTML='<div class="cl-vazio">Nenhum kanban ainda.</div>'; return; }
+    var board=klBoardsGet(klBoardAberto);
+    if(!board){ w.innerHTML='<div class="cl-vazio">Nenhum kanban ainda.</div>'; return; }
+    klRenderBoard(w, {id:klBoardAberto, titulo:board.titulo, colunas:board.colunas||[]});
+  };
+
+  /* ---------------- EVENTOS ---------------- */
+  document.addEventListener('input', function(e){
+    var t=e.target; if(!t) return;
+    if(t.id==='klBusca'){ klBuscaTxt=t.value; window.renderKanbanLeads(); return; }
+  });
+  document.addEventListener('change', function(e){
+    var t=e.target; if(!t) return;
+    if(t.id==='klFiltroAtendente'){ klFiltroAtendente=t.value; window.renderKanbanLeads(); return; }
+  });
+  document.addEventListener('click', function(e){
+    if(!e.target || !e.target.closest) return;
+
+    var abrirBoard=e.target.closest('[data-kl-board-abrir]');
+    if(abrirBoard){ klBoardAberto=abrirBoard.getAttribute('data-kl-board-abrir'); klBuscaTxt=''; klFiltroAtendente=''; window.renderKanbanLeads(); return; }
+
+    var novoBoard=e.target.closest('#klNovoBoard');
+    if(novoBoard){
+      var nomeNovo=window.prompt('Nome do novo Kanban:', 'Novo Kanban');
+      if(nomeNovo && nomeNovo.trim()){ klBoardAberto=klBoardsNovo(nomeNovo.trim()); window.renderKanbanLeads(); }
+      return;
+    }
+    var renomearBoard=e.target.closest('[data-kl-board-renomear]');
+    if(renomearBoard){
+      var bid=renomearBoard.getAttribute('data-kl-board-renomear');
+      var atualB=klBoardsGet(bid);
+      var novoNomeB=window.prompt('Novo nome do Kanban:', atualB?atualB.titulo:'');
+      if(novoNomeB!==null){ klBoardsRenomear(bid, novoNomeB); window.renderKanbanLeads(); }
+      return;
+    }
+    var delBoard=e.target.closest('[data-kl-board-del]');
+    if(delBoard){
+      var bidDel=delBoard.getAttribute('data-kl-board-del');
+      var boardDel=klBoardsGet(bidDel);
+      var qtdCards=klCardsLista(bidDel).length;
+      var msgB='Excluir o kanban "'+(boardDel?boardDel.titulo:'')+'"?'+(qtdCards?('\n\nEle tem '+qtdCards+' contato(s) cadastrado(s), que ficarão ocultos junto (os dados não são apagados de verdade).'):'');
+      if(window.confirm(msgB)){ klBoardsDel(bidDel); klBoardAberto=null; window.renderKanbanLeads(); }
+      return;
+    }
+
+    var editarCol=e.target.closest('[data-kl-col-editar]');
+    if(editarCol){
+      var colIdEd=editarCol.getAttribute('data-kl-col-editar'), boardIdEd=editarCol.getAttribute('data-kl-col-editar-board');
+      var novoNomeCol=window.prompt('Novo nome da coluna:', editarCol.textContent.trim());
+      if(novoNomeCol!==null){ klColunaRenomear(boardIdEd, colIdEd, novoNomeCol); window.renderKanbanLeads(); }
+      return;
+    }
+    var novaColuna=e.target.closest('[data-kl-nova-coluna]');
+    if(novaColuna){
+      var boardIdNC=novaColuna.getAttribute('data-kl-nova-coluna');
+      var nomeCol=window.prompt('Nome da nova coluna:', 'Nova coluna');
+      if(nomeCol && nomeCol.trim()){ klColunaNova(boardIdNC, nomeCol.trim()); window.renderKanbanLeads(); }
+      return;
+    }
+    var delColuna=e.target.closest('[data-kl-coluna-del]');
+    if(delColuna){
+      var colIdDel=delColuna.getAttribute('data-kl-coluna-del'), boardIdColDel=delColuna.getAttribute('data-kl-coluna-del-board');
+      var qtdNaCol=klCardsLista(boardIdColDel).filter(function(c){return c.colunaId===colIdDel;}).length;
+      var msgCol='Excluir esta coluna?'+(qtdNaCol?('\n\nEla tem '+qtdNaCol+' contato(s), que ficarão ocultos junto (os dados não são apagados de verdade).'):'');
+      if(window.confirm(msgCol)){ klColunaDel(boardIdColDel, colIdDel); window.renderKanbanLeads(); }
+      return;
+    }
+
+    var addCard=e.target.closest('[data-kl-add-card]');
+    if(addCard){ klAbreNovoCard(addCard.getAttribute('data-kl-add-card-board'), addCard.getAttribute('data-kl-add-card')); return; }
+    var edCard=e.target.closest('[data-kl-card-ed]');
+    if(edCard){ klAbreEditarCard(edCard.getAttribute('data-kl-card-ed-board'), edCard.getAttribute('data-kl-card-ed')); return; }
+    var delCard=e.target.closest('[data-kl-card-del]');
+    if(delCard){
+      var boardIdCD=delCard.getAttribute('data-kl-card-del-board'), cardIdCD=delCard.getAttribute('data-kl-card-del');
+      var cardDel=klCardsStore(boardIdCD)[cardIdCD];
+      if(window.confirm('Remover '+(cardDel&&cardDel.nome?cardDel.nome:'este contato')+' do kanban?')){ klCardDel(boardIdCD, cardIdCD); window.renderKanbanLeads(); }
+      return;
+    }
+  });
+
+  /* ---------------- ARRASTAR E SOLTAR entre QUALQUER coluna ---------------- */
+  document.addEventListener('dragstart', function(e){
+    var card=e.target && e.target.closest && e.target.closest('#kanbanLeadsWrap .kl-card[draggable="true"]');
+    if(!card) return;
+    if(e.target.closest('button')){ e.preventDefault(); return; }
+    klDragCardId=card.getAttribute('data-kl-card');
+    klDragBoardId=card.getAttribute('data-kl-board');
+    card.classList.add('kl-dragging');
+    try{ e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('text/plain', klDragCardId||''); }catch(_){}
+  });
+  document.addEventListener('dragover', function(e){
+    if(!klDragCardId) return;
+    var colBody=e.target && e.target.closest && e.target.closest('#kanbanLeadsWrap .kl-col-body');
+    if(!colBody) return;
+    e.preventDefault();
+    try{ e.dataTransfer.dropEffect='move'; }catch(_){}
+    colBody.classList.add('kl-col-body-over');
+  });
+  document.addEventListener('dragleave', function(e){
+    var colBody=e.target && e.target.closest && e.target.closest('#kanbanLeadsWrap .kl-col-body');
+    if(colBody) colBody.classList.remove('kl-col-body-over');
+  });
+  document.addEventListener('drop', function(e){
+    var colBody=e.target && e.target.closest && e.target.closest('#kanbanLeadsWrap .kl-col-body');
+    if(!colBody || !klDragCardId){ return; }
+    e.preventDefault();
+    colBody.classList.remove('kl-col-body-over');
+    var novaColunaId=colBody.getAttribute('data-kl-coluna-body');
+    klCardMover(klDragBoardId, klDragCardId, novaColunaId);
+    klDragCardId=null; klDragBoardId=null;
+    window.renderKanbanLeads();
+  });
+  document.addEventListener('dragend', function(){
+    var wrap=document.getElementById('kanbanLeadsWrap');
+    if(wrap){
+      var arrastando=wrap.querySelectorAll('.kl-dragging'); for(var i=0;i<arrastando.length;i++) arrastando[i].classList.remove('kl-dragging');
+      var sobre=wrap.querySelectorAll('.kl-col-body-over'); for(var j=0;j<sobre.length;j++) sobre[j].classList.remove('kl-col-body-over');
+    }
+    klDragCardId=null; klDragBoardId=null;
   });
 })();
 
