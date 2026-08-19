@@ -907,6 +907,8 @@ body:not(.dark) .eq-aviso-ed{color:#8a6100}
 .fn-bt.primario{border:none;background:linear-gradient(180deg,var(--azul),var(--azul-escuro));color:#fff}
 .fn-bt.primario:hover{box-shadow:0 4px 16px rgba(0,93,170,.45);transform:translateY(-1px)}
 .fn-bt.on{background:linear-gradient(180deg,#f0a500,#c98500);border:none;color:#3a2600}
+.fn-bt.perigo{border:none;background:linear-gradient(180deg,#e04444,#b82222);color:#fff}
+.fn-bt.perigo:hover{box-shadow:0 4px 16px rgba(224,34,34,.45);transform:translateY(-1px)}
 .fn-aviso-ed{background:rgba(240,165,0,.12);border:1px solid rgba(240,165,0,.4);color:#e0a020;border-radius:10px;padding:9px 13px;font-size:12.5px;font-weight:700;margin-bottom:12px}
 body:not(.dark) .fn-aviso-ed{color:#8a6100}
 .fn-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
@@ -963,6 +965,10 @@ body.dark .fn-card{background:rgba(255,255,255,.04)}
 .ct-folder-qtd{color:rgba(255,255,255,.85);font-size:11px;font-weight:800;text-shadow:0 1px 2px rgba(0,0,0,.3)}
 .ct-pencil{position:absolute;top:22px;right:6px;z-index:2;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.4);border-radius:8px;width:26px;height:26px;font-size:12px;cursor:pointer;color:#fff}
 .ct-pencil:hover{background:rgba(0,0,0,.55)}
+.ct-check{position:absolute;top:22px;left:6px;z-index:2;width:24px;height:24px;border-radius:50%;border:2px solid rgba(255,255,255,.75);background:rgba(0,0,0,.25);cursor:pointer;box-sizing:border-box;transition:all .15s}
+.ct-check:hover{border-color:#fff;background:rgba(0,0,0,.5);transform:scale(1.08)}
+.ct-check.on{background:#e02222;border-color:#e02222}
+.ct-check.on::after{content:'\2713';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:900}
 .ct-nova-pasta{border:2px dashed var(--borda-forte);border-radius:12px;background:transparent;color:var(--texto-suave);font-size:12.5px;font-weight:800;cursor:pointer;aspect-ratio:4/3;margin-top:16px;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.4;transition:all .15s}
 .ct-nova-pasta:hover{border-color:var(--azul);color:var(--azul);background:var(--azul-claro)}
 .ct-folder-edit{width:100%;background:var(--card);border:1px solid var(--borda);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px;margin-top:16px}
@@ -21909,13 +21915,14 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     var over=ctCatsStore(), vistos={}, out=[];
     CT_CATS_BASE.forEach(function(b){
       var o=over[b.chave]||{};
+      if(o.del){ vistos[b.chave]=1; return; }
       out.push({chave:b.chave, titulo:(o.titulo!==undefined&&o.titulo!==''?o.titulo:b.titulo),
                 cor:(o.cor||b.cor)});
       vistos[b.chave]=1;
     });
     Object.keys(over).forEach(function(k){
       if(vistos[k]) return;
-      var o=over[k]; if(!o || !o.titulo) return;
+      var o=over[k]; if(!o || !o.titulo || o.del) return;
       out.push({chave:k, titulo:o.titulo, cor:o.cor||'#3B8FD4'});
     });
     return out;
@@ -21945,6 +21952,20 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     try{ if(typeof logRemoto==='function') logRemoto('contatos','Nova pasta de contatos criada',{area:'Contatos', chave:chave}); }catch(e){}
     return chave;
   }
+  /* (·263) Exclusão de pasta — soft delete, mesmo motivo do del:1 em fnDel:
+     só remover a chave não sobrevive ao merge multi-PC. Os fornecedores da
+     pasta não são apagados, só ficam inacessíveis pela grade. */
+  function ctCatsDel(chave){
+    var over=ctCatsStore();
+    var base=null; for(var i=0;i<CT_CATS_BASE.length;i++){ if(CT_CATS_BASE[i].chave===chave){ base=CT_CATS_BASE[i]; break; } }
+    var atual=over[chave]||{};
+    var novo={ts:Date.now(), del:1};
+    novo.titulo=(atual.titulo!==undefined?atual.titulo:(base?base.titulo:''));
+    novo.cor=(atual.cor!==undefined?atual.cor:(base?base.cor:'#3B8FD4'));
+    over[chave]=novo;
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+    try{ if(typeof logRemoto==='function') logRemoto('contatos','Pasta '+(novo.titulo||chave)+' excluída',{area:'Contatos', chave:chave}); }catch(e){}
+  }
   /* Merge multi-PC de 1 nível só (chave da pasta -> {titulo,cor,ts}) — mesma
      forma de eqMergeMaps. */
   window.ctCatsMergeMaps=function(a,b){
@@ -21966,7 +21987,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     return '#'+[r,g,b].map(function(v){var s=v.toString(16); return s.length<2?'0'+s:s;}).join('');
   }
 
-  var contatosAberto=null, ctModoEdPastas=false, ctEditandoCat=null, ctFocarNovaCat=null;
+  var contatosAberto=null, ctModoEdPastas=false, ctEditandoCat=null, ctFocarNovaCat=null, ctPastasSelecionadas={};
 
   function ctRenderGrid(w){
     var cats=ctCatsLista();
@@ -21986,8 +22007,13 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       var pencil = ctModoEdPastas
         ? '<span role="button" tabindex="0" class="ct-pencil" data-ct-pencil="'+fnEsc(c.chave)+'" title="Editar esta pasta">\u270f\ufe0f</span>'
         : '';
+      var marcado = !!ctPastasSelecionadas[c.chave];
+      var circulo = ctModoEdPastas
+        ? '<span role="checkbox" tabindex="0" aria-checked="'+(marcado?'true':'false')+'" class="ct-check'+(marcado?' on':'')+'" data-ct-marcar="'+fnEsc(c.chave)+'" title="Selecionar esta pasta para excluir"></span>'
+        : '';
       return '<button type="button" class="ct-folder-btn" data-ct-abrir="'+fnEsc(c.chave)+'" '+
           (ctModoEdPastas?'aria-disabled="true"':'')+' style="--ct-a:'+ctSombra(c.cor,28)+';--ct-b:'+ctSombra(c.cor,-22)+'">'+
+        circulo+
         pencil+
         '<span class="ct-folder-tab"></span>'+
         '<span class="ct-folder-body">'+
@@ -21999,12 +22025,14 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     }).join('');
     var novaTile = (ctModoEdPastas && ctEditandoCat===null)
       ? '<button type="button" class="ct-nova-pasta" data-ct-nova="1">+<br>Nova pasta</button>' : '';
+    var qtdSelCt = Object.keys(ctPastasSelecionadas).filter(function(k){ return ctPastasSelecionadas[k]; }).length;
 
     w.innerHTML =
       '<div class="fn-head">'+
         '<div><h2 class="fn-title"><span class="fn-ic">\ud83d\udcc1</span> Contatos</h2>'+
         '<div class="fn-sub">'+cats.length+' pastas de fornecedores</div></div>'+
         '<div class="fn-acoes">'+
+          (ctModoEdPastas && qtdSelCt>0 ? '<button type="button" class="fn-bt perigo" id="ctExcluirSelecionadas">\ud83d\uddd1\ufe0f Excluir '+qtdSelCt+' pasta'+(qtdSelCt===1?'':'s')+'</button>' : '')+
           '<button type="button" class="fn-bt'+(ctModoEdPastas?' on':'')+'" id="ctEditarPastas">'+
             (ctModoEdPastas?'\u2713 Concluir edi\u00e7\u00e3o':'\u270f\ufe0f Editar pastas')+'</button>'+
         '</div>'+
@@ -22154,9 +22182,9 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     var abrir=e.target.closest('[data-ct-abrir]');
     if(abrir && !ctModoEdPastas){ contatosAberto=abrir.getAttribute('data-ct-abrir'); window.renderContatos(); return; }
 
-    // ---- edição das PASTAS (nome/cor) ----
+    // ---- edição das PASTAS (nome/cor/exclusão) ----
     var togglePastas=e.target.closest('#ctEditarPastas');
-    if(togglePastas){ ctModoEdPastas=!ctModoEdPastas; ctEditandoCat=null; window.renderContatos(); return; }
+    if(togglePastas){ ctModoEdPastas=!ctModoEdPastas; ctEditandoCat=null; ctPastasSelecionadas={}; window.renderContatos(); return; }
     var pencil=e.target.closest('[data-ct-pencil]');
     if(pencil){ ctEditandoCat=pencil.getAttribute('data-ct-pencil'); window.renderContatos(); return; }
     var ok=e.target.closest('[data-ct-ok]');
@@ -22171,6 +22199,29 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       var chave=ctCatsNovo();
       ctEditandoCat=chave; ctFocarNovaCat=chave;
       window.renderContatos(); return;
+    }
+    var marcarCt=e.target.closest('[data-ct-marcar]');
+    if(marcarCt){
+      var chMc=marcarCt.getAttribute('data-ct-marcar');
+      if(ctPastasSelecionadas[chMc]) delete ctPastasSelecionadas[chMc]; else ctPastasSelecionadas[chMc]=true;
+      window.renderContatos(); return;
+    }
+    var btnExcluirCt=e.target.closest('#ctExcluirSelecionadas');
+    if(btnExcluirCt){
+      var chavesCt=Object.keys(ctPastasSelecionadas).filter(function(k){ return ctPastasSelecionadas[k]; });
+      if(!chavesCt.length) return;
+      var catsAtuaisCt=ctCatsLista();
+      var nomesCt=chavesCt.map(function(ch){ var cc3=catsAtuaisCt.find(function(x){return x.chave===ch;}); return cc3?cc3.titulo:ch; });
+      var totalFornSel=chavesCt.reduce(function(s,ch){ return s+fnLista(ch).length; }, 0);
+      var msgCt=(chavesCt.length===1)
+        ? 'Excluir a pasta "'+nomesCt[0]+'"?\n\nEla tem '+totalFornSel+' fornecedor'+(totalFornSel===1?'':'es')+' cadastrado'+(totalFornSel===1?'':'s')+'. Os dados não são apagados, só ficam ocultos (a pasta some da lista).'
+        : 'Excluir '+chavesCt.length+' pastas selecionadas ('+nomesCt.join(', ')+')?\n\nJuntas têm '+totalFornSel+' fornecedores cadastrados. Os dados não são apagados, só ficam ocultos (as pastas somem da lista).';
+      if(window.confirm(msgCt)){
+        chavesCt.forEach(function(ch){ ctCatsDel(ch); });
+        ctPastasSelecionadas={};
+        window.renderContatos();
+      }
+      return;
     }
   });
 })();
@@ -22953,13 +23004,14 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     var over=psCatsStore(), vistos={}, out=[];
     PS_CATS_BASE.forEach(function(b){
       var o=over[b.chave]||{};
+      if(o.del){ vistos[b.chave]=1; return; }
       out.push({chave:b.chave, titulo:(o.titulo!==undefined&&o.titulo!==''?o.titulo:b.titulo),
                 cor:(o.cor||b.cor)});
       vistos[b.chave]=1;
     });
     Object.keys(over).forEach(function(k){
       if(vistos[k]) return;
-      var o=over[k]; if(!o || !o.titulo) return;
+      var o=over[k]; if(!o || !o.titulo || o.del) return;
       out.push({chave:k, titulo:o.titulo, cor:o.cor||'#3B8FD4'});
     });
     return out;
@@ -22989,6 +23041,23 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     try{ if(typeof logRemoto==='function') logRemoto('prospeccao','Nova pasta de prospecção criada',{area:'Prospecção', chave:chave}); }catch(e){}
     return chave;
   }
+  /* (·263) Exclusão de pasta — soft delete (mesmo motivo do del:1 em fnDel/
+     psDel): só REMOVER a chave do objeto não sobrevive ao merge multi-PC —
+     um PC que ainda não sincronizou a exclusão "ressuscitaria" a pasta ao
+     unir os dois lados. Os contatos daquela pasta NÃO são apagados, só
+     ficam inacessíveis pela grade (a chave psXX continua existindo em
+     appConfig.prosp, então se um dia precisar recuperar é só tirar o del). */
+  function psCatsDel(chave){
+    var over=psCatsStore();
+    var base=null; for(var i=0;i<PS_CATS_BASE.length;i++){ if(PS_CATS_BASE[i].chave===chave){ base=PS_CATS_BASE[i]; break; } }
+    var atual=over[chave]||{};
+    var novo={ts:Date.now(), del:1};
+    novo.titulo=(atual.titulo!==undefined?atual.titulo:(base?base.titulo:''));
+    novo.cor=(atual.cor!==undefined?atual.cor:(base?base.cor:'#3B8FD4'));
+    over[chave]=novo;
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+    try{ if(typeof logRemoto==='function') logRemoto('prospeccao','Pasta '+(novo.titulo||chave)+' excluída',{area:'Prospecção', chave:chave}); }catch(e){}
+  }
   /* Merge multi-PC de 1 nível só (chave da pasta -> {titulo,cor,ts}). */
   window.psCatsMergeMaps=function(a,b){
     a=a||{}; b=b||{}; var out={}, ks={};
@@ -23009,7 +23078,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     return '#'+[r,g,b].map(function(v){var s=v.toString(16); return s.length<2?'0'+s:s;}).join('');
   }
 
-  var prospeccaoAberto=null, psModoEdPastas=false, psEditandoCat=null, psFocarNovaCat=null;
+  var prospeccaoAberto=null, psModoEdPastas=false, psEditandoCat=null, psFocarNovaCat=null, psPastasSelecionadas={};
 
   function psRenderGrid(w){
     var cats=psCatsLista();
@@ -23029,8 +23098,13 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       var pencil = psModoEdPastas
         ? '<span role="button" tabindex="0" class="ct-pencil" data-ps-pencil="'+psEsc(c.chave)+'" title="Editar esta pasta">\u270f\ufe0f</span>'
         : '';
+      var marcado = !!psPastasSelecionadas[c.chave];
+      var circulo = psModoEdPastas
+        ? '<span role="checkbox" tabindex="0" aria-checked="'+(marcado?'true':'false')+'" class="ct-check'+(marcado?' on':'')+'" data-ps-marcar="'+psEsc(c.chave)+'" title="Selecionar esta pasta para excluir"></span>'
+        : '';
       return '<button type="button" class="ct-folder-btn" data-ps-abrir="'+psEsc(c.chave)+'" '+
           (psModoEdPastas?'aria-disabled="true"':'')+' style="--ct-a:'+psSombra(c.cor,28)+';--ct-b:'+psSombra(c.cor,-22)+'">'+
+        circulo+
         pencil+
         '<span class="ct-folder-tab"></span>'+
         '<span class="ct-folder-body">'+
@@ -23043,17 +23117,19 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     var novaTile = (psModoEdPastas && psEditandoCat===null)
       ? '<button type="button" class="ct-nova-pasta" data-ps-nova="1">+<br>Nova pasta</button>' : '';
     var totalContatos = cats.reduce(function(s,c){ return s+psLista(c.chave).length; }, 0);
+    var qtdSel = Object.keys(psPastasSelecionadas).filter(function(k){ return psPastasSelecionadas[k]; }).length;
 
     w.innerHTML =
       '<div class="fn-head">'+
         '<div><h2 class="fn-title"><span class="fn-ic">\ud83c\udfaf</span> Prospecção</h2>'+
         '<div class="fn-sub">'+cats.length+' listas \u00b7 '+totalContatos+' contatos</div></div>'+
         '<div class="fn-acoes">'+
+          (psModoEdPastas && qtdSel>0 ? '<button type="button" class="fn-bt perigo" id="psExcluirSelecionadas">\ud83d\uddd1\ufe0f Excluir '+qtdSel+' pasta'+(qtdSel===1?'':'s')+'</button>' : '')+
           '<button type="button" class="fn-bt'+(psModoEdPastas?' on':'')+'" id="psEditarPastas">'+
             (psModoEdPastas?'\u2713 Concluir edição':'\u270f\ufe0f Editar pastas')+'</button>'+
         '</div>'+
       '</div>'+
-      (psModoEdPastas?'<div class="fn-aviso-ed">\u270f\ufe0f Toque no lápis de uma pasta para renomeá-la ou trocar a cor, ou crie uma pasta nova. Tudo salva sozinho.</div>':'')+
+      (psModoEdPastas?'<div class="fn-aviso-ed">\u270f\ufe0f Toque no lápis de uma pasta para renomeá-la ou trocar a cor, no círculo pra selecionar e excluir, ou crie uma pasta nova. Tudo salva sozinho.</div>':'')+
       '<div class="ct-grid">'+tiles+novaTile+'</div>';
 
     if(psFocarNovaCat){
@@ -23191,9 +23267,9 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     var abrir=e.target.closest('[data-ps-abrir]');
     if(abrir && !psModoEdPastas){ prospeccaoAberto=abrir.getAttribute('data-ps-abrir'); window.renderProspeccao(); return; }
 
-    // ---- edição das PASTAS (nome/cor) ----
+    // ---- edição das PASTAS (nome/cor/exclusão) ----
     var togglePastas=e.target.closest('#psEditarPastas');
-    if(togglePastas){ psModoEdPastas=!psModoEdPastas; psEditandoCat=null; window.renderProspeccao(); return; }
+    if(togglePastas){ psModoEdPastas=!psModoEdPastas; psEditandoCat=null; psPastasSelecionadas={}; window.renderProspeccao(); return; }
     var pencil=e.target.closest('[data-ps-pencil]');
     if(pencil){ psEditandoCat=pencil.getAttribute('data-ps-pencil'); window.renderProspeccao(); return; }
     var ok=e.target.closest('[data-ps-ok]');
@@ -23208,6 +23284,29 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       var chave=psCatsNovo();
       psEditandoCat=chave; psFocarNovaCat=chave;
       window.renderProspeccao(); return;
+    }
+    var marcar=e.target.closest('[data-ps-marcar]');
+    if(marcar){
+      var chM=marcar.getAttribute('data-ps-marcar');
+      if(psPastasSelecionadas[chM]) delete psPastasSelecionadas[chM]; else psPastasSelecionadas[chM]=true;
+      window.renderProspeccao(); return;
+    }
+    var btnExcluir=e.target.closest('#psExcluirSelecionadas');
+    if(btnExcluir){
+      var chaves=Object.keys(psPastasSelecionadas).filter(function(k){ return psPastasSelecionadas[k]; });
+      if(!chaves.length) return;
+      var catsAtuais=psCatsLista();
+      var nomes=chaves.map(function(ch){ var cc2=catsAtuais.find(function(x){return x.chave===ch;}); return cc2?cc2.titulo:ch; });
+      var totalContatosSel=chaves.reduce(function(s,ch){ return s+psLista(ch).length; }, 0);
+      var msg=(chaves.length===1)
+        ? 'Excluir a pasta "'+nomes[0]+'"?\n\nEla tem '+totalContatosSel+' contato'+(totalContatosSel===1?'':'s')+' cadastrado'+(totalContatosSel===1?'':'s')+'. Os dados não são apagados, só ficam ocultos (a pasta some da lista).'
+        : 'Excluir '+chaves.length+' pastas selecionadas ('+nomes.join(', ')+')?\n\nJuntas têm '+totalContatosSel+' contatos cadastrados. Os dados não são apagados, só ficam ocultos (as pastas somem da lista).';
+      if(window.confirm(msg)){
+        chaves.forEach(function(ch){ psCatsDel(ch); });
+        psPastasSelecionadas={};
+        window.renderProspeccao();
+      }
+      return;
     }
   });
 })();
