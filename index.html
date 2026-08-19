@@ -23533,6 +23533,8 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     var todos=psLista(cat);
     var q=psNorm(psBuscaTxt[cat]||'');
     var lista=todos.filter(function(p){
+      if(psFiltroTag==='feito' && !p.iniciado) return false;
+      if(psFiltroTag==='semtag' && p.iniciado) return false;
       if(!q) return true;
       if(psNorm(p.nome).indexOf(q)>=0) return true;
       if(psNorm(p.email).indexOf(q)>=0) return true;
@@ -23593,6 +23595,8 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
         '<div class="fn-sub">'+todos.length+' contato'+(todos.length===1?'':'s')+' cadastrado'+(todos.length===1?'':'s')+'</div></div>'+
         '<div class="fn-acoes">'+
           '<span id="psBarraSelecaoContatos">'+psHtmlBarraSelecaoContatos()+'</span>'+
+          '<button type="button" class="ps-chip-led verde'+(psFiltroTag==='feito'?' on':'')+'" data-ps-filtro-tag="feito"><span class="ps-chip-ic">\u2713</span>contato feito</button>'+
+          '<button type="button" class="ps-chip-led amarelo'+(psFiltroTag==='semtag'?' on':'')+'" data-ps-filtro-tag="semtag"><span class="ps-chip-ic">\ud83c\udff7\ufe0f</span>sem etiqueta</button>'+
           (editando?'<button type="button" class="fn-bt primario" data-ps-novo="'+psEsc(cat)+'">+ Adicionar contato</button>':'')+
           '<button type="button" class="fn-bt'+(editando?' on':'')+'" data-ps-editar="'+psEsc(cat)+'">'+
             (editando?'\u2713 Concluir edição':'\u270f\ufe0f Editar')+'</button>'+
