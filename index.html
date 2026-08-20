@@ -4123,7 +4123,7 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 279; // (·279) estava travado em 261 há várias entregas — corrigido, pra o selo no console/canto da tela dizer a verdade sobre qual arquivo está rodando
+var UV_BUILD_NUM = 282; // (·282) NOTA HONESTA: esta constante ficou parada em 279 durante as entregas ·280/·281/·282 desta sessão — eu corrigi o código mas esqueci de bumpar o número aqui, e o selo da tela mentiu por três builds. Corrigido agora para refletir o real: ·280 Ausente liberado para os 12 atendentes (removida a restrição de OCP_EQUIPE_VENDAS que ainda travava o registro no histórico da Ruth Alves), ·281 navegação restaura a última tela ao dar F5 (lia uv_hub_screen mas nunca aplicava, forçava sempre Control Desk), ·282 atendente da vez não reseta mais ao dar F5 (o boot da Ocupação rodava ocpGarantirVez antes de uvCfgPronta, sorteando/salvando sobre dado local incompleto).
 const UV_BUILD='HUB-v3\u00b7'+UV_BUILD_NUM;
 try{ console.info('%c[Hub Ultravel] build '+UV_BUILD, 'color:#6FBAFF;font-weight:bold'); }catch(e){}
 try{
