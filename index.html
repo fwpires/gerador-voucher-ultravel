@@ -4720,8 +4720,53 @@ async function salvarConfig(){
     Object.keys(appConfig.voucherResolvido).forEach(k=>{ if(appConfig.semCadastroWecann[k]) delete appConfig.semCadastroWecann[k]; });
     localStorage.setItem('uv_config',JSON.stringify(appConfig));
     await api('/api/config',{method:'POST',body:JSON.stringify(appConfig)});
-  }catch(e){}
+    // (·279) sucesso: se havia um ciclo de retry pendente de uma falha anterior,
+    // encerra — esta gravação (mais nova) já chegou na nuvem por outro caminho.
+    if(uvSalvarRetryTimer){ clearTimeout(uvSalvarRetryTimer); uvSalvarRetryTimer=null; uvSalvarRetryTentativas=0; try{ setCloud('online','Nuvem Conectada'); }catch(e){} }
+  }catch(e){
+    // (·279) CORREÇÃO DE RAIZ — "criei um agendamento no Windows da empresa e no
+    // Mac de casa ele não está lá": salvarConfig() tinha aqui um catch(e){}
+    // TOTALMENTE silencioso — uma rede instável, o Worker fora do ar por um
+    // segundo, ou a aba dormindo no meio da chamada simplesmente DESCARTAVA a
+    // gravação, sem aviso e SEM TENTAR DE NOVO. O dado ficava salvo só no
+    // localStorage daquele PC (por isso "sumia" só nos outros aparelhos) e
+    // nunca mais tentava subir sozinho. Agora nenhuma gravação é jogada fora:
+    // entra numa fila de retry com espera crescente (1,5s → até 30s) até
+    // CONSEGUIR — e o selo "Nuvem Conectada" do topo passa a refletir essa
+    // falha de verdade, não só o health-check periódico.
+    try{ setCloud('offline','Sincronizando…'); }catch(e2){}
+    uvAgendarRetrySalvar();
+  }
 }
+// ---- (·279) FILA DE RETRY DA GRAVAÇÃO NA NUVEM ----
+// uvSalvarRetryTimer funciona como o "handle" do ciclo em andamento: não-nulo
+// significa "existe uma tentativa agendada"; usado tanto para nunca duplicar
+// o loop quanto para poder CANCELAR e tentar imediatamente (volta de rede/aba).
+var uvSalvarRetryTimer=null, uvSalvarRetryTentativas=0;
+function uvSalvarRetryTentar(){
+  uvSalvarRetryTentativas++;
+  api('/api/config',{method:'POST',body:JSON.stringify(appConfig)}).then(function(){
+    uvSalvarRetryTimer=null; uvSalvarRetryTentativas=0;
+    try{ setCloud('online','Nuvem Conectada'); }catch(e){}
+  }).catch(function(){
+    var espera=Math.min(30000, 1500*Math.pow(2, Math.min(uvSalvarRetryTentativas,5)));
+    uvSalvarRetryTimer=setTimeout(uvSalvarRetryTentar, espera);
+  });
+}
+function uvAgendarRetrySalvar(){
+  if(uvSalvarRetryTimer) return;               // já tem um ciclo rodando — não duplica
+  uvSalvarRetryTimer=setTimeout(uvSalvarRetryTentar, 1500);
+}
+// a rede/aba voltou: cancela a espera do backoff e tenta NA HORA, em vez de
+// esperar até 30s à toa com a conexão já disponível de novo.
+window.addEventListener('online', function(){
+  if(uvSalvarRetryTimer){ clearTimeout(uvSalvarRetryTimer); uvSalvarRetryTentativas=0; uvSalvarRetryTentar(); }
+});
+document.addEventListener('visibilitychange', function(){
+  if(!document.hidden && uvSalvarRetryTimer){ clearTimeout(uvSalvarRetryTimer); uvSalvarRetryTentativas=0; uvSalvarRetryTentar(); }
+});
+// diagnóstico manual no console (F12), mesmo padrão do uvLiveStatus()
+try{ window.uvSyncStatus=function(){ return { pendente: !!uvSalvarRetryTimer, tentativas: uvSalvarRetryTentativas }; }; }catch(e){}
 function aplicarVisibilidadeEstoque(){
   const btn=$('#btnEstoque');
   if(btn){ btn.classList.toggle('ativo', !!appConfig.estoqueVisivel); btn.title=appConfig.estoqueVisivel?'Ocultar painel do evento':'Mostrar painel do evento'; }
