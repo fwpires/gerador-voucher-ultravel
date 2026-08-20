@@ -4150,7 +4150,7 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 285; // (·285) COLUNA FECHADO: DEDUP POR NOME COMPLETO. Sintoma: CSV com 137 pessoas, Hub mostrando 136 na coluna Fechado (Hóspedes). O ·284 corrigiu totalHospedesWecann() mas vouchersFechadoWecann() ainda usava chaveNome como chave do globalVistos — mesma colisão de homônimos (Maria Leonor Barros Ribeiro e Maria Jose Ribeiro fundem em 'maria ribeiro'). Fix: trocar chaveNome por normNome no globalVistos de vouchersFechadoWecann(). Pessoas com mesmo primeiro+último nome mas nomes completos distintos agora contam separado na coluna. ANTERIOR: (·284) CONTAGEM DE HÓSPEDES: DESEMPATE DE HOMÔNIMOS. Sintoma: CSV do Tower Anhanguera com 136 pessoas no Fechado e o Hub mostrando 135. Ninguem estava faltando — o cadastro estava certo. A contagem é que fundia DUAS PESSOAS DIFERENTES numa só: Maria Leonor Barros Ribeiro (TOWER-099, tel 31 99974-4973, voucher 00166) e Maria Jose Ribeiro (TOWER-096, tel 11 92058-4200, voucher 00162) geram a MESMA chaveNome ('primeiro nome + ultimo sobrenome' = 'maria ribeiro'), e totalHospedesWecann guardava essas chaves num Set. chaveNome NAO foi alterada de proposito: ela e usada no matching de conciliacao do arquivo inteiro e precisa continuar tolerante a nomes abreviados no CSV. O desempate mora so na contagem: agrupa as ocorrencias por chave e une (union-find) apenas as que forem comprovadamente a mesma pessoa — mesmo voucher, ou mesmo telefone (so digitos), ou nomes compativeis (os tokens de um cabem dentro do outro, "Marco Ubiali" C "Marco Aurelio Ubiali"). Sem evidencia, contam separado. PROPRIEDADE DE SEGURANCA: so SEPARA com evidencia positiva, entao o numero so pode ficar igual ou MAIOR — nunca menor. Validado com o CSV real: antes 135, agora 136, batendo com o hotel; mais 6 testes unitarios (homonimos, hospede+passageiro no mesmo voucher, mesmo telefone com mascara diferente, nome abreviado x completo, vendedor nunca conta, comutatividade).
+var UV_BUILD_NUM = 285; // (·285) A COLUNA "FECHADO (HÓSPEDES)" PASSA A CONTAR IGUAL AO ·284. Sintoma: CSV do Tower com 137 pessoas e a coluna do Hub parada em 136. O ·284 tinha consertado totalHospedesWecann(), mas o numero DA TELA nao vem dela — vem de vouchersFechadoWecann(), que fazia a propria deduplicacao com um Set de chaveNome e por isso continuava fundindo Maria Leonor Barros Ribeiro (TOWER-099, tel 31 99974-4973, voucher 00166) com Maria Jose Ribeiro (TOWER-096, tel 11 92058-4200, voucher 00163) na chave 'maria ribeiro'. Conferido nome a nome contra o relatorio de vouchers em PDF: os 112 quartos do CSV pareiam 1:1 com os 112 vouchers do Hub e NINGUEM esta faltando no cadastro — 4 pares so tinham grafia diferente (Tania Pimentel Goncalves x Tania Cristina de Azevedo Pimentel C. #00015; Raquel Goldstein Costa Cruz x Raquel Raimunda Goldstein Costa #00019; Angela Surian Moreira Iacona x ...Lacona #00031; Maria Liliam Campos Soare x ...Soares #00092). FIX: o union-find do ·284 virou funcao unica _wecIdentidades(), que devolve .total (para a contagem) e .id(nome,voucher) (para deduplicar os cards). totalHospedesWecann() agora e so um atalho para .total e a coluna usa .id() — os dois numeros nao tem mais como divergir. NAO confundir com deduplicar por nome completo puro: isso separaria o mesmo hospede escrito 'Marco Ubiali' num voucher e 'Marco Aurelio Ubiali' noutro, inflando a coluna para 140. ANTERIOR: (·284) CONTAGEM DE HÓSPEDES: DESEMPATE DE HOMÔNIMOS. Sintoma: CSV do Tower Anhanguera com 136 pessoas no Fechado e o Hub mostrando 135. Ninguem estava faltando — o cadastro estava certo. A contagem é que fundia DUAS PESSOAS DIFERENTES numa só: Maria Leonor Barros Ribeiro (TOWER-099, tel 31 99974-4973, voucher 00166) e Maria Jose Ribeiro (TOWER-096, tel 11 92058-4200, voucher 00162) geram a MESMA chaveNome ('primeiro nome + ultimo sobrenome' = 'maria ribeiro'), e totalHospedesWecann guardava essas chaves num Set. chaveNome NAO foi alterada de proposito: ela e usada no matching de conciliacao do arquivo inteiro e precisa continuar tolerante a nomes abreviados no CSV. O desempate mora so na contagem: agrupa as ocorrencias por chave e une (union-find) apenas as que forem comprovadamente a mesma pessoa — mesmo voucher, ou mesmo telefone (so digitos), ou nomes compativeis (os tokens de um cabem dentro do outro, "Marco Ubiali" C "Marco Aurelio Ubiali"). Sem evidencia, contam separado. PROPRIEDADE DE SEGURANCA: so SEPARA com evidencia positiva, entao o numero so pode ficar igual ou MAIOR — nunca menor. Validado com o CSV real: antes 135, agora 136, batendo com o hotel; mais 6 testes unitarios (homonimos, hospede+passageiro no mesmo voucher, mesmo telefone com mascara diferente, nome abreviado x completo, vendedor nunca conta, comutatividade).
 const UV_BUILD='HUB-v3\u00b7'+UV_BUILD_NUM;
 try{ console.info('%c[Hub Ultravel] build '+UV_BUILD, 'color:#6FBAFF;font-weight:bold'); }catch(e){}
 try{
@@ -5368,7 +5368,21 @@ function _thwNomesCompativeis(a, b){
   for(const t of menor){ if(!maior.has(t)) return false; }
   return true;   // um nome cabe inteiro dentro do outro
 }
-function totalHospedesWecann(){
+/* (·285) FONTE ÚNICA DE IDENTIDADE DE HÓSPEDE WECANN.
+
+   O ·284 consertou totalHospedesWecann(), mas o número que aparece NA TELA
+   (coluna "Fechado (Hóspedes)") não vem dela: vem de vouchersFechadoWecann(),
+   que fazia a própria deduplicação com um Set de chaveNome — exatamente o bug
+   que o ·284 tinha acabado de corrigir do outro lado. Resultado: a contagem
+   interna dizia 137 e a coluna continuava mostrando 136.
+
+   Em vez de repetir o union-find em dois lugares (que foi como o bug nasceu),
+   a lógica vira UMA função só. _wecIdentidades() devolve:
+     • total  — quantas pessoas distintas existem (o que totalHospedesWecann diz);
+     • id(nome, vnum) — o identificador da pessoa daquela ocorrência.
+   Quem precisa contar usa .total; quem precisa deduplicar cards usa .id().
+   Assim os dois números não têm como divergir de novo. */
+function _wecIdentidades(){
   // 1) COLETA: uma ocorrência por nome encontrado, guardando as pistas de identidade
   const ocor=[];   // {chave, nome, vnum, tel}
   (savedCache||[]).forEach(v=>{
@@ -5396,9 +5410,11 @@ function totalHospedesWecann(){
 
   // 3) UNION-FIND dentro de cada chave: une o que for comprovadamente a mesma pessoa
   let total=0;
-  porChave.forEach(lista=>{
+  const idPorNomeVoucher=new Map();   // normNome@voucher -> id da pessoa (mais preciso)
+  const idPorNome=new Map();          // normNome         -> id da pessoa (mesmo nome, outro voucher)
+  const idPorChave=new Map();         // chaveNome        -> id da pessoa (último recurso)
+  porChave.forEach((lista,chave)=>{
     const n=lista.length;
-    if(n===1){ total+=1; return; }
     const pai=new Array(n); for(let i=0;i<n;i++) pai[i]=i;
     const acha=x=>{ while(pai[x]!==x){ pai[x]=pai[pai[x]]; x=pai[x]; } return x; };
     const une=(a,b)=>{ const ra=acha(a), rb=acha(b); if(ra!==rb) pai[Math.max(ra,rb)]=Math.min(ra,rb); };
@@ -5410,11 +5426,33 @@ function totalHospedesWecann(){
         if(mesmoVoucher || mesmoTel || _thwNomesCompativeis(A.nome, B.nome)) une(i,j);
       }
     }
-    const raizes=new Set(); for(let i=0;i<n;i++) raizes.add(acha(i));
+    const raizes=new Set();
+    for(let i=0;i<n;i++){
+      const r=acha(i); raizes.add(r);
+      const id=chave+'#'+r;                       // id estável da pessoa dentro da chave
+      const nn=normNome(lista[i].nome);
+      idPorNomeVoucher.set(nn+'@'+lista[i].vnum, id);
+      if(!idPorNome.has(nn))  idPorNome.set(nn, id);
+      if(!idPorChave.has(chave)) idPorChave.set(chave, id);
+    }
     total+=raizes.size;
   });
-  return total;
+
+  return {
+    total: total,
+    // identifica a PESSOA de uma ocorrência (nome + voucher onde apareceu).
+    // do mais preciso para o mais tolerante; se o nome não estava na coleta
+    // (ex.: fallback do cliente), ganha identidade própria em vez de sumir.
+    id: function(nome, vnum){
+      const nn=normNome(nome); if(!nn) return '';
+      return idPorNomeVoucher.get(nn+'@'+String(vnum||''))
+          || idPorNome.get(nn)
+          || idPorChave.get(chaveNome(nome))
+          || ('~'+nn);
+    }
+  };
 }
+function totalHospedesWecann(){ return _wecIdentidades().total; }
 
 // hóspedes dos vouchers do WeCann (hospedagem em um dos 3 hotéis) -> Map normNome -> nomeOriginal
 function wecannGuestMap(){
@@ -7076,21 +7114,26 @@ function nomesDosVouchersWecann(){
 // Dedup GLOBAL por primeiro+último: ninguém aparece duas vezes; vendedores nunca entram.
 function vouchersFechadoWecann(){
   const cards=[]; const globalVistos=new Set();
+  // (·285) usa a MESMA identidade de totalHospedesWecann(): duas pessoas que só
+  // coincidem em "primeiro + último nome" (Maria Leonor Barros Ribeiro × Maria
+  // Jose Ribeiro) deixam de virar uma só, e o mesmo hóspede escrito de formas
+  // diferentes em vouchers diferentes (Marco Ubiali / Marco Aurélio Ubiali)
+  // continua contando uma vez só.
+  const IDENT=_wecIdentidades();
   (savedCache||[]).forEach(v=>{
     const wecannServ=(v.services||[]).filter(sv=>sv.type==='hotel' && HOTEIS_OCUPACAO.some(h=>h.match(sv.data&&sv.data.hotel)));
     if(!wecannServ.length) return;
+    const vendKey=chaveNome(v.vendedor);
+    const vnum=String(v.num||'');
     const pessoas=[];
     const add=nm=>{
       if(!nm||!String(nm).trim()) return;
       if(ehVendedor(nm)) return;                                   // vendedor nunca entra
-      // (·285) usa normNome como chave de dedup (em vez de chaveNome) para não fundir
-      // pessoas DIFERENTES que compartilham o mesmo "primeiro + último" nome
-      // ex.: Maria Leonor Barros Ribeiro e Maria Jose Ribeiro → ambas chaveNome "maria ribeiro"
-      // mas normNome distintos → agora contam separado, igual ao totalHospedesWecann() pós-·284
-      const k=normNome(nm); if(!k || globalVistos.has(k)) return;
+      const k=chaveNome(nm); if(!k || (vendKey&&k===vendKey)) return;
+      const id=IDENT.id(nm, vnum); if(!id || globalVistos.has(id)) return;
       const rec=recusadoMatch(nm);                                 // recusado/cancelado no CSV?
       if(rec && decisaoRecusado(rec.nome)==='excluir') return;     // confirmado excluir → fora do Fechado
-      globalVistos.add(k); pessoas.push(String(nm).trim());
+      globalVistos.add(id); pessoas.push(String(nm).trim());
     };
     wecannServ.forEach(sv=>{ const h=sv.data&&sv.data.hospedes; if(Array.isArray(h)) h.forEach(add); else if(h) add(h); });
     (v.passageiros||[]).forEach(add);
