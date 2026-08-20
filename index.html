@@ -4150,7 +4150,7 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 283; // (·283) ATENDENTE DA VEZ NÃO MUDA MAIS AO ATUALIZAR A PÁGINA — causa que sobrou do ·282: a validação de sessão em segundo plano (/api/auth/validar) chamava renderOcupacao(TRUE) ao retornar, e `forcar=true` faz ocpGarantirVez sortear de novo com Math.random() mesmo havendo um da vez válido. Com os 6 sorteáveis empatados em 3 verdes, 5 em 6 refreshes trocavam o nome. O ·282 blindou o ini() do módulo de Ocupação, mas este caminho nasce do retorno de REDE da autenticação e nunca passou por aquele gate. Corrigido para renderOcupacao() sem forçar + gate uvCfgPronta. Validado em Chromium real: 5/8 refreshes trocavam antes, 0/20 depois. // (·282) NOTA HONESTA: esta constante ficou parada em 279 durante as entregas ·280/·281/·282 desta sessão — eu corrigi o código mas esqueci de bumpar o número aqui, e o selo da tela mentiu por três builds. Corrigido agora para refletir o real: ·280 Ausente liberado para os 12 atendentes (removida a restrição de OCP_EQUIPE_VENDAS que ainda travava o registro no histórico da Ruth Alves), ·281 navegação restaura a última tela ao dar F5 (lia uv_hub_screen mas nunca aplicava, forçava sempre Control Desk), ·282 atendente da vez não reseta mais ao dar F5 (o boot da Ocupação rodava ocpGarantirVez antes de uvCfgPronta, sorteando/salvando sobre dado local incompleto).
+var UV_BUILD_NUM = 284; // (·284) CONTAGEM DE HÓSPEDES: DESEMPATE DE HOMÔNIMOS. Sintoma: CSV do Tower Anhanguera com 136 pessoas no Fechado e o Hub mostrando 135. Ninguem estava faltando — o cadastro estava certo. A contagem é que fundia DUAS PESSOAS DIFERENTES numa só: Maria Leonor Barros Ribeiro (TOWER-099, tel 31 99974-4973, voucher 00166) e Maria Jose Ribeiro (TOWER-096, tel 11 92058-4200, voucher 00162) geram a MESMA chaveNome ('primeiro nome + ultimo sobrenome' = 'maria ribeiro'), e totalHospedesWecann guardava essas chaves num Set. chaveNome NAO foi alterada de proposito: ela e usada no matching de conciliacao do arquivo inteiro e precisa continuar tolerante a nomes abreviados no CSV. O desempate mora so na contagem: agrupa as ocorrencias por chave e une (union-find) apenas as que forem comprovadamente a mesma pessoa — mesmo voucher, ou mesmo telefone (so digitos), ou nomes compativeis (os tokens de um cabem dentro do outro, "Marco Ubiali" C "Marco Aurelio Ubiali"). Sem evidencia, contam separado. PROPRIEDADE DE SEGURANCA: so SEPARA com evidencia positiva, entao o numero so pode ficar igual ou MAIOR — nunca menor. Validado com o CSV real: antes 135, agora 136, batendo com o hotel; mais 6 testes unitarios (homonimos, hospede+passageiro no mesmo voucher, mesmo telefone com mascara diferente, nome abreviado x completo, vendedor nunca conta, comutatividade).
 const UV_BUILD='HUB-v3\u00b7'+UV_BUILD_NUM;
 try{ console.info('%c[Hub Ultravel] build '+UV_BUILD, 'color:#6FBAFF;font-weight:bold'); }catch(e){}
 try{
@@ -5321,30 +5321,99 @@ function ehVendedor(nome){ const k=chaveNome(nome); return !!k && _vendedorKeys.
 let shConcAberto=false; // detalhe da conciliação aberto/fechado
 let shResolverAberto=''; // nome solto cujo seletor de desempate está aberto ('' = nenhum)
 
-// conta o TOTAL de hóspedes registrados em todos os vouchers do WeCann
-// (conta cada pessoa, inclusive nomes repetidos em vouchers diferentes)
+/* (·284) DESEMPATE DE HOMÔNIMOS NA CONTAGEM DE HÓSPEDES.
+
+   PROBLEMA MEDIDO (Tower Anhanguera, 20/08/2026): o CSV do hotel trazia 136
+   pessoas no Fechado e o Hub mostrava 135. Ninguém estava faltando — o cadastro
+   estava correto. A contagem é que fundia DUAS PESSOAS DIFERENTES numa só:
+
+     • Maria Leonor Barros Ribeiro — TOWER-099, tel (31) 99974-4973, voucher 00166
+     • Maria Jose Ribeiro          — TOWER-096, tel (11) 92058-4200, voucher 00162
+
+   chaveNome() é "primeiro nome + último sobrenome", então as duas viravam a
+   MESMA chave 'maria ribeiro' — e um Set guarda uma só. Quanto maior a base,
+   mais provável a colisão (é o paradoxo do aniversário aplicado a sobrenomes).
+
+   POR QUE NÃO MEXER NA chaveNome(): ela é usada no matching de conciliação do
+   arquivo inteiro (CSV × voucher, promovidos, ambíguos, via-voucher). Torná-la
+   mais restritiva aqui consertaria a contagem e quebraria o casamento de nomes
+   escritos de forma abreviada no CSV, que é justamente o que ela existe para
+   tolerar. Por isso o desempate mora SÓ na contagem.
+
+   COMO FUNCIONA: em vez de um Set de chaves, agrupa as ocorrências por chave e,
+   dentro de cada grupo, une (union-find) as que forem COMPATÍVEIS. Duas
+   ocorrências são a mesma pessoa quando:
+     1) estão no MESMO voucher  → preserva o comportamento antigo de não contar
+        duas vezes quem aparece em "hóspedes" e também em "passageiros";
+     2) têm o MESMO telefone de contato (só dígitos, não vazio);
+     3) os nomes são COMPATÍVEIS: os tokens de um cabem dentro do outro
+        ("Marco Ubiali" ⊂ "Marco Aurélio Ubiali" = mesma pessoa).
+   Sem nenhuma dessas evidências, são contadas como pessoas distintas.
+
+   PROPRIEDADE DE SEGURANÇA: o desempate só SEPARA quando há evidência positiva
+   de que são pessoas diferentes. Logo esta função só pode DEVOLVER O MESMO
+   NÚMERO OU UM NÚMERO MAIOR que a versão anterior — nunca menor. Nenhuma pessoa
+   que já era contada deixa de ser.
+
+   COMUTATIVIDADE: a união é feita por union-find sobre TODOS os pares do grupo,
+   então o resultado não depende da ordem em que os vouchers chegam do cache
+   (mesma preocupação do ·195 sobre desempates dependentes de ordem). */
+function _thwTelDigitos(s){ return String(s||'').replace(/\D+/g,''); }
+function _thwNomesCompativeis(a, b){
+  const ta=tokensNome(a), tb=tokensNome(b);
+  if(!ta.length || !tb.length) return false;
+  const sa=new Set(ta), sb=new Set(tb);
+  const menor = sa.size<=sb.size ? sa : sb;
+  const maior = sa.size<=sb.size ? sb : sa;
+  for(const t of menor){ if(!maior.has(t)) return false; }
+  return true;   // um nome cabe inteiro dentro do outro
+}
 function totalHospedesWecann(){
-  // conta PESSOAS únicas dos vouchers WeCann: hóspedes + passageiros, deduplicados
-  // pela regra de primeiro nome + último sobrenome (chaveNome). Assim, um mesmo nome
-  // que aparece no campo "hóspede" E no campo "passageiros" conta uma única vez.
-  const chaves=new Set();
+  // 1) COLETA: uma ocorrência por nome encontrado, guardando as pistas de identidade
+  const ocor=[];   // {chave, nome, vnum, tel}
   (savedCache||[]).forEach(v=>{
     const wecannServ=(v.services||[]).filter(sv=>sv.type==='hotel' && HOTEIS_OCUPACAO.some(h=>h.match(sv.data&&sv.data.hotel)));
     if(!wecannServ.length) return; // só vouchers WeCann (hospedagem em um dos 3 hotéis)
     const vendKey=chaveNome(v.vendedor); // chave do vendedor DESTE voucher
+    const vnum=String(v.num||'');
+    const tel=_thwTelDigitos(v.contato);
     const add=nm=>{
       if(!nm||!String(nm).trim()) return;
       const k=chaveNome(nm); if(!k) return;
       if(ehVendedor(nm)) return;            // nome de vendedor/atendente: NUNCA conta
       if(vendKey && k===vendKey) return;    // é o vendedor deste voucher: NUNCA conta
-      chaves.add(k);
+      ocor.push({chave:k, nome:String(nm), vnum:vnum, tel:tel});
     };
     let temHospede=false;
     wecannServ.forEach(sv=>{ const h=sv.data&&sv.data.hospedes; if(Array.isArray(h)&&h.length){ temHospede=true; h.forEach(add); } else if(h){ temHospede=true; add(h); } });
     if(!temHospede) add(v.cliente);            // fallback: usa o cliente se não houver hóspedes listados
     (v.passageiros||[]).forEach(add);          // soma os passageiros (nomes repetidos do hóspede não contam de novo)
   });
-  return chaves.size;
+
+  // 2) AGRUPA por chaveNome — só quem colide precisa de desempate
+  const porChave=new Map();
+  ocor.forEach(o=>{ if(!porChave.has(o.chave)) porChave.set(o.chave, []); porChave.get(o.chave).push(o); });
+
+  // 3) UNION-FIND dentro de cada chave: une o que for comprovadamente a mesma pessoa
+  let total=0;
+  porChave.forEach(lista=>{
+    const n=lista.length;
+    if(n===1){ total+=1; return; }
+    const pai=new Array(n); for(let i=0;i<n;i++) pai[i]=i;
+    const acha=x=>{ while(pai[x]!==x){ pai[x]=pai[pai[x]]; x=pai[x]; } return x; };
+    const une=(a,b)=>{ const ra=acha(a), rb=acha(b); if(ra!==rb) pai[Math.max(ra,rb)]=Math.min(ra,rb); };
+    for(let i=0;i<n;i++){
+      for(let j=i+1;j<n;j++){
+        const A=lista[i], B=lista[j];
+        const mesmoVoucher = !!A.vnum && A.vnum===B.vnum;
+        const mesmoTel     = !!A.tel  && A.tel===B.tel;
+        if(mesmoVoucher || mesmoTel || _thwNomesCompativeis(A.nome, B.nome)) une(i,j);
+      }
+    }
+    const raizes=new Set(); for(let i=0;i<n;i++) raizes.add(acha(i));
+    total+=raizes.size;
+  });
+  return total;
 }
 
 // hóspedes dos vouchers do WeCann (hospedagem em um dos 3 hotéis) -> Map normNome -> nomeOriginal
