@@ -8975,7 +8975,24 @@ init();
       if(tree){ if(scr) openTree(tree); else toggleTree(tree); } // navega → garante aberto; só árvore → alterna
       if(scr) window.hubGoScreen(scr);
     });
-    window.hubGoScreen('controldesk'); // o sistema sempre abre no Control Desk
+    // (·281) CORREÇÃO — "navegação reseta ao atualizar página". O Hub já
+    // GRAVAVA a tela atual em localStorage a cada navegação (uv_hub_screen,
+    // linha logo abaixo, sem alteração) — só que essa linha aqui SEMPRE
+    // ignorava o valor salvo e forçava 'controldesk' incondicionalmente no
+    // boot. O dado nunca foi o problema; só faltava LER de volta. Só
+    // restaura se a tela salva realmente existir NESTA build (document.
+    // getElementById('scr-'+scr) ou 'scr' em WEC, o mapa dos sub-itens do
+    // carrossel WeCann) — assim uma tela removida/renomeada numa
+    // atualização futura não deixa ninguém preso numa tela fantasma; nesse
+    // caso (ou no 1º acesso, sem nada salvo ainda) cai no Control Desk,
+    // exatamente como antes.
+    var scrSalva=null;
+    try{ scrSalva=localStorage.getItem('uv_hub_screen'); }catch(e){}
+    if(scrSalva && (scrSalva in WEC || document.getElementById('scr-'+scrSalva))){
+      window.hubGoScreen(scrSalva);
+    } else {
+      window.hubGoScreen('controldesk'); // sem tela salva (ou tela que não existe mais) → Control Desk
+    }
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init);
   else init();
@@ -17893,7 +17910,29 @@ function excluirNotaUI(id){
   }, 1000);
 
   // primeira pintura: se este PC fez o 1º sorteio do dia, grava na nuvem na hora
-  function ini(){ try{ if(window.renderOcupacao()){ if(typeof salvarConfig==='function') salvarConfig(); } }catch(e){} try{ if(typeof window.renderAusProg==='function') window.renderAusProg(); }catch(e){} try{ aprSincronizarOcupacao(); }catch(e){} }
+  //
+  // (·282) CORREÇÃO — "atendente da vez reseta ao atualizar página". A causa
+  // era EXATAMENTE a mesma classe de bug que uvCfgPronta já existe para evitar
+  // em outros pontos do arquivo (ver o listener do WebSocket, poucas linhas
+  // abaixo): este ini() sempre rodou renderOcupacao() na hora — antes mesmo
+  // de a config vir da NUVEM (carregarConfig() ainda está em voo, esperando
+  // o fetch de /api/config). Nesse instante, ocpGarantirVez() só enxerga o
+  // retrato PARCIAL do localStorage deste PC — que pode estar desatualizado
+  // em relação ao que os outros 11 PCs fizeram enquanto este estava fechado.
+  // Se esse retrato parcial fizer QUALQUER outro atendente parecer "mais
+  // livre" que o atual .atual (a regra do modo dinâmico, logo acima), a vez
+  // é resorteada NA HORA — e, pior, "if(window.renderOcupacao())" já GRAVA
+  // esse sorteio prematuro na nuvem antes mesmo do merge com o servidor
+  // acontecer. Resultado: um sorteio novo (às vezes) a cada F5, e cada um
+  // deles propagando para os outros 11 PCs. Correção: espera uvCfgPronta
+  // ficar true (mesma condição e mesmo reagendamento de 1,5s que o ws.onmessage
+  // já usa) antes de rodar a primeira pintura — depois disso, ocpGarantirVez
+  // já enxerga o estado MESCLADO (local+nuvem) e só resorteia quando é
+  // realmente hora de resortear, não por causa de uma foto incompleta do boot.
+  function ini(){
+    if(typeof uvCfgPronta!=='undefined' && !uvCfgPronta){ setTimeout(ini, 1500); return; }
+    try{ if(window.renderOcupacao()){ if(typeof salvarConfig==='function') salvarConfig(); } }catch(e){} try{ if(typeof window.renderAusProg==='function') window.renderAusProg(); }catch(e){} try{ aprSincronizarOcupacao(); }catch(e){}
+  }
   // relógio: a cada 60s verifica se alguma ausência programada entrou/saiu da janela
   try{ setInterval(function(){ try{ aprSincronizarOcupacao(); }catch(e){} try{ if(typeof window.renderAusProg==='function') window.renderAusProg(); }catch(e){} }, 30000); }catch(e){}
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', ini);
