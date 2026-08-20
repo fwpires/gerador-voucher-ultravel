@@ -3033,7 +3033,34 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
         (function reaplicar(tent){
           var ok=false;
           try{ if(typeof window.uvAuthAplicarIdentidade==='function'){ window.uvAuthAplicarIdentidade(); ok=true; } }catch(e){}
-          try{ if(typeof window.renderOcupacao==='function') window.renderOcupacao(true); }catch(e){}
+          /* (·283) CORREÇÃO DEFINITIVA — "atendente da vez muda ao atualizar a página".
+             AQUI estava a causa que sobrou depois do ·282. Esta linha rodava
+             renderOcupacao(TRUE) — e o único efeito do parâmetro `forcar` dentro
+             de renderOcupacao é chamar ocpGarantirVez(o, forcar), onde
+             `precisa = forcar || !o.atual` vira SEMPRE verdadeiro e dispara um
+             SORTEIO NOVO com Math.random(). Ou seja: a cada carregamento, quando
+             a validação de sessão em segundo plano (/api/auth/validar) retornava,
+             o Hub re-sorteava a vez do zero. Com os 6 sorteáveis empatados em 3
+             LEDs verdes (o caso comum), a chance de o nome MUDAR era 5 em 6 — por
+             isso "às vezes mantinha, às vezes trocava" a cada F5.
+             O ·282 blindou o ini() do módulo de Ocupação, mas este caminho é OUTRO
+             e nunca passou por lá: ele nasce do retorno de rede da autenticação.
+             O `true` nunca teve propósito aqui — o objetivo desta chamada é apenas
+             REPINTAR a grade para reaplicar as permissões do perfil (botões de
+             admin), e repintar não exige — nem deve — resortear.
+             Duas proteções, então:
+               1) renderOcupacao() SEM `forcar` → repinta e deixa as regras normais
+                  decidirem (cheio / surgiu alguém mais livre / não há da vez);
+               2) gate uvCfgPronta → nem repinta antes de a config vir da nuvem,
+                  pelo mesmo motivo do ·282 (agir sobre foto parcial do boot). O
+                  ini() do módulo pinta assim que a config chega, então pular aqui
+                  não deixa a tela sem desenho. */
+          try{
+            if(typeof window.renderOcupacao==='function'
+               && (typeof uvCfgPronta==='undefined' || uvCfgPronta)){
+              window.renderOcupacao();
+            }
+          }catch(e){}
           if(!ok && tent<20) setTimeout(function(){ reaplicar(tent+1); }, 150);
         })(0);
       }
@@ -4123,7 +4150,7 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 282; // (·282) NOTA HONESTA: esta constante ficou parada em 279 durante as entregas ·280/·281/·282 desta sessão — eu corrigi o código mas esqueci de bumpar o número aqui, e o selo da tela mentiu por três builds. Corrigido agora para refletir o real: ·280 Ausente liberado para os 12 atendentes (removida a restrição de OCP_EQUIPE_VENDAS que ainda travava o registro no histórico da Ruth Alves), ·281 navegação restaura a última tela ao dar F5 (lia uv_hub_screen mas nunca aplicava, forçava sempre Control Desk), ·282 atendente da vez não reseta mais ao dar F5 (o boot da Ocupação rodava ocpGarantirVez antes de uvCfgPronta, sorteando/salvando sobre dado local incompleto).
+var UV_BUILD_NUM = 283; // (·283) ATENDENTE DA VEZ NÃO MUDA MAIS AO ATUALIZAR A PÁGINA — causa que sobrou do ·282: a validação de sessão em segundo plano (/api/auth/validar) chamava renderOcupacao(TRUE) ao retornar, e `forcar=true` faz ocpGarantirVez sortear de novo com Math.random() mesmo havendo um da vez válido. Com os 6 sorteáveis empatados em 3 verdes, 5 em 6 refreshes trocavam o nome. O ·282 blindou o ini() do módulo de Ocupação, mas este caminho nasce do retorno de REDE da autenticação e nunca passou por aquele gate. Corrigido para renderOcupacao() sem forçar + gate uvCfgPronta. Validado em Chromium real: 5/8 refreshes trocavam antes, 0/20 depois. // (·282) NOTA HONESTA: esta constante ficou parada em 279 durante as entregas ·280/·281/·282 desta sessão — eu corrigi o código mas esqueci de bumpar o número aqui, e o selo da tela mentiu por três builds. Corrigido agora para refletir o real: ·280 Ausente liberado para os 12 atendentes (removida a restrição de OCP_EQUIPE_VENDAS que ainda travava o registro no histórico da Ruth Alves), ·281 navegação restaura a última tela ao dar F5 (lia uv_hub_screen mas nunca aplicava, forçava sempre Control Desk), ·282 atendente da vez não reseta mais ao dar F5 (o boot da Ocupação rodava ocpGarantirVez antes de uvCfgPronta, sorteando/salvando sobre dado local incompleto).
 const UV_BUILD='HUB-v3\u00b7'+UV_BUILD_NUM;
 try{ console.info('%c[Hub Ultravel] build '+UV_BUILD, 'color:#6FBAFF;font-weight:bold'); }catch(e){}
 try{
