@@ -4150,7 +4150,7 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 284; // (·284) CONTAGEM DE HÓSPEDES: DESEMPATE DE HOMÔNIMOS. Sintoma: CSV do Tower Anhanguera com 136 pessoas no Fechado e o Hub mostrando 135. Ninguem estava faltando — o cadastro estava certo. A contagem é que fundia DUAS PESSOAS DIFERENTES numa só: Maria Leonor Barros Ribeiro (TOWER-099, tel 31 99974-4973, voucher 00166) e Maria Jose Ribeiro (TOWER-096, tel 11 92058-4200, voucher 00162) geram a MESMA chaveNome ('primeiro nome + ultimo sobrenome' = 'maria ribeiro'), e totalHospedesWecann guardava essas chaves num Set. chaveNome NAO foi alterada de proposito: ela e usada no matching de conciliacao do arquivo inteiro e precisa continuar tolerante a nomes abreviados no CSV. O desempate mora so na contagem: agrupa as ocorrencias por chave e une (union-find) apenas as que forem comprovadamente a mesma pessoa — mesmo voucher, ou mesmo telefone (so digitos), ou nomes compativeis (os tokens de um cabem dentro do outro, "Marco Ubiali" C "Marco Aurelio Ubiali"). Sem evidencia, contam separado. PROPRIEDADE DE SEGURANCA: so SEPARA com evidencia positiva, entao o numero so pode ficar igual ou MAIOR — nunca menor. Validado com o CSV real: antes 135, agora 136, batendo com o hotel; mais 6 testes unitarios (homonimos, hospede+passageiro no mesmo voucher, mesmo telefone com mascara diferente, nome abreviado x completo, vendedor nunca conta, comutatividade).
+var UV_BUILD_NUM = 285; // (·285) COLUNA FECHADO: DEDUP POR NOME COMPLETO. Sintoma: CSV com 137 pessoas, Hub mostrando 136 na coluna Fechado (Hóspedes). O ·284 corrigiu totalHospedesWecann() mas vouchersFechadoWecann() ainda usava chaveNome como chave do globalVistos — mesma colisão de homônimos (Maria Leonor Barros Ribeiro e Maria Jose Ribeiro fundem em 'maria ribeiro'). Fix: trocar chaveNome por normNome no globalVistos de vouchersFechadoWecann(). Pessoas com mesmo primeiro+último nome mas nomes completos distintos agora contam separado na coluna. ANTERIOR: (·284) CONTAGEM DE HÓSPEDES: DESEMPATE DE HOMÔNIMOS. Sintoma: CSV do Tower Anhanguera com 136 pessoas no Fechado e o Hub mostrando 135. Ninguem estava faltando — o cadastro estava certo. A contagem é que fundia DUAS PESSOAS DIFERENTES numa só: Maria Leonor Barros Ribeiro (TOWER-099, tel 31 99974-4973, voucher 00166) e Maria Jose Ribeiro (TOWER-096, tel 11 92058-4200, voucher 00162) geram a MESMA chaveNome ('primeiro nome + ultimo sobrenome' = 'maria ribeiro'), e totalHospedesWecann guardava essas chaves num Set. chaveNome NAO foi alterada de proposito: ela e usada no matching de conciliacao do arquivo inteiro e precisa continuar tolerante a nomes abreviados no CSV. O desempate mora so na contagem: agrupa as ocorrencias por chave e une (union-find) apenas as que forem comprovadamente a mesma pessoa — mesmo voucher, ou mesmo telefone (so digitos), ou nomes compativeis (os tokens de um cabem dentro do outro, "Marco Ubiali" C "Marco Aurelio Ubiali"). Sem evidencia, contam separado. PROPRIEDADE DE SEGURANCA: so SEPARA com evidencia positiva, entao o numero so pode ficar igual ou MAIOR — nunca menor. Validado com o CSV real: antes 135, agora 136, batendo com o hotel; mais 6 testes unitarios (homonimos, hospede+passageiro no mesmo voucher, mesmo telefone com mascara diferente, nome abreviado x completo, vendedor nunca conta, comutatividade).
 const UV_BUILD='HUB-v3\u00b7'+UV_BUILD_NUM;
 try{ console.info('%c[Hub Ultravel] build '+UV_BUILD, 'color:#6FBAFF;font-weight:bold'); }catch(e){}
 try{
@@ -7079,12 +7079,15 @@ function vouchersFechadoWecann(){
   (savedCache||[]).forEach(v=>{
     const wecannServ=(v.services||[]).filter(sv=>sv.type==='hotel' && HOTEIS_OCUPACAO.some(h=>h.match(sv.data&&sv.data.hotel)));
     if(!wecannServ.length) return;
-    const vendKey=chaveNome(v.vendedor);
     const pessoas=[];
     const add=nm=>{
       if(!nm||!String(nm).trim()) return;
       if(ehVendedor(nm)) return;                                   // vendedor nunca entra
-      const k=chaveNome(nm); if(!k || (vendKey&&k===vendKey) || globalVistos.has(k)) return;
+      // (·285) usa normNome como chave de dedup (em vez de chaveNome) para não fundir
+      // pessoas DIFERENTES que compartilham o mesmo "primeiro + último" nome
+      // ex.: Maria Leonor Barros Ribeiro e Maria Jose Ribeiro → ambas chaveNome "maria ribeiro"
+      // mas normNome distintos → agora contam separado, igual ao totalHospedesWecann() pós-·284
+      const k=normNome(nm); if(!k || globalVistos.has(k)) return;
       const rec=recusadoMatch(nm);                                 // recusado/cancelado no CSV?
       if(rec && decisaoRecusado(rec.nome)==='excluir') return;     // confirmado excluir → fora do Fechado
       globalVistos.add(k); pessoas.push(String(nm).trim());
