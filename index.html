@@ -12643,9 +12643,17 @@ function excluirNotaUI(id){
   }
   /* Ausência ABERTA agora: como o Ausente preenche os 3 slots de uma vez, isto devolve
      UMA linha só (não três), cronometrando a partir do início MAIS ANTIGO entre os
-     slots ausentes — que é o instante real em que a pessoa saiu. */
+     slots ausentes — que é o instante real em que a pessoa saiu.
+     (·280) CORREÇÃO — a Ruth Alves marcava "Ausente" normalmente (o checkbox NUNCA
+     teve restrição nenhuma, está liberado pros 12 atendentes desde sempre), mas a
+     contagem no histórico ficava muda: esta função só devolvia a ausência aberta
+     para quem estivesse em OCP_EQUIPE_VENDAS (·160), uma lista de 6 nomes que NUNCA
+     incluiu a Ruth. Resultado: bolinhas rosa acesas, sem tempo nem motivo no
+     histórico — a funcionalidade parecia disponível e simplesmente não registrava
+     nada pra ela. Restrição removida: se o atendente PODE marcar Ausente (todos
+     podem), a marcação PRECISA aparecer cronometrada no histórico — as duas coisas
+     não podem discordar entre si. */
   function ocpAusenciaAberta(at){
-    if(!ocpEhVendedor(at)) return null;
     var o=ocpEstado();
     var slots=o.slots[at]||[], inis=o.inicios[at]||[], clis=o.clientes[at]||[];
     var ini=0, motivo='', valor='';
@@ -12660,10 +12668,13 @@ function excluirNotaUI(id){
   }
   /* Fecha a ausência no histórico. Chamada nos pontos em que o estado Ausente é
      substituído/limpo. Grava com a MESMA identidade estável do ·141 (cliente|pax|
-     início) e com a marca aus:1, que mantém o registro fora dos totais. */
+     início) e com a marca aus:1, que mantém o registro fora dos totais.
+     (·280) restrição de equipe de vendas removida — mesmo motivo do ocpAusenciaAberta
+     logo acima: quem pode MARCAR Ausente (todos os 12) precisa ter a marcação
+     REGISTRADA; as duas coisas viviam desalinhadas e é isso que apagava a Ruth. */
   function ocpRegistrarAusencia(at, valorAnterior, iniMs){
     try{
-      if(!ocpEhVendedor(at) || !ocpEhAusente(valorAnterior)) return;
+      if(!ocpEhAusente(valorAnterior)) return;
       if(!iniMs || iniMs<=0) return;
       var fim=Date.now(), dur=fim-iniMs;
       if(dur<1000) return;                       // toque acidental: não vira registro
