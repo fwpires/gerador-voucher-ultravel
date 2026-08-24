@@ -4150,7 +4150,7 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 288; // (·288) TEXTO DO ALERTA FIXO DO CARTAO 3980 CORRIGIDO. Pedido do Nando: a conta do backoffice para o virtual do cartao final 3980 e a Diego 1538, nao a Diego 5803 (essa e a conta do 7061). Unica linha alterada em CC_ALERTAS_FIXOS — mesma chave (ultimos 4 digitos), so o texto mudou. ANTERIOR: (·287) ALERTA FIXO TAMBEM NO CARTAO FINAL 3980. Pedido do Nando: o mesmo aviso permanente que os finais 7061 e 1660 ja tinham passa a valer para o 3980, com o texto IDENTICO ao do 7061 (conta Diego 5803). Uma linha nova em CC_ALERTAS_FIXOS, que e um mapa por ULTIMOS 4 DIGITOS — nada mudou em CC_LISTA nem na renderizacao: ccAlertaFixo() ja e lido nos DOIS pontos que mostram o aviso (o LED vermelho piscando na linha da lista e a faixa vermelha no topo do modal do cartao). ANTERIOR: (·286) A COLUNA "FECHADO (HÓSPEDES)" PASSA A CONTAR IGUAL AO ·284. ATENCAO: o ·285 foi publicado QUEBRADO (mostrou 140) e esta versao o substitui — por isso 286 e nao 285. O ·285 tentou deduplicar por NOME COMPLETO puro (normNome): isso separa o MESMO hospede escrito de formas diferentes em vouchers diferentes (Marco Ubiali / Marco Aurelio Ubiali — no cache real sao 42 vouchers com grafia divergente) e ainda removeu por acidente o filtro vendKey, devolvendo atendentes a contagem. NAO REPETIR. SINTOMA ORIGINAL: CSV do Tower com 137 pessoas e a coluna do Hub parada em 136. O ·284 tinha consertado totalHospedesWecann(), mas o numero DA TELA nao vem dela — vem de vouchersFechadoWecann(), que fazia a propria deduplicacao com um Set de chaveNome e por isso continuava fundindo Maria Leonor Barros Ribeiro (TOWER-099, tel 31 99974-4973, voucher 00166) com Maria Jose Ribeiro (TOWER-096, tel 11 92058-4200, voucher 00163) na chave 'maria ribeiro'. CONFERIDO NOME A NOME contra o relatorio de vouchers em PDF (nomes extraidos pelas coordenadas da coluna CLIENTE): os 112 quartos do CSV pareiam 1:1 com os 112 vouchers do Hub e NINGUEM esta faltando no cadastro — 4 pares so tinham grafia diferente (Tania Pimentel Goncalves x Tania Cristina de Azevedo Pimentel C. #00015; Raquel Goldstein Costa Cruz x Raquel Raimunda Goldstein Costa #00019; Angela Surian Moreira Iacona x ...Lacona #00031; Maria Liliam Campos Soare x ...Soares #00092). FIX: o union-find do ·284 virou funcao unica _wecIdentidades(), que devolve .total (para a contagem) e .id(nome,voucher) (para deduplicar os cards). totalHospedesWecann() agora e so um atalho para .total e a coluna usa .id() — os dois numeros nao tem mais como divergir. A regra certa e chaveNome + union-find com evidencia (mesmo voucher, mesmo telefone, tokens de um nome cabendo no outro), NUNCA nome completo cru. ANTERIOR: (·284) CONTAGEM DE HÓSPEDES: DESEMPATE DE HOMÔNIMOS. Sintoma: CSV do Tower Anhanguera com 136 pessoas no Fechado e o Hub mostrando 135. Ninguem estava faltando — o cadastro estava certo. A contagem é que fundia DUAS PESSOAS DIFERENTES numa só: Maria Leonor Barros Ribeiro (TOWER-099, tel 31 99974-4973, voucher 00166) e Maria Jose Ribeiro (TOWER-096, tel 11 92058-4200, voucher 00162) geram a MESMA chaveNome ('primeiro nome + ultimo sobrenome' = 'maria ribeiro'), e totalHospedesWecann guardava essas chaves num Set. chaveNome NAO foi alterada de proposito: ela e usada no matching de conciliacao do arquivo inteiro e precisa continuar tolerante a nomes abreviados no CSV. O desempate mora so na contagem: agrupa as ocorrencias por chave e une (union-find) apenas as que forem comprovadamente a mesma pessoa — mesmo voucher, ou mesmo telefone (so digitos), ou nomes compativeis (os tokens de um cabem dentro do outro, "Marco Ubiali" C "Marco Aurelio Ubiali"). Sem evidencia, contam separado. PROPRIEDADE DE SEGURANCA: so SEPARA com evidencia positiva, entao o numero so pode ficar igual ou MAIOR — nunca menor. Validado com o CSV real: antes 135, agora 136, batendo com o hotel; mais 6 testes unitarios (homonimos, hospede+passageiro no mesmo voucher, mesmo telefone com mascara diferente, nome abreviado x completo, vendedor nunca conta, comutatividade).
+var UV_BUILD_NUM = 289; // (·289) ACOES COMERCIAIS: NOTIFICACAO DE MARCACAO CAI PELA VISUALIZACAO, NAO PELO CLIQUE. Bug relatado por Ruth e Ana Maria (afetava todos): a cobranca do Control Desk so sumia quando a pessoa entrava pelo botao "Abrir" da propria notificacao (acIrParaCard) ou clicando no card na lista ([data-ac-abrir]) — entrando por "Comercial > Acoes Comerciais" pelo menu, a cobranca ficava acesa. CAUSA: acAberto e estado de MEMORIA e sobrevive a troca de tela; quem ja tinha aberto o topico e saiu pelo menu volta com ele JA aberto, e a tela desenha a thread sem passar por nenhum dos dois cliques, entao nada carimbava a leitura. O mesmo buraco atingia quem estava com o topico aberto e era marcado naquele instante (marcacao chega pelo WebSocket, acende a cobranca, sem releitura). FIX: a baixa passa a ser disparada dentro de renderAcoes(), por onde TODAS as rotas passam (menu, botao da notificacao, clique na lista e o tempo real) — uma porta so em vez de remendar cada entrada. Reaproveita o MESMO relogio "ja vi" (S.lido por usuario::cardId via acMarcarLido), entao a baixa e por USUARIO e por CARD e nao encosta na cobranca dos outros marcados no mesmo topico. CUIDADO QUE ISTO EXIGIU: #acoesWrap e estatico no HTML, logo renderAcoes() roda mesmo com a tela FECHADA (o tempo real chama a cada mudanca em appConfig.acoes) — carimbar leitura ali sem checar apagaria a cobranca de quem esta noutra tela, PIOR que o bug. Por isso acTelaVisivel() exige as DUAS condicoes: #scr-acoes com .active E a aba em primeiro plano (document.hidden). Guarda acHaPendenciaNoCard() evita chamar salvarConfig a cada render. Somado um listener de visibilitychange para quem volta a aba com o topico aberto. Validado por E2E em Chromium real (t_acnotif.mjs, 6 casos): T2 (entrar pelo menu) e T3 (marcacao em tempo real com a thread a vista) FALHAM na versao sem o fix e passam com ele; T4 (tela fechada nao da baixa), T5 (baixa por usuario) e T6 (so a lista aberta nao da baixa) passam nas duas, provando que nada correto foi alterado. ANTERIOR: (·288) TEXTO DO ALERTA FIXO DO CARTAO 3980 CORRIGIDO. Pedido do Nando: a conta do backoffice para o virtual do cartao final 3980 e a Diego 1538, nao a Diego 5803 (essa e a conta do 7061). Unica linha alterada em CC_ALERTAS_FIXOS — mesma chave (ultimos 4 digitos), so o texto mudou. ANTERIOR: (·287) ALERTA FIXO TAMBEM NO CARTAO FINAL 3980. Pedido do Nando: o mesmo aviso permanente que os finais 7061 e 1660 ja tinham passa a valer para o 3980, com o texto IDENTICO ao do 7061 (conta Diego 5803). Uma linha nova em CC_ALERTAS_FIXOS, que e um mapa por ULTIMOS 4 DIGITOS — nada mudou em CC_LISTA nem na renderizacao: ccAlertaFixo() ja e lido nos DOIS pontos que mostram o aviso (o LED vermelho piscando na linha da lista e a faixa vermelha no topo do modal do cartao). ANTERIOR: (·286) A COLUNA "FECHADO (HÓSPEDES)" PASSA A CONTAR IGUAL AO ·284. ATENCAO: o ·285 foi publicado QUEBRADO (mostrou 140) e esta versao o substitui — por isso 286 e nao 285. O ·285 tentou deduplicar por NOME COMPLETO puro (normNome): isso separa o MESMO hospede escrito de formas diferentes em vouchers diferentes (Marco Ubiali / Marco Aurelio Ubiali — no cache real sao 42 vouchers com grafia divergente) e ainda removeu por acidente o filtro vendKey, devolvendo atendentes a contagem. NAO REPETIR. SINTOMA ORIGINAL: CSV do Tower com 137 pessoas e a coluna do Hub parada em 136. O ·284 tinha consertado totalHospedesWecann(), mas o numero DA TELA nao vem dela — vem de vouchersFechadoWecann(), que fazia a propria deduplicacao com um Set de chaveNome e por isso continuava fundindo Maria Leonor Barros Ribeiro (TOWER-099, tel 31 99974-4973, voucher 00166) com Maria Jose Ribeiro (TOWER-096, tel 11 92058-4200, voucher 00163) na chave 'maria ribeiro'. CONFERIDO NOME A NOME contra o relatorio de vouchers em PDF (nomes extraidos pelas coordenadas da coluna CLIENTE): os 112 quartos do CSV pareiam 1:1 com os 112 vouchers do Hub e NINGUEM esta faltando no cadastro — 4 pares so tinham grafia diferente (Tania Pimentel Goncalves x Tania Cristina de Azevedo Pimentel C. #00015; Raquel Goldstein Costa Cruz x Raquel Raimunda Goldstein Costa #00019; Angela Surian Moreira Iacona x ...Lacona #00031; Maria Liliam Campos Soare x ...Soares #00092). FIX: o union-find do ·284 virou funcao unica _wecIdentidades(), que devolve .total (para a contagem) e .id(nome,voucher) (para deduplicar os cards). totalHospedesWecann() agora e so um atalho para .total e a coluna usa .id() — os dois numeros nao tem mais como divergir. A regra certa e chaveNome + union-find com evidencia (mesmo voucher, mesmo telefone, tokens de um nome cabendo no outro), NUNCA nome completo cru. ANTERIOR: (·284) CONTAGEM DE HÓSPEDES: DESEMPATE DE HOMÔNIMOS. Sintoma: CSV do Tower Anhanguera com 136 pessoas no Fechado e o Hub mostrando 135. Ninguem estava faltando — o cadastro estava certo. A contagem é que fundia DUAS PESSOAS DIFERENTES numa só: Maria Leonor Barros Ribeiro (TOWER-099, tel 31 99974-4973, voucher 00166) e Maria Jose Ribeiro (TOWER-096, tel 11 92058-4200, voucher 00162) geram a MESMA chaveNome ('primeiro nome + ultimo sobrenome' = 'maria ribeiro'), e totalHospedesWecann guardava essas chaves num Set. chaveNome NAO foi alterada de proposito: ela e usada no matching de conciliacao do arquivo inteiro e precisa continuar tolerante a nomes abreviados no CSV. O desempate mora so na contagem: agrupa as ocorrencias por chave e une (union-find) apenas as que forem comprovadamente a mesma pessoa — mesmo voucher, ou mesmo telefone (so digitos), ou nomes compativeis (os tokens de um cabem dentro do outro, "Marco Ubiali" C "Marco Aurelio Ubiali"). Sem evidencia, contam separado. PROPRIEDADE DE SEGURANCA: so SEPARA com evidencia positiva, entao o numero so pode ficar igual ou MAIOR — nunca menor. Validado com o CSV real: antes 135, agora 136, batendo com o hotel; mais 6 testes unitarios (homonimos, hospede+passageiro no mesmo voucher, mesmo telefone com mascara diferente, nome abreviado x completo, vendedor nunca conta, comutatividade).
 const UV_BUILD='HUB-v3\u00b7'+UV_BUILD_NUM;
 try{ console.info('%c[Hub Ultravel] build '+UV_BUILD, 'color:#6FBAFF;font-weight:bold'); }catch(e){}
 try{
@@ -21393,16 +21393,96 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     try{ if(typeof logRemoto==='function') logRemoto('acoes_comerciais','Marcações do tópico "'+(c.tit||'—')+'" alteradas',{topico:c.tit,marcados:lst.join(', ')}); }catch(e){}
   }
 
+  /* ============ (·289) LEITURA POR VISUALIZAÇÃO ============
+     BUG relatado por Ruth e Ana Maria: a notificação de marcação só caía quando
+     a pessoa entrava pelo botão "Abrir" da PRÓPRIA caixa do Control Desk
+     (acIrParaCard→acMarcarLido) ou clicando no card na lista ([data-ac-abrir]).
+     Entrando por "Comercial > Ações Comerciais" pelo menu, a cobrança ficava.
+
+     POR QUE: acAberto é estado de MEMÓRIA e sobrevive à troca de tela. Quem já
+     tinha aberto o tópico antes e saiu pelo menu volta com ele JÁ aberto — a
+     tela desenha a thread sem passar por nenhum dos dois cliques acima, então
+     nada carimbava a leitura. O mesmo buraco atingia quem estava com o tópico
+     aberto na tela e era marcado naquele instante (a marcação chega pelo
+     WebSocket, acende a cobrança e não havia releitura).
+
+     CORREÇÃO: a baixa deixa de depender de clique e passa a ser disparada pela
+     VISUALIZAÇÃO, dentro de renderAcoes() — que é por onde TODAS as rotas
+     passam (menu, botão da notificação, clique na lista e o tempo real do
+     WebSocket). Uma porta só, em vez de remendar cada entrada.
+
+     CUIDADO QUE ISTO EXIGE: #acoesWrap é estático no HTML, então renderAcoes()
+     roda mesmo com a tela FECHADA (o tempo real chama a cada mudança em
+     appConfig.acoes). Carimbar leitura ali sem checar nada apagaria a cobrança
+     de quem está noutra tela — pior que o bug. Por isso acTelaVisivel() exige
+     as DUAS condições: a seção #scr-acoes com a classe .active E a aba em
+     primeiro plano (document.hidden). Sem isso, ninguém está de fato vendo. */
+  function acTelaVisivel(){
+    try{
+      if(document.hidden) return false;                 // aba em segundo plano: não é visualização
+      var s=document.getElementById('scr-acoes');
+      return !!(s && s.classList.contains('active'));   // a tela precisa estar realmente aberta
+    }catch(e){ return false; }
+  }
+
+  /* Tem algo NOVO para este usuário neste card? Cobre os DOIS fatos que acendem
+     cobrança no Control Desk, com exatamente os mesmos critérios das caixas:
+       1) mensagens de outra pessoa posteriores ao carimbo (acNaoLidas);
+       2) marcações posteriores ao carimbo (acPendentesMarcacao).
+     Serve de guarda para não chamar acSalvar() a cada render — renderAcoes roda
+     muito (tempo real a cada mudança) e gravar na nuvem à toa seria custo puro. */
+  function acHaPendenciaNoCard(cardId){
+    var ch=acChaveLido(cardId); if(!ch) return false;
+    var S=acStore(), c=S.cards[cardId]; if(!c || c.del) return false;
+    if(acNaoLidas(c)>0) return true;                    // mensagens não lidas
+    var meu=acNome(); if(!meu) return false;
+    var visto=S.lido[ch]||0;
+    var souAdmin=acSouAdmin(), souDiego=acEhDiego();
+    var mt=(c.marcTs&&typeof c.marcTs==='object')?c.marcTs:{};
+    var achou=false;
+    Object.keys(mt).forEach(function(chave){
+      if((mt[chave]||0)<=visto) return;                 // marcação já coberta pelo carimbo
+      if(acMesmaPessoa(chave, meu) || souAdmin || souDiego) achou=true;
+    });
+    return achou;
+  }
+
+  /* Carimba a leitura do card aberto. Por USUÁRIO e por CARD: acChaveLido é
+     (usuario::cardId) e acMarcarLido só mexe nessa chave — a cobrança dos
+     OUTROS marcados no mesmo tópico continua intacta, como pedido.
+     Devolve true quando realmente deu baixa, para renderAcoes saber se precisa
+     redesenhar o Control Desk. */
+  function acRegistrarVisualizacao(){
+    if(!acAberto || !acUsuario()) return false;
+    if(!acTelaVisivel()) return false;
+    if(!acHaPendenciaNoCard(acAberto)) return false;
+    acMarcarLido(acAberto);                             // mesmo relógio "já vi" de sempre
+    return true;
+  }
+
   /* ========================= RENDER ========================= */
   window.renderAcoes=function(){
     var wrap=document.getElementById('acoesWrap'); if(!wrap) return;
     var S=acStore();
     if(acAberto && (!S.cards[acAberto] || S.cards[acAberto].del)) acAberto=null;
+    // (·289) a visualização em si já dá baixa — qualquer que seja a rota de entrada
+    var deuBaixa=acRegistrarVisualizacao();
     wrap.innerHTML = acAberto ? acHtmlThread(S.cards[acAberto]) : acHtmlLista();
     // devolve o foco ao campo de texto quando havia rascunho (o innerHTML o perderia)
     var ta=wrap.querySelector('#acTexto');
     if(ta && acRascunho){ try{ ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }catch(e){} }
+    // some da caixa do Control Desk na hora, sem recarregar a página
+    if(deuBaixa){ try{ if(typeof window.renderCdNotifs==='function') window.renderCdNotifs(); }catch(e){} }
   };
+
+  /* (·289) Voltar para a aba com o tópico aberto também conta como visualização:
+     enquanto a aba estava em segundo plano acTelaVisivel() barrava a baixa (e
+     barrava certo — ninguém estava vendo). Sem este gatilho, a cobrança só cairia
+     no próximo render, que pode demorar. */
+  document.addEventListener('visibilitychange', function(){
+    if(document.hidden) return;
+    try{ if(acTelaVisivel() && acAberto) window.renderAcoes(); }catch(e){}
+  });
 
   function acHtmlLista(){
     var cards=acCardsVivos(), u=acUsuario();
