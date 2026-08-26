@@ -4150,7 +4150,7 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 290; // (·290) DUAS FEATURES EM ACOES COMERCIAIS: ANEXO DE ARQUIVO (R2) E NOTIFICACAO DE RESPOSTA. ATENCAO AO DEPLOY: esta build exige TAMBEM publicar o worker.js (npx wrangler deploy) e criar o bucket R2 uma unica vez (npx wrangler r2 bucket create hub-ultravel-anexos) — so o index.html no GitHub NAO basta, o botao de anexar avisa "sem conexao" sem o Worker novo. FEATURE 1 (anexo PDF/JPEG/PNG/DOCX, ate 20MB): o arquivo vai para um bucket R2 pelas rotas novas POST /api/anexo e GET /api/anexo/<id>, e na mensagem entra SO a etiqueta {id,nome,tipo,tam}. POR QUE NAO GUARDAR NO CONFIG: o appConfig e UM pacote so que vai inteiro para o localStorage de cada PC (teto ~5MB), inteiro para a chave "config" do KV, e "acoes" esta em CAMPOS_VIVOS, logo e retransmitido aos 12 PCs pelo Durable Object a cada mensagem — um PDF de 3MB vira ~4MB em base64 e estouraria o localStorage no primeiro anexo, quebrando o salvamento de TUDO naquele PC (Kanban, ocupacao, cartoes) alem de empurrar 4MB para 12 maquinas a cada post. MERGE: nenhuma mudanca necessaria — uvMesclarAcoes (aqui) e mergeAcoes (worker) copiam a MENSAGEM INTEIRA do lado com carimbo mais novo, entao o campo anexo viaja junto sozinho; conferido nos dois antes de escrever. PERMANENCIA: o objeto no R2 nunca e apagado, nem quando a mensagem e excluida (pedido literal do Nando: fica salvo para sempre). SEGURANCA: as duas rotas ficam depois do portao de autenticacao do Worker, e o download e por fetch com cabecalho Authorization em vez de <a href> com ?token= — assim o link nunca vai parar no historico do navegador. O upload so acontece no clique em Publicar (nao na escolha do arquivo), para desistir da mensagem nao deixar lixo no bucket, e a mensagem so e publicada se o anexo ficou de fato salvo. FEATURE 2 (notificacao de resposta): acNotifHtml so cobrava quem foi MARCADO no card — quem entrou na conversa escrevendo, sem nunca ter sido marcado, nao recebia nada quando respondiam. Caixa NOVA acRespostaNotifHtml() no mesmo padrao visual .cd-notif, para quem PARTICIPOU (criou o topico ou escreveu nele) e nao esta marcado — quem esta marcado continua na caixa antiga, sem duplicar cobranca e sem mexer na redacao que a Ruth e a Ana Maria ja conhecem. A baixa reusa acNaoLidas/S.lido, entao a leitura por visualizacao do ·289 ja derruba esta caixa tambem, por qualquer rota. Validado por E2E em Chromium real (t_anexo.mjs, 13 casos: botao presente, formatos aceitos, .exe recusado, anexo pendente, anexo na thread com autor/data, config guardando so a etiqueta em 610 bytes, upload autenticado, download devolvendo o arquivo, participante notificado, notificacao citando quem respondeu, visualizacao derrubando a cobranca, topico alheio nao cobrando, zero erro de JS) + as suites do ·289/·286/·288 todas verdes. ANTERIOR: (·289) ACOES COMERCIAIS: NOTIFICACAO DE MARCACAO CAI PELA VISUALIZACAO, NAO PELO CLIQUE. Bug relatado por Ruth e Ana Maria (afetava todos): a cobranca do Control Desk so sumia quando a pessoa entrava pelo botao "Abrir" da propria notificacao (acIrParaCard) ou clicando no card na lista ([data-ac-abrir]) — entrando por "Comercial > Acoes Comerciais" pelo menu, a cobranca ficava acesa. CAUSA: acAberto e estado de MEMORIA e sobrevive a troca de tela; quem ja tinha aberto o topico e saiu pelo menu volta com ele JA aberto, e a tela desenha a thread sem passar por nenhum dos dois cliques, entao nada carimbava a leitura. O mesmo buraco atingia quem estava com o topico aberto e era marcado naquele instante (marcacao chega pelo WebSocket, acende a cobranca, sem releitura). FIX: a baixa passa a ser disparada dentro de renderAcoes(), por onde TODAS as rotas passam (menu, botao da notificacao, clique na lista e o tempo real) — uma porta so em vez de remendar cada entrada. Reaproveita o MESMO relogio "ja vi" (S.lido por usuario::cardId via acMarcarLido), entao a baixa e por USUARIO e por CARD e nao encosta na cobranca dos outros marcados no mesmo topico. CUIDADO QUE ISTO EXIGIU: #acoesWrap e estatico no HTML, logo renderAcoes() roda mesmo com a tela FECHADA (o tempo real chama a cada mudanca em appConfig.acoes) — carimbar leitura ali sem checar apagaria a cobranca de quem esta noutra tela, PIOR que o bug. Por isso acTelaVisivel() exige as DUAS condicoes: #scr-acoes com .active E a aba em primeiro plano (document.hidden). Guarda acHaPendenciaNoCard() evita chamar salvarConfig a cada render. Somado um listener de visibilitychange para quem volta a aba com o topico aberto. Validado por E2E em Chromium real (t_acnotif.mjs, 6 casos): T2 (entrar pelo menu) e T3 (marcacao em tempo real com a thread a vista) FALHAM na versao sem o fix e passam com ele; T4 (tela fechada nao da baixa), T5 (baixa por usuario) e T6 (so a lista aberta nao da baixa) passam nas duas, provando que nada correto foi alterado. ANTERIOR: (·288) TEXTO DO ALERTA FIXO DO CARTAO 3980 CORRIGIDO. Pedido do Nando: a conta do backoffice para o virtual do cartao final 3980 e a Diego 1538, nao a Diego 5803 (essa e a conta do 7061). Unica linha alterada em CC_ALERTAS_FIXOS — mesma chave (ultimos 4 digitos), so o texto mudou. ANTERIOR: (·287) ALERTA FIXO TAMBEM NO CARTAO FINAL 3980. Pedido do Nando: o mesmo aviso permanente que os finais 7061 e 1660 ja tinham passa a valer para o 3980, com o texto IDENTICO ao do 7061 (conta Diego 5803). Uma linha nova em CC_ALERTAS_FIXOS, que e um mapa por ULTIMOS 4 DIGITOS — nada mudou em CC_LISTA nem na renderizacao: ccAlertaFixo() ja e lido nos DOIS pontos que mostram o aviso (o LED vermelho piscando na linha da lista e a faixa vermelha no topo do modal do cartao). ANTERIOR: (·286) A COLUNA "FECHADO (HÓSPEDES)" PASSA A CONTAR IGUAL AO ·284. ATENCAO: o ·285 foi publicado QUEBRADO (mostrou 140) e esta versao o substitui — por isso 286 e nao 285. O ·285 tentou deduplicar por NOME COMPLETO puro (normNome): isso separa o MESMO hospede escrito de formas diferentes em vouchers diferentes (Marco Ubiali / Marco Aurelio Ubiali — no cache real sao 42 vouchers com grafia divergente) e ainda removeu por acidente o filtro vendKey, devolvendo atendentes a contagem. NAO REPETIR. SINTOMA ORIGINAL: CSV do Tower com 137 pessoas e a coluna do Hub parada em 136. O ·284 tinha consertado totalHospedesWecann(), mas o numero DA TELA nao vem dela — vem de vouchersFechadoWecann(), que fazia a propria deduplicacao com um Set de chaveNome e por isso continuava fundindo Maria Leonor Barros Ribeiro (TOWER-099, tel 31 99974-4973, voucher 00166) com Maria Jose Ribeiro (TOWER-096, tel 11 92058-4200, voucher 00163) na chave 'maria ribeiro'. CONFERIDO NOME A NOME contra o relatorio de vouchers em PDF (nomes extraidos pelas coordenadas da coluna CLIENTE): os 112 quartos do CSV pareiam 1:1 com os 112 vouchers do Hub e NINGUEM esta faltando no cadastro — 4 pares so tinham grafia diferente (Tania Pimentel Goncalves x Tania Cristina de Azevedo Pimentel C. #00015; Raquel Goldstein Costa Cruz x Raquel Raimunda Goldstein Costa #00019; Angela Surian Moreira Iacona x ...Lacona #00031; Maria Liliam Campos Soare x ...Soares #00092). FIX: o union-find do ·284 virou funcao unica _wecIdentidades(), que devolve .total (para a contagem) e .id(nome,voucher) (para deduplicar os cards). totalHospedesWecann() agora e so um atalho para .total e a coluna usa .id() — os dois numeros nao tem mais como divergir. A regra certa e chaveNome + union-find com evidencia (mesmo voucher, mesmo telefone, tokens de um nome cabendo no outro), NUNCA nome completo cru. ANTERIOR: (·284) CONTAGEM DE HÓSPEDES: DESEMPATE DE HOMÔNIMOS. Sintoma: CSV do Tower Anhanguera com 136 pessoas no Fechado e o Hub mostrando 135. Ninguem estava faltando — o cadastro estava certo. A contagem é que fundia DUAS PESSOAS DIFERENTES numa só: Maria Leonor Barros Ribeiro (TOWER-099, tel 31 99974-4973, voucher 00166) e Maria Jose Ribeiro (TOWER-096, tel 11 92058-4200, voucher 00162) geram a MESMA chaveNome ('primeiro nome + ultimo sobrenome' = 'maria ribeiro'), e totalHospedesWecann guardava essas chaves num Set. chaveNome NAO foi alterada de proposito: ela e usada no matching de conciliacao do arquivo inteiro e precisa continuar tolerante a nomes abreviados no CSV. O desempate mora so na contagem: agrupa as ocorrencias por chave e une (union-find) apenas as que forem comprovadamente a mesma pessoa — mesmo voucher, ou mesmo telefone (so digitos), ou nomes compativeis (os tokens de um cabem dentro do outro, "Marco Ubiali" C "Marco Aurelio Ubiali"). Sem evidencia, contam separado. PROPRIEDADE DE SEGURANCA: so SEPARA com evidencia positiva, entao o numero so pode ficar igual ou MAIOR — nunca menor. Validado com o CSV real: antes 135, agora 136, batendo com o hotel; mais 6 testes unitarios (homonimos, hospede+passageiro no mesmo voucher, mesmo telefone com mascara diferente, nome abreviado x completo, vendedor nunca conta, comutatividade).
+var UV_BUILD_NUM = 292; // (·292) ESPELHO DO ADMIN: PENDENCIA NUNCA E CORTADA. Pergunta do Nando ao receber o ·291 — "isso vai funcionar pra todas as pessoas? eu vou saber de tudo?" — e a resposta honesta era QUASE: o ·291 aplicava um teto unico de 8 topicos na ordem de atividade, entao com muitos topicos uma pendencia ANTIGA seria descartada em silencio e o admin acharia que estava tudo em dia. Agora a separacao acontece ANTES do corte: topicos com alguem pendente sao TODOS exibidos, sem teto; so o grupo "todos ja leram" tem limite (5, e apenas os das ultimas 48h), e o que sobra do limite e DECLARADO no rodape em vez de sumir calado — corte silencioso faria a caixa mentir por omissao. Tambem corrigido o plural "abriuram" -> "abriram" no cabecalho, achado pelo proprio teste de escala. Validado por E2E em Chromium real (t_espelho.mjs, agora 18 casos): cenario com 14 pendencias espalhadas ate 40 dias atras e 9 topicos ja lidos — as 14 aparecem TODAS (inclusive a de 40 dias), os ja-lidos param em 5 e os 4 restantes sao anunciados. ANTERIOR: (·291) ESPELHO DO ADMIN EM ACOES COMERCIAIS. Pedido do Nando: "respondi a Ruth num card mas nao sei se ela foi notificada — como admin quero receber uma copia das notificacoes que todos recebem, incluindo as de resposta". NAO e copia literal das caixas alheias, e de proposito: cobranca copiada nao serviria de nada, porque o admin nao pode dar baixa pela Ruth. O que responde a duvida real e o ESTADO — quem devia ser notificado naquele topico, quem ja leu e quem ainda nao — entao cada pessoa aparece com bolinha vermelha (ainda nao abriu) ou verde (leu, e quando). COMO DA PARA SABER: S.lido e gravado por usuario::cardId e viaja no mesmo appConfig que os 12 PCs compartilham, entao o carimbo de leitura da Ruth chega ao PC do admin — nenhuma telemetria nova foi inventada, so leitura do que ja existia. NOME->LOGIN: a lista oficial de /api/auth/usuarios e buscada UMA vez por sessao (so para admin, com cache em localStorage e um unico re-render quando chega); sem ela, cai no historico do proprio modulo, onde autor e autorU viajam juntos em cada mensagem; nao achando nem assim, a pessoa aparece como "login nao identificado" em vez de afirmar leitura que nao da para provar. SO LEITURA: nada nesta caixa escreve em S.lido — abrir o espelho nao marca nada como lido para ninguem, e ha teste E2E dedicado a isso. Nasce FECHADA (nao entra em cdAbertas por padrao) porque e caixa de supervisao, nao de acao. Escopo: ate 8 topicos, incluindo sempre os que tem pendencia viva e os com atividade nas ultimas 48h. Exclusiva do perfil admin. Validado por E2E em Chromium real (t_espelho.mjs, 12 casos, com dois perfis: admin ve a caixa, atendente NAO ve, Ruth continua recebendo a notificacao dela normalmente, e abrir o espelho deixa S.lido byte a byte identico). ANTERIOR: (·290) DUAS FEATURES EM ACOES COMERCIAIS: ANEXO DE ARQUIVO (R2) E NOTIFICACAO DE RESPOSTA. ATENCAO AO DEPLOY: esta build exige TAMBEM publicar o worker.js (npx wrangler deploy) e criar o bucket R2 uma unica vez (npx wrangler r2 bucket create hub-ultravel-anexos) — so o index.html no GitHub NAO basta, o botao de anexar avisa "sem conexao" sem o Worker novo. FEATURE 1 (anexo PDF/JPEG/PNG/DOCX, ate 20MB): o arquivo vai para um bucket R2 pelas rotas novas POST /api/anexo e GET /api/anexo/<id>, e na mensagem entra SO a etiqueta {id,nome,tipo,tam}. POR QUE NAO GUARDAR NO CONFIG: o appConfig e UM pacote so que vai inteiro para o localStorage de cada PC (teto ~5MB), inteiro para a chave "config" do KV, e "acoes" esta em CAMPOS_VIVOS, logo e retransmitido aos 12 PCs pelo Durable Object a cada mensagem — um PDF de 3MB vira ~4MB em base64 e estouraria o localStorage no primeiro anexo, quebrando o salvamento de TUDO naquele PC (Kanban, ocupacao, cartoes) alem de empurrar 4MB para 12 maquinas a cada post. MERGE: nenhuma mudanca necessaria — uvMesclarAcoes (aqui) e mergeAcoes (worker) copiam a MENSAGEM INTEIRA do lado com carimbo mais novo, entao o campo anexo viaja junto sozinho; conferido nos dois antes de escrever. PERMANENCIA: o objeto no R2 nunca e apagado, nem quando a mensagem e excluida (pedido literal do Nando: fica salvo para sempre). SEGURANCA: as duas rotas ficam depois do portao de autenticacao do Worker, e o download e por fetch com cabecalho Authorization em vez de <a href> com ?token= — assim o link nunca vai parar no historico do navegador. O upload so acontece no clique em Publicar (nao na escolha do arquivo), para desistir da mensagem nao deixar lixo no bucket, e a mensagem so e publicada se o anexo ficou de fato salvo. FEATURE 2 (notificacao de resposta): acNotifHtml so cobrava quem foi MARCADO no card — quem entrou na conversa escrevendo, sem nunca ter sido marcado, nao recebia nada quando respondiam. Caixa NOVA acRespostaNotifHtml() no mesmo padrao visual .cd-notif, para quem PARTICIPOU (criou o topico ou escreveu nele) e nao esta marcado — quem esta marcado continua na caixa antiga, sem duplicar cobranca e sem mexer na redacao que a Ruth e a Ana Maria ja conhecem. A baixa reusa acNaoLidas/S.lido, entao a leitura por visualizacao do ·289 ja derruba esta caixa tambem, por qualquer rota. Validado por E2E em Chromium real (t_anexo.mjs, 13 casos: botao presente, formatos aceitos, .exe recusado, anexo pendente, anexo na thread com autor/data, config guardando so a etiqueta em 610 bytes, upload autenticado, download devolvendo o arquivo, participante notificado, notificacao citando quem respondeu, visualizacao derrubando a cobranca, topico alheio nao cobrando, zero erro de JS) + as suites do ·289/·286/·288 todas verdes. ANTERIOR: (·289) ACOES COMERCIAIS: NOTIFICACAO DE MARCACAO CAI PELA VISUALIZACAO, NAO PELO CLIQUE. Bug relatado por Ruth e Ana Maria (afetava todos): a cobranca do Control Desk so sumia quando a pessoa entrava pelo botao "Abrir" da propria notificacao (acIrParaCard) ou clicando no card na lista ([data-ac-abrir]) — entrando por "Comercial > Acoes Comerciais" pelo menu, a cobranca ficava acesa. CAUSA: acAberto e estado de MEMORIA e sobrevive a troca de tela; quem ja tinha aberto o topico e saiu pelo menu volta com ele JA aberto, e a tela desenha a thread sem passar por nenhum dos dois cliques, entao nada carimbava a leitura. O mesmo buraco atingia quem estava com o topico aberto e era marcado naquele instante (marcacao chega pelo WebSocket, acende a cobranca, sem releitura). FIX: a baixa passa a ser disparada dentro de renderAcoes(), por onde TODAS as rotas passam (menu, botao da notificacao, clique na lista e o tempo real) — uma porta so em vez de remendar cada entrada. Reaproveita o MESMO relogio "ja vi" (S.lido por usuario::cardId via acMarcarLido), entao a baixa e por USUARIO e por CARD e nao encosta na cobranca dos outros marcados no mesmo topico. CUIDADO QUE ISTO EXIGIU: #acoesWrap e estatico no HTML, logo renderAcoes() roda mesmo com a tela FECHADA (o tempo real chama a cada mudanca em appConfig.acoes) — carimbar leitura ali sem checar apagaria a cobranca de quem esta noutra tela, PIOR que o bug. Por isso acTelaVisivel() exige as DUAS condicoes: #scr-acoes com .active E a aba em primeiro plano (document.hidden). Guarda acHaPendenciaNoCard() evita chamar salvarConfig a cada render. Somado um listener de visibilitychange para quem volta a aba com o topico aberto. Validado por E2E em Chromium real (t_acnotif.mjs, 6 casos): T2 (entrar pelo menu) e T3 (marcacao em tempo real com a thread a vista) FALHAM na versao sem o fix e passam com ele; T4 (tela fechada nao da baixa), T5 (baixa por usuario) e T6 (so a lista aberta nao da baixa) passam nas duas, provando que nada correto foi alterado. ANTERIOR: (·288) TEXTO DO ALERTA FIXO DO CARTAO 3980 CORRIGIDO. Pedido do Nando: a conta do backoffice para o virtual do cartao final 3980 e a Diego 1538, nao a Diego 5803 (essa e a conta do 7061). Unica linha alterada em CC_ALERTAS_FIXOS — mesma chave (ultimos 4 digitos), so o texto mudou. ANTERIOR: (·287) ALERTA FIXO TAMBEM NO CARTAO FINAL 3980. Pedido do Nando: o mesmo aviso permanente que os finais 7061 e 1660 ja tinham passa a valer para o 3980, com o texto IDENTICO ao do 7061 (conta Diego 5803). Uma linha nova em CC_ALERTAS_FIXOS, que e um mapa por ULTIMOS 4 DIGITOS — nada mudou em CC_LISTA nem na renderizacao: ccAlertaFixo() ja e lido nos DOIS pontos que mostram o aviso (o LED vermelho piscando na linha da lista e a faixa vermelha no topo do modal do cartao). ANTERIOR: (·286) A COLUNA "FECHADO (HÓSPEDES)" PASSA A CONTAR IGUAL AO ·284. ATENCAO: o ·285 foi publicado QUEBRADO (mostrou 140) e esta versao o substitui — por isso 286 e nao 285. O ·285 tentou deduplicar por NOME COMPLETO puro (normNome): isso separa o MESMO hospede escrito de formas diferentes em vouchers diferentes (Marco Ubiali / Marco Aurelio Ubiali — no cache real sao 42 vouchers com grafia divergente) e ainda removeu por acidente o filtro vendKey, devolvendo atendentes a contagem. NAO REPETIR. SINTOMA ORIGINAL: CSV do Tower com 137 pessoas e a coluna do Hub parada em 136. O ·284 tinha consertado totalHospedesWecann(), mas o numero DA TELA nao vem dela — vem de vouchersFechadoWecann(), que fazia a propria deduplicacao com um Set de chaveNome e por isso continuava fundindo Maria Leonor Barros Ribeiro (TOWER-099, tel 31 99974-4973, voucher 00166) com Maria Jose Ribeiro (TOWER-096, tel 11 92058-4200, voucher 00163) na chave 'maria ribeiro'. CONFERIDO NOME A NOME contra o relatorio de vouchers em PDF (nomes extraidos pelas coordenadas da coluna CLIENTE): os 112 quartos do CSV pareiam 1:1 com os 112 vouchers do Hub e NINGUEM esta faltando no cadastro — 4 pares so tinham grafia diferente (Tania Pimentel Goncalves x Tania Cristina de Azevedo Pimentel C. #00015; Raquel Goldstein Costa Cruz x Raquel Raimunda Goldstein Costa #00019; Angela Surian Moreira Iacona x ...Lacona #00031; Maria Liliam Campos Soare x ...Soares #00092). FIX: o union-find do ·284 virou funcao unica _wecIdentidades(), que devolve .total (para a contagem) e .id(nome,voucher) (para deduplicar os cards). totalHospedesWecann() agora e so um atalho para .total e a coluna usa .id() — os dois numeros nao tem mais como divergir. A regra certa e chaveNome + union-find com evidencia (mesmo voucher, mesmo telefone, tokens de um nome cabendo no outro), NUNCA nome completo cru. ANTERIOR: (·284) CONTAGEM DE HÓSPEDES: DESEMPATE DE HOMÔNIMOS. Sintoma: CSV do Tower Anhanguera com 136 pessoas no Fechado e o Hub mostrando 135. Ninguem estava faltando — o cadastro estava certo. A contagem é que fundia DUAS PESSOAS DIFERENTES numa só: Maria Leonor Barros Ribeiro (TOWER-099, tel 31 99974-4973, voucher 00166) e Maria Jose Ribeiro (TOWER-096, tel 11 92058-4200, voucher 00162) geram a MESMA chaveNome ('primeiro nome + ultimo sobrenome' = 'maria ribeiro'), e totalHospedesWecann guardava essas chaves num Set. chaveNome NAO foi alterada de proposito: ela e usada no matching de conciliacao do arquivo inteiro e precisa continuar tolerante a nomes abreviados no CSV. O desempate mora so na contagem: agrupa as ocorrencias por chave e une (union-find) apenas as que forem comprovadamente a mesma pessoa — mesmo voucher, ou mesmo telefone (so digitos), ou nomes compativeis (os tokens de um cabem dentro do outro, "Marco Ubiali" C "Marco Aurelio Ubiali"). Sem evidencia, contam separado. PROPRIEDADE DE SEGURANCA: so SEPARA com evidencia positiva, entao o numero so pode ficar igual ou MAIOR — nunca menor. Validado com o CSV real: antes 135, agora 136, batendo com o hotel; mais 6 testes unitarios (homonimos, hospede+passageiro no mesmo voucher, mesmo telefone com mascara diferente, nome abreviado x completo, vendedor nunca conta, comutatividade).
 const UV_BUILD='HUB-v3\u00b7'+UV_BUILD_NUM;
 try{ console.info('%c[Hub Ultravel] build '+UV_BUILD, 'color:#6FBAFF;font-weight:bold'); }catch(e){}
 try{
@@ -7070,10 +7070,13 @@ function renderCdNotifs(){
   // o tópico) e não foi marcado. A de marcação acima cobre os marcados; esta cobre
   // o resto de quem tem o que ver com a thread, sem duplicar ninguém.
   var _acRespHtml=''; try{ if(typeof window.acRespostaNotifHtml==='function') _acRespHtml=window.acRespostaNotifHtml()||''; }catch(e){ _acRespHtml=''; }
+  // (·291) ESPELHO DO ADMIN — só para perfil admin; mostra quem foi notificado em
+  // Ações Comerciais e quem já leu. Puramente informativa: não escreve em S.lido.
+  var _acEspHtml=''; try{ if(typeof window.acEspelhoAdminHtml==='function') _acEspHtml=window.acEspelhoAdminHtml()||''; }catch(e){ _acEspHtml=''; }
   // (·260) CONTROLE DE CHECK-IN — mesma família visual, visível só para quem
   // agendou + admin + Diego Oliveira (filtro já vem pronto de ciNotifHtml).
   var _ciHtml=''; try{ if(typeof window.ciNotifHtml==='function') _ciHtml=window.ciNotifHtml()||''; }catch(e){ _ciHtml=''; }
-  box.innerHTML=html.join('')+_acHtml+_acConfirmHtml+_acRespHtml+_ciHtml;
+  box.innerHTML=html.join('')+_acHtml+_acConfirmHtml+_acRespHtml+_ciHtml+_acEspHtml;
   // Clique: o botão "Verificado" tem prioridade e NÃO abre/fecha a caixa (ele vive
   // dentro do corpo expandido). Fora dele, clicar no cabeçalho alterna aberto/fechado.
   box.onclick=(e)=>{
@@ -21029,6 +21032,17 @@ function excluirNotaUI(id){
 #scr-acoes .ac-cit{color:#8CA3B3;font-size:.74rem;font-style:italic;border-left:2px solid #3d5b72;padding-left:8px;margin-bottom:7px}
 #scr-acoes .ac-cit-resp{display:flex;align-items:center;gap:9px;font-style:normal;margin-bottom:8px}
 #scr-acoes .ac-comp{background:rgba(255,255,255,.03);border:1px solid #243849;border-radius:12px;padding:13px}
+/* (·291) ESPELHO DO ADMIN — vive dentro de .cd-notif no Control Desk, então
+   herda a caixa; aqui só o miolo (um bloco por tópico, uma linha por pessoa). */
+.ac-esp-card{margin-bottom:11px;padding-bottom:9px;border-bottom:1px dashed rgba(255,255,255,.10)}
+.ac-esp-card:last-of-type{border-bottom:none;margin-bottom:6px}
+.ac-esp-tit{display:flex;align-items:center;gap:9px;flex-wrap:wrap;color:#E6EEF3;font-size:.84rem;font-weight:700;margin-bottom:6px}
+.ac-esp-linha{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap;font-size:.79rem;padding:3px 0 3px 4px}
+.ac-esp-pend{flex:0 0 auto;font-size:.7rem}
+.ac-esp-ok{flex:0 0 auto;font-size:.7rem}
+.ac-esp-quem{color:#E6EEF3;font-weight:700}
+.ac-esp-obs{color:#8CA3B3}
+body:not(.dark) .ac-esp-tit,body:not(.dark) .ac-esp-quem{color:#15252F}
 /* (·290) ANEXOS — chip do arquivo na mensagem, o pendente no compositor e o
    input nativo escondido (quem aparece é o botão "📎 Anexar arquivo"). */
 #scr-acoes .ac-anexo-input{display:none}
@@ -21992,6 +22006,161 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
         +'<div class="cd-notif-body"><div class="cd-bloco cd-bloco-acoes">'
         +linhas
         +'<div class="ac-notif-rodape">Abrir o tópico marca as mensagens como lidas e esta cobrança desaparece sozinha.</div>'
+        +'</div></div></div>';
+    }catch(e){ return ''; }
+  };
+
+  /* ============ (·291) ESPELHO DO ADMIN ============
+     Pedido do Nando: "respondi a Ruth num card mas não sei se ela foi
+     notificada — como admin quero receber uma cópia das notificações que todos
+     recebem, incluindo as de resposta".
+
+     O QUE ISTO É (e o que NÃO é): não é uma cópia literal das caixas dos
+     outros, porque cobrança copiada não serviria para nada — o admin não pode
+     "dar baixa" pela Ruth. O que resolve a dúvida real é o ESTADO: quem devia
+     ser notificado naquele tópico, quem já leu e quem ainda não. Por isso cada
+     pessoa aparece com 🔴 (ainda não viu) ou ✅ (viu, e quando).
+
+     COMO DÁ PARA SABER: S.lido é gravado por usuario::cardId e viaja no mesmo
+     appConfig que os 12 PCs compartilham. Então o carimbo de leitura da Ruth
+     chega aqui — não é preciso inventar telemetria nova, só ler o que já existe.
+
+     NUNCA MEXE NA COBRANÇA DOS OUTROS: esta caixa é 100% leitura. Nada aqui
+     escreve em S.lido — abrir o espelho não marca nada como lido para ninguém.
+
+     NASCE FECHADA (não entra em cdAbertas por padrão): é caixa de supervisão,
+     não de ação. Fica recolhida no Control Desk e o admin abre quando quiser. */
+  var _acEspLista=null, _acEspBuscou=false;
+  function acEspelhoGarantirLista(){
+    if(_acEspBuscou) return; _acEspBuscou=true;      // 1x por sessão: sem laço de render
+    try{
+      var raw=localStorage.getItem('uv_users_lista_cache_v1');
+      var o=raw?JSON.parse(raw):null;
+      if(o && Array.isArray(o.usuarios)) _acEspLista=o.usuarios;
+    }catch(e){}
+    // busca a lista oficial por trás; quando chegar, redesenha UMA vez
+    try{
+      if(typeof api==='function'){
+        api('/api/auth/usuarios').then(function(r){
+          var us=(r&&r.usuarios)||null; if(!us||!us.length) return;
+          _acEspLista=us;
+          try{ localStorage.setItem('uv_users_lista_cache_v1', JSON.stringify({usuarios:us, ts:Date.now()})); }catch(e){}
+          try{ if(typeof window.renderCdNotifs==='function') window.renderCdNotifs(); }catch(e){}
+        }).catch(function(){});
+      }
+    }catch(e){}
+  }
+  /* nome → login. A lista oficial manda; se ela não veio (ou a pessoa não está
+     lá), cai no histórico do próprio módulo, onde autor e autorU viajam juntos
+     em cada mensagem. Não achando nem assim, a pessoa aparece marcada como
+     "login não identificado" — mentir sobre leitura seria pior que admitir. */
+  function acEspelhoMapaLogins(){
+    var mapa={};
+    acCardsVivos().forEach(function(c){
+      if(c.autorU && c.autor) mapa[acNorm(c.autor)]=c.autorU;
+      acMsgsVivas(c).forEach(function(m){ if(m.autorU && m.autor) mapa[acNorm(m.autor)]=m.autorU; });
+    });
+    return {
+      derivado: mapa,
+      login: function(nome){
+        var L=_acEspLista||[];
+        for(var i=0;i<L.length;i++){
+          if(acMesmaPessoa(nome, L[i].nome||'')) return (L[i].logins&&L[i].logins[0])||L[i].chave||'';
+        }
+        return mapa[acNorm(nome)]||'';
+      }
+    };
+  }
+  // status de cada pessoa que DEVIA ter sido notificada neste card
+  function acEspelhoPessoas(c, M, euU){
+    var S=acStore(), msgs=acMsgsVivas(c), reg={};
+    var mt=(c.marcTs&&typeof c.marcTs==='object')?c.marcTs:{};
+    Object.keys(mt).forEach(function(chave){                 // marcados
+      var nome=acNomeOriginalMarcado(c,chave), u=M.login(nome), k=u||('?'+chave);
+      if(!reg[k]) reg[k]={nome:nome, usuario:u, marcTs:0};
+      reg[k].marcTs=Math.max(reg[k].marcTs, mt[chave]||0);
+    });
+    var parts={};                                            // participantes
+    if(c.autorU) parts[c.autorU]=c.autor||c.autorU;
+    msgs.forEach(function(m){ if(m.autorU) parts[m.autorU]=m.autor||m.autorU; });
+    Object.keys(parts).forEach(function(u){
+      if(!reg[u]) reg[u]={nome:parts[u], usuario:u, marcTs:0};
+      if(!reg[u].usuario) reg[u].usuario=u;
+    });
+    var out=[];
+    Object.keys(reg).forEach(function(k){
+      var p=reg[k];
+      if(p.usuario && p.usuario===euU) return;               // o admin já tem as caixas dele
+      if(!p.usuario){ out.push({nome:p.nome, semLogin:true, pendente:true, marcado:p.marcTs>0, nResp:0, lidoEm:0}); return; }
+      var lido=S.lido[p.usuario+'::'+c.id]||0, nResp=0;
+      msgs.forEach(function(m){ if((m.ts||0)>lido && m.autorU!==p.usuario) nResp++; });
+      var pendMarc=(p.marcTs||0)>lido;
+      out.push({ nome:p.nome, usuario:p.usuario, lidoEm:lido, marcado:p.marcTs>0,
+                 nResp:nResp, pendente:(pendMarc||nResp>0), pendMarc:pendMarc });
+    });
+    out.sort(function(a,b){ return (b.pendente?1:0)-(a.pendente?1:0) || String(a.nome).localeCompare(String(b.nome),'pt-BR'); });
+    return out;
+  }
+  window.acEspelhoAdminHtml=function(){
+    try{
+      if(!acSouAdmin()) return '';                           // exclusivo do admin
+      var euU=acUsuario(); if(!euU) return '';
+      acEspelhoGarantirLista();
+      var M=acEspelhoMapaLogins(), agora=Date.now(), JANELA=48*3600*1000;
+      var blocos=[], totalPend=0;
+      var cards=acCardsVivos().slice().sort(function(a,b){ return (b.mts||b.ts||0)-(a.mts||a.ts||0); });
+      /* (·292) SEPARA ANTES DE CORTAR. A primeira versão tinha um teto único de 8
+         tópicos aplicado na ordem de atividade — com muitos tópicos, uma pendência
+         ANTIGA seria descartada em silêncio e o admin acharia que estava tudo em
+         dia. Agora só o grupo "já leram" tem teto; PENDÊNCIA NUNCA É CORTADA, e o
+         que sobrar do teto é declarado no rodapé em vez de sumir calado. */
+      var comPend=[], soLidos=[];
+      cards.forEach(function(c){
+        var pessoas=acEspelhoPessoas(c, M, euU);
+        if(!pessoas.length) return;
+        var msgs=acMsgsVivas(c);
+        var atividade=Math.max(c.mts||0, c.ts||0, msgs.length?(msgs[msgs.length-1].ts||0):0);
+        if(pessoas.some(function(p){ return p.pendente; })) comPend.push({c:c, pessoas:pessoas});
+        else if((agora-atividade)<=JANELA) soLidos.push({c:c, pessoas:pessoas});
+      });
+      var LIM_LIDOS=5;                                       // confirmações de leitura: só as recentes
+      var lidosOmitidos=Math.max(0, soLidos.length-LIM_LIDOS);
+      comPend.concat(soLidos.slice(0,LIM_LIDOS)).forEach(function(par){
+        var c=par.c, pessoas=par.pessoas;
+        var linhas=pessoas.map(function(p){
+          if(p.semLogin){
+            return '<div class="ac-esp-linha"><span class="ac-esp-pend">🔴</span> <span class="ac-esp-quem">'+acEsc(p.nome)+'</span>'
+              +'<span class="ac-esp-obs">marcado(a) · login não identificado — não dá para confirmar a leitura</span></div>';
+          }
+          if(p.pendente){
+            totalPend++;
+            var pq=[];
+            if(p.pendMarc) pq.push('marcado(a)');
+            if(p.nResp>0) pq.push(p.nResp+' resposta'+(p.nResp>1?'s':'')+' não lida'+(p.nResp>1?'s':''));
+            return '<div class="ac-esp-linha"><span class="ac-esp-pend">🔴</span> <span class="ac-esp-quem">'+acEsc(p.nome)+'</span>'
+              +'<span class="ac-esp-obs">'+pq.join(' · ')+' — ainda não abriu</span></div>';
+          }
+          return '<div class="ac-esp-linha"><span class="ac-esp-ok">✅</span> <span class="ac-esp-quem">'+acEsc(p.nome)+'</span>'
+            +'<span class="ac-esp-obs">leu'+(p.lidoEm?(' em '+acData(p.lidoEm)):'')+'</span></div>';
+        }).join('');
+        blocos.push('<div class="ac-esp-card"><div class="ac-esp-tit">📌 '+acEsc(c.tit||'—')
+          +' <button type="button" class="cd-notif-btn" data-acgo="'+acEsc(c.id)+'">Abrir</button></div>'+linhas+'</div>');
+      });
+      if(!blocos.length) return '';
+      var aberta=false;
+      try{ aberta=(typeof cdAbertas!=='undefined') && cdAbertas.has('__ac_espelho__'); }catch(e){}
+      return '<div class="cd-notif">'
+        +'<div class="cd-notif-head'+(aberta?' aberta':'')+'" data-cdtoggle="__ac_espelho__">'
+        +'<div class="cd-notif-tit">'
+        +'🛡️ <span class="cd-chamada">ESPELHO DO ADMIN — QUEM FOI NOTIFICADO EM AÇÕES COMERCIAIS'
+        +(totalPend?(' ('+totalPend+(totalPend>1?' ainda não abriram':' ainda não abriu')+')'):' (todos já viram)')+'</span>'
+        +'</div><span class="cd-seta">▾</span></div>'
+        +'<div class="cd-notif-body'+(aberta?'':' oculta')+'"><div class="cd-bloco cd-bloco-acoes">'
+        +blocos.join('')
+        // (·292) teto declarado: se alguma confirmação de leitura ficou de fora,
+        // isso é DITO. Corte silencioso faria a caixa mentir por omissão.
+        +(lidosOmitidos?('<div class="ac-esp-linha"><span class="ac-esp-obs">+ '+lidosOmitidos+' tópico(s) recente(s) em que todos já leram, não listado(s) aqui para a caixa não ficar longa.</span></div>'):'')
+        +'<div class="ac-notif-rodape">Só você vê esta caixa. Toda pendência aparece — o corte acima vale só para tópicos já lidos por todos. Ela apenas MOSTRA o estado: abrir aqui não marca nada como lido para ninguém.</div>'
         +'</div></div></div>';
     }catch(e){ return ''; }
   };
