@@ -4150,7 +4150,7 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 289; // (·289) ACOES COMERCIAIS: NOTIFICACAO DE MARCACAO CAI PELA VISUALIZACAO, NAO PELO CLIQUE. Bug relatado por Ruth e Ana Maria (afetava todos): a cobranca do Control Desk so sumia quando a pessoa entrava pelo botao "Abrir" da propria notificacao (acIrParaCard) ou clicando no card na lista ([data-ac-abrir]) — entrando por "Comercial > Acoes Comerciais" pelo menu, a cobranca ficava acesa. CAUSA: acAberto e estado de MEMORIA e sobrevive a troca de tela; quem ja tinha aberto o topico e saiu pelo menu volta com ele JA aberto, e a tela desenha a thread sem passar por nenhum dos dois cliques, entao nada carimbava a leitura. O mesmo buraco atingia quem estava com o topico aberto e era marcado naquele instante (marcacao chega pelo WebSocket, acende a cobranca, sem releitura). FIX: a baixa passa a ser disparada dentro de renderAcoes(), por onde TODAS as rotas passam (menu, botao da notificacao, clique na lista e o tempo real) — uma porta so em vez de remendar cada entrada. Reaproveita o MESMO relogio "ja vi" (S.lido por usuario::cardId via acMarcarLido), entao a baixa e por USUARIO e por CARD e nao encosta na cobranca dos outros marcados no mesmo topico. CUIDADO QUE ISTO EXIGIU: #acoesWrap e estatico no HTML, logo renderAcoes() roda mesmo com a tela FECHADA (o tempo real chama a cada mudanca em appConfig.acoes) — carimbar leitura ali sem checar apagaria a cobranca de quem esta noutra tela, PIOR que o bug. Por isso acTelaVisivel() exige as DUAS condicoes: #scr-acoes com .active E a aba em primeiro plano (document.hidden). Guarda acHaPendenciaNoCard() evita chamar salvarConfig a cada render. Somado um listener de visibilitychange para quem volta a aba com o topico aberto. Validado por E2E em Chromium real (t_acnotif.mjs, 6 casos): T2 (entrar pelo menu) e T3 (marcacao em tempo real com a thread a vista) FALHAM na versao sem o fix e passam com ele; T4 (tela fechada nao da baixa), T5 (baixa por usuario) e T6 (so a lista aberta nao da baixa) passam nas duas, provando que nada correto foi alterado. ANTERIOR: (·288) TEXTO DO ALERTA FIXO DO CARTAO 3980 CORRIGIDO. Pedido do Nando: a conta do backoffice para o virtual do cartao final 3980 e a Diego 1538, nao a Diego 5803 (essa e a conta do 7061). Unica linha alterada em CC_ALERTAS_FIXOS — mesma chave (ultimos 4 digitos), so o texto mudou. ANTERIOR: (·287) ALERTA FIXO TAMBEM NO CARTAO FINAL 3980. Pedido do Nando: o mesmo aviso permanente que os finais 7061 e 1660 ja tinham passa a valer para o 3980, com o texto IDENTICO ao do 7061 (conta Diego 5803). Uma linha nova em CC_ALERTAS_FIXOS, que e um mapa por ULTIMOS 4 DIGITOS — nada mudou em CC_LISTA nem na renderizacao: ccAlertaFixo() ja e lido nos DOIS pontos que mostram o aviso (o LED vermelho piscando na linha da lista e a faixa vermelha no topo do modal do cartao). ANTERIOR: (·286) A COLUNA "FECHADO (HÓSPEDES)" PASSA A CONTAR IGUAL AO ·284. ATENCAO: o ·285 foi publicado QUEBRADO (mostrou 140) e esta versao o substitui — por isso 286 e nao 285. O ·285 tentou deduplicar por NOME COMPLETO puro (normNome): isso separa o MESMO hospede escrito de formas diferentes em vouchers diferentes (Marco Ubiali / Marco Aurelio Ubiali — no cache real sao 42 vouchers com grafia divergente) e ainda removeu por acidente o filtro vendKey, devolvendo atendentes a contagem. NAO REPETIR. SINTOMA ORIGINAL: CSV do Tower com 137 pessoas e a coluna do Hub parada em 136. O ·284 tinha consertado totalHospedesWecann(), mas o numero DA TELA nao vem dela — vem de vouchersFechadoWecann(), que fazia a propria deduplicacao com um Set de chaveNome e por isso continuava fundindo Maria Leonor Barros Ribeiro (TOWER-099, tel 31 99974-4973, voucher 00166) com Maria Jose Ribeiro (TOWER-096, tel 11 92058-4200, voucher 00163) na chave 'maria ribeiro'. CONFERIDO NOME A NOME contra o relatorio de vouchers em PDF (nomes extraidos pelas coordenadas da coluna CLIENTE): os 112 quartos do CSV pareiam 1:1 com os 112 vouchers do Hub e NINGUEM esta faltando no cadastro — 4 pares so tinham grafia diferente (Tania Pimentel Goncalves x Tania Cristina de Azevedo Pimentel C. #00015; Raquel Goldstein Costa Cruz x Raquel Raimunda Goldstein Costa #00019; Angela Surian Moreira Iacona x ...Lacona #00031; Maria Liliam Campos Soare x ...Soares #00092). FIX: o union-find do ·284 virou funcao unica _wecIdentidades(), que devolve .total (para a contagem) e .id(nome,voucher) (para deduplicar os cards). totalHospedesWecann() agora e so um atalho para .total e a coluna usa .id() — os dois numeros nao tem mais como divergir. A regra certa e chaveNome + union-find com evidencia (mesmo voucher, mesmo telefone, tokens de um nome cabendo no outro), NUNCA nome completo cru. ANTERIOR: (·284) CONTAGEM DE HÓSPEDES: DESEMPATE DE HOMÔNIMOS. Sintoma: CSV do Tower Anhanguera com 136 pessoas no Fechado e o Hub mostrando 135. Ninguem estava faltando — o cadastro estava certo. A contagem é que fundia DUAS PESSOAS DIFERENTES numa só: Maria Leonor Barros Ribeiro (TOWER-099, tel 31 99974-4973, voucher 00166) e Maria Jose Ribeiro (TOWER-096, tel 11 92058-4200, voucher 00162) geram a MESMA chaveNome ('primeiro nome + ultimo sobrenome' = 'maria ribeiro'), e totalHospedesWecann guardava essas chaves num Set. chaveNome NAO foi alterada de proposito: ela e usada no matching de conciliacao do arquivo inteiro e precisa continuar tolerante a nomes abreviados no CSV. O desempate mora so na contagem: agrupa as ocorrencias por chave e une (union-find) apenas as que forem comprovadamente a mesma pessoa — mesmo voucher, ou mesmo telefone (so digitos), ou nomes compativeis (os tokens de um cabem dentro do outro, "Marco Ubiali" C "Marco Aurelio Ubiali"). Sem evidencia, contam separado. PROPRIEDADE DE SEGURANCA: so SEPARA com evidencia positiva, entao o numero so pode ficar igual ou MAIOR — nunca menor. Validado com o CSV real: antes 135, agora 136, batendo com o hotel; mais 6 testes unitarios (homonimos, hospede+passageiro no mesmo voucher, mesmo telefone com mascara diferente, nome abreviado x completo, vendedor nunca conta, comutatividade).
+var UV_BUILD_NUM = 290; // (·290) DUAS FEATURES EM ACOES COMERCIAIS: ANEXO DE ARQUIVO (R2) E NOTIFICACAO DE RESPOSTA. ATENCAO AO DEPLOY: esta build exige TAMBEM publicar o worker.js (npx wrangler deploy) e criar o bucket R2 uma unica vez (npx wrangler r2 bucket create hub-ultravel-anexos) — so o index.html no GitHub NAO basta, o botao de anexar avisa "sem conexao" sem o Worker novo. FEATURE 1 (anexo PDF/JPEG/PNG/DOCX, ate 20MB): o arquivo vai para um bucket R2 pelas rotas novas POST /api/anexo e GET /api/anexo/<id>, e na mensagem entra SO a etiqueta {id,nome,tipo,tam}. POR QUE NAO GUARDAR NO CONFIG: o appConfig e UM pacote so que vai inteiro para o localStorage de cada PC (teto ~5MB), inteiro para a chave "config" do KV, e "acoes" esta em CAMPOS_VIVOS, logo e retransmitido aos 12 PCs pelo Durable Object a cada mensagem — um PDF de 3MB vira ~4MB em base64 e estouraria o localStorage no primeiro anexo, quebrando o salvamento de TUDO naquele PC (Kanban, ocupacao, cartoes) alem de empurrar 4MB para 12 maquinas a cada post. MERGE: nenhuma mudanca necessaria — uvMesclarAcoes (aqui) e mergeAcoes (worker) copiam a MENSAGEM INTEIRA do lado com carimbo mais novo, entao o campo anexo viaja junto sozinho; conferido nos dois antes de escrever. PERMANENCIA: o objeto no R2 nunca e apagado, nem quando a mensagem e excluida (pedido literal do Nando: fica salvo para sempre). SEGURANCA: as duas rotas ficam depois do portao de autenticacao do Worker, e o download e por fetch com cabecalho Authorization em vez de <a href> com ?token= — assim o link nunca vai parar no historico do navegador. O upload so acontece no clique em Publicar (nao na escolha do arquivo), para desistir da mensagem nao deixar lixo no bucket, e a mensagem so e publicada se o anexo ficou de fato salvo. FEATURE 2 (notificacao de resposta): acNotifHtml so cobrava quem foi MARCADO no card — quem entrou na conversa escrevendo, sem nunca ter sido marcado, nao recebia nada quando respondiam. Caixa NOVA acRespostaNotifHtml() no mesmo padrao visual .cd-notif, para quem PARTICIPOU (criou o topico ou escreveu nele) e nao esta marcado — quem esta marcado continua na caixa antiga, sem duplicar cobranca e sem mexer na redacao que a Ruth e a Ana Maria ja conhecem. A baixa reusa acNaoLidas/S.lido, entao a leitura por visualizacao do ·289 ja derruba esta caixa tambem, por qualquer rota. Validado por E2E em Chromium real (t_anexo.mjs, 13 casos: botao presente, formatos aceitos, .exe recusado, anexo pendente, anexo na thread com autor/data, config guardando so a etiqueta em 610 bytes, upload autenticado, download devolvendo o arquivo, participante notificado, notificacao citando quem respondeu, visualizacao derrubando a cobranca, topico alheio nao cobrando, zero erro de JS) + as suites do ·289/·286/·288 todas verdes. ANTERIOR: (·289) ACOES COMERCIAIS: NOTIFICACAO DE MARCACAO CAI PELA VISUALIZACAO, NAO PELO CLIQUE. Bug relatado por Ruth e Ana Maria (afetava todos): a cobranca do Control Desk so sumia quando a pessoa entrava pelo botao "Abrir" da propria notificacao (acIrParaCard) ou clicando no card na lista ([data-ac-abrir]) — entrando por "Comercial > Acoes Comerciais" pelo menu, a cobranca ficava acesa. CAUSA: acAberto e estado de MEMORIA e sobrevive a troca de tela; quem ja tinha aberto o topico e saiu pelo menu volta com ele JA aberto, e a tela desenha a thread sem passar por nenhum dos dois cliques, entao nada carimbava a leitura. O mesmo buraco atingia quem estava com o topico aberto e era marcado naquele instante (marcacao chega pelo WebSocket, acende a cobranca, sem releitura). FIX: a baixa passa a ser disparada dentro de renderAcoes(), por onde TODAS as rotas passam (menu, botao da notificacao, clique na lista e o tempo real) — uma porta so em vez de remendar cada entrada. Reaproveita o MESMO relogio "ja vi" (S.lido por usuario::cardId via acMarcarLido), entao a baixa e por USUARIO e por CARD e nao encosta na cobranca dos outros marcados no mesmo topico. CUIDADO QUE ISTO EXIGIU: #acoesWrap e estatico no HTML, logo renderAcoes() roda mesmo com a tela FECHADA (o tempo real chama a cada mudanca em appConfig.acoes) — carimbar leitura ali sem checar apagaria a cobranca de quem esta noutra tela, PIOR que o bug. Por isso acTelaVisivel() exige as DUAS condicoes: #scr-acoes com .active E a aba em primeiro plano (document.hidden). Guarda acHaPendenciaNoCard() evita chamar salvarConfig a cada render. Somado um listener de visibilitychange para quem volta a aba com o topico aberto. Validado por E2E em Chromium real (t_acnotif.mjs, 6 casos): T2 (entrar pelo menu) e T3 (marcacao em tempo real com a thread a vista) FALHAM na versao sem o fix e passam com ele; T4 (tela fechada nao da baixa), T5 (baixa por usuario) e T6 (so a lista aberta nao da baixa) passam nas duas, provando que nada correto foi alterado. ANTERIOR: (·288) TEXTO DO ALERTA FIXO DO CARTAO 3980 CORRIGIDO. Pedido do Nando: a conta do backoffice para o virtual do cartao final 3980 e a Diego 1538, nao a Diego 5803 (essa e a conta do 7061). Unica linha alterada em CC_ALERTAS_FIXOS — mesma chave (ultimos 4 digitos), so o texto mudou. ANTERIOR: (·287) ALERTA FIXO TAMBEM NO CARTAO FINAL 3980. Pedido do Nando: o mesmo aviso permanente que os finais 7061 e 1660 ja tinham passa a valer para o 3980, com o texto IDENTICO ao do 7061 (conta Diego 5803). Uma linha nova em CC_ALERTAS_FIXOS, que e um mapa por ULTIMOS 4 DIGITOS — nada mudou em CC_LISTA nem na renderizacao: ccAlertaFixo() ja e lido nos DOIS pontos que mostram o aviso (o LED vermelho piscando na linha da lista e a faixa vermelha no topo do modal do cartao). ANTERIOR: (·286) A COLUNA "FECHADO (HÓSPEDES)" PASSA A CONTAR IGUAL AO ·284. ATENCAO: o ·285 foi publicado QUEBRADO (mostrou 140) e esta versao o substitui — por isso 286 e nao 285. O ·285 tentou deduplicar por NOME COMPLETO puro (normNome): isso separa o MESMO hospede escrito de formas diferentes em vouchers diferentes (Marco Ubiali / Marco Aurelio Ubiali — no cache real sao 42 vouchers com grafia divergente) e ainda removeu por acidente o filtro vendKey, devolvendo atendentes a contagem. NAO REPETIR. SINTOMA ORIGINAL: CSV do Tower com 137 pessoas e a coluna do Hub parada em 136. O ·284 tinha consertado totalHospedesWecann(), mas o numero DA TELA nao vem dela — vem de vouchersFechadoWecann(), que fazia a propria deduplicacao com um Set de chaveNome e por isso continuava fundindo Maria Leonor Barros Ribeiro (TOWER-099, tel 31 99974-4973, voucher 00166) com Maria Jose Ribeiro (TOWER-096, tel 11 92058-4200, voucher 00163) na chave 'maria ribeiro'. CONFERIDO NOME A NOME contra o relatorio de vouchers em PDF (nomes extraidos pelas coordenadas da coluna CLIENTE): os 112 quartos do CSV pareiam 1:1 com os 112 vouchers do Hub e NINGUEM esta faltando no cadastro — 4 pares so tinham grafia diferente (Tania Pimentel Goncalves x Tania Cristina de Azevedo Pimentel C. #00015; Raquel Goldstein Costa Cruz x Raquel Raimunda Goldstein Costa #00019; Angela Surian Moreira Iacona x ...Lacona #00031; Maria Liliam Campos Soare x ...Soares #00092). FIX: o union-find do ·284 virou funcao unica _wecIdentidades(), que devolve .total (para a contagem) e .id(nome,voucher) (para deduplicar os cards). totalHospedesWecann() agora e so um atalho para .total e a coluna usa .id() — os dois numeros nao tem mais como divergir. A regra certa e chaveNome + union-find com evidencia (mesmo voucher, mesmo telefone, tokens de um nome cabendo no outro), NUNCA nome completo cru. ANTERIOR: (·284) CONTAGEM DE HÓSPEDES: DESEMPATE DE HOMÔNIMOS. Sintoma: CSV do Tower Anhanguera com 136 pessoas no Fechado e o Hub mostrando 135. Ninguem estava faltando — o cadastro estava certo. A contagem é que fundia DUAS PESSOAS DIFERENTES numa só: Maria Leonor Barros Ribeiro (TOWER-099, tel 31 99974-4973, voucher 00166) e Maria Jose Ribeiro (TOWER-096, tel 11 92058-4200, voucher 00162) geram a MESMA chaveNome ('primeiro nome + ultimo sobrenome' = 'maria ribeiro'), e totalHospedesWecann guardava essas chaves num Set. chaveNome NAO foi alterada de proposito: ela e usada no matching de conciliacao do arquivo inteiro e precisa continuar tolerante a nomes abreviados no CSV. O desempate mora so na contagem: agrupa as ocorrencias por chave e une (union-find) apenas as que forem comprovadamente a mesma pessoa — mesmo voucher, ou mesmo telefone (so digitos), ou nomes compativeis (os tokens de um cabem dentro do outro, "Marco Ubiali" C "Marco Aurelio Ubiali"). Sem evidencia, contam separado. PROPRIEDADE DE SEGURANCA: so SEPARA com evidencia positiva, entao o numero so pode ficar igual ou MAIOR — nunca menor. Validado com o CSV real: antes 135, agora 136, batendo com o hotel; mais 6 testes unitarios (homonimos, hospede+passageiro no mesmo voucher, mesmo telefone com mascara diferente, nome abreviado x completo, vendedor nunca conta, comutatividade).
 const UV_BUILD='HUB-v3\u00b7'+UV_BUILD_NUM;
 try{ console.info('%c[Hub Ultravel] build '+UV_BUILD, 'color:#6FBAFF;font-weight:bold'); }catch(e){}
 try{
@@ -7066,10 +7066,14 @@ function renderCdNotifs(){
   // (·258) caixa de CONFIRMAÇÃO de marcação — persistente, mesmo estilo,
   // aparece assim que a marcação acontece (sem exigir mensagem não lida).
   var _acConfirmHtml=''; try{ if(typeof window.acConfirmMarcacaoHtml==='function') _acConfirmHtml=window.acConfirmMarcacaoHtml()||''; }catch(e){ _acConfirmHtml=''; }
+  // (·290) caixa de RESPOSTA — quem PARTICIPOU da conversa (escreveu nela ou criou
+  // o tópico) e não foi marcado. A de marcação acima cobre os marcados; esta cobre
+  // o resto de quem tem o que ver com a thread, sem duplicar ninguém.
+  var _acRespHtml=''; try{ if(typeof window.acRespostaNotifHtml==='function') _acRespHtml=window.acRespostaNotifHtml()||''; }catch(e){ _acRespHtml=''; }
   // (·260) CONTROLE DE CHECK-IN — mesma família visual, visível só para quem
   // agendou + admin + Diego Oliveira (filtro já vem pronto de ciNotifHtml).
   var _ciHtml=''; try{ if(typeof window.ciNotifHtml==='function') _ciHtml=window.ciNotifHtml()||''; }catch(e){ _ciHtml=''; }
-  box.innerHTML=html.join('')+_acHtml+_acConfirmHtml+_ciHtml;
+  box.innerHTML=html.join('')+_acHtml+_acConfirmHtml+_acRespHtml+_ciHtml;
   // Clique: o botão "Verificado" tem prioridade e NÃO abre/fecha a caixa (ele vive
   // dentro do corpo expandido). Fora dele, clicar no cabeçalho alterna aberto/fechado.
   box.onclick=(e)=>{
@@ -21025,6 +21029,24 @@ function excluirNotaUI(id){
 #scr-acoes .ac-cit{color:#8CA3B3;font-size:.74rem;font-style:italic;border-left:2px solid #3d5b72;padding-left:8px;margin-bottom:7px}
 #scr-acoes .ac-cit-resp{display:flex;align-items:center;gap:9px;font-style:normal;margin-bottom:8px}
 #scr-acoes .ac-comp{background:rgba(255,255,255,.03);border:1px solid #243849;border-radius:12px;padding:13px}
+/* (·290) ANEXOS — chip do arquivo na mensagem, o pendente no compositor e o
+   input nativo escondido (quem aparece é o botão "📎 Anexar arquivo"). */
+#scr-acoes .ac-anexo-input{display:none}
+#scr-acoes .ac-anexo-dica{color:#7d93a5;font-size:.72rem;align-self:center;margin-left:2px}
+#scr-acoes .ac-anexo-chip{display:inline-flex;align-items:center;gap:8px;max-width:100%;margin-top:9px;cursor:pointer;
+  font-family:inherit;text-align:left;background:rgba(18,176,255,.10);border:1px solid rgba(18,176,255,.40);
+  border-radius:10px;padding:8px 12px;color:#7fd0ff;font-size:.82rem;font-weight:700}
+#scr-acoes .ac-anexo-chip:hover{background:rgba(18,176,255,.18);border-color:#12b0ff}
+#scr-acoes .ac-anexo-ico{font-size:1rem;flex:0 0 auto}
+#scr-acoes .ac-anexo-nome{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#scr-acoes .ac-anexo-tam{color:#8CA3B3;font-weight:400;font-size:.72rem;flex:0 0 auto}
+#scr-acoes .ac-anexo-pend{display:flex;align-items:center;gap:9px;margin-top:9px;background:rgba(46,199,165,.10);
+  border:1px dashed rgba(46,199,165,.55);border-radius:10px;padding:8px 12px;color:#5fe0c0;font-size:.82rem;font-weight:700}
+#scr-acoes .ac-anexo-pend .ac-anexo-tam{color:#8CA3B3}
+#scr-acoes .ac-anexo-x{margin-left:auto;flex:0 0 auto;cursor:pointer;font-family:inherit;background:none;border:none;
+  color:#8CA3B3;font-size:.9rem;padding:2px 6px;border-radius:6px}
+#scr-acoes .ac-anexo-x:hover{color:#ff9a9a;background:rgba(255,82,82,.14)}
+body:not(.dark) #scr-acoes .ac-anexo-nome{color:#15252F}
 #scr-acoes .ac-ta{width:100%;box-sizing:border-box;min-height:92px;resize:vertical;background:#0F1923;border:1px solid #243849;border-radius:10px;color:#E6EEF3;font-size:.9rem;line-height:1.5;padding:11px 13px;outline:none;font-family:inherit}
 #scr-acoes .ac-ta:focus{border-color:#12b0ff}
 
@@ -21227,6 +21249,11 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
 
   /* ---------- estado de tela (memória, nunca na nuvem) ---------- */
   var acAberto=null;        // id do card aberto na thread (null = lista)
+  // (·290) arquivo escolhido e ainda NÃO publicado. Fica só na memória deste PC —
+  // o upload para o R2 acontece no clique em "Publicar", não na escolha, para que
+  // desistir da mensagem não deixe lixo no bucket.
+  var acAnexoPend=null;
+  var acAnexoEnviando=false;  // trava anti-clique-duplo durante o upload
   var acRespondendo='';     // id da mensagem sendo respondida
   var acEditando='';        // id da mensagem sendo editada
   var acEditandoTit='';     // (·254) id do card com o TÍTULO em edição
@@ -21261,16 +21288,127 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     try{ if(typeof logRemoto==='function') logRemoto('acoes_comerciais','Tópico "'+tit+'" criado em Ações Comerciais',{topico:tit}); }catch(e){}
     return id;
   }
-  function acPostar(cardId, txt, respId){
-    txt=(txt||'').trim(); if(!txt) return;
+  /* ============ (·290) ANEXOS — FEATURE 1 ============
+     Pedido do Nando: anexar PDF/JPEG/PNG/DOCX no tópico, visível na thread
+     junto com autor e data, e "salvo pra sempre".
+
+     ONDE O ARQUIVO MORA — e por que NÃO no appConfig: todo o appConfig é UM
+     pacote só. Ele vai inteiro para o localStorage deste PC (teto de ~5MB),
+     inteiro para a chave "config" do KV, e "acoes" ainda está em CAMPOS_VIVOS,
+     então é retransmitido aos 12 PCs pelo Durable Object a cada mensagem nova.
+     Um PDF de 3MB vira ~4MB em base64: estouraria o localStorage já no
+     primeiro anexo — e aí NADA mais salva naquele PC, nem Kanban nem ocupação
+     — além de empurrar 4MB para 12 máquinas a cada post. Por isso o binário
+     vai para um bucket R2 (rota /api/anexo do Worker) e o que entra na
+     mensagem é só a ETIQUETA: {id, nome, tipo, tam}, uns 100 bytes.
+
+     MERGE MULTI-PC: nenhuma mudança foi necessária. Os dois merges de acoes
+     (uvMesclarAcoes aqui e mergeAcoes no worker.js) copiam a MENSAGEM INTEIRA
+     do lado que tiver o carimbo mais novo — campo novo viaja junto sozinho.
+     Conferido nos dois antes de escrever isto.
+
+     PERMANÊNCIA: o objeto no R2 nunca é apagado, nem quando a mensagem é
+     excluída (que já é soft delete por causa do merge). Foi o pedido literal:
+     o anexo fica salvo para sempre. */
+  var AC_ANEXO_MAX=20*1024*1024;      // 20MB — mesmo teto do Worker
+  // tabela FECHADA; a extensão existe porque .docx costuma chegar com type vazio
+  var AC_ANEXO_TIPOS={
+    'application/pdf':{rot:'PDF', ico:'📕', ext:'pdf'},
+    'image/jpeg':{rot:'JPEG', ico:'🖼️', ext:'jpg'},
+    'image/png':{rot:'PNG', ico:'🖼️', ext:'png'},
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document':{rot:'DOCX', ico:'📘', ext:'docx'}
+  };
+  var AC_ANEXO_POR_EXT={ pdf:'application/pdf', jpg:'image/jpeg', jpeg:'image/jpeg', png:'image/png',
+    docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document' };
+  // o navegador às vezes manda type vazio (.docx é o caso clássico): cai na extensão
+  function acAnexoTipoDe(file){
+    var t=(file&&file.type||'').toLowerCase();
+    if(AC_ANEXO_TIPOS[t]) return t;
+    var nm=(file&&file.name||'').toLowerCase(), p=nm.lastIndexOf('.');
+    var ext=(p>=0)?nm.slice(p+1):'';
+    return AC_ANEXO_POR_EXT[ext]||'';
+  }
+  function acAnexoTam(n){
+    n=parseInt(n,10)||0;
+    if(n<1024) return n+' B';
+    if(n<1024*1024) return (n/1024).toFixed(0)+' KB';
+    return (n/1048576).toFixed(1)+' MB';
+  }
+  function acAnexoBase(){ try{ return (typeof getWorkerUrl==='function')?(getWorkerUrl()||''):''; }catch(e){ return ''; } }
+  function acAnexoToken(){ try{ return (typeof uvAuthToken==='function')?(uvAuthToken()||''):(localStorage.getItem('uv_auth_token')||''); }catch(e){ return ''; } }
+
+  /* SOBE o arquivo e devolve a etiqueta. Não usa api(): aquele helper força
+     Content-Type: application/json e devolve r.json() — aqui o corpo é binário. */
+  function acAnexoEnviar(file, aoTerminar){
+    var tipo=acAnexoTipoDe(file);
+    if(!tipo){ acAnexoErro('Formato não aceito. Envie PDF, JPEG, PNG ou DOCX.'); return; }
+    if(file.size>AC_ANEXO_MAX){ acAnexoErro('Arquivo de '+acAnexoTam(file.size)+' — o limite é 20MB.'); return; }
+    var base=acAnexoBase();
+    if(!base){ acAnexoErro('Sem conexão com o servidor — o anexo precisa da nuvem para ficar salvo.'); return; }
+    var h={}; var tok=acAnexoToken(); if(tok) h['Authorization']='Bearer '+tok;
+    fetch(base+'/api/anexo?tipo='+encodeURIComponent(tipo)+'&nome='+encodeURIComponent(file.name||'arquivo'),
+          { method:'POST', headers:h, body:file })
+      .then(function(r){ return r.json().then(function(d){ return {ok:r.ok, d:d}; }); })
+      .then(function(res){
+        if(!res.ok || !res.d || !res.d.id) throw new Error((res.d&&res.d.error)||'falha ao enviar');
+        aoTerminar({ id:res.d.id, nome:res.d.nome||file.name||'arquivo', tipo:tipo, tam:res.d.tam||file.size||0 });
+      })
+      .catch(function(e){
+        // destrava o botão e REDESENHA: o arquivo continua escolhido (acAnexoPend
+        // intacto), então a pessoa pode simplesmente clicar em Publicar de novo
+        // sem ter que reescrever a mensagem nem reescolher o arquivo.
+        acAnexoEnviando=false;
+        try{ window.renderAcoes(); }catch(er){}
+        acAnexoErro('Não consegui enviar o anexo: '+(e&&e.message?e.message:e));
+      });
+  }
+  function acAnexoErro(msg){
+    try{ if(typeof toast==='function'){ toast(msg,'erro'); return; } }catch(e){}
+    try{ window.alert(msg); }catch(e){}
+  }
+
+  /* BAIXA por fetch + blob, e não por <a href> direto: o link precisaria levar
+     o token na URL (o Worker aceita ?token= por causa do WebSocket), e aí ele
+     ficaria no histórico do navegador. Com fetch, o token viaja no cabeçalho. */
+  window.acAnexoBaixar=function(id, nome){
+    var base=acAnexoBase(); if(!base){ acAnexoErro('Sem conexão com o servidor.'); return; }
+    var h={}; var tok=acAnexoToken(); if(tok) h['Authorization']='Bearer '+tok;
+    fetch(base+'/api/anexo/'+encodeURIComponent(id), { headers:h })
+      .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.blob(); })
+      .then(function(b){
+        var u=URL.createObjectURL(b), a=document.createElement('a');
+        a.href=u; a.download=nome||'arquivo'; document.body.appendChild(a); a.click();
+        setTimeout(function(){ try{ document.body.removeChild(a); URL.revokeObjectURL(u); }catch(e){} }, 1500);
+      })
+      .catch(function(e){ acAnexoErro('Não consegui baixar o anexo: '+(e&&e.message?e.message:e)); });
+  };
+
+  // chip do anexo dentro da mensagem — fica logo abaixo do texto, no mesmo
+  // bloco que já mostra autor e data (era o pedido: "junto com autor/data")
+  function acAnexoHtml(ax){
+    if(!ax || !ax.id) return '';
+    var d=AC_ANEXO_TIPOS[ax.tipo]||{rot:'ARQUIVO', ico:'📎'};
+    return '<button type="button" class="ac-anexo-chip" data-ac-anexo="'+acEsc(ax.id)+'" data-ac-anexo-nome="'+acEsc(ax.nome||'arquivo')+'" title="Baixar '+acEsc(ax.nome||'')+'">'
+      +'<span class="ac-anexo-ico">'+d.ico+'</span>'
+      +'<span class="ac-anexo-nome">'+acEsc(ax.nome||'arquivo')+'</span>'
+      +'<span class="ac-anexo-tam">'+d.rot+' · '+acAnexoTam(ax.tam)+'</span>'
+      +'</button>';
+  }
+
+  function acPostar(cardId, txt, respId, anexo){
+    txt=(txt||'').trim();
+    // mensagem só com anexo é válida — obrigar a escrever algo seria atrito à toa
+    if(!txt && !(anexo&&anexo.id)) return;
     var S=acStore(), c=S.cards[cardId]; if(!c) return;
     if(!c.msgs || typeof c.msgs!=='object') c.msgs={};
     var agora=Date.now(), mid=acId('am');
     c.msgs[mid]={ id:mid, txt:txt.slice(0,4000), autor:acNome()||'—', autorU:acUsuario(),
                   ts:agora, mts:agora, del:0, resp:respId||'' };
+    // (·290) etiqueta do anexo — só metadado; o arquivo está no R2
+    if(anexo && anexo.id) c.msgs[mid].anexo={ id:anexo.id, nome:String(anexo.nome||'arquivo').slice(0,180), tipo:anexo.tipo||'', tam:anexo.tam||0 };
     S.lido[acChaveLido(cardId)]=agora;   // quem escreve já leu
     acSalvar();
-    try{ if(typeof logRemoto==='function') logRemoto('acoes_comerciais',(respId?'Resposta':'Mensagem')+' publicada no tópico "'+(c.tit||'—')+'"',{topico:c.tit}); }catch(e){}
+    try{ if(typeof logRemoto==='function') logRemoto('acoes_comerciais',(respId?'Resposta':'Mensagem')+' publicada no tópico "'+(c.tit||'—')+'"',{topico:c.tit, anexo:(anexo&&anexo.nome)||''}); }catch(e){}
   }
   function acEditarMsg(cardId, mid, txt){
     txt=(txt||'').trim(); if(!txt) return;
@@ -21579,7 +21717,8 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       return '<div class="ac-msg'+(meu?' meu':'')+'">'
         + (citado?'<div class="ac-cit">↪ resposta a <b>'+acEsc(citado.autor||'—')+'</b>: '+acEsc((citado.txt||'').slice(0,90))+((citado.txt||'').length>90?'…':'')+'</div>':'')
         + '<div class="ac-msg-topo"><b>'+acEsc(m.autor||'—')+'</b> <span class="ac-msg-data">'+acData(m.ts)+(m.edt?' · editada':'')+'</span></div>'
-        + '<div class="ac-msg-txt">'+acEsc(m.txt)+'</div>'
+        + (m.txt?'<div class="ac-msg-txt">'+acEsc(m.txt)+'</div>':'')
+        + acAnexoHtml(m.anexo)                                     // (·290) anexo junto do autor/data
         + '<div class="ac-msg-acoes">'
         + (u?'<button type="button" class="ac-mini" data-ac-resp="'+acEsc(m.id)+'">↩ Responder</button>':'')
         + (podeMexerMsg?'<button type="button" class="ac-mini" data-ac-edit="'+acEsc(m.id)+'">✎ Editar</button>':'')
@@ -21592,7 +21731,19 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       ? '<div class="ac-comp">'
         + (respAlvo?'<div class="ac-cit ac-cit-resp">↪ respondendo <b>'+acEsc(respAlvo.autor||'—')+'</b> <button type="button" class="ac-mini" data-ac-respcancel="1">cancelar</button></div>':'')
         + '<textarea class="ac-ta" id="acTexto" maxlength="4000" placeholder="Escreva uma mensagem para a timeline...">'+acEsc(acRascunho)+'</textarea>'
-        + '<div class="ac-msg-acoes"><button type="button" class="ac-btn ac-btn-ok" id="acPostar">Publicar</button></div>'
+        // (·290) anexo escolhido mas ainda não publicado — some se o usuário desistir
+        + (acAnexoPend
+            ? '<div class="ac-anexo-pend"><span class="ac-anexo-ico">📎</span>'
+              +'<span class="ac-anexo-nome">'+acEsc(acAnexoPend.name)+'</span>'
+              +'<span class="ac-anexo-tam">'+acAnexoTam(acAnexoPend.size)+'</span>'
+              +'<button type="button" class="ac-anexo-x" id="acAnexoTirar" title="Remover o anexo">✕</button></div>'
+            : '')
+        + '<input type="file" id="acAnexoInput" class="ac-anexo-input" accept=".pdf,.jpg,.jpeg,.png,.docx,application/pdf,image/jpeg,image/png,application/vnd.openxmlformats-officedocument.wordprocessingml.document">'
+        + '<div class="ac-msg-acoes">'
+          +'<button type="button" class="ac-btn ac-btn-ok" id="acPostar">Publicar</button>'
+          +'<button type="button" class="ac-btn" id="acAnexoBtn">📎 Anexar arquivo</button>'
+          +'<span class="ac-anexo-dica">PDF, JPEG, PNG ou DOCX · até 20MB</span>'
+        +'</div>'
         + '</div>'
       : (u?'':'<div class="ac-vazio">Faça login para publicar mensagens.</div>');
 
@@ -21617,11 +21768,12 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
 
     var ab=e.target.closest('[data-ac-abrir]');
     if(ab){ acAberto=ab.getAttribute('data-ac-abrir'); acRascunho=''; acRespondendo=''; acEditando=''; acEditandoTit='';
+            acAnexoPend=null;   // (·290) anexo escolhido pertence ao card onde foi escolhido
             acMarcarLido(acAberto); window.renderAcoes();
             try{ if(typeof window.renderCdNotifs==='function') window.renderCdNotifs(); }catch(er){}
             return; }
 
-    if(e.target.closest('#acVoltar')){ acAberto=null; acRascunho=''; acRespondendo=''; acEditando=''; acEditandoTit=''; window.renderAcoes(); return; }
+    if(e.target.closest('#acVoltar')){ acAberto=null; acRascunho=''; acRespondendo=''; acEditando=''; acEditandoTit=''; acAnexoPend=null; window.renderAcoes(); return; }
     if(e.target.closest('#acNovoBtn')){ acNovoAberto=true; window.renderAcoes(); var i=document.getElementById('acNovoTit'); if(i){ try{ i.focus(); }catch(er){} } return; }
     if(e.target.closest('#acNovoCancel')){ acNovoAberto=false; window.renderAcoes(); return; }
     if(e.target.closest('#acNovoOk')){
@@ -21629,10 +21781,45 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       if(!id){ if(it) it.focus(); return; }
       acNovoAberto=false; acAberto=id; acRascunho=''; window.renderAcoes(); return;
     }
+    /* (·290) ANEXO — o input de arquivo fica escondido e quem aparece é o botão,
+       para não depender da aparência nativa do <input type=file>, que muda de
+       navegador para navegador. */
+    if(e.target.closest('#acAnexoBtn')){
+      var inp=document.getElementById('acAnexoInput'); if(inp){ try{ inp.click(); }catch(er){} }
+      return;
+    }
+    if(e.target.closest('#acAnexoTirar')){
+      acAnexoPend=null;
+      var taA=document.getElementById('acTexto'); acRascunho=taA?taA.value:'';   // não perde o texto já digitado
+      window.renderAcoes(); return;
+    }
+    var axb=e.target.closest('[data-ac-anexo]');
+    if(axb){ window.acAnexoBaixar(axb.getAttribute('data-ac-anexo'), axb.getAttribute('data-ac-anexo-nome')); return; }
+
     if(e.target.closest('#acPostar')){
-      var ta=document.getElementById('acTexto'); if(!ta || !ta.value.trim()){ if(ta) ta.focus(); return; }
-      acPostar(acAberto, ta.value, acRespondendo);
-      acRascunho=''; acRespondendo=''; window.renderAcoes(); return;
+      if(acAnexoEnviando) return;                                  // upload em curso: ignora clique repetido
+      var ta=document.getElementById('acTexto');
+      var texto=ta?ta.value:'';
+      // (·290) com anexo, texto vazio é permitido — sem anexo, continua obrigatório
+      if(!texto.trim() && !acAnexoPend){ if(ta) ta.focus(); return; }
+      if(!acAnexoPend){
+        acPostar(acAberto, texto, acRespondendo);
+        acRascunho=''; acRespondendo=''; window.renderAcoes(); return;
+      }
+      // sobe o arquivo PRIMEIRO: só publica a mensagem se o anexo ficou de fato
+      // salvo no R2, para nunca existir mensagem apontando para arquivo nenhum
+      acAnexoEnviando=true; acRascunho=texto;
+      var btn=e.target.closest('#acPostar');
+      try{ btn.disabled=true; btn.textContent='Enviando anexo...'; }catch(er){}
+      var alvoCard=acAberto, alvoResp=acRespondendo;
+      acAnexoEnviar(acAnexoPend, function(etiqueta){
+        acAnexoEnviando=false; acAnexoPend=null;
+        acPostar(alvoCard, texto, alvoResp, etiqueta);
+        acRascunho=''; acRespondendo=''; window.renderAcoes();
+        try{ if(typeof window.renderCdNotifs==='function') window.renderCdNotifs(); }catch(er){}
+      });
+      // em caso de falha, acAnexoEnviar destrava e redesenha sozinho (ver o catch lá)
+      return;
     }
     if(e.target.closest('#acDelCard')){
       if(window.confirm('Excluir este tópico e todas as mensagens dele? Só você, como autor, pode fazer isso.')){
@@ -21698,6 +21885,23 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     }
   });
 
+  /* (·290) ESCOLHA DO ARQUIVO — listener DELEGADO no document porque
+     renderAcoes() reescreve o innerHTML inteiro a cada desenho: um listener
+     preso ao <input> morreria no primeiro redesenho. 'change' borbulha, então
+     o delegado funciona igual. Aqui só VALIDA e guarda na memória — o upload
+     acontece no "Publicar". */
+  document.addEventListener('change', function(e){
+    if(!e.target || e.target.id!=='acAnexoInput') return;
+    var f=e.target.files && e.target.files[0];
+    if(!f) return;
+    var tipo=acAnexoTipoDe(f);
+    if(!tipo){ acAnexoErro('Formato não aceito. Envie PDF, JPEG, PNG ou DOCX.'); e.target.value=''; return; }
+    if(f.size>AC_ANEXO_MAX){ acAnexoErro('Arquivo de '+acAnexoTam(f.size)+' — o limite é 20MB.'); e.target.value=''; return; }
+    acAnexoPend=f;
+    var ta=document.getElementById('acTexto'); acRascunho=ta?ta.value:'';   // preserva o que já foi digitado
+    window.renderAcoes();
+  });
+
   /* ============ NOTIFICAÇÃO NO CONTROL DESK ============
      Devolve HTML no MESMO formato das caixas existentes (.cd-notif), para ser
      concatenado por renderCdNotifs. SÓ para quem está logado E foi marcado E tem
@@ -21722,6 +21926,68 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
         +'<div class="cd-notif-head aberta"><div class="cd-notif-tit">'
         +'💬 ATENÇÃO, <span class="cd-nome">'+acEsc(meu.toUpperCase())+'</span>! '
         +'<span class="cd-chamada">VOCÊ FOI MARCADO EM AÇÕES COMERCIAIS — HÁ '+total+' MENSAGEM'+(total>1?'S':'')+' NÃO LIDA'+(total>1?'S':'')+' NA TIMELINE!</span>'
+        +'</div></div>'
+        +'<div class="cd-notif-body"><div class="cd-bloco cd-bloco-acoes">'
+        +linhas
+        +'<div class="ac-notif-rodape">Abrir o tópico marca as mensagens como lidas e esta cobrança desaparece sozinha.</div>'
+        +'</div></div></div>';
+    }catch(e){ return ''; }
+  };
+
+  /* ============ (·290) NOTIFICAÇÃO DE RESPOSTA — FEATURE 2 ============
+     Pedido do Nando: "quando uma conversa/tópico for respondido, o usuário que
+     participou dela deve receber notificação".
+
+     O BURACO QUE ISTO FECHA: acNotifHtml() acima só cobra quem foi MARCADO no
+     card (acSouMarcado). Quem entrou na conversa escrevendo — sem nunca ter
+     sido marcado — não recebia nada: a resposta chegava e a pessoa só
+     descobria entrando na pasta por conta própria.
+
+     POR QUE UMA CAIXA NOVA EM VEZ DE MEXER NA DE MARCAÇÃO: são dois motivos
+     diferentes de cobrança ("você foi marcado" × "responderam seu tópico") e a
+     redação de cada uma precisa dizer a verdade. Misturar as duas obrigaria a
+     reescrever o texto que a Ruth e a Ana Maria já conhecem. Sendo caixa
+     própria, a de marcação continua idêntica e esta é puramente aditiva.
+
+     SEM DUPLICAR COBRANÇA: quem está marcado NO MESMO card já é cobrado pela
+     caixa de marcação, então sai desta (o `if(acSouMarcado(c)) return`).
+
+     BAIXA: usa acNaoLidas(), que lê o MESMO relógio S.lido de sempre — então a
+     leitura por visualização do ·289 já derruba esta caixa também, por
+     qualquer rota de entrada. Nenhum mecanismo de leitura novo. */
+  function acSouParticipante(c){
+    var u=acUsuario(); if(!u || !c) return false;
+    if(c.autorU===u) return true;                 // dono do tópico participa por definição
+    var achou=false;
+    acMsgsVivas(c).forEach(function(m){ if(m.autorU===u) achou=true; });
+    return achou;                                 // escreveu ao menos uma vez = participou
+  }
+  window.acRespostaNotifHtml=function(){
+    try{
+      var meu=acNome(); if(!meu || !acUsuario()) return '';
+      var pend=[];
+      acCardsVivos().forEach(function(c){
+        if(acSouMarcado(c)) return;               // já cobrado na caixa de marcação
+        if(!acSouParticipante(c)) return;         // não participou: não é da conta dele
+        var n=acNaoLidas(c); if(n>0) pend.push({c:c, n:n});   // acNaoLidas já ignora o que ele mesmo escreveu
+      });
+      if(!pend.length) return '';
+      var total=pend.reduce(function(s,p){ return s+p.n; },0);
+      var linhas=pend.map(function(p){
+        var ultimo='';
+        try{
+          var ms=acMsgsVivas(p.c), ult=ms.length?ms[ms.length-1]:null;
+          if(ult && ult.autor) ultimo=' Último a responder: <b>'+acEsc(ult.autor)+'</b>.';
+        }catch(e){}
+        return '<div class="ac-notif-linha">'
+          +'<div class="cd-bloco-txt">Responderam o tópico <b>'+acEsc(p.c.tit)+'</b> — '+p.n+' mensagem'+(p.n>1?'ns':'')+' não lida'+(p.n>1?'s':'')+'.'+ultimo+'</div>'
+          +'<button type="button" class="cd-notif-btn" data-acgo="'+acEsc(p.c.id)+'">Abrir</button>'
+          +'</div>';
+      }).join('');
+      return '<div class="cd-notif">'
+        +'<div class="cd-notif-head aberta"><div class="cd-notif-tit">'
+        +'↩️ <span class="cd-nome">'+acEsc(meu.toUpperCase())+'</span>, '
+        +'<span class="cd-chamada">RESPONDERAM UMA CONVERSA SUA EM AÇÕES COMERCIAIS — '+total+' MENSAGEM'+(total>1?'S':'')+' NÃO LIDA'+(total>1?'S':'')+'!</span>'
         +'</div></div>'
         +'<div class="cd-notif-body"><div class="cd-bloco cd-bloco-acoes">'
         +linhas
