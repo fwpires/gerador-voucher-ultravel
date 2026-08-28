@@ -4155,7 +4155,7 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 300; // (·300) NOVA PASTA "REINO" EM PROSPECCAO — 428 contatos. Importacao da planilha Reino_Envio_formatado.xlsx (colunas NOME e TELEFONE), pedida pelo Nando. Entrou como ps12 em PS_CATS_BASE (cor #0FA3B1, unica — conferido contra as 11 existentes) e PS_SEED[ps12], no MESMO formato dos outros: id sequencial ps12_NNN, nome, tel, email e obs vazios. A LISTAGEM GERAL nao precisou de nada: ela ja soma todas as categorias de psCatsLista(), entao passou de 11 listas/597 contatos para 12 listas/1025 sozinha — confirmado por E2E que conta as linhas renderizadas de verdade. DADOS: a planilha tinha 463 linhas, todas com nome e telefone. 35 eram duplicata EXATA (mesmo nome E mesmo telefone) e foram removidas — e isto NAO foi decisao nova: e a mesma regra que o cabecalho do modulo ja documenta da importacao original ("111 linhas eram duplicata EXATA... nada de gente diferente foi descartado"). Dois telefones se repetem com nomes DIFERENTES ((31) 99880-6300 Nathielle/Wollace e (83) 99617-9922 Ana/Antonio): sao pessoas distintas dividindo o aparelho, entao as quatro ficaram. Os nomes vem so com o primeiro nome na origem e foram mantidos como estao, sem inventar sobrenome. Validado por t_reino.mjs (10 casos, comparando os dados extraidos do index.html LINHA A LINHA com a planilha) e t_reino_ui.mjs (8 casos em Chromium real: a pasta aparece com 428, a Lista Geral abre com 1025 linhas .cl-row e o contador diz "12 listas · 1025 contatos no total"). ANTERIOR: (·299) REMOVER "AUSENTE" VOLTA A APAGAR AS TRES BOLINHAS DE UMA VEZ. Pedido do Nando: ao remover o status Ausente no Control Desk, as tres bolinhas saem juntas, sem deixar residuo. Isto REVERTE, so para o Ausente, o comportamento granular que o ·225 tinha introduzido (clicar numa bolinha liberava so ela e as outras duas continuavam acesas — era o residuo relatado). O Ausente saiu do bloco de desmarque granular e voltou ao bloco de sentinela de "pessoa inteira", onde ja estao Indisponivel, Licitacao e Prospeccao. GRUPOS e GESTAO INTERNA continuam granulares: so o Ausente mudou. O REGISTRO NO HISTORICO NAO SE PERDE — este era o risco, porque o ·228 tinha consertado justamente a gravacao no caminho granular: ocpDefinirTodosSlots(at,'') e o MESMO caminho que o checkbox do modal ja usava para desmarcar Ausente, e ele fecha o bloco cronometrado via ocpRegistrarAusencia (·160) ANTES de limpar os slots. ocpFecharAusenciaSeAberta ficou sem chamador e foi mantida com aviso explicito no cabecalho, por simetria com as irmas de Grupos/Interna que seguem em uso. Validado por E2E em Chromium real (t_ausente.mjs, 7 casos, com clique REAL no LED): Ausente apaga as tres (restaram 0), Grupos e Gestao Interna continuam deixando 2 acesas, Indisponivel segue apagando as tres. O mesmo teste rodado contra a versao anterior FALHA com [1,0,1] — as duas bolinhas de residuo que o Nando viu. ANTERIOR: (·298) A ETIQUETA DO ATENDENTE SUMIA AO ARRASTAR O CONTATO PARA "CONTATO INICIADO". Relatado pelo Nando logo apos o ·297. A causa NAO estava no arrastar: quando o CSV do atendente e gerado, o ·272 ESVAZIA de proposito a lista dele em Gestores de Leads ("o registro passa a viver so no Kanban"). Como a etiqueta do ·297 lia apenas appConfig.prospGestores, ela ficava sem fonte e sumia — o arrastar so foi o momento em que o Nando percebeu. O nome do atendente nunca se perdeu: ele viaja no PROPRIO CARD do Kanban (campo atendente, gravado por klAdicionarCardsAutomatico). FIX: psAtendenteDoContato passa a consultar DUAS fontes, na ordem em que a informacao e mais fresca — 1) vinculo vivo em Gestores de Leads (transferencia recente); 2) o card do CRM onde o contato esta agora, via o novo indice klAtendentePorContato(). Continua tudo DERIVADO: nenhum campo novo, nenhuma copia para envelhecer, nenhum merge novo. DESEMPENHO: a Lista Geral desenha centenas de contatos e varrer todos os boards para cada um seria quadratico, entao o mapa e montado uma vez por DESENHO — renderProspeccao abre o lote antes e fecha depois (try/finally). O lote e explicito de proposito: a primeira versao usava cache por setTimeout e os proprios testes pegaram o defeito — alterar e reler no MESMO clique devolvia valor velho, erro invisivel ate doer. Fora do desenho, toda leitura e fresca. Validado por E2E em Chromium real (t_prosp.mjs, agora 19 casos): a etiqueta resiste ao CSV esvaziar Gestores, resiste ao arrastar para "Contato Iniciado" (as duas etiquetas convivem) e so sai quando o card e excluido do CRM. ANTERIOR: (·297) PROSPECCAO/CRM: ETIQUETA "CONTATO INICIADO" QUE NAO SAIA + ETIQUETA DO ATENDENTE. BUG 1 (relatado pela Ana): ela exclui o contato na coluna "Contato Iniciado" do CRM, o card some de la, mas na Prospeccao a etiqueta continua; "no admin funciona". DIAGNOSTICO: a exclusao NUNCA removia a etiqueta, para ninguem — klCardDel so marcava del=1 e klChecarTagIniciado so sabia MARCAR, nao desmarcar. O que o admin tem e o "x" manual ao lado da etiqueta (psRemoverIniciado, admin-only desde o ·274), entao ele apaga na mao e parece que funcionou; a Ana nao tem esse "x" e ficava sem saida. FIX: a etiqueta deixa de ser carimbo de mao unica e passa a REFLETIR o CRM. Novo klContatoTemCardIniciado(contatoId) varre todos os boards vivos e responde se ainda existe card vivo daquele contato numa coluna "Contato Iniciado"; psSincronizarIniciado() reavalia a etiqueta a partir disso e roda SEM trava de permissao — remover A MAO continua sendo do admin (e decisao, apaga historico), mas a sincronizacao automatica e consequencia de um fato e vale para qualquer usuario. Reavaliar em vez de apagar importa porque o mesmo contato pode ter card em mais de um board: a etiqueta so cai quando nao sobra nenhum. Gatilhos em klCardDel, klCardMover (sair da coluna tambem conta) e klColunaDel (apagar a coluna inteira). FEATURE 2: etiqueta com o nome do atendente que recebeu o contato, trocando sozinha na retransferencia e sem duplicar. NAO criei campo novo: "quem recebeu" JA existe em appConfig.prospGestores, e guardar de novo numa etiqueta seria a segunda copia do mesmo fato — erro que esta sessao ja pagou tres vezes (·286, ·294, ·296). A etiqueta e DERIVADA no render por psAtendenteDoContato(), entao nao tem como desencontrar do dado, nao precisa de merge novo e nao ha estado velho para limpar. Para o dado ser mesmo unico, pgTransferir e pgRetransferir passaram a chamar o MESMO pgLimparOutrosVinculos(), que tira o contato da lista de qualquer outro atendente; se ainda assim houver vinculo duplo herdado, o render mostra o de carimbo mais novo. Validado por E2E em Chromium real (t_prosp.mjs, 12 casos): a Ana NAO-admin excluindo no CRM ve a etiqueta sair, com dois cards a etiqueta fica e so cai quando o segundo tambem sai, e a etiqueta do atendente aparece, troca na retransferencia e nunca duplica. ANTERIOR: (·296) O ·295 SAIU INCOMPLETO: A TABELA DE ESTOQUE CONTINUAVA COM O "TOWER" SOLTO. O Nando perguntou se o fix do ·295 tambem corrigia a conciliacao do evento no caso do voucher #00249 (Mercure Uberlandia Plaza Shopping). Conferido ponto a ponto: os 22 usos que alimentam conciliacao, contagem de hospedes, filtro de hotel do Kanban, auditoria de check-in/check-out, graficos e o aviso de etiqueta passam TODOS por HOTEIS_OCUPACAO, entao sim, ja estavam corrigidos. MAS a checagem revelou uma SEGUNDA tabela — HOTEIS_ESTOQUE, a do limite de quartos — que trazia sua PROPRIA copia da regra e ficou com includes("tower") cru, ainda contando qualquer "Blue Tower" no estoque do evento. Era o mesmo erro de fundo que produziu o ·286 e o ·294: a mesma regra escrita em dois lugares, um corrigido e o outro nao. FIX: a regra de reconhecimento virou tres predicados unicos (wecEhTower, wecEhContemporaneo, wecEhPlaza), definidos uma vez e referenciados pelas DUAS tabelas — nao ha mais onde divergir. Nenhuma regra solta de includes() sobrou no arquivo. Validado por t_hotel.mjs (33 casos): alem dos 22 do ·295, agora confere a tabela de ESTOQUE isoladamente e a COERENCIA entre as duas tabelas hotel a hotel (com a unica divergencia legitima sendo o Royal Palm Plaza, que existe so na de ocupacao por nao ter limite de quartos). As suites de contagem seguem verdes: 137 hospedes no Tower, intactos. ANTERIOR: (·295) FALSO POSITIVO DE HOTEL WECANN: "PLAZA" E "TOWER" NAO BASTAM MAIS. Bug relatado pelo Nando com print: o voucher #00249, do "Mercure Uberlandia Plaza Shopping", disparou o aviso "hotel WeCann mas SEM a etiqueta WeCann" na tela de Vouchers Salvos. O voucher estava certo — quem errou foi a tabela HOTEIS_OCUPACAO, onde a regra do Royal Palm Plaza era literalmente includes("plaza"), e plaza e palavra de hotel generica. O MESMO DEFEITO estava no Tower (includes("tower")), que so nao tinha dado sintoma por sorte: o proximo "Blue Tower" qualquer entraria na conta do evento. REGRA NOVA: a palavra generica sozinha nao basta, precisa vir com uma ancora que so existe nos hoteis do evento — a marca ("royal palm"), a cidade ("campinas") ou, no Tower, o qualificador exclusivo dele ("anhanguera"), que sozinho ja identifica. POR QUE ISTO E DELICADO: este match e a MESMA porta usada pela contagem de hospedes (_wecIdentidades/·286), pelo filtro de hotel do Kanban (hotelCanonico) e pela ocupacao — estreitar so pode fazer MENOS coisas casarem, entao um hotel real do evento escrito de forma pobre deixaria de contar. Por isso entrou junto hotelWecannAmbiguo(): vouchers cujo hotel tem Plaza/Tower sem ancora nenhuma sao LISTADOS no mesmo balao de aviso, com a dica de escrever o nome completo — a mudanca nunca tira um hotel da conta em silencio. Validado por t_hotel.mjs (22 casos com o codigo real): o Mercure do print e mais 3 genericos deixam de casar; "Tower Anhanguera" (forma do CSV do hotel), "Royal Palm Tower Campinas (Anhanguera)" (forma do PDF), "Royal Palm Plaza", "Tower Campinas" e o Contemporaneo continuam casando — e as suites de contagem (·286: 137 hospedes no Tower) seguem verdes, que era o risco principal. ANTERIOR: (·294) PERMISSAO DO HISTORICO DE CHECK-IN. Bug relatado pelo Nando: em Minhas Tarefas > Historico de agendamentos de check-in, TODOS os usuarios viam TODOS os agendamentos — o trabalho de um atendente ficava exposto para os outros. REGRA CORRETA E APLICADA: admin ve todos; os demais veem SOMENTE os que eles mesmos criaram. CAUSA: ciListaAgendadosHtml() listava ciCardsVivos() cru, sem filtro nenhum. A notificacao (ciPendentes) SEMPRE filtrou certo — so a lista da tela e que saiu sem filtro, e a permissao de criador ja existia ali escrita a mao. FIX: a regra "sou o dono" virou predicado UNICO ciSouDono(c), usado pelo historico E por ciPendentes. Deixar a lista com uma copia propria da regra seria plantar o mesmo problema do ·286 — duas leituras do mesmo fato, uma corrigida e a outra nao. ciSouDono compara o LOGIN (criadorU) e, se nao bater, cai no NOME com a mesma cautela conta≠nome de Acoes Comerciais/Minhas Tarefas (ciMesmaPessoa), porque registro antigo pode ter so o nome e um atendente pode ter mais de um login. O filtro roda ANTES de montar o HTML: nada de gerar tudo e esconder no CSS, que deixaria o dado alheio no DOM — ha teste E2E que confere justamente isso. Admin ganhou um aviso "voce ve os agendamentos de toda a equipe" e quem nao agendou nada ve uma mensagem explicando que a lista so mostra os proprios. NOTA DE INCONSISTENCIA CONHECIDA (nao alterada de proposito, aguarda decisao do Nando): ciPendentes concede acesso tambem ao Diego Oliveira (souDiego, herdado do ·260), entao hoje o Diego RECEBE notificacao de check-in de terceiros mas NAO os ve no historico. Validado por E2E em Chromium real (t_checkin.mjs, 12 casos, 4 perfis): admin ve os 3, Madu ve so o dela, Ruth so o dela, quem nao agendou ve lista vazia, e o localizador/pax alheio nao aparece nem no HTML. ANTERIOR: (·293) BOTAO "✓ CONFERIDO" NO ESPELHO DO ADMIN. Pedido do Nando: dar baixa no card de notificacao do espelho. SEMANTICA: e o ADMIN dizendo "ja olhei este topico" — NAO toca na cobranca de ninguem, quem estava pendente (Diego, Mayara) continua exatamente como estava; some so do espelho, que e tela de supervisao. VOLTA SOZINHO: o carimbo do Conferido e comparado com a ATIVIDADE do topico (maior entre c.mts, c.ts, o maior marcTs e a mensagem mais nova); enquanto nada novo acontecer o card fica oculto, e na primeira mensagem ou marcacao nova ele reaparece — sem isso um Conferido dado hoje cegaria o admin para sempre naquele topico, o oposto do que o espelho serve. ONDE MORA: appConfig.notifVerificado com prefixo "acesp::", o MESMO mapa {chave:carimbo} do "✓ Verificado" das cobrancas de Kanban — que ja e mesclado por "clique mais recente vence" nos DOIS pontos padrao (o merge do Hub e o mergeMapaTs do Worker) e ja esta em CAMPOS_VIVOS. Reusar em vez de criar estrutura nova foi deliberado: estrutura nova exigiria funcao de merge propria dos dois lados e um novo deploy do Worker; assim a baixa ja nasce sincronizada entre os PCs do admin e ESTE BUILD NAO PRECISA DE REDEPLOY DO WORKER. Quantos topicos estao ocultos por Conferido e DECLARADO no rodape (mesma regra de nunca cortar em silencio do ·292). Validado por E2E em Chromium real (t_espelho.mjs, agora 27 casos): botao em cada card, clique remove so aquele card, os demais permanecem, S.lido fica byte a byte identico (nao baixa a cobranca de ninguem), a pendencia da Ruth segue viva, o oculto e declarado no rodape e mensagem nova faz o card voltar. ANTERIOR: (·292) ESPELHO DO ADMIN: PENDENCIA NUNCA E CORTADA. Pergunta do Nando ao receber o ·291 — "isso vai funcionar pra todas as pessoas? eu vou saber de tudo?" — e a resposta honesta era QUASE: o ·291 aplicava um teto unico de 8 topicos na ordem de atividade, entao com muitos topicos uma pendencia ANTIGA seria descartada em silencio e o admin acharia que estava tudo em dia. Agora a separacao acontece ANTES do corte: topicos com alguem pendente sao TODOS exibidos, sem teto; so o grupo "todos ja leram" tem limite (5, e apenas os das ultimas 48h), e o que sobra do limite e DECLARADO no rodape em vez de sumir calado — corte silencioso faria a caixa mentir por omissao. Tambem corrigido o plural "abriuram" -> "abriram" no cabecalho, achado pelo proprio teste de escala. Validado por E2E em Chromium real (t_espelho.mjs, agora 18 casos): cenario com 14 pendencias espalhadas ate 40 dias atras e 9 topicos ja lidos — as 14 aparecem TODAS (inclusive a de 40 dias), os ja-lidos param em 5 e os 4 restantes sao anunciados. ANTERIOR: (·291) ESPELHO DO ADMIN EM ACOES COMERCIAIS. Pedido do Nando: "respondi a Ruth num card mas nao sei se ela foi notificada — como admin quero receber uma copia das notificacoes que todos recebem, incluindo as de resposta". NAO e copia literal das caixas alheias, e de proposito: cobranca copiada nao serviria de nada, porque o admin nao pode dar baixa pela Ruth. O que responde a duvida real e o ESTADO — quem devia ser notificado naquele topico, quem ja leu e quem ainda nao — entao cada pessoa aparece com bolinha vermelha (ainda nao abriu) ou verde (leu, e quando). COMO DA PARA SABER: S.lido e gravado por usuario::cardId e viaja no mesmo appConfig que os 12 PCs compartilham, entao o carimbo de leitura da Ruth chega ao PC do admin — nenhuma telemetria nova foi inventada, so leitura do que ja existia. NOME->LOGIN: a lista oficial de /api/auth/usuarios e buscada UMA vez por sessao (so para admin, com cache em localStorage e um unico re-render quando chega); sem ela, cai no historico do proprio modulo, onde autor e autorU viajam juntos em cada mensagem; nao achando nem assim, a pessoa aparece como "login nao identificado" em vez de afirmar leitura que nao da para provar. SO LEITURA: nada nesta caixa escreve em S.lido — abrir o espelho nao marca nada como lido para ninguem, e ha teste E2E dedicado a isso. Nasce FECHADA (nao entra em cdAbertas por padrao) porque e caixa de supervisao, nao de acao. Escopo: ate 8 topicos, incluindo sempre os que tem pendencia viva e os com atividade nas ultimas 48h. Exclusiva do perfil admin. Validado por E2E em Chromium real (t_espelho.mjs, 12 casos, com dois perfis: admin ve a caixa, atendente NAO ve, Ruth continua recebendo a notificacao dela normalmente, e abrir o espelho deixa S.lido byte a byte identico). ANTERIOR: (·290) DUAS FEATURES EM ACOES COMERCIAIS: ANEXO DE ARQUIVO (R2) E NOTIFICACAO DE RESPOSTA. ATENCAO AO DEPLOY: esta build exige TAMBEM publicar o worker.js (npx wrangler deploy) e criar o bucket R2 uma unica vez (npx wrangler r2 bucket create hub-ultravel-anexos) — so o index.html no GitHub NAO basta, o botao de anexar avisa "sem conexao" sem o Worker novo. FEATURE 1 (anexo PDF/JPEG/PNG/DOCX, ate 20MB): o arquivo vai para um bucket R2 pelas rotas novas POST /api/anexo e GET /api/anexo/<id>, e na mensagem entra SO a etiqueta {id,nome,tipo,tam}. POR QUE NAO GUARDAR NO CONFIG: o appConfig e UM pacote so que vai inteiro para o localStorage de cada PC (teto ~5MB), inteiro para a chave "config" do KV, e "acoes" esta em CAMPOS_VIVOS, logo e retransmitido aos 12 PCs pelo Durable Object a cada mensagem — um PDF de 3MB vira ~4MB em base64 e estouraria o localStorage no primeiro anexo, quebrando o salvamento de TUDO naquele PC (Kanban, ocupacao, cartoes) alem de empurrar 4MB para 12 maquinas a cada post. MERGE: nenhuma mudanca necessaria — uvMesclarAcoes (aqui) e mergeAcoes (worker) copiam a MENSAGEM INTEIRA do lado com carimbo mais novo, entao o campo anexo viaja junto sozinho; conferido nos dois antes de escrever. PERMANENCIA: o objeto no R2 nunca e apagado, nem quando a mensagem e excluida (pedido literal do Nando: fica salvo para sempre). SEGURANCA: as duas rotas ficam depois do portao de autenticacao do Worker, e o download e por fetch com cabecalho Authorization em vez de <a href> com ?token= — assim o link nunca vai parar no historico do navegador. O upload so acontece no clique em Publicar (nao na escolha do arquivo), para desistir da mensagem nao deixar lixo no bucket, e a mensagem so e publicada se o anexo ficou de fato salvo. FEATURE 2 (notificacao de resposta): acNotifHtml so cobrava quem foi MARCADO no card — quem entrou na conversa escrevendo, sem nunca ter sido marcado, nao recebia nada quando respondiam. Caixa NOVA acRespostaNotifHtml() no mesmo padrao visual .cd-notif, para quem PARTICIPOU (criou o topico ou escreveu nele) e nao esta marcado — quem esta marcado continua na caixa antiga, sem duplicar cobranca e sem mexer na redacao que a Ruth e a Ana Maria ja conhecem. A baixa reusa acNaoLidas/S.lido, entao a leitura por visualizacao do ·289 ja derruba esta caixa tambem, por qualquer rota. Validado por E2E em Chromium real (t_anexo.mjs, 13 casos: botao presente, formatos aceitos, .exe recusado, anexo pendente, anexo na thread com autor/data, config guardando so a etiqueta em 610 bytes, upload autenticado, download devolvendo o arquivo, participante notificado, notificacao citando quem respondeu, visualizacao derrubando a cobranca, topico alheio nao cobrando, zero erro de JS) + as suites do ·289/·286/·288 todas verdes. ANTERIOR: (·289) ACOES COMERCIAIS: NOTIFICACAO DE MARCACAO CAI PELA VISUALIZACAO, NAO PELO CLIQUE. Bug relatado por Ruth e Ana Maria (afetava todos): a cobranca do Control Desk so sumia quando a pessoa entrava pelo botao "Abrir" da propria notificacao (acIrParaCard) ou clicando no card na lista ([data-ac-abrir]) — entrando por "Comercial > Acoes Comerciais" pelo menu, a cobranca ficava acesa. CAUSA: acAberto e estado de MEMORIA e sobrevive a troca de tela; quem ja tinha aberto o topico e saiu pelo menu volta com ele JA aberto, e a tela desenha a thread sem passar por nenhum dos dois cliques, entao nada carimbava a leitura. O mesmo buraco atingia quem estava com o topico aberto e era marcado naquele instante (marcacao chega pelo WebSocket, acende a cobranca, sem releitura). FIX: a baixa passa a ser disparada dentro de renderAcoes(), por onde TODAS as rotas passam (menu, botao da notificacao, clique na lista e o tempo real) — uma porta so em vez de remendar cada entrada. Reaproveita o MESMO relogio "ja vi" (S.lido por usuario::cardId via acMarcarLido), entao a baixa e por USUARIO e por CARD e nao encosta na cobranca dos outros marcados no mesmo topico. CUIDADO QUE ISTO EXIGIU: #acoesWrap e estatico no HTML, logo renderAcoes() roda mesmo com a tela FECHADA (o tempo real chama a cada mudanca em appConfig.acoes) — carimbar leitura ali sem checar apagaria a cobranca de quem esta noutra tela, PIOR que o bug. Por isso acTelaVisivel() exige as DUAS condicoes: #scr-acoes com .active E a aba em primeiro plano (document.hidden). Guarda acHaPendenciaNoCard() evita chamar salvarConfig a cada render. Somado um listener de visibilitychange para quem volta a aba com o topico aberto. Validado por E2E em Chromium real (t_acnotif.mjs, 6 casos): T2 (entrar pelo menu) e T3 (marcacao em tempo real com a thread a vista) FALHAM na versao sem o fix e passam com ele; T4 (tela fechada nao da baixa), T5 (baixa por usuario) e T6 (so a lista aberta nao da baixa) passam nas duas, provando que nada correto foi alterado. ANTERIOR: (·288) TEXTO DO ALERTA FIXO DO CARTAO 3980 CORRIGIDO. Pedido do Nando: a conta do backoffice para o virtual do cartao final 3980 e a Diego 1538, nao a Diego 5803 (essa e a conta do 7061). Unica linha alterada em CC_ALERTAS_FIXOS — mesma chave (ultimos 4 digitos), so o texto mudou. ANTERIOR: (·287) ALERTA FIXO TAMBEM NO CARTAO FINAL 3980. Pedido do Nando: o mesmo aviso permanente que os finais 7061 e 1660 ja tinham passa a valer para o 3980, com o texto IDENTICO ao do 7061 (conta Diego 5803). Uma linha nova em CC_ALERTAS_FIXOS, que e um mapa por ULTIMOS 4 DIGITOS — nada mudou em CC_LISTA nem na renderizacao: ccAlertaFixo() ja e lido nos DOIS pontos que mostram o aviso (o LED vermelho piscando na linha da lista e a faixa vermelha no topo do modal do cartao). ANTERIOR: (·286) A COLUNA "FECHADO (HÓSPEDES)" PASSA A CONTAR IGUAL AO ·284. ATENCAO: o ·285 foi publicado QUEBRADO (mostrou 140) e esta versao o substitui — por isso 286 e nao 285. O ·285 tentou deduplicar por NOME COMPLETO puro (normNome): isso separa o MESMO hospede escrito de formas diferentes em vouchers diferentes (Marco Ubiali / Marco Aurelio Ubiali — no cache real sao 42 vouchers com grafia divergente) e ainda removeu por acidente o filtro vendKey, devolvendo atendentes a contagem. NAO REPETIR. SINTOMA ORIGINAL: CSV do Tower com 137 pessoas e a coluna do Hub parada em 136. O ·284 tinha consertado totalHospedesWecann(), mas o numero DA TELA nao vem dela — vem de vouchersFechadoWecann(), que fazia a propria deduplicacao com um Set de chaveNome e por isso continuava fundindo Maria Leonor Barros Ribeiro (TOWER-099, tel 31 99974-4973, voucher 00166) com Maria Jose Ribeiro (TOWER-096, tel 11 92058-4200, voucher 00163) na chave 'maria ribeiro'. CONFERIDO NOME A NOME contra o relatorio de vouchers em PDF (nomes extraidos pelas coordenadas da coluna CLIENTE): os 112 quartos do CSV pareiam 1:1 com os 112 vouchers do Hub e NINGUEM esta faltando no cadastro — 4 pares so tinham grafia diferente (Tania Pimentel Goncalves x Tania Cristina de Azevedo Pimentel C. #00015; Raquel Goldstein Costa Cruz x Raquel Raimunda Goldstein Costa #00019; Angela Surian Moreira Iacona x ...Lacona #00031; Maria Liliam Campos Soare x ...Soares #00092). FIX: o union-find do ·284 virou funcao unica _wecIdentidades(), que devolve .total (para a contagem) e .id(nome,voucher) (para deduplicar os cards). totalHospedesWecann() agora e so um atalho para .total e a coluna usa .id() — os dois numeros nao tem mais como divergir. A regra certa e chaveNome + union-find com evidencia (mesmo voucher, mesmo telefone, tokens de um nome cabendo no outro), NUNCA nome completo cru. ANTERIOR: (·284) CONTAGEM DE HÓSPEDES: DESEMPATE DE HOMÔNIMOS. Sintoma: CSV do Tower Anhanguera com 136 pessoas no Fechado e o Hub mostrando 135. Ninguem estava faltando — o cadastro estava certo. A contagem é que fundia DUAS PESSOAS DIFERENTES numa só: Maria Leonor Barros Ribeiro (TOWER-099, tel 31 99974-4973, voucher 00166) e Maria Jose Ribeiro (TOWER-096, tel 11 92058-4200, voucher 00162) geram a MESMA chaveNome ('primeiro nome + ultimo sobrenome' = 'maria ribeiro'), e totalHospedesWecann guardava essas chaves num Set. chaveNome NAO foi alterada de proposito: ela e usada no matching de conciliacao do arquivo inteiro e precisa continuar tolerante a nomes abreviados no CSV. O desempate mora so na contagem: agrupa as ocorrencias por chave e une (union-find) apenas as que forem comprovadamente a mesma pessoa — mesmo voucher, ou mesmo telefone (so digitos), ou nomes compativeis (os tokens de um cabem dentro do outro, "Marco Ubiali" C "Marco Aurelio Ubiali"). Sem evidencia, contam separado. PROPRIEDADE DE SEGURANCA: so SEPARA com evidencia positiva, entao o numero so pode ficar igual ou MAIOR — nunca menor. Validado com o CSV real: antes 135, agora 136, batendo com o hotel; mais 6 testes unitarios (homonimos, hospede+passageiro no mesmo voucher, mesmo telefone com mascara diferente, nome abreviado x completo, vendedor nunca conta, comutatividade).
+var UV_BUILD_NUM = 301; // (·301) SEGUNDA LEVA DA PASTA REINO (+414) E ATRIBUICAO A ANA MARIA. Importacao da planilha Reino_Enviados_formatado.xlsx (colunas Nome e Telefone), pedida pelo Nando. DADOS: 431 linhas; 8 eram duplicata exata DENTRO do proprio arquivo e 9 JA EXISTIAM na pasta Reino desde o ·300 (mesmo nome e mesmo telefone) — essas 9 nao foram duplicadas, apenas entraram na atribuicao. Sobraram 414 ineditos, inseridos como ps12_429..ps12_842; a pasta Reino foi de 428 para 842 e o modulo de 1.025 para 1.439. A Listagem Geral nao precisou de nada, ja soma todas as pastas. TAG DA ANA MARIA — por que migracao e nao campo no seed: a etiqueta de atendente e DERIVADA de appConfig.prospGestores (·297/·298). Pintar o nome so na tela faria a etiqueta dizer "Ana Maria" enquanto a lista dela em Gestores de Leads ficaria VAZIA — a mesma divergencia de "um fato em dois lugares" que esta sessao ja corrigiu tres vezes (·286, ·294, ·296) — e, sem estar em Gestores de Leads, ela nao conseguiria gerar o CSV nem mandar os contatos ao Kanban, que e o trabalho de verdade. Entao a atribuicao e REAL, via pgTransferir, no mesmo lugar onde uma transferencia manual gravaria. RODA UMA VEZ SO: a marca vive em appConfig.prospAtrib, estrutura NOVA que por isso ganhou funcao de merge propria (psAtribMergeMaps, carimbo maior vence) plugada nos DOIS pontos padrao — carregarConfig e salvarConfig. Chamada depois do merge da nuvem, no mesmo ponto e pelo mesmo motivo do ccMigrarChaves (·209): aplicada antes, a marca voltaria ausente na sincronizacao seguinte e a leva seria reaplicada. Nao atropela dono existente (pula quem ja tem atendente) e nao ressuscita contato removido depois, porque nunca mais roda. Idempotente: dois PCs abrindo juntos gravam as MESMAS entradas e o pgMergeMaps resolve. Validado por t_reino2.mjs (13 casos em Chromium real com DOIS PCs sobre a mesma nuvem simulada): 423 atribuidos, 423 etiquetas na tela, 1.439 linhas renderizadas na Lista Geral, o segundo PC herda a marca e nao duplica, e um contato removido da Ana Maria NAO volta apos reload. ANTERIOR: (·300) NOVA PASTA "REINO" EM PROSPECCAO — 428 contatos. Importacao da planilha Reino_Envio_formatado.xlsx (colunas NOME e TELEFONE), pedida pelo Nando. Entrou como ps12 em PS_CATS_BASE (cor #0FA3B1, unica — conferido contra as 11 existentes) e PS_SEED[ps12], no MESMO formato dos outros: id sequencial ps12_NNN, nome, tel, email e obs vazios. A LISTAGEM GERAL nao precisou de nada: ela ja soma todas as categorias de psCatsLista(), entao passou de 11 listas/597 contatos para 12 listas/1025 sozinha — confirmado por E2E que conta as linhas renderizadas de verdade. DADOS: a planilha tinha 463 linhas, todas com nome e telefone. 35 eram duplicata EXATA (mesmo nome E mesmo telefone) e foram removidas — e isto NAO foi decisao nova: e a mesma regra que o cabecalho do modulo ja documenta da importacao original ("111 linhas eram duplicata EXATA... nada de gente diferente foi descartado"). Dois telefones se repetem com nomes DIFERENTES ((31) 99880-6300 Nathielle/Wollace e (83) 99617-9922 Ana/Antonio): sao pessoas distintas dividindo o aparelho, entao as quatro ficaram. Os nomes vem so com o primeiro nome na origem e foram mantidos como estao, sem inventar sobrenome. Validado por t_reino.mjs (10 casos, comparando os dados extraidos do index.html LINHA A LINHA com a planilha) e t_reino_ui.mjs (8 casos em Chromium real: a pasta aparece com 428, a Lista Geral abre com 1025 linhas .cl-row e o contador diz "12 listas · 1025 contatos no total"). ANTERIOR: (·299) REMOVER "AUSENTE" VOLTA A APAGAR AS TRES BOLINHAS DE UMA VEZ. Pedido do Nando: ao remover o status Ausente no Control Desk, as tres bolinhas saem juntas, sem deixar residuo. Isto REVERTE, so para o Ausente, o comportamento granular que o ·225 tinha introduzido (clicar numa bolinha liberava so ela e as outras duas continuavam acesas — era o residuo relatado). O Ausente saiu do bloco de desmarque granular e voltou ao bloco de sentinela de "pessoa inteira", onde ja estao Indisponivel, Licitacao e Prospeccao. GRUPOS e GESTAO INTERNA continuam granulares: so o Ausente mudou. O REGISTRO NO HISTORICO NAO SE PERDE — este era o risco, porque o ·228 tinha consertado justamente a gravacao no caminho granular: ocpDefinirTodosSlots(at,'') e o MESMO caminho que o checkbox do modal ja usava para desmarcar Ausente, e ele fecha o bloco cronometrado via ocpRegistrarAusencia (·160) ANTES de limpar os slots. ocpFecharAusenciaSeAberta ficou sem chamador e foi mantida com aviso explicito no cabecalho, por simetria com as irmas de Grupos/Interna que seguem em uso. Validado por E2E em Chromium real (t_ausente.mjs, 7 casos, com clique REAL no LED): Ausente apaga as tres (restaram 0), Grupos e Gestao Interna continuam deixando 2 acesas, Indisponivel segue apagando as tres. O mesmo teste rodado contra a versao anterior FALHA com [1,0,1] — as duas bolinhas de residuo que o Nando viu. ANTERIOR: (·298) A ETIQUETA DO ATENDENTE SUMIA AO ARRASTAR O CONTATO PARA "CONTATO INICIADO". Relatado pelo Nando logo apos o ·297. A causa NAO estava no arrastar: quando o CSV do atendente e gerado, o ·272 ESVAZIA de proposito a lista dele em Gestores de Leads ("o registro passa a viver so no Kanban"). Como a etiqueta do ·297 lia apenas appConfig.prospGestores, ela ficava sem fonte e sumia — o arrastar so foi o momento em que o Nando percebeu. O nome do atendente nunca se perdeu: ele viaja no PROPRIO CARD do Kanban (campo atendente, gravado por klAdicionarCardsAutomatico). FIX: psAtendenteDoContato passa a consultar DUAS fontes, na ordem em que a informacao e mais fresca — 1) vinculo vivo em Gestores de Leads (transferencia recente); 2) o card do CRM onde o contato esta agora, via o novo indice klAtendentePorContato(). Continua tudo DERIVADO: nenhum campo novo, nenhuma copia para envelhecer, nenhum merge novo. DESEMPENHO: a Lista Geral desenha centenas de contatos e varrer todos os boards para cada um seria quadratico, entao o mapa e montado uma vez por DESENHO — renderProspeccao abre o lote antes e fecha depois (try/finally). O lote e explicito de proposito: a primeira versao usava cache por setTimeout e os proprios testes pegaram o defeito — alterar e reler no MESMO clique devolvia valor velho, erro invisivel ate doer. Fora do desenho, toda leitura e fresca. Validado por E2E em Chromium real (t_prosp.mjs, agora 19 casos): a etiqueta resiste ao CSV esvaziar Gestores, resiste ao arrastar para "Contato Iniciado" (as duas etiquetas convivem) e so sai quando o card e excluido do CRM. ANTERIOR: (·297) PROSPECCAO/CRM: ETIQUETA "CONTATO INICIADO" QUE NAO SAIA + ETIQUETA DO ATENDENTE. BUG 1 (relatado pela Ana): ela exclui o contato na coluna "Contato Iniciado" do CRM, o card some de la, mas na Prospeccao a etiqueta continua; "no admin funciona". DIAGNOSTICO: a exclusao NUNCA removia a etiqueta, para ninguem — klCardDel so marcava del=1 e klChecarTagIniciado so sabia MARCAR, nao desmarcar. O que o admin tem e o "x" manual ao lado da etiqueta (psRemoverIniciado, admin-only desde o ·274), entao ele apaga na mao e parece que funcionou; a Ana nao tem esse "x" e ficava sem saida. FIX: a etiqueta deixa de ser carimbo de mao unica e passa a REFLETIR o CRM. Novo klContatoTemCardIniciado(contatoId) varre todos os boards vivos e responde se ainda existe card vivo daquele contato numa coluna "Contato Iniciado"; psSincronizarIniciado() reavalia a etiqueta a partir disso e roda SEM trava de permissao — remover A MAO continua sendo do admin (e decisao, apaga historico), mas a sincronizacao automatica e consequencia de um fato e vale para qualquer usuario. Reavaliar em vez de apagar importa porque o mesmo contato pode ter card em mais de um board: a etiqueta so cai quando nao sobra nenhum. Gatilhos em klCardDel, klCardMover (sair da coluna tambem conta) e klColunaDel (apagar a coluna inteira). FEATURE 2: etiqueta com o nome do atendente que recebeu o contato, trocando sozinha na retransferencia e sem duplicar. NAO criei campo novo: "quem recebeu" JA existe em appConfig.prospGestores, e guardar de novo numa etiqueta seria a segunda copia do mesmo fato — erro que esta sessao ja pagou tres vezes (·286, ·294, ·296). A etiqueta e DERIVADA no render por psAtendenteDoContato(), entao nao tem como desencontrar do dado, nao precisa de merge novo e nao ha estado velho para limpar. Para o dado ser mesmo unico, pgTransferir e pgRetransferir passaram a chamar o MESMO pgLimparOutrosVinculos(), que tira o contato da lista de qualquer outro atendente; se ainda assim houver vinculo duplo herdado, o render mostra o de carimbo mais novo. Validado por E2E em Chromium real (t_prosp.mjs, 12 casos): a Ana NAO-admin excluindo no CRM ve a etiqueta sair, com dois cards a etiqueta fica e so cai quando o segundo tambem sai, e a etiqueta do atendente aparece, troca na retransferencia e nunca duplica. ANTERIOR: (·296) O ·295 SAIU INCOMPLETO: A TABELA DE ESTOQUE CONTINUAVA COM O "TOWER" SOLTO. O Nando perguntou se o fix do ·295 tambem corrigia a conciliacao do evento no caso do voucher #00249 (Mercure Uberlandia Plaza Shopping). Conferido ponto a ponto: os 22 usos que alimentam conciliacao, contagem de hospedes, filtro de hotel do Kanban, auditoria de check-in/check-out, graficos e o aviso de etiqueta passam TODOS por HOTEIS_OCUPACAO, entao sim, ja estavam corrigidos. MAS a checagem revelou uma SEGUNDA tabela — HOTEIS_ESTOQUE, a do limite de quartos — que trazia sua PROPRIA copia da regra e ficou com includes("tower") cru, ainda contando qualquer "Blue Tower" no estoque do evento. Era o mesmo erro de fundo que produziu o ·286 e o ·294: a mesma regra escrita em dois lugares, um corrigido e o outro nao. FIX: a regra de reconhecimento virou tres predicados unicos (wecEhTower, wecEhContemporaneo, wecEhPlaza), definidos uma vez e referenciados pelas DUAS tabelas — nao ha mais onde divergir. Nenhuma regra solta de includes() sobrou no arquivo. Validado por t_hotel.mjs (33 casos): alem dos 22 do ·295, agora confere a tabela de ESTOQUE isoladamente e a COERENCIA entre as duas tabelas hotel a hotel (com a unica divergencia legitima sendo o Royal Palm Plaza, que existe so na de ocupacao por nao ter limite de quartos). As suites de contagem seguem verdes: 137 hospedes no Tower, intactos. ANTERIOR: (·295) FALSO POSITIVO DE HOTEL WECANN: "PLAZA" E "TOWER" NAO BASTAM MAIS. Bug relatado pelo Nando com print: o voucher #00249, do "Mercure Uberlandia Plaza Shopping", disparou o aviso "hotel WeCann mas SEM a etiqueta WeCann" na tela de Vouchers Salvos. O voucher estava certo — quem errou foi a tabela HOTEIS_OCUPACAO, onde a regra do Royal Palm Plaza era literalmente includes("plaza"), e plaza e palavra de hotel generica. O MESMO DEFEITO estava no Tower (includes("tower")), que so nao tinha dado sintoma por sorte: o proximo "Blue Tower" qualquer entraria na conta do evento. REGRA NOVA: a palavra generica sozinha nao basta, precisa vir com uma ancora que so existe nos hoteis do evento — a marca ("royal palm"), a cidade ("campinas") ou, no Tower, o qualificador exclusivo dele ("anhanguera"), que sozinho ja identifica. POR QUE ISTO E DELICADO: este match e a MESMA porta usada pela contagem de hospedes (_wecIdentidades/·286), pelo filtro de hotel do Kanban (hotelCanonico) e pela ocupacao — estreitar so pode fazer MENOS coisas casarem, entao um hotel real do evento escrito de forma pobre deixaria de contar. Por isso entrou junto hotelWecannAmbiguo(): vouchers cujo hotel tem Plaza/Tower sem ancora nenhuma sao LISTADOS no mesmo balao de aviso, com a dica de escrever o nome completo — a mudanca nunca tira um hotel da conta em silencio. Validado por t_hotel.mjs (22 casos com o codigo real): o Mercure do print e mais 3 genericos deixam de casar; "Tower Anhanguera" (forma do CSV do hotel), "Royal Palm Tower Campinas (Anhanguera)" (forma do PDF), "Royal Palm Plaza", "Tower Campinas" e o Contemporaneo continuam casando — e as suites de contagem (·286: 137 hospedes no Tower) seguem verdes, que era o risco principal. ANTERIOR: (·294) PERMISSAO DO HISTORICO DE CHECK-IN. Bug relatado pelo Nando: em Minhas Tarefas > Historico de agendamentos de check-in, TODOS os usuarios viam TODOS os agendamentos — o trabalho de um atendente ficava exposto para os outros. REGRA CORRETA E APLICADA: admin ve todos; os demais veem SOMENTE os que eles mesmos criaram. CAUSA: ciListaAgendadosHtml() listava ciCardsVivos() cru, sem filtro nenhum. A notificacao (ciPendentes) SEMPRE filtrou certo — so a lista da tela e que saiu sem filtro, e a permissao de criador ja existia ali escrita a mao. FIX: a regra "sou o dono" virou predicado UNICO ciSouDono(c), usado pelo historico E por ciPendentes. Deixar a lista com uma copia propria da regra seria plantar o mesmo problema do ·286 — duas leituras do mesmo fato, uma corrigida e a outra nao. ciSouDono compara o LOGIN (criadorU) e, se nao bater, cai no NOME com a mesma cautela conta≠nome de Acoes Comerciais/Minhas Tarefas (ciMesmaPessoa), porque registro antigo pode ter so o nome e um atendente pode ter mais de um login. O filtro roda ANTES de montar o HTML: nada de gerar tudo e esconder no CSS, que deixaria o dado alheio no DOM — ha teste E2E que confere justamente isso. Admin ganhou um aviso "voce ve os agendamentos de toda a equipe" e quem nao agendou nada ve uma mensagem explicando que a lista so mostra os proprios. NOTA DE INCONSISTENCIA CONHECIDA (nao alterada de proposito, aguarda decisao do Nando): ciPendentes concede acesso tambem ao Diego Oliveira (souDiego, herdado do ·260), entao hoje o Diego RECEBE notificacao de check-in de terceiros mas NAO os ve no historico. Validado por E2E em Chromium real (t_checkin.mjs, 12 casos, 4 perfis): admin ve os 3, Madu ve so o dela, Ruth so o dela, quem nao agendou ve lista vazia, e o localizador/pax alheio nao aparece nem no HTML. ANTERIOR: (·293) BOTAO "✓ CONFERIDO" NO ESPELHO DO ADMIN. Pedido do Nando: dar baixa no card de notificacao do espelho. SEMANTICA: e o ADMIN dizendo "ja olhei este topico" — NAO toca na cobranca de ninguem, quem estava pendente (Diego, Mayara) continua exatamente como estava; some so do espelho, que e tela de supervisao. VOLTA SOZINHO: o carimbo do Conferido e comparado com a ATIVIDADE do topico (maior entre c.mts, c.ts, o maior marcTs e a mensagem mais nova); enquanto nada novo acontecer o card fica oculto, e na primeira mensagem ou marcacao nova ele reaparece — sem isso um Conferido dado hoje cegaria o admin para sempre naquele topico, o oposto do que o espelho serve. ONDE MORA: appConfig.notifVerificado com prefixo "acesp::", o MESMO mapa {chave:carimbo} do "✓ Verificado" das cobrancas de Kanban — que ja e mesclado por "clique mais recente vence" nos DOIS pontos padrao (o merge do Hub e o mergeMapaTs do Worker) e ja esta em CAMPOS_VIVOS. Reusar em vez de criar estrutura nova foi deliberado: estrutura nova exigiria funcao de merge propria dos dois lados e um novo deploy do Worker; assim a baixa ja nasce sincronizada entre os PCs do admin e ESTE BUILD NAO PRECISA DE REDEPLOY DO WORKER. Quantos topicos estao ocultos por Conferido e DECLARADO no rodape (mesma regra de nunca cortar em silencio do ·292). Validado por E2E em Chromium real (t_espelho.mjs, agora 27 casos): botao em cada card, clique remove so aquele card, os demais permanecem, S.lido fica byte a byte identico (nao baixa a cobranca de ninguem), a pendencia da Ruth segue viva, o oculto e declarado no rodape e mensagem nova faz o card voltar. ANTERIOR: (·292) ESPELHO DO ADMIN: PENDENCIA NUNCA E CORTADA. Pergunta do Nando ao receber o ·291 — "isso vai funcionar pra todas as pessoas? eu vou saber de tudo?" — e a resposta honesta era QUASE: o ·291 aplicava um teto unico de 8 topicos na ordem de atividade, entao com muitos topicos uma pendencia ANTIGA seria descartada em silencio e o admin acharia que estava tudo em dia. Agora a separacao acontece ANTES do corte: topicos com alguem pendente sao TODOS exibidos, sem teto; so o grupo "todos ja leram" tem limite (5, e apenas os das ultimas 48h), e o que sobra do limite e DECLARADO no rodape em vez de sumir calado — corte silencioso faria a caixa mentir por omissao. Tambem corrigido o plural "abriuram" -> "abriram" no cabecalho, achado pelo proprio teste de escala. Validado por E2E em Chromium real (t_espelho.mjs, agora 18 casos): cenario com 14 pendencias espalhadas ate 40 dias atras e 9 topicos ja lidos — as 14 aparecem TODAS (inclusive a de 40 dias), os ja-lidos param em 5 e os 4 restantes sao anunciados. ANTERIOR: (·291) ESPELHO DO ADMIN EM ACOES COMERCIAIS. Pedido do Nando: "respondi a Ruth num card mas nao sei se ela foi notificada — como admin quero receber uma copia das notificacoes que todos recebem, incluindo as de resposta". NAO e copia literal das caixas alheias, e de proposito: cobranca copiada nao serviria de nada, porque o admin nao pode dar baixa pela Ruth. O que responde a duvida real e o ESTADO — quem devia ser notificado naquele topico, quem ja leu e quem ainda nao — entao cada pessoa aparece com bolinha vermelha (ainda nao abriu) ou verde (leu, e quando). COMO DA PARA SABER: S.lido e gravado por usuario::cardId e viaja no mesmo appConfig que os 12 PCs compartilham, entao o carimbo de leitura da Ruth chega ao PC do admin — nenhuma telemetria nova foi inventada, so leitura do que ja existia. NOME->LOGIN: a lista oficial de /api/auth/usuarios e buscada UMA vez por sessao (so para admin, com cache em localStorage e um unico re-render quando chega); sem ela, cai no historico do proprio modulo, onde autor e autorU viajam juntos em cada mensagem; nao achando nem assim, a pessoa aparece como "login nao identificado" em vez de afirmar leitura que nao da para provar. SO LEITURA: nada nesta caixa escreve em S.lido — abrir o espelho nao marca nada como lido para ninguem, e ha teste E2E dedicado a isso. Nasce FECHADA (nao entra em cdAbertas por padrao) porque e caixa de supervisao, nao de acao. Escopo: ate 8 topicos, incluindo sempre os que tem pendencia viva e os com atividade nas ultimas 48h. Exclusiva do perfil admin. Validado por E2E em Chromium real (t_espelho.mjs, 12 casos, com dois perfis: admin ve a caixa, atendente NAO ve, Ruth continua recebendo a notificacao dela normalmente, e abrir o espelho deixa S.lido byte a byte identico). ANTERIOR: (·290) DUAS FEATURES EM ACOES COMERCIAIS: ANEXO DE ARQUIVO (R2) E NOTIFICACAO DE RESPOSTA. ATENCAO AO DEPLOY: esta build exige TAMBEM publicar o worker.js (npx wrangler deploy) e criar o bucket R2 uma unica vez (npx wrangler r2 bucket create hub-ultravel-anexos) — so o index.html no GitHub NAO basta, o botao de anexar avisa "sem conexao" sem o Worker novo. FEATURE 1 (anexo PDF/JPEG/PNG/DOCX, ate 20MB): o arquivo vai para um bucket R2 pelas rotas novas POST /api/anexo e GET /api/anexo/<id>, e na mensagem entra SO a etiqueta {id,nome,tipo,tam}. POR QUE NAO GUARDAR NO CONFIG: o appConfig e UM pacote so que vai inteiro para o localStorage de cada PC (teto ~5MB), inteiro para a chave "config" do KV, e "acoes" esta em CAMPOS_VIVOS, logo e retransmitido aos 12 PCs pelo Durable Object a cada mensagem — um PDF de 3MB vira ~4MB em base64 e estouraria o localStorage no primeiro anexo, quebrando o salvamento de TUDO naquele PC (Kanban, ocupacao, cartoes) alem de empurrar 4MB para 12 maquinas a cada post. MERGE: nenhuma mudanca necessaria — uvMesclarAcoes (aqui) e mergeAcoes (worker) copiam a MENSAGEM INTEIRA do lado com carimbo mais novo, entao o campo anexo viaja junto sozinho; conferido nos dois antes de escrever. PERMANENCIA: o objeto no R2 nunca e apagado, nem quando a mensagem e excluida (pedido literal do Nando: fica salvo para sempre). SEGURANCA: as duas rotas ficam depois do portao de autenticacao do Worker, e o download e por fetch com cabecalho Authorization em vez de <a href> com ?token= — assim o link nunca vai parar no historico do navegador. O upload so acontece no clique em Publicar (nao na escolha do arquivo), para desistir da mensagem nao deixar lixo no bucket, e a mensagem so e publicada se o anexo ficou de fato salvo. FEATURE 2 (notificacao de resposta): acNotifHtml so cobrava quem foi MARCADO no card — quem entrou na conversa escrevendo, sem nunca ter sido marcado, nao recebia nada quando respondiam. Caixa NOVA acRespostaNotifHtml() no mesmo padrao visual .cd-notif, para quem PARTICIPOU (criou o topico ou escreveu nele) e nao esta marcado — quem esta marcado continua na caixa antiga, sem duplicar cobranca e sem mexer na redacao que a Ruth e a Ana Maria ja conhecem. A baixa reusa acNaoLidas/S.lido, entao a leitura por visualizacao do ·289 ja derruba esta caixa tambem, por qualquer rota. Validado por E2E em Chromium real (t_anexo.mjs, 13 casos: botao presente, formatos aceitos, .exe recusado, anexo pendente, anexo na thread com autor/data, config guardando so a etiqueta em 610 bytes, upload autenticado, download devolvendo o arquivo, participante notificado, notificacao citando quem respondeu, visualizacao derrubando a cobranca, topico alheio nao cobrando, zero erro de JS) + as suites do ·289/·286/·288 todas verdes. ANTERIOR: (·289) ACOES COMERCIAIS: NOTIFICACAO DE MARCACAO CAI PELA VISUALIZACAO, NAO PELO CLIQUE. Bug relatado por Ruth e Ana Maria (afetava todos): a cobranca do Control Desk so sumia quando a pessoa entrava pelo botao "Abrir" da propria notificacao (acIrParaCard) ou clicando no card na lista ([data-ac-abrir]) — entrando por "Comercial > Acoes Comerciais" pelo menu, a cobranca ficava acesa. CAUSA: acAberto e estado de MEMORIA e sobrevive a troca de tela; quem ja tinha aberto o topico e saiu pelo menu volta com ele JA aberto, e a tela desenha a thread sem passar por nenhum dos dois cliques, entao nada carimbava a leitura. O mesmo buraco atingia quem estava com o topico aberto e era marcado naquele instante (marcacao chega pelo WebSocket, acende a cobranca, sem releitura). FIX: a baixa passa a ser disparada dentro de renderAcoes(), por onde TODAS as rotas passam (menu, botao da notificacao, clique na lista e o tempo real) — uma porta so em vez de remendar cada entrada. Reaproveita o MESMO relogio "ja vi" (S.lido por usuario::cardId via acMarcarLido), entao a baixa e por USUARIO e por CARD e nao encosta na cobranca dos outros marcados no mesmo topico. CUIDADO QUE ISTO EXIGIU: #acoesWrap e estatico no HTML, logo renderAcoes() roda mesmo com a tela FECHADA (o tempo real chama a cada mudanca em appConfig.acoes) — carimbar leitura ali sem checar apagaria a cobranca de quem esta noutra tela, PIOR que o bug. Por isso acTelaVisivel() exige as DUAS condicoes: #scr-acoes com .active E a aba em primeiro plano (document.hidden). Guarda acHaPendenciaNoCard() evita chamar salvarConfig a cada render. Somado um listener de visibilitychange para quem volta a aba com o topico aberto. Validado por E2E em Chromium real (t_acnotif.mjs, 6 casos): T2 (entrar pelo menu) e T3 (marcacao em tempo real com a thread a vista) FALHAM na versao sem o fix e passam com ele; T4 (tela fechada nao da baixa), T5 (baixa por usuario) e T6 (so a lista aberta nao da baixa) passam nas duas, provando que nada correto foi alterado. ANTERIOR: (·288) TEXTO DO ALERTA FIXO DO CARTAO 3980 CORRIGIDO. Pedido do Nando: a conta do backoffice para o virtual do cartao final 3980 e a Diego 1538, nao a Diego 5803 (essa e a conta do 7061). Unica linha alterada em CC_ALERTAS_FIXOS — mesma chave (ultimos 4 digitos), so o texto mudou. ANTERIOR: (·287) ALERTA FIXO TAMBEM NO CARTAO FINAL 3980. Pedido do Nando: o mesmo aviso permanente que os finais 7061 e 1660 ja tinham passa a valer para o 3980, com o texto IDENTICO ao do 7061 (conta Diego 5803). Uma linha nova em CC_ALERTAS_FIXOS, que e um mapa por ULTIMOS 4 DIGITOS — nada mudou em CC_LISTA nem na renderizacao: ccAlertaFixo() ja e lido nos DOIS pontos que mostram o aviso (o LED vermelho piscando na linha da lista e a faixa vermelha no topo do modal do cartao). ANTERIOR: (·286) A COLUNA "FECHADO (HÓSPEDES)" PASSA A CONTAR IGUAL AO ·284. ATENCAO: o ·285 foi publicado QUEBRADO (mostrou 140) e esta versao o substitui — por isso 286 e nao 285. O ·285 tentou deduplicar por NOME COMPLETO puro (normNome): isso separa o MESMO hospede escrito de formas diferentes em vouchers diferentes (Marco Ubiali / Marco Aurelio Ubiali — no cache real sao 42 vouchers com grafia divergente) e ainda removeu por acidente o filtro vendKey, devolvendo atendentes a contagem. NAO REPETIR. SINTOMA ORIGINAL: CSV do Tower com 137 pessoas e a coluna do Hub parada em 136. O ·284 tinha consertado totalHospedesWecann(), mas o numero DA TELA nao vem dela — vem de vouchersFechadoWecann(), que fazia a propria deduplicacao com um Set de chaveNome e por isso continuava fundindo Maria Leonor Barros Ribeiro (TOWER-099, tel 31 99974-4973, voucher 00166) com Maria Jose Ribeiro (TOWER-096, tel 11 92058-4200, voucher 00163) na chave 'maria ribeiro'. CONFERIDO NOME A NOME contra o relatorio de vouchers em PDF (nomes extraidos pelas coordenadas da coluna CLIENTE): os 112 quartos do CSV pareiam 1:1 com os 112 vouchers do Hub e NINGUEM esta faltando no cadastro — 4 pares so tinham grafia diferente (Tania Pimentel Goncalves x Tania Cristina de Azevedo Pimentel C. #00015; Raquel Goldstein Costa Cruz x Raquel Raimunda Goldstein Costa #00019; Angela Surian Moreira Iacona x ...Lacona #00031; Maria Liliam Campos Soare x ...Soares #00092). FIX: o union-find do ·284 virou funcao unica _wecIdentidades(), que devolve .total (para a contagem) e .id(nome,voucher) (para deduplicar os cards). totalHospedesWecann() agora e so um atalho para .total e a coluna usa .id() — os dois numeros nao tem mais como divergir. A regra certa e chaveNome + union-find com evidencia (mesmo voucher, mesmo telefone, tokens de um nome cabendo no outro), NUNCA nome completo cru. ANTERIOR: (·284) CONTAGEM DE HÓSPEDES: DESEMPATE DE HOMÔNIMOS. Sintoma: CSV do Tower Anhanguera com 136 pessoas no Fechado e o Hub mostrando 135. Ninguem estava faltando — o cadastro estava certo. A contagem é que fundia DUAS PESSOAS DIFERENTES numa só: Maria Leonor Barros Ribeiro (TOWER-099, tel 31 99974-4973, voucher 00166) e Maria Jose Ribeiro (TOWER-096, tel 11 92058-4200, voucher 00162) geram a MESMA chaveNome ('primeiro nome + ultimo sobrenome' = 'maria ribeiro'), e totalHospedesWecann guardava essas chaves num Set. chaveNome NAO foi alterada de proposito: ela e usada no matching de conciliacao do arquivo inteiro e precisa continuar tolerante a nomes abreviados no CSV. O desempate mora so na contagem: agrupa as ocorrencias por chave e une (union-find) apenas as que forem comprovadamente a mesma pessoa — mesmo voucher, ou mesmo telefone (so digitos), ou nomes compativeis (os tokens de um cabem dentro do outro, "Marco Ubiali" C "Marco Aurelio Ubiali"). Sem evidencia, contam separado. PROPRIEDADE DE SEGURANCA: so SEPARA com evidencia positiva, entao o numero so pode ficar igual ou MAIOR — nunca menor. Validado com o CSV real: antes 135, agora 136, batendo com o hotel; mais 6 testes unitarios (homonimos, hospede+passageiro no mesmo voucher, mesmo telefone com mascara diferente, nome abreviado x completo, vendedor nunca conta, comutatividade).
 const UV_BUILD='HUB-v3\u00b7'+UV_BUILD_NUM;
 try{ console.info('%c[Hub Ultravel] build '+UV_BUILD, 'color:#6FBAFF;font-weight:bold'); }catch(e){}
 try{
@@ -4385,6 +4385,9 @@ async function carregarConfig(){
       if(typeof window.pgMergeMaps==='function'){          // (·266) Gestores de Leads
         appConfig.prospGestores=window.pgMergeMaps(local.prospGestores, c.prospGestores);
       }
+      if(typeof window.psAtribMergeMaps==='function'){     // (·301) marcas de atribuição inicial
+        appConfig.prospAtrib=window.psAtribMergeMaps(local.prospAtrib, c.prospAtrib);
+      }
       if(typeof window.klBoardsMergeMaps==='function'){     // (·271) Kanban Comercial
         appConfig.klBoards=window.klBoardsMergeMaps(local.klBoards, c.klBoards);
       }
@@ -4543,6 +4546,15 @@ async function carregarConfig(){
     if(typeof window.ccMigrarChaves==='function' && window.ccMigrarChaves()){
       if(typeof window.salvarConfig==='function') window.salvarConfig();
       if(typeof window.renderCartoes==='function') window.renderCartoes();
+    }
+  }catch(e){}
+  /* (·301) atribuição inicial da leva "Reino Enviados" à Ana Maria. MESMO ponto
+     e MESMO motivo do ccMigrarChaves acima: aplicada antes do merge, a marca
+     voltaria ausente na sincronização seguinte e a leva seria reaplicada. */
+  try{
+    if(typeof window.psAplicarAtribuicaoInicial==='function' && window.psAplicarAtribuicaoInicial()){
+      if(typeof window.salvarConfig==='function') window.salvarConfig();
+      if(typeof window.renderProspeccao==='function') window.renderProspeccao();
     }
   }catch(e){}
   aplicarVisibilidadeEstoque();
@@ -4729,6 +4741,9 @@ async function salvarConfig(){
     }
     if(typeof window.pgMergeMaps==='function'){                // (·266) Gestores de Leads
       appConfig.prospGestores=window.pgMergeMaps(appConfig.prospGestores, cloud.prospGestores);
+    }
+    if(typeof window.psAtribMergeMaps==='function'){           // (·301) marcas de atribuição inicial
+      appConfig.prospAtrib=window.psAtribMergeMaps(appConfig.prospAtrib, cloud.prospAtrib);
     }
     if(typeof window.klBoardsMergeMaps==='function'){          // (·271) Kanban Comercial
       appConfig.klBoards=window.klBoardsMergeMaps(appConfig.klBoards, cloud.klBoards);
@@ -23821,7 +23836,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
        ps09 PF Sem Comprar a mais de 60 dias         9
        ps10 PF Sem Comprar a mais de 90 dias         9
        ps11 Grupo Ezequiel                           6
-       ps12 Reino                                 428
+       ps12 Reino                                 842
 
      (·300) SEGUNDA IMPORTAÇÃO — planilha Reino_Envio_formatado.xlsx
      (colunas NOME e TELEFONE): 463 linhas, todas com nome e telefone.
@@ -23832,6 +23847,15 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
      aparelho, então os dois ficaram. Os nomes vêm só com o primeiro
      nome na origem — mantidos como estão, sem inventar sobrenome.
      Resultado: 428 contatos na pasta "Reino", total do módulo 1.025.
+
+     (·301) TERCEIRA IMPORTAÇÃO — planilha Reino_Enviados_formatado.xlsx
+     (colunas Nome e Telefone), MESMA pasta Reino: 431 linhas, 8 delas
+     duplicata exata dentro do próprio arquivo e 9 já existentes da leva
+     do ·300 — as 9 não foram duplicadas, só entraram na atribuição. 414
+     contatos inéditos entraram como ps12_429..ps12_842. A pasta Reino
+     passou a 842 e o módulo a 1.439. Os 423 contatos desta leva (414
+     novos + 9 já existentes) foram atribuídos à atendente Ana Maria por
+     migração one-shot — ver psAplicarAtribuicaoInicial.
      --------------------------------------------------------------- */
 (function(){
   'use strict';
@@ -24915,6 +24939,420 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     {id:"ps12_426", nome:"Ingrid", tel:"(11) 98292-0130", email:'', obs:''},
     {id:"ps12_427", nome:"Keli", tel:"(48) 99904-0686", email:'', obs:''},
     {id:"ps12_428", nome:"Jether", tel:"(11) 95991-1209", email:'', obs:''},
+    {id:"ps12_429", nome:"Leticia", tel:"(24) 99814-3084", email:'', obs:''},
+    {id:"ps12_430", nome:"Djessica", tel:"(47) 99737-8787", email:'', obs:''},
+    {id:"ps12_431", nome:"Beatriz", tel:"(92) 99203-1911", email:'', obs:''},
+    {id:"ps12_432", nome:"Jessica", tel:"(17) 99161-4809", email:'', obs:''},
+    {id:"ps12_433", nome:"Gabriella", tel:"(84) 99631-6154", email:'', obs:''},
+    {id:"ps12_434", nome:"Isabela", tel:"(47) 99722-8738", email:'', obs:''},
+    {id:"ps12_435", nome:"Caroline", tel:"(33) 99921-3724", email:'', obs:''},
+    {id:"ps12_436", nome:"Gilberto", tel:"(47) 98412-9556", email:'', obs:''},
+    {id:"ps12_437", nome:"Gabriela", tel:"(65) 99612-2378", email:'', obs:''},
+    {id:"ps12_438", nome:"Tatiane", tel:"(44) 99109-2268", email:'', obs:''},
+    {id:"ps12_439", nome:"Karina", tel:"(11) 95144-3176", email:'', obs:''},
+    {id:"ps12_440", nome:"Marcela", tel:"(13) 97420-2704", email:'', obs:''},
+    {id:"ps12_441", nome:"Geisiele", tel:"(47) 98919-7847", email:'', obs:''},
+    {id:"ps12_442", nome:"Adrielle", tel:"(13) 99686-6186", email:'', obs:''},
+    {id:"ps12_443", nome:"Guilherme", tel:"(24) 99946-3464", email:'', obs:''},
+    {id:"ps12_444", nome:"Jeferson", tel:"(75) 98210-6254", email:'', obs:''},
+    {id:"ps12_445", nome:"Quezia", tel:"(45) 99933-4534", email:'', obs:''},
+    {id:"ps12_446", nome:"Carteane", tel:"(98) 98487-3174", email:'', obs:''},
+    {id:"ps12_447", nome:"Renata", tel:"(11) 99862-6103", email:'', obs:''},
+    {id:"ps12_448", nome:"Leonardo", tel:"(51) 99018-1536", email:'', obs:''},
+    {id:"ps12_449", nome:"Mayara", tel:"(41) 99561-7080", email:'', obs:''},
+    {id:"ps12_450", nome:"Alanis", tel:"(19) 98850-7795", email:'', obs:''},
+    {id:"ps12_451", nome:"Melissa", tel:"(11) 97638-3036", email:'', obs:''},
+    {id:"ps12_452", nome:"Francielle", tel:"(34) 99936-9818", email:'', obs:''},
+    {id:"ps12_453", nome:"Luana", tel:"(11) 91750-3869", email:'', obs:''},
+    {id:"ps12_454", nome:"Stefany", tel:"(61) 98174-4843", email:'', obs:''},
+    {id:"ps12_455", nome:"Carolayne", tel:"(11) 99835-2169", email:'', obs:''},
+    {id:"ps12_456", nome:"Gabriela", tel:"(61) 99976-3852", email:'', obs:''},
+    {id:"ps12_457", nome:"Lirity", tel:"(19) 98770-2276", email:'', obs:''},
+    {id:"ps12_458", nome:"Daiani", tel:"(48) 99210-0821", email:'', obs:''},
+    {id:"ps12_459", nome:"Bianca", tel:"(92) 98158-9689", email:'', obs:''},
+    {id:"ps12_460", nome:"Tamara", tel:"(62) 98184-4749", email:'', obs:''},
+    {id:"ps12_461", nome:"Larissa", tel:"(11) 96075-3914", email:'', obs:''},
+    {id:"ps12_462", nome:"Leticia", tel:"(41) 99277-9980", email:'', obs:''},
+    {id:"ps12_463", nome:"Danilo", tel:"(74) 99975-3234", email:'', obs:''},
+    {id:"ps12_464", nome:"Jonas", tel:"(47) 98861-3978", email:'', obs:''},
+    {id:"ps12_465", nome:"Maria", tel:"(22) 99276-1570", email:'', obs:''},
+    {id:"ps12_466", nome:"Patricia", tel:"(66) 99224-5323", email:'', obs:''},
+    {id:"ps12_467", nome:"Ariadne", tel:"(48) 99603-0983", email:'', obs:''},
+    {id:"ps12_468", nome:"Natalia", tel:"(48) 99973-3965", email:'', obs:''},
+    {id:"ps12_469", nome:"Priscilla", tel:"(11) 98656-2725", email:'', obs:''},
+    {id:"ps12_470", nome:"Flavia", tel:"(11) 96631-2270", email:'', obs:''},
+    {id:"ps12_471", nome:"Franciele", tel:"(61) 98511-5597", email:'', obs:''},
+    {id:"ps12_472", nome:"Martha", tel:"(22) 99943-8769", email:'', obs:''},
+    {id:"ps12_473", nome:"Diego", tel:"(33) 99912-8599", email:'', obs:''},
+    {id:"ps12_474", nome:"Ester", tel:"(12) 99214-6794", email:'', obs:''},
+    {id:"ps12_475", nome:"Francilene", tel:"(85) 99840-5046", email:'', obs:''},
+    {id:"ps12_476", nome:"Isaura", tel:"(21) 97381-6262", email:'', obs:''},
+    {id:"ps12_477", nome:"Milena", tel:"(11) 94653-7848", email:'', obs:''},
+    {id:"ps12_478", nome:"Fabiane", tel:"(34) 65499-3419", email:'', obs:''},
+    {id:"ps12_479", nome:"Thaynan", tel:"(11) 95944-6945", email:'', obs:''},
+    {id:"ps12_480", nome:"Thayna", tel:"(15) 99756-1093", email:'', obs:''},
+    {id:"ps12_481", nome:"Larica", tel:"(71) 99271-8368", email:'', obs:''},
+    {id:"ps12_482", nome:"Larissa", tel:"(12) 99168-5432", email:'', obs:''},
+    {id:"ps12_483", nome:"Luciane", tel:"(51) 99777-5669", email:'', obs:''},
+    {id:"ps12_484", nome:"Evelyn", tel:"(61) 41535-3005", email:'', obs:''},
+    {id:"ps12_485", nome:"Lais", tel:"(16) 99116-6324", email:'', obs:''},
+    {id:"ps12_486", nome:"Maria", tel:"(11) 94498-0296", email:'', obs:''},
+    {id:"ps12_487", nome:"Lucineia", tel:"(27) 99728-6025", email:'', obs:''},
+    {id:"ps12_488", nome:"Juliene", tel:"(31) 98202-3879", email:'', obs:''},
+    {id:"ps12_489", nome:"Joao", tel:"(42) 99113-7719", email:'', obs:''},
+    {id:"ps12_490", nome:"Maria", tel:"(24) 99300-7934", email:'', obs:''},
+    {id:"ps12_491", nome:"Thamires", tel:"(19) 99509-7630", email:'', obs:''},
+    {id:"ps12_492", nome:"Joice", tel:"(16) 97407-7407", email:'', obs:''},
+    {id:"ps12_493", nome:"Amanda", tel:"(21) 96606-6701", email:'', obs:''},
+    {id:"ps12_494", nome:"Naiara", tel:"(16) 99650-7741", email:'', obs:''},
+    {id:"ps12_495", nome:"Shaiane", tel:"(21) 96497-0394", email:'', obs:''},
+    {id:"ps12_496", nome:"Emmanuelle", tel:"(31) 98488-8017", email:'', obs:''},
+    {id:"ps12_497", nome:"Vicky", tel:"(11) 99722-1914", email:'', obs:''},
+    {id:"ps12_498", nome:"Cristiane", tel:"(47) 98459-6602", email:'', obs:''},
+    {id:"ps12_499", nome:"Alessandra", tel:"(47) 99726-9563", email:'', obs:''},
+    {id:"ps12_500", nome:"Juliana", tel:"(65) 99996-0051", email:'', obs:''},
+    {id:"ps12_501", nome:"Andressa", tel:"(11) 95335-6165", email:'', obs:''},
+    {id:"ps12_502", nome:"Fernanda", tel:"(44) 99959-0192", email:'', obs:''},
+    {id:"ps12_503", nome:"Taise", tel:"(54) 98101-1425", email:'', obs:''},
+    {id:"ps12_504", nome:"Rafaela", tel:"(66) 99718-4389", email:'', obs:''},
+    {id:"ps12_505", nome:"Jessica", tel:"(48) 99806-9543", email:'', obs:''},
+    {id:"ps12_506", nome:"Fernanda", tel:"(67) 99206-6823", email:'', obs:''},
+    {id:"ps12_507", nome:"Rosalia", tel:"(92) 99115-2340", email:'', obs:''},
+    {id:"ps12_508", nome:"Claudia", tel:"(92) 99145-4476", email:'', obs:''},
+    {id:"ps12_509", nome:"Diane", tel:"(11) 99190-9845", email:'', obs:''},
+    {id:"ps12_510", nome:"Madiane", tel:"(84) 98783-3345", email:'', obs:''},
+    {id:"ps12_511", nome:"Jaqueline", tel:"(43) 99902-9908", email:'', obs:''},
+    {id:"ps12_512", nome:"Jessica", tel:"(47) 99640-1502", email:'', obs:''},
+    {id:"ps12_513", nome:"Miriam", tel:"(31) 98813-4019", email:'', obs:''},
+    {id:"ps12_514", nome:"Angelita", tel:"(41) 99969-2908", email:'', obs:''},
+    {id:"ps12_515", nome:"Carolina", tel:"(51) 99635-6885", email:'', obs:''},
+    {id:"ps12_516", nome:"Luciana", tel:"(81) 99394-7600", email:'', obs:''},
+    {id:"ps12_517", nome:"Leonardo", tel:"(19) 99178-4058", email:'', obs:''},
+    {id:"ps12_518", nome:"Eliza", tel:"(34) 69571-2969", email:'', obs:''},
+    {id:"ps12_519", nome:"Josiane", tel:"(27) 97400-4281", email:'', obs:''},
+    {id:"ps12_520", nome:"Gislaine", tel:"(41) 99800-5030", email:'', obs:''},
+    {id:"ps12_521", nome:"Thais", tel:"(16) 99791-9797", email:'', obs:''},
+    {id:"ps12_522", nome:"Lais", tel:"(17) 98221-1793", email:'', obs:''},
+    {id:"ps12_523", nome:"Flavia", tel:"(14) 99902-7616", email:'', obs:''},
+    {id:"ps12_524", nome:"Gimena", tel:"(47) 98829-9360", email:'', obs:''},
+    {id:"ps12_525", nome:"Irys", tel:"(11) 97637-5169", email:'', obs:''},
+    {id:"ps12_526", nome:"Vanessa", tel:"(47) 99693-6323", email:'', obs:''},
+    {id:"ps12_527", nome:"Jessica", tel:"(47) 99658-5600", email:'', obs:''},
+    {id:"ps12_528", nome:"Allana", tel:"(67) 99894-4188", email:'', obs:''},
+    {id:"ps12_529", nome:"Gleysineia", tel:"(62) 99122-5393", email:'', obs:''},
+    {id:"ps12_530", nome:"Thaynara", tel:"(41) 99670-1051", email:'', obs:''},
+    {id:"ps12_531", nome:"Camila", tel:"(11) 98508-2452", email:'', obs:''},
+    {id:"ps12_532", nome:"Drielli", tel:"(24) 99823-2631", email:'', obs:''},
+    {id:"ps12_533", nome:"Lucas", tel:"(49) 99948-7937", email:'', obs:''},
+    {id:"ps12_534", nome:"Luciana", tel:"(71) 99603-2476", email:'', obs:''},
+    {id:"ps12_535", nome:"Sophia", tel:"(37) 99939-8398", email:'', obs:''},
+    {id:"ps12_536", nome:"Nastassja", tel:"(11) 99689-3103", email:'', obs:''},
+    {id:"ps12_537", nome:"Jamile", tel:"(77) 98807-9071", email:'', obs:''},
+    {id:"ps12_538", nome:"Carina", tel:"(54) 99109-0079", email:'', obs:''},
+    {id:"ps12_539", nome:"Gabrielle", tel:"(15) 99175-3119", email:'', obs:''},
+    {id:"ps12_540", nome:"Mikaella", tel:"(62) 99324-4033", email:'', obs:''},
+    {id:"ps12_541", nome:"Gessica", tel:"(41) 99214-8794", email:'', obs:''},
+    {id:"ps12_542", nome:"Jenifer", tel:"(49) 98819-0586", email:'', obs:''},
+    {id:"ps12_543", nome:"Ana", tel:"(37) 99923-5879", email:'', obs:''},
+    {id:"ps12_544", nome:"Roberta", tel:"(11) 99855-4526", email:'', obs:''},
+    {id:"ps12_545", nome:"Isadora", tel:"(44) 99822-8533", email:'', obs:''},
+    {id:"ps12_546", nome:"Maria", tel:"(19) 99955-6773", email:'', obs:''},
+    {id:"ps12_547", nome:"Eliane", tel:"(67) 99614-7197", email:'', obs:''},
+    {id:"ps12_548", nome:"Priscila", tel:"(19) 99897-2852", email:'', obs:''},
+    {id:"ps12_549", nome:"Joyce", tel:"(11) 96116-2618", email:'', obs:''},
+    {id:"ps12_550", nome:"Maria", tel:"(49) 99976-1881", email:'', obs:''},
+    {id:"ps12_551", nome:"Thays", tel:"(27) 99508-6622", email:'', obs:''},
+    {id:"ps12_552", nome:"Natalia", tel:"(49) 99902-5096", email:'', obs:''},
+    {id:"ps12_553", nome:"Debora", tel:"(15) 98140-6887", email:'', obs:''},
+    {id:"ps12_554", nome:"Gislaine", tel:"(47) 99250-7407", email:'', obs:''},
+    {id:"ps12_555", nome:"Madeleine", tel:"(18) 99651-9049", email:'', obs:''},
+    {id:"ps12_556", nome:"Bianca", tel:"(11) 96164-0803", email:'', obs:''},
+    {id:"ps12_557", nome:"Iza", tel:"(16) 99337-8475", email:'', obs:''},
+    {id:"ps12_558", nome:"Cora", tel:"(44) 99905-3817", email:'', obs:''},
+    {id:"ps12_559", nome:"Karine", tel:"(86) 99455-0546", email:'', obs:''},
+    {id:"ps12_560", nome:"Priscila", tel:"(71) 98867-1788", email:'', obs:''},
+    {id:"ps12_561", nome:"Priscilla", tel:"(13) 99110-1264", email:'', obs:''},
+    {id:"ps12_562", nome:"Deborah", tel:"(47) 98432-5165", email:'', obs:''},
+    {id:"ps12_563", nome:"Rebecca", tel:"(61) 99516-5695", email:'', obs:''},
+    {id:"ps12_564", nome:"Kauana", tel:"(45) 98822-2632", email:'', obs:''},
+    {id:"ps12_565", nome:"Caio", tel:"(51) 99817-3167", email:'', obs:''},
+    {id:"ps12_566", nome:"Anastacia", tel:"(91) 98467-2541", email:'', obs:''},
+    {id:"ps12_567", nome:"Luana", tel:"(69) 99936-5353", email:'', obs:''},
+    {id:"ps12_568", nome:"Amanda", tel:"(22) 99748-6610", email:'', obs:''},
+    {id:"ps12_569", nome:"Natalia", tel:"(11) 94599-8688", email:'', obs:''},
+    {id:"ps12_570", nome:"Milca", tel:"(67) 98207-7663", email:'', obs:''},
+    {id:"ps12_571", nome:"Leticia", tel:"(12) 99135-3543", email:'', obs:''},
+    {id:"ps12_572", nome:"William", tel:"(12) 99613-7043", email:'', obs:''},
+    {id:"ps12_573", nome:"Tuane", tel:"(11) 94203-4198", email:'', obs:''},
+    {id:"ps12_574", nome:"Laura", tel:"(47) 99913-0626", email:'', obs:''},
+    {id:"ps12_575", nome:"Cylene", tel:"(47) 99963-8873", email:'', obs:''},
+    {id:"ps12_576", nome:"Leticia", tel:"(19) 99348-1613", email:'', obs:''},
+    {id:"ps12_577", nome:"Regiane", tel:"(11) 98138-3408", email:'', obs:''},
+    {id:"ps12_578", nome:"Rafaela", tel:"(47) 99682-5451", email:'', obs:''},
+    {id:"ps12_579", nome:"Sara", tel:"(62) 99464-3169", email:'', obs:''},
+    {id:"ps12_580", nome:"Nayara", tel:"(65) 99285-3072", email:'', obs:''},
+    {id:"ps12_581", nome:"Dyelika", tel:"(48) 99158-3260", email:'', obs:''},
+    {id:"ps12_582", nome:"Vitoria", tel:"(11) 96207-7053", email:'', obs:''},
+    {id:"ps12_583", nome:"Ester", tel:"(42) 99968-3695", email:'', obs:''},
+    {id:"ps12_584", nome:"Thaise", tel:"(47) 99924-9718", email:'', obs:''},
+    {id:"ps12_585", nome:"Antonio", tel:"(85) 98639-2391", email:'', obs:''},
+    {id:"ps12_586", nome:"Cintia", tel:"(33) 99133-8474", email:'', obs:''},
+    {id:"ps12_587", nome:"Ariadne", tel:"(27) 99922-8885", email:'', obs:''},
+    {id:"ps12_588", nome:"Glayce", tel:"(85) 98921-6779", email:'', obs:''},
+    {id:"ps12_589", nome:"Amanda", tel:"(91) 98596-4425", email:'', obs:''},
+    {id:"ps12_590", nome:"Luma", tel:"(11) 97346-0808", email:'', obs:''},
+    {id:"ps12_591", nome:"Ludmila", tel:"(21) 98378-4986", email:'', obs:''},
+    {id:"ps12_592", nome:"Edinalva", tel:"(86) 98140-4288", email:'', obs:''},
+    {id:"ps12_593", nome:"Larissa", tel:"(21) 99053-9102", email:'', obs:''},
+    {id:"ps12_594", nome:"Fernanda", tel:"(41) 99501-0345", email:'', obs:''},
+    {id:"ps12_595", nome:"Hannah", tel:"(11) 94793-5116", email:'', obs:''},
+    {id:"ps12_596", nome:"Mayara", tel:"(11) 95732-3998", email:'', obs:''},
+    {id:"ps12_597", nome:"Sarah", tel:"(38) 99259-9876", email:'', obs:''},
+    {id:"ps12_598", nome:"Cristiane", tel:"(47) 98471-3831", email:'', obs:''},
+    {id:"ps12_599", nome:"Jessica", tel:"(91) 98470-5065", email:'', obs:''},
+    {id:"ps12_600", nome:"Rafaele", tel:"(38) 99801-9200", email:'', obs:''},
+    {id:"ps12_601", nome:"Selma", tel:"(19) 99127-6540", email:'', obs:''},
+    {id:"ps12_602", nome:"Leticia", tel:"(11) 99175-4771", email:'', obs:''},
+    {id:"ps12_603", nome:"Nicole", tel:"(17) 20513-0356", email:'', obs:''},
+    {id:"ps12_604", nome:"Marcia", tel:"(11) 98725-5232", email:'', obs:''},
+    {id:"ps12_605", nome:"Andressa", tel:"(99) 99115-3496", email:'', obs:''},
+    {id:"ps12_606", nome:"Maira", tel:"(11) 98615-7849", email:'', obs:''},
+    {id:"ps12_607", nome:"Leslye", tel:"(12) 99140-7220", email:'', obs:''},
+    {id:"ps12_608", nome:"Kesia", tel:"(67) 99606-2695", email:'', obs:''},
+    {id:"ps12_609", nome:"Daiane", tel:"(43) 99929-8911", email:'', obs:''},
+    {id:"ps12_610", nome:"Jaqueline", tel:"(11) 91151-6367", email:'', obs:''},
+    {id:"ps12_611", nome:"Nadyelle", tel:"(54) 99918-4836", email:'', obs:''},
+    {id:"ps12_612", nome:"Danielle", tel:"(99) 98178-8538", email:'', obs:''},
+    {id:"ps12_613", nome:"Gabrielle", tel:"(27) 99705-1266", email:'', obs:''},
+    {id:"ps12_614", nome:"Francyne", tel:"(11) 94435-0006", email:'', obs:''},
+    {id:"ps12_615", nome:"Vitoria", tel:"(13) 98823-0298", email:'', obs:''},
+    {id:"ps12_616", nome:"Joao", tel:"(48) 99821-9108", email:'', obs:''},
+    {id:"ps12_617", nome:"Bruna", tel:"(45) 99848-4171", email:'', obs:''},
+    {id:"ps12_618", nome:"Ingritt", tel:"(41) 99990-8514", email:'', obs:''},
+    {id:"ps12_619", nome:"Marluce", tel:"(47) 99925-8774", email:'', obs:''},
+    {id:"ps12_620", nome:"Gisele", tel:"(47) 99245-5459", email:'', obs:''},
+    {id:"ps12_621", nome:"Lisandra", tel:"(71) 98706-1600", email:'', obs:''},
+    {id:"ps12_622", nome:"Tamiris", tel:"(41) 99914-2500", email:'', obs:''},
+    {id:"ps12_623", nome:"Flavia", tel:"(41) 99672-9793", email:'', obs:''},
+    {id:"ps12_624", nome:"Edivaldo", tel:"(49) 99841-3975", email:'', obs:''},
+    {id:"ps12_625", nome:"Julia", tel:"(45) 99826-4999", email:'', obs:''},
+    {id:"ps12_626", nome:"Mayara", tel:"(47) 99923-5524", email:'', obs:''},
+    {id:"ps12_627", nome:"Milena", tel:"(77) 99180-6555", email:'', obs:''},
+    {id:"ps12_628", nome:"Natalia", tel:"(16) 98809-2316", email:'', obs:''},
+    {id:"ps12_629", nome:"Brenda", tel:"(18) 99649-7505", email:'', obs:''},
+    {id:"ps12_630", nome:"Comila", tel:"(21) 98754-0182", email:'', obs:''},
+    {id:"ps12_631", nome:"Elenisa", tel:"(54) 99700-7212", email:'', obs:''},
+    {id:"ps12_632", nome:"Caroline", tel:"(47) 99192-3248", email:'', obs:''},
+    {id:"ps12_633", nome:"Janini", tel:"(47) 99751-2597", email:'', obs:''},
+    {id:"ps12_634", nome:"Priscila", tel:"(11) 97829-8585", email:'', obs:''},
+    {id:"ps12_635", nome:"Andressa", tel:"(49) 99801-1094", email:'', obs:''},
+    {id:"ps12_636", nome:"Patricia", tel:"(35) 99874-1852", email:'', obs:''},
+    {id:"ps12_637", nome:"Andreza", tel:"(47) 99205-0706", email:'', obs:''},
+    {id:"ps12_638", nome:"Ana", tel:"(69) 99257-5094", email:'', obs:''},
+    {id:"ps12_639", nome:"Raimunda", tel:"(11) 97585-6830", email:'', obs:''},
+    {id:"ps12_640", nome:"Lucimar", tel:"(21) 97622-5414", email:'', obs:''},
+    {id:"ps12_641", nome:"Maria", tel:"(41) 78239-8238", email:'', obs:''},
+    {id:"ps12_642", nome:"Franciny", tel:"(41) 99581-3603", email:'', obs:''},
+    {id:"ps12_643", nome:"Fabricio", tel:"(24) 99264-0906", email:'', obs:''},
+    {id:"ps12_644", nome:"Gleidson", tel:"(22) 99735-3920", email:'', obs:''},
+    {id:"ps12_645", nome:"Thays", tel:"(15) 99162-2094", email:'', obs:''},
+    {id:"ps12_646", nome:"Rhanda", tel:"(62) 99289-3211", email:'', obs:''},
+    {id:"ps12_647", nome:"Marilia", tel:"(85) 99756-2396", email:'', obs:''},
+    {id:"ps12_648", nome:"Tiago", tel:"(47) 99673-9989", email:'', obs:''},
+    {id:"ps12_649", nome:"Danielly", tel:"(83) 99368-0747", email:'', obs:''},
+    {id:"ps12_650", nome:"Jacqueline", tel:"(11) 97325-1542", email:'', obs:''},
+    {id:"ps12_651", nome:"Fernanda", tel:"(61) 99832-0505", email:'', obs:''},
+    {id:"ps12_652", nome:"Tallyta", tel:"(31) 98973-9021", email:'', obs:''},
+    {id:"ps12_653", nome:"Igor", tel:"(85) 99631-9741", email:'', obs:''},
+    {id:"ps12_654", nome:"Sarah", tel:"(33) 60872-7637", email:'', obs:''},
+    {id:"ps12_655", nome:"Tais", tel:"(81) 99650-1799", email:'', obs:''},
+    {id:"ps12_656", nome:"Isadora", tel:"(35) 98402-5828", email:'', obs:''},
+    {id:"ps12_657", nome:"Fabiane", tel:"(62) 99508-8248", email:'', obs:''},
+    {id:"ps12_658", nome:"Jessica", tel:"(47) 98849-9588", email:'', obs:''},
+    {id:"ps12_659", nome:"Tyanna", tel:"(99) 98824-7963", email:'', obs:''},
+    {id:"ps12_660", nome:"Debora", tel:"(91) 98334-0019", email:'', obs:''},
+    {id:"ps12_661", nome:"Fabiane", tel:"(62) 99508-9248", email:'', obs:''},
+    {id:"ps12_662", nome:"Ana", tel:"(41) 98731-0916", email:'', obs:''},
+    {id:"ps12_663", nome:"Kathleen", tel:"(11) 99148-1119", email:'', obs:''},
+    {id:"ps12_664", nome:"Janayna", tel:"(48) 99952-7294", email:'', obs:''},
+    {id:"ps12_665", nome:"Daiane", tel:"(47) 99176-2962", email:'', obs:''},
+    {id:"ps12_666", nome:"Ariela", tel:"(38) 99925-7233", email:'', obs:''},
+    {id:"ps12_667", nome:"Ana", tel:"(75) 99984-7331", email:'', obs:''},
+    {id:"ps12_668", nome:"Harsa", tel:"(35) 19360-3607", email:'', obs:''},
+    {id:"ps12_669", nome:"Larissa", tel:"(51) 98443-0105", email:'', obs:''},
+    {id:"ps12_670", nome:"Leticia", tel:"(47) 99623-5393", email:'', obs:''},
+    {id:"ps12_671", nome:"Cecilia", tel:"(47) 98847-2012", email:'', obs:''},
+    {id:"ps12_672", nome:"Claudete", tel:"(65) 99286-7979", email:'', obs:''},
+    {id:"ps12_673", nome:"Hosana", tel:"(47) 99999-3912", email:'', obs:''},
+    {id:"ps12_674", nome:"Felipe", tel:"(47) 99659-7775", email:'', obs:''},
+    {id:"ps12_675", nome:"Ytallo", tel:"(47) 99240-2712", email:'', obs:''},
+    {id:"ps12_676", nome:"Gabriela", tel:"(14) 98817-0503", email:'', obs:''},
+    {id:"ps12_677", nome:"Greicia", tel:"(47) 99207-3640", email:'', obs:''},
+    {id:"ps12_678", nome:"Larissa", tel:"(74) 99920-5495", email:'', obs:''},
+    {id:"ps12_679", nome:"Maria", tel:"(47) 99150-6677", email:'', obs:''},
+    {id:"ps12_680", nome:"Valeria", tel:"(31) 99169-1271", email:'', obs:''},
+    {id:"ps12_681", nome:"Miriam", tel:"(81) 98407-7029", email:'', obs:''},
+    {id:"ps12_682", nome:"Andreika", tel:"(48) 99154-0414", email:'', obs:''},
+    {id:"ps12_683", nome:"Adrielle", tel:"(33) 68157-4410", email:'', obs:''},
+    {id:"ps12_684", nome:"Laleska", tel:"(11) 96389-8825", email:'', obs:''},
+    {id:"ps12_685", nome:"Ana", tel:"(84) 99943-8392", email:'', obs:''},
+    {id:"ps12_686", nome:"Amanda", tel:"(61) 98177-1127", email:'', obs:''},
+    {id:"ps12_687", nome:"Bruna", tel:"(62) 98277-1158", email:'', obs:''},
+    {id:"ps12_688", nome:"Flavia", tel:"(31) 99348-7922", email:'', obs:''},
+    {id:"ps12_689", nome:"Luis", tel:"(18) 99138-4357", email:'', obs:''},
+    {id:"ps12_690", nome:"Flavia", tel:"(18) 99138-4357", email:'', obs:''},
+    {id:"ps12_691", nome:"Yasmim", tel:"(47) 99646-5144", email:'', obs:''},
+    {id:"ps12_692", nome:"Midia", tel:"(47) 99915-4739", email:'', obs:''},
+    {id:"ps12_693", nome:"Joao", tel:"(47) 99733-5296", email:'', obs:''},
+    {id:"ps12_694", nome:"Eduarda", tel:"(37) 99172-2859", email:'', obs:''},
+    {id:"ps12_695", nome:"Laiz", tel:"(62) 99324-6745", email:'', obs:''},
+    {id:"ps12_696", nome:"Cassio", tel:"(84) 99874-7777", email:'', obs:''},
+    {id:"ps12_697", nome:"Raquel", tel:"(11) 99909-4888", email:'', obs:''},
+    {id:"ps12_698", nome:"Ana", tel:"(81) 99892-2169", email:'', obs:''},
+    {id:"ps12_699", nome:"Carla", tel:"(37) 99184-7034", email:'', obs:''},
+    {id:"ps12_700", nome:"Isleide", tel:"(71) 99254-0914", email:'', obs:''},
+    {id:"ps12_701", nome:"Vittoria", tel:"(48) 99168-9641", email:'', obs:''},
+    {id:"ps12_702", nome:"Walesca", tel:"(19) 17855-8546", email:'', obs:''},
+    {id:"ps12_703", nome:"Barbara", tel:"(31) 99711-5681", email:'', obs:''},
+    {id:"ps12_704", nome:"Maria", tel:"(88) 99682-2560", email:'', obs:''},
+    {id:"ps12_705", nome:"Ieliram", tel:"(19) 97155-4422", email:'', obs:''},
+    {id:"ps12_706", nome:"Nely", tel:"(19) 99980-4153", email:'', obs:''},
+    {id:"ps12_707", nome:"Tacio", tel:"(45) 99931-1708", email:'', obs:''},
+    {id:"ps12_708", nome:"Nathalia", tel:"(21) 99532-9811", email:'', obs:''},
+    {id:"ps12_709", nome:"Ester", tel:"(62) 98150-4250", email:'', obs:''},
+    {id:"ps12_710", nome:"Cintia", tel:"(61) 98582-2691", email:'', obs:''},
+    {id:"ps12_711", nome:"Estefani", tel:"(47) 98853-1094", email:'', obs:''},
+    {id:"ps12_712", nome:"Quezia", tel:"(21) 98225-1577", email:'', obs:''},
+    {id:"ps12_713", nome:"Maria", tel:"(48) 99643-6316", email:'', obs:''},
+    {id:"ps12_714", nome:"Tatiane", tel:"(41) 99709-7647", email:'', obs:''},
+    {id:"ps12_715", nome:"Danielly", tel:"(47) 99940-6900", email:'', obs:''},
+    {id:"ps12_716", nome:"Jessica", tel:"(63) 98103-6183", email:'', obs:''},
+    {id:"ps12_717", nome:"Polyana", tel:"(11) 99992-9061", email:'', obs:''},
+    {id:"ps12_718", nome:"Poliane", tel:"(73) 98229-2112", email:'', obs:''},
+    {id:"ps12_719", nome:"Doris", tel:"(47) 99702-0133", email:'', obs:''},
+    {id:"ps12_720", nome:"Vanessa", tel:"(51) 99727-1441", email:'', obs:''},
+    {id:"ps12_721", nome:"Leidiane", tel:"(27) 99746-0860", email:'', obs:''},
+    {id:"ps12_722", nome:"Branca", tel:"(11) 96281-3836", email:'', obs:''},
+    {id:"ps12_723", nome:"Anne", tel:"(49) 99906-6690", email:'', obs:''},
+    {id:"ps12_724", nome:"Duany", tel:"(21) 98767-7341", email:'', obs:''},
+    {id:"ps12_725", nome:"Mara", tel:"(41) 98814-3894", email:'', obs:''},
+    {id:"ps12_726", nome:"Michelly", tel:"(27) 99635-0502", email:'', obs:''},
+    {id:"ps12_727", nome:"Andressa", tel:"(28) 98815-1733", email:'', obs:''},
+    {id:"ps12_728", nome:"Ana", tel:"(11) 95904-4983", email:'', obs:''},
+    {id:"ps12_729", nome:"Ana", tel:"(11) 91269-6040", email:'', obs:''},
+    {id:"ps12_730", nome:"Dalath", tel:"(11) 97266-2075", email:'', obs:''},
+    {id:"ps12_731", nome:"Kaio", tel:"(61) 99907-5129", email:'', obs:''},
+    {id:"ps12_732", nome:"Brenda", tel:"(47) 99192-0222", email:'', obs:''},
+    {id:"ps12_733", nome:"Daniela", tel:"(67) 99108-9588", email:'', obs:''},
+    {id:"ps12_734", nome:"Sirlei", tel:"(47) 99997-3003", email:'', obs:''},
+    {id:"ps12_735", nome:"Paulo", tel:"(51) 99201-6166", email:'', obs:''},
+    {id:"ps12_736", nome:"Luan", tel:"(47) 99268-3814", email:'', obs:''},
+    {id:"ps12_737", nome:"Wanderson", tel:"(21) 96441-4015", email:'', obs:''},
+    {id:"ps12_738", nome:"Amanda", tel:"(11) 96225-9539", email:'', obs:''},
+    {id:"ps12_739", nome:"Jose", tel:"(47) 99213-4949", email:'', obs:''},
+    {id:"ps12_740", nome:"Julia", tel:"(43) 99935-0533", email:'', obs:''},
+    {id:"ps12_741", nome:"Zuleica", tel:"(47) 98924-4687", email:'', obs:''},
+    {id:"ps12_742", nome:"Priscila", tel:"(54) 99642-2489", email:'', obs:''},
+    {id:"ps12_743", nome:"Luciane", tel:"(47) 99282-5757", email:'', obs:''},
+    {id:"ps12_744", nome:"Gislaine", tel:"(16) 99274-9119", email:'', obs:''},
+    {id:"ps12_745", nome:"Luana", tel:"(47) 99680-7755", email:'', obs:''},
+    {id:"ps12_746", nome:"Cleonice", tel:"(45) 99128-2989", email:'', obs:''},
+    {id:"ps12_747", nome:"Aline", tel:"(47) 99604-8346", email:'', obs:''},
+    {id:"ps12_748", nome:"Rebeca", tel:"(45) 98401-1806", email:'', obs:''},
+    {id:"ps12_749", nome:"Sibeli", tel:"(47) 98852-9285", email:'', obs:''},
+    {id:"ps12_750", nome:"Diego", tel:"(47) 99901-4874", email:'', obs:''},
+    {id:"ps12_751", nome:"Samuel", tel:"(51) 98042-1561", email:'', obs:''},
+    {id:"ps12_752", nome:"Djonata", tel:"(47) 99184-5732", email:'', obs:''},
+    {id:"ps12_753", nome:"Marcia", tel:"(47) 99976-4736", email:'', obs:''},
+    {id:"ps12_754", nome:"Joyce", tel:"(41) 99797-9061", email:'', obs:''},
+    {id:"ps12_755", nome:"Juliana", tel:"(44) 99910-3873", email:'', obs:''},
+    {id:"ps12_756", nome:"Andre", tel:"(11) 98847-5719", email:'', obs:''},
+    {id:"ps12_757", nome:"Edson", tel:"(47) 99999-0928", email:'', obs:''},
+    {id:"ps12_758", nome:"Tatiane", tel:"(75) 99118-8888", email:'', obs:''},
+    {id:"ps12_759", nome:"Julia", tel:"(47) 99112-4574", email:'', obs:''},
+    {id:"ps12_760", nome:"Lauryan", tel:"(16) 99789-4916", email:'', obs:''},
+    {id:"ps12_761", nome:"Julia", tel:"(47) 99155-2963", email:'', obs:''},
+    {id:"ps12_762", nome:"Evelyn", tel:"(47) 99152-7127", email:'', obs:''},
+    {id:"ps12_763", nome:"Taise", tel:"(47) 99238-7362", email:'', obs:''},
+    {id:"ps12_764", nome:"Adriele", tel:"(51) 99640-2571", email:'', obs:''},
+    {id:"ps12_765", nome:"Priscila", tel:"(47) 99191-7032", email:'', obs:''},
+    {id:"ps12_766", nome:"Viviane", tel:"(18) 98806-0853", email:'', obs:''},
+    {id:"ps12_767", nome:"Bryana", tel:"(51) 99317-4575", email:'', obs:''},
+    {id:"ps12_768", nome:"Leticia", tel:"(47) 99235-3976", email:'', obs:''},
+    {id:"ps12_769", nome:"Diane", tel:"(47) 99627-8209", email:'', obs:''},
+    {id:"ps12_770", nome:"Suelen", tel:"(47) 99600-0375", email:'', obs:''},
+    {id:"ps12_771", nome:"Ana", tel:"(47) 99676-7315", email:'', obs:''},
+    {id:"ps12_772", nome:"Amanda", tel:"(48) 99157-2100", email:'', obs:''},
+    {id:"ps12_773", nome:"Giovana", tel:"(48) 99200-7009", email:'', obs:''},
+    {id:"ps12_774", nome:"Darlene", tel:"(47) 99951-2384", email:'', obs:''},
+    {id:"ps12_775", nome:"Daniela", tel:"(47) 99664-0384", email:'', obs:''},
+    {id:"ps12_776", nome:"Maria", tel:"(47) 99929-2147", email:'', obs:''},
+    {id:"ps12_777", nome:"Roseane", tel:"(47) 98880-5350", email:'', obs:''},
+    {id:"ps12_778", nome:"Larissa", tel:"(47) 99210-1433", email:'', obs:''},
+    {id:"ps12_779", nome:"Kenndra", tel:"(47) 98868-1319", email:'', obs:''},
+    {id:"ps12_780", nome:"Liziane", tel:"(47) 99183-1877", email:'', obs:''},
+    {id:"ps12_781", nome:"Larissa", tel:"(47) 99636-8852", email:'', obs:''},
+    {id:"ps12_782", nome:"Giselle", tel:"(41) 99746-2054", email:'', obs:''},
+    {id:"ps12_783", nome:"Bianca", tel:"(47) 99157-1985", email:'', obs:''},
+    {id:"ps12_784", nome:"Miroslava", tel:"(59) 17305-0199", email:'', obs:''},
+    {id:"ps12_785", nome:"Renata", tel:"(47) 98867-6013", email:'', obs:''},
+    {id:"ps12_786", nome:"Nadia", tel:"(48) 99193-8858", email:'', obs:''},
+    {id:"ps12_787", nome:"Josieli", tel:"(45) 99844-7523", email:'', obs:''},
+    {id:"ps12_788", nome:"Arthur", tel:"(45) 99827-6006", email:'', obs:''},
+    {id:"ps12_789", nome:"Elisangela", tel:"(47) 99760-5275", email:'', obs:''},
+    {id:"ps12_790", nome:"Barbara", tel:"(47) 99924-5022", email:'', obs:''},
+    {id:"ps12_791", nome:"Stefany", tel:"(21) 98714-8512", email:'', obs:''},
+    {id:"ps12_792", nome:"Maria", tel:"(48) 92001-4072", email:'', obs:''},
+    {id:"ps12_793", nome:"Manuella", tel:"(19) 99679-5402", email:'', obs:''},
+    {id:"ps12_794", nome:"Taina", tel:"(47) 98486-4476", email:'', obs:''},
+    {id:"ps12_795", nome:"Suelli", tel:"(47) 99652-4538", email:'', obs:''},
+    {id:"ps12_796", nome:"Elias", tel:"(47) 99679-7020", email:'', obs:''},
+    {id:"ps12_797", nome:"Kelly", tel:"(47) 99636-9455", email:'', obs:''},
+    {id:"ps12_798", nome:"Emili", tel:"(47) 98906-0140", email:'', obs:''},
+    {id:"ps12_799", nome:"Joao", tel:"(15) 30806-8283", email:'', obs:''},
+    {id:"ps12_800", nome:"Natalie", tel:"(69) 99375-1338", email:'', obs:''},
+    {id:"ps12_801", nome:"Katia", tel:"(48) 98477-8766", email:'', obs:''},
+    {id:"ps12_802", nome:"Paulo", tel:"(47) 98479-7770", email:'', obs:''},
+    {id:"ps12_803", nome:"Katia", tel:"(17) 99187-8697", email:'', obs:''},
+    {id:"ps12_804", nome:"Beatriz", tel:"(11) 95454-2994", email:'', obs:''},
+    {id:"ps12_805", nome:"Luan", tel:"(47) 99658-5325", email:'', obs:''},
+    {id:"ps12_806", nome:"Vanderleia", tel:"(47) 98926-8453", email:'', obs:''},
+    {id:"ps12_807", nome:"Edson", tel:"(47) 99654-0978", email:'', obs:''},
+    {id:"ps12_808", nome:"Alessandra", tel:"(48) 99692-9866", email:'', obs:''},
+    {id:"ps12_809", nome:"Sarah", tel:"(18) 98154-6036", email:'', obs:''},
+    {id:"ps12_810", nome:"Nicole", tel:"(47) 99642-8651", email:'', obs:''},
+    {id:"ps12_811", nome:"Raquel", tel:"(48) 99687-7047", email:'', obs:''},
+    {id:"ps12_812", nome:"Barbara", tel:"(47) 99664-4406", email:'', obs:''},
+    {id:"ps12_813", nome:"Tiago", tel:"(11) 97058-2177", email:'', obs:''},
+    {id:"ps12_814", nome:"Alexsander", tel:"(51) 99919-4850", email:'', obs:''},
+    {id:"ps12_815", nome:"Lisdebora", tel:"(47) 99663-9717", email:'', obs:''},
+    {id:"ps12_816", nome:"Mirela", tel:"(47) 99927-9750", email:'', obs:''},
+    {id:"ps12_817", nome:"Geovana", tel:"(41) 99734-1102", email:'', obs:''},
+    {id:"ps12_818", nome:"Emanuelly", tel:"(47) 99651-6347", email:'', obs:''},
+    {id:"ps12_819", nome:"Evelyn", tel:"(47) 99774-1085", email:'', obs:''},
+    {id:"ps12_820", nome:"Rafael", tel:"(47) 98427-2629", email:'', obs:''},
+    {id:"ps12_821", nome:"Rayssa", tel:"(48) 99910-1845", email:'', obs:''},
+    {id:"ps12_822", nome:"Jose", tel:"(47) 99658-7357", email:'', obs:''},
+    {id:"ps12_823", nome:"Marco", tel:"(41) 99940-1466", email:'', obs:''},
+    {id:"ps12_824", nome:"Amanda", tel:"(24) 99903-4918", email:'', obs:''},
+    {id:"ps12_825", nome:"Nilson", tel:"(67) 99176-8939", email:'', obs:''},
+    {id:"ps12_826", nome:"Giullyane", tel:"(41) 99166-5663", email:'', obs:''},
+    {id:"ps12_827", nome:"Daiane", tel:"(47) 99624-3717", email:'', obs:''},
+    {id:"ps12_828", nome:"Djenyfer", tel:"(47) 99231-5570", email:'', obs:''},
+    {id:"ps12_829", nome:"Isaac", tel:"(47) 99110-0635", email:'', obs:''},
+    {id:"ps12_830", nome:"Lamartine", tel:"(47) 98927-5722", email:'', obs:''},
+    {id:"ps12_831", nome:"Leia", tel:"(11) 96953-1328", email:'', obs:''},
+    {id:"ps12_832", nome:"Franciellen", tel:"(44) 99144-4866", email:'', obs:''},
+    {id:"ps12_833", nome:"Victor", tel:"(47) 98410-0440", email:'', obs:''},
+    {id:"ps12_834", nome:"Priscilla", tel:"(47) 99659-2965", email:'', obs:''},
+    {id:"ps12_835", nome:"Thiago", tel:"(47) 99154-6539", email:'', obs:''},
+    {id:"ps12_836", nome:"Bruno", tel:"(47) 98901-7656", email:'', obs:''},
+    {id:"ps12_837", nome:"Maria", tel:"(47) 99151-2679", email:'', obs:''},
+    {id:"ps12_838", nome:"Mariana", tel:"(47) 99600-2441", email:'', obs:''},
+    {id:"ps12_839", nome:"Paulo", tel:"(47) 99252-2742", email:'', obs:''},
+    {id:"ps12_840", nome:"Mairyellen", tel:"(47) 98875-6767", email:'', obs:''},
+    {id:"ps12_841", nome:"Elis", tel:"(47) 99688-9617", email:'', obs:''},
+    {id:"ps12_842", nome:"Marcela", tel:"(81) 97113-2885", email:'', obs:''},
   ];
 
   var PS_CAMPOS = ['nome','tel','email','obs','iniciado'];
@@ -25226,6 +25664,116 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     return m[contatoId] || '';
   }
   window.psAtendenteDoContato = psAtendenteDoContato;
+
+  /* ================= (·301) ATRIBUIÇÃO INICIAL — LEVA "REINO ENVIADOS" =================
+     Pedido do Nando: os contatos da planilha Reino_Enviados_formatado.xlsx entram
+     na pasta Reino JÁ com a etiqueta da atendente Ana Maria.
+
+     POR QUE UMA MIGRAÇÃO E NÃO UM CAMPO NO SEED: a etiqueta de atendente é
+     DERIVADA de appConfig.prospGestores (·297/·298). Pintar o nome só na tela,
+     por um campo do seed, faria a etiqueta dizer "Ana Maria" enquanto a lista
+     dela em Gestores de Leads continuaria VAZIA — a mesma divergência de "um
+     fato em dois lugares" que esta sessão já corrigiu três vezes. Pior: sem
+     estar em Gestores de Leads, ela não consegue gerar o CSV nem mandar esses
+     contatos para o Kanban, que é o trabalho de verdade. Então a atribuição é
+     REAL, no mesmo lugar onde uma transferência manual gravaria.
+
+     RODA UMA VEZ SÓ: a marca fica em appConfig.prospAtrib, que é sincronizado
+     entre os PCs — então o primeiro PC que abrir aplica e os outros já chegam
+     com a marca pelo merge. Se o Nando depois tirar um contato da Ana Maria, a
+     migração NÃO o devolve: ela nunca mais roda.
+
+     IDEMPOTENTE POR CONSTRUÇÃO: se dois PCs abrirem ao mesmo tempo, antes de
+     qualquer um salvar, ambos gravam exatamente as MESMAS entradas para o
+     MESMO atendente — o pgMergeMaps resolve sem duplicar nada.
+
+     Chamada em carregarConfig DEPOIS do merge da nuvem, no mesmo ponto e pelo
+     mesmo motivo do ccMigrarChaves (·209): aplicada antes do merge, a marca
+     voltaria a ficar ausente na sincronização seguinte e tudo rodaria de novo. */
+  var PS_ATRIB_MARCA='reino_enviados_v1';
+  var PS_ATRIB_ATENDENTE='Ana Maria';
+  var PS_ATRIB_IDS=[
+    "ps12_123","ps12_277","ps12_090","ps12_398","ps12_284","ps12_075","ps12_126","ps12_152",
+    "ps12_426","ps12_429","ps12_430","ps12_431","ps12_432","ps12_433","ps12_434","ps12_435",
+    "ps12_436","ps12_437","ps12_438","ps12_439","ps12_440","ps12_441","ps12_442","ps12_443",
+    "ps12_444","ps12_445","ps12_446","ps12_447","ps12_448","ps12_449","ps12_450","ps12_451",
+    "ps12_452","ps12_453","ps12_454","ps12_455","ps12_456","ps12_457","ps12_458","ps12_459",
+    "ps12_460","ps12_461","ps12_462","ps12_463","ps12_464","ps12_465","ps12_466","ps12_467",
+    "ps12_468","ps12_469","ps12_470","ps12_471","ps12_472","ps12_473","ps12_474","ps12_475",
+    "ps12_476","ps12_477","ps12_478","ps12_479","ps12_480","ps12_481","ps12_482","ps12_483",
+    "ps12_484","ps12_485","ps12_486","ps12_487","ps12_488","ps12_489","ps12_490","ps12_491",
+    "ps12_492","ps12_493","ps12_494","ps12_495","ps12_496","ps12_497","ps12_498","ps12_499",
+    "ps12_500","ps12_501","ps12_502","ps12_503","ps12_504","ps12_505","ps12_506","ps12_507",
+    "ps12_508","ps12_509","ps12_510","ps12_511","ps12_512","ps12_513","ps12_514","ps12_515",
+    "ps12_516","ps12_517","ps12_518","ps12_519","ps12_520","ps12_521","ps12_522","ps12_523",
+    "ps12_524","ps12_525","ps12_526","ps12_527","ps12_528","ps12_529","ps12_530","ps12_531",
+    "ps12_532","ps12_533","ps12_534","ps12_535","ps12_536","ps12_537","ps12_538","ps12_539",
+    "ps12_540","ps12_541","ps12_542","ps12_543","ps12_544","ps12_545","ps12_546","ps12_547",
+    "ps12_548","ps12_549","ps12_550","ps12_551","ps12_552","ps12_553","ps12_554","ps12_555",
+    "ps12_556","ps12_557","ps12_558","ps12_559","ps12_560","ps12_561","ps12_562","ps12_563",
+    "ps12_564","ps12_565","ps12_566","ps12_567","ps12_568","ps12_569","ps12_570","ps12_571",
+    "ps12_572","ps12_573","ps12_574","ps12_575","ps12_576","ps12_577","ps12_578","ps12_579",
+    "ps12_580","ps12_581","ps12_582","ps12_583","ps12_584","ps12_585","ps12_586","ps12_587",
+    "ps12_588","ps12_589","ps12_590","ps12_591","ps12_592","ps12_593","ps12_594","ps12_595",
+    "ps12_596","ps12_597","ps12_598","ps12_599","ps12_600","ps12_601","ps12_602","ps12_603",
+    "ps12_604","ps12_605","ps12_606","ps12_607","ps12_608","ps12_609","ps12_610","ps12_611",
+    "ps12_612","ps12_613","ps12_614","ps12_615","ps12_616","ps12_617","ps12_618","ps12_619",
+    "ps12_620","ps12_621","ps12_622","ps12_623","ps12_624","ps12_625","ps12_626","ps12_627",
+    "ps12_628","ps12_629","ps12_630","ps12_631","ps12_632","ps12_633","ps12_634","ps12_635",
+    "ps12_636","ps12_637","ps12_638","ps12_639","ps12_640","ps12_641","ps12_642","ps12_643",
+    "ps12_644","ps12_645","ps12_646","ps12_647","ps12_648","ps12_649","ps12_650","ps12_651",
+    "ps12_652","ps12_653","ps12_654","ps12_655","ps12_656","ps12_657","ps12_658","ps12_659",
+    "ps12_660","ps12_661","ps12_662","ps12_663","ps12_664","ps12_665","ps12_666","ps12_667",
+    "ps12_668","ps12_669","ps12_670","ps12_671","ps12_672","ps12_673","ps12_674","ps12_675",
+    "ps12_676","ps12_677","ps12_678","ps12_679","ps12_680","ps12_681","ps12_682","ps12_683",
+    "ps12_684","ps12_685","ps12_686","ps12_687","ps12_688","ps12_689","ps12_690","ps12_691",
+    "ps12_692","ps12_693","ps12_694","ps12_695","ps12_696","ps12_697","ps12_698","ps12_699",
+    "ps12_700","ps12_701","ps12_702","ps12_703","ps12_704","ps12_705","ps12_706","ps12_707",
+    "ps12_708","ps12_709","ps12_710","ps12_711","ps12_712","ps12_713","ps12_714","ps12_715",
+    "ps12_716","ps12_717","ps12_718","ps12_719","ps12_720","ps12_721","ps12_722","ps12_723",
+    "ps12_724","ps12_725","ps12_726","ps12_727","ps12_728","ps12_729","ps12_730","ps12_731",
+    "ps12_732","ps12_733","ps12_734","ps12_735","ps12_736","ps12_737","ps12_738","ps12_739",
+    "ps12_740","ps12_741","ps12_742","ps12_743","ps12_744","ps12_745","ps12_746","ps12_747",
+    "ps12_748","ps12_749","ps12_750","ps12_751","ps12_752","ps12_753","ps12_754","ps12_755",
+    "ps12_756","ps12_757","ps12_758","ps12_759","ps12_760","ps12_761","ps12_762","ps12_763",
+    "ps12_764","ps12_765","ps12_766","ps12_767","ps12_768","ps12_769","ps12_770","ps12_771",
+    "ps12_772","ps12_773","ps12_774","ps12_775","ps12_776","ps12_777","ps12_778","ps12_779",
+    "ps12_780","ps12_781","ps12_782","ps12_783","ps12_784","ps12_785","ps12_786","ps12_787",
+    "ps12_788","ps12_789","ps12_790","ps12_791","ps12_792","ps12_793","ps12_794","ps12_795",
+    "ps12_796","ps12_797","ps12_798","ps12_799","ps12_800","ps12_801","ps12_802","ps12_803",
+    "ps12_804","ps12_805","ps12_806","ps12_807","ps12_808","ps12_809","ps12_810","ps12_811",
+    "ps12_812","ps12_813","ps12_814","ps12_815","ps12_816","ps12_817","ps12_818","ps12_819",
+    "ps12_820","ps12_821","ps12_822","ps12_823","ps12_824","ps12_825","ps12_826","ps12_827",
+    "ps12_828","ps12_829","ps12_830","ps12_831","ps12_832","ps12_833","ps12_834","ps12_835",
+    "ps12_836","ps12_837","ps12_838","ps12_839","ps12_840","ps12_841","ps12_842",
+  ];
+  window.psAplicarAtribuicaoInicial=function(){
+    try{
+      if(typeof appConfig!=='object' || !appConfig) return false;
+      if(!appConfig.prospAtrib || typeof appConfig.prospAtrib!=='object') appConfig.prospAtrib={};
+      if(appConfig.prospAtrib[PS_ATRIB_MARCA]) return false;      // já aplicada nesta base
+      var agora=Date.now(), n=0;
+      PS_ATRIB_IDS.forEach(function(id){
+        var c=psAcharContato(id); if(!c) return;                  // contato removido: ignora
+        if(psAtendenteDoContato(id)) return;                      // já tem dono: não atropela
+        pgTransferir(PS_ATRIB_ATENDENTE, c);
+        n++;
+      });
+      appConfig.prospAtrib[PS_ATRIB_MARCA]=agora;
+      try{ if(typeof logRemoto==='function') logRemoto('prospeccao', n+' contato(s) da leva "Reino Enviados" atribuidos a '+PS_ATRIB_ATENDENTE, {area:'Prospecção', atendente:PS_ATRIB_ATENDENTE}); }catch(e){}
+      return true;
+    }catch(e){ return false; }
+  };
+  /* Merge da marca — carimbo mais recente vence, e uma marca existente NUNCA
+     some (aplicar duas vezes é o único jeito de duplicar a leva). */
+  window.psAtribMergeMaps=function(a,b){
+    a=(a&&typeof a==='object')?a:{}; b=(b&&typeof b==='object')?b:{};
+    var out={}, ks={};
+    Object.keys(a).forEach(function(k){ks[k]=1;}); Object.keys(b).forEach(function(k){ks[k]=1;});
+    Object.keys(ks).forEach(function(k){ out[k]=Math.max(a[k]||0, b[k]||0); });
+    return out;
+  };
+
   function psTagAtendenteHtml(contatoId){
     var at=psAtendenteDoContato(contatoId);
     return at ? '<span class="fn-tag-atend" title="Contato transferido para '+psEsc(at)+'">\u{1F464} '+psEsc(at)+'</span>' : '';
