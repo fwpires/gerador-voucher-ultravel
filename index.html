@@ -4179,7 +4179,39 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 323; // (·323) A CAUSA-RAIZ REAL DO "EMOJI ABRINDO CARD NOVO" —
+var UV_BUILD_NUM = 324; // (·324) CORREÇÃO DE MODELO — O EMOJI VIRA REAÇÃO NA PRÓPRIA
+// MENSAGEM, NÃO MAIS TEXTO NO COMPOSITOR. O Nando mandou o print que finalmente mostrou o
+// que o ·323 não podia ter resolvido: escolher um emoji inseria o caractere no RASCUNHO da
+// resposta, e ao publicar aquilo nascia como um CARD NOVO na conversa (uma mensagem cujo
+// corpo era só "✅") — "leva pra dentro de outro card", exatamente como ele descreveu. O
+// ·323 corrigiu POSIÇÃO (o painel não ficava mais torto), mas o problema nunca foi onde o
+// seletor abria — era PARA ONDE O DADO ESCOLHIDO IA. Emoji sempre foi pra virar REAÇÃO (o
+// próprio chamado já dizia "Reações em Emoji"), não texto solto pra digitar depois. MODELO
+// NOVO: cada mensagem e a mensagem principal do feedback ganharam dois mapas —
+// `reac` (usuário→emoji) e `reacTs` (usuário→carimbo, para o merge decidir por quem reagiu
+// por último) — uma reação POR PESSOA por card, igual ao WhatsApp de verdade: clicar no
+// MESMO emoji que você já escolheu REMOVE a reação; clicar num emoji diferente TROCA, sem
+// acumular duas reações suas no mesmo lugar. IDENTIDADE DO ALVO SEM CAMPO NOVO: feedback e
+// mensagem já nascem com prefixos de id diferentes (tiId('tif') e tiId('tim')), então
+// tiAplicarReacao descobre sozinho onde procurar sem precisar de mais nenhum dado. RENDER:
+// tiReacoesHtml() é função única usada TANTO na mensagem principal QUANTO em cada
+// comentário — agrupa por emoji (mostra a contagem quando mais de uma pessoa reagiu igual)
+// e destaca a SUA própria reação com borda âmbar — sempre dentro do MESMO card, nunca em
+// lugar separado. O compositor de resposta (a caixa "Escreva uma resposta...") deixou de
+// ser tocado pelo seletor de emoji — ele só recebe o que a pessoa digitar de próprio punho.
+// MERGE: seguindo o MESMO padrão que cats/catsTs já usam nesta função (herdar do lado com
+// `mts` mais novo, sem união fina por chave) — reac/reacTs entram no merge da mensagem
+// principal exatamente como cats já entra, e cada reação bumpa o `mts` do alvo, que é o que
+// leva a reação aos outros 11 PCs. VALIDAÇÃO: reproduzi o cenário EXATO do print do Nando
+// (mensagem "É, Tá muito errado isso. Sem condições!", clique no emoji dela, escolher 🤣) em
+// Chromium real e tirei screenshot confirmando a reação como chip DENTRO do card certo, com
+// destaque de "minha reação", e o compositor permanecendo vazio — nenhum card novo criado.
+// Reescrevi a checagem correspondente em t_insightsbadge.mjs (o teste ainda esperava o
+// comportamento antigo de "inserir no compositor"; agora confere que o compositor fica
+// intocado e que a reação aparece como chip no card) — as 12 checagens fecham verdes, e
+// t_insightsemoji.mjs (7), t_insights.mjs (22), t_armadilha.mjs (11) e t_tresbugs.mjs (34)
+// seguem sem regressão. node --check limpo nos 20 blocos. NÃO REQUER DEPLOY DO WORKER.
+// ANTERIOR: (·323) A CAUSA-RAIZ REAL DO "EMOJI ABRINDO CARD NOVO" —
 // ERA CSS, NÃO ESTRUTURA. O Nando mandou print de novo mostrando o mesmo sintoma mesmo
 // depois do ·322 (que já tinha movido o painel para DENTRO da linha de botões). Reproduzi
 // em Chromium REAL e MEDI, em vez de deduzir: com o seletor de 32 emojis aberto, os botões
@@ -19778,6 +19810,15 @@ body:not(.dark) #scr-timeinsights .ti-emoji-op:hover{background:#eef4f8}
    empurra pro lado direito, onde os botões que o abrem já ficam (o cabeçalho
    usa justify-content:space-between). */
 #scr-timeinsights .ti-emoji-picker-titulo{margin-left:auto;margin-top:-2px;margin-bottom:14px}
+/* (·324) chips de reação — mesmos nos dois lugares (mensagem principal e
+   comentário), pela função central tiReacoesHtml(). */
+#scr-timeinsights .ti-reacoes{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+#scr-timeinsights .ti-reac-chip{display:inline-flex;align-items:center;gap:3px;
+  background:rgba(255,255,255,.05);border:1px solid #243849;border-radius:20px;
+  padding:2px 8px;font-size:.82rem;color:#cfe0f0}
+#scr-timeinsights .ti-reac-chip.minha{border-color:#F5D06B;background:rgba(245,208,107,.14)}
+body:not(.dark) #scr-timeinsights .ti-reac-chip{background:#fff;border-color:#dfe7ec;color:#15252F}
+body:not(.dark) #scr-timeinsights .ti-reac-chip.minha{background:#fff7e0;border-color:#F5D06B}
 #scr-timeinsights .ti-cit{color:#8CA3B3;font-size:.74rem;font-style:italic;border-left:2px solid #3d5b72;padding-left:8px;margin-bottom:7px}
 #scr-timeinsights .ti-cit-resp{display:flex;align-items:center;gap:9px;font-style:normal;margin-bottom:8px}
 #scr-timeinsights .ti-comp{background:rgba(255,255,255,.03);border:1px solid #243849;border-radius:12px;padding:13px;margin-bottom:22px}
@@ -24156,6 +24197,13 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       out.tit=meta.tit; out.del=meta.del||0; out.mts=Math.max(x.mts||0,y.mts||0);
       out.cats=Array.isArray(meta.cats)?meta.cats:[];
       out.catsTs=(meta.catsTs&&typeof meta.catsTs==='object')?meta.catsTs:{};
+      /* (·324) reação da mensagem PRINCIPAL do feedback — mesmo padrão de
+         cats/catsTs logo acima (vem do lado "meta", quem tem o mts mais
+         novo). tiAplicarReacao sempre bumpa o mts do alvo ao reagir, então
+         a reação recém-feita tende a ser o lado "meta" na sincronização
+         seguinte. */
+      out.reac=(meta.reac&&typeof meta.reac==='object')?meta.reac:{};
+      out.reacTs=(meta.reacTs&&typeof meta.reacTs==='object')?meta.reacTs:{};
       var mx=(x.msgs&&typeof x.msgs==='object')?x.msgs:{}, my=(y.msgs&&typeof y.msgs==='object')?y.msgs:{};
       var msgs={}, mk={};
       Object.keys(mx).forEach(function(k){mk[k]=1;}); Object.keys(my).forEach(function(k){mk[k]=1;});
@@ -24257,7 +24305,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
   function tiNovoFeedback(pessoa, tit){
     tit=(tit||'').trim(); if(!tit || !tiPodeVer()) return '';
     var S=tiStore(), agora=Date.now(), id=tiId('tif');
-    S.fb[id]={ id:id, pessoa:pessoa, tit:tit.slice(0,180), cats:[], catsTs:{},
+    S.fb[id]={ id:id, pessoa:pessoa, tit:tit.slice(0,180), cats:[], catsTs:{}, reac:{}, reacTs:{},
                autor:tiNome()||'—', autorU:tiUsuario(), ts:agora, mts:agora, del:0, msgs:{} };
     S.lido[tiChaveLido(id)]=agora;
     tiSalvar();
@@ -24270,7 +24318,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     if(!c.msgs || typeof c.msgs!=='object') c.msgs={};
     var agora=Date.now(), mid=tiId('tim');
     c.msgs[mid]={ id:mid, txt:txt.slice(0,4000), autor:tiNome()||'—', autorU:tiUsuario(),
-                  ts:agora, mts:agora, del:0, resp:respId||'' };
+                  ts:agora, mts:agora, del:0, resp:respId||'', reac:{}, reacTs:{} };
     S.lido[tiChaveLido(id)]=agora;                 // quem escreve já leu
     tiSalvar();
   }
@@ -24296,6 +24344,59 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     if(i>=0){ c.cats.splice(i,1); delete c.catsTs[cod]; }
     else { c.cats.push(cod); c.catsTs[cod]=agora; }
     c.mts=agora; tiSalvar();
+  }
+  /* (·324) CORREÇÃO DE MODELO — escolher um emoji vira REAÇÃO NA PRÓPRIA
+     MENSAGEM (like/coração do WhatsApp), e não mais texto jogado na caixa de
+     resposta. O Nando mandou o print que provou o defeito: o emoji virava
+     rascunho no compositor e, ao publicar, nascia como um CARD NOVO na
+     conversa — exatamente o "abre em outro card" que ele reportou, e que a
+     correção de CSS do ·323 nunca poderia resolver, porque o problema não
+     era posição, era ONDE o dado ia parar. IDENTIDADE DO ALVO PELO PREFIXO
+     DO ID: feedback e mensagem já nascem com prefixos diferentes (tiId('tif')
+     e tiId('tim')) — não foi preciso criar nenhum campo novo só para
+     distinguir os dois, o dado que já existia já basta. TOGGLE, como no
+     WhatsApp de verdade: clicar no MESMO emoji que você já tinha escolhido
+     REMOVE a reação; clicar num emoji diferente TROCA. Uma reação por
+     pessoa por card — não é uma reação por pessoa por EMOJI, então reagir
+     de novo com outro emoji não acumula duas reações suas ali. */
+  function tiIdEhFeedback(id){ return typeof id==='string' && id.slice(0,3)==='tif'; }
+  function tiAplicarReacao(alvoId, emoji){
+    if(!tiPodeVer() || !alvoId || !emoji) return;
+    var u=tiUsuario(); if(!u) return;
+    var S=tiStore(), agora=Date.now(), alvo=null;
+    if(tiIdEhFeedback(alvoId)){
+      alvo=S.fb[alvoId];
+    } else {
+      Object.keys(S.fb).some(function(fid){
+        var f=S.fb[fid];
+        if(f && f.msgs && f.msgs[alvoId]){ alvo=f.msgs[alvoId]; return true; }
+        return false;
+      });
+    }
+    if(!alvo) return;
+    if(!alvo.reac || typeof alvo.reac!=='object') alvo.reac={};
+    if(!alvo.reacTs || typeof alvo.reacTs!=='object') alvo.reacTs={};
+    if(alvo.reac[u]===emoji){ delete alvo.reac[u]; delete alvo.reacTs[u]; }
+    else { alvo.reac[u]=emoji; alvo.reacTs[u]=agora; }
+    alvo.mts=agora;                 // (crítico) é o que faz o merge escolher ESTA versão
+    tiSalvar();
+  }
+  /* devolve os chips de reação já agrupados por emoji (contagem quando >1),
+     usados TANTO na mensagem principal QUANTO em cada comentário — mesma
+     função central que tiEmojiPickerHtml já é para o painel, pela mesma
+     razão: as duas áreas não podem se desencontrar de estilo no futuro. */
+  function tiReacoesHtml(obj){
+    var reac=(obj && obj.reac && typeof obj.reac==='object')?obj.reac:{};
+    var chaves=Object.keys(reac); if(!chaves.length) return '';
+    var porEmoji={};
+    chaves.forEach(function(uKey){ var em=reac[uKey]; if(em){ porEmoji[em]=(porEmoji[em]||0)+1; } });
+    var meu=tiUsuario();
+    return '<div class="ti-reacoes">'+
+      Object.keys(porEmoji).map(function(em){
+        var minha=(meu && reac[meu]===em);
+        return '<span class="ti-reac-chip'+(minha?' minha':'')+'">'+em+(porEmoji[em]>1?' '+porEmoji[em]:'')+'</span>';
+      }).join('')+
+    '</div>';
   }
 
   /* ---------- estado de tela (memória, nunca na nuvem) ---------- */
@@ -24413,9 +24514,10 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
         (citado?'<div class="ti-cit">↪ resposta a <b>'+tiEsc(citado.autor||'—')+'</b>: '+tiEsc((citado.txt||'').slice(0,90))+((citado.txt||'').length>90?'…':'')+'</div>':'')+
         '<div class="ti-msg-topo"><b>'+tiEsc(m.autor||'—')+'</b> <span class="ti-msg-data">'+tiData(m.ts)+'</span></div>'+
         '<div class="ti-msg-txt">'+tiEsc(m.txt)+'</div>'+
+        tiReacoesHtml(m)+
         '<div class="ti-msg-acoes">'+
           (u?'<button type="button" class="ti-mini" data-ti-resp="'+tiEsc(m.id)+'">↩ Responder</button>':'')+
-          (u?'<button type="button" class="ti-mini'+(pickerAberto?' on':'')+'" data-ti-emoji="'+tiEsc(m.id)+'" title="Inserir emoticon">😊</button>':'')+
+          (u?'<button type="button" class="ti-mini'+(pickerAberto?' on':'')+'" data-ti-emoji="'+tiEsc(m.id)+'" title="Reagir com emoticon">😊</button>':'')+
           ((m.autorU===u||tiSouAdmin())?'<button type="button" class="ti-mini ti-mini-del" data-ti-del="'+tiEsc(m.id)+'">🗑 Excluir</button>':'')+
           (pickerAberto?tiEmojiPickerHtml():'')+
         '</div>'+
@@ -24432,10 +24534,12 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     var pickerAbertoTitulo=(tiEmojiAberto===c.id);
     return '<div class="ti-head">'+
         '<div><h2 class="eq-title">💬 '+tiEsc(c.tit)+'</h2>'+
-        '<div class="eq-sub">Feedback de <b>'+tiEsc(c.pessoa)+'</b> · criado por '+tiEsc(c.autor||'—')+' em '+tiData(c.ts)+'</div></div>'+
+        '<div class="eq-sub">Feedback de <b>'+tiEsc(c.pessoa)+'</b> · criado por '+tiEsc(c.autor||'—')+' em '+tiData(c.ts)+'</div>'+
+        tiReacoesHtml(c)+
+        '</div>'+
         '<div class="eq-acoes">'+
           (podeApagarFb?'<button type="button" class="eq-bt perigo" id="tiDelFb">🗑 Excluir feedback</button>':'')+
-          (u?'<button type="button" class="eq-bt'+(pickerAbertoTitulo?' on':'')+'" data-ti-emoji="'+tiEsc(c.id)+'" title="Inserir emoticon">😊</button>':'')+
+          (u?'<button type="button" class="eq-bt'+(pickerAbertoTitulo?' on':'')+'" data-ti-emoji="'+tiEsc(c.id)+'" title="Reagir com emoticon">😊</button>':'')+
           '<button type="button" class="eq-bt" id="tiVoltarPessoa">← Voltar</button>'+
         '</div>'+
       '</div>'+
@@ -24553,8 +24657,13 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     }
     var pick=e.target.closest('[data-ti-emoji-pick]');
     if(pick){
-      tiRascunho=(tiRascunho||'')+pick.getAttribute('data-ti-emoji-pick');
+      /* (·324) escolher um emoji vira REAÇÃO no card que estava com o
+         seletor aberto (tiEmojiAberto guarda esse id) — não toca em
+         tiRascunho/tiTexto, então o compositor de resposta continua
+         exatamente com o que a pessoa já tinha digitado, intocado. */
+      var alvo=tiEmojiAberto;
       tiEmojiAberto='';
+      if(alvo) tiAplicarReacao(alvo, pick.getAttribute('data-ti-emoji-pick'));
       window.renderTimeInsights(); return;
     }
     var dl=e.target.closest('[data-ti-del]');
