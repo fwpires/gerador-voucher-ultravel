@@ -4179,7 +4179,27 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 324; // (·324) CORREÇÃO DE MODELO — O EMOJI VIRA REAÇÃO NA PRÓPRIA
+var UV_BUILD_NUM = 325; // (·325) REMOVER REAÇÃO CLICANDO NA PRÓPRIA CHIP. Pedido do
+// Nando junto do print confirmando que o ·324 funcionou: faltava uma forma de tirar a
+// reação sem reabrir o seletor de 32 emojis para escolher de novo o mesmo. SINTOMA: a
+// única forma de remover era clicar no botão 😊, achar o MESMO emoji que já era seu no
+// painel e clicar nele de novo (tiAplicarReacao já fazia esse toggle) — funcional, mas
+// nada óbvio, e o Nando queria clicar na própria chip. FIX: em tiReacoesHtml(), a chip
+// que já é "minha" (borda âmbar) agora nasce como <button data-ti-reac-del="ID DO
+// ALVO" data-ti-reac-emoji="MEU EMOJI">, não mais <span> — as chips dos OUTROS
+// continuam <span>, sem clique, então não dá para remover reação de ninguém além da
+// própria. Um handler novo no listener de clique (`[data-ti-reac-del]`) chama o MESMO
+// tiAplicarReacao(alvoId, emoji) que o seletor já usava — como o meu próprio reac[u]
+// já é esse emoji, o toggle interno deleta reac[u]/reacTs[u], bumpa mts do alvo (o que
+// propaga a remoção aos outros 11 PCs) e redesenha. Nenhuma função nova, nenhum campo
+// novo — só uma segunda porta de entrada para a lógica de toggle que já existia.
+// CSS: `#scr-timeinsights button.ti-reac-chip.minha` reseta font/cursor/margin que o
+// navegador aplica por padrão a <button> (a regra `.ti-reac-chip` original foi escrita
+// pensando em <span>, não cobria isso) e adiciona um hover sutil (borda/fundo âmbar
+// mais forte) só nessa chip, para sinalizar que ela é clicável — as chips dos outros
+// continuam sem cursor de ação. NÃO precisou mexer no merge nem no `reac`/`reacTs`:
+// a estrutura de dado é a mesma do ·324, só ganhou um segundo caminho de UI até ela.
+// ANTERIOR: (·324) CORREÇÃO DE MODELO — O EMOJI VIRA REAÇÃO NA PRÓPRIA
 // MENSAGEM, NÃO MAIS TEXTO NO COMPOSITOR. O Nando mandou o print que finalmente mostrou o
 // que o ·323 não podia ter resolvido: escolher um emoji inseria o caractere no RASCUNHO da
 // resposta, e ao publicar aquilo nascia como um CARD NOVO na conversa (uma mensagem cujo
@@ -19817,8 +19837,14 @@ body:not(.dark) #scr-timeinsights .ti-emoji-op:hover{background:#eef4f8}
   background:rgba(255,255,255,.05);border:1px solid #243849;border-radius:20px;
   padding:2px 8px;font-size:.82rem;color:#cfe0f0}
 #scr-timeinsights .ti-reac-chip.minha{border-color:#F5D06B;background:rgba(245,208,107,.14)}
+/* (·325) a chip "minha" agora é um <button> (clicável, remove a reação) —
+   reset dos estilos nativos de botão que a regra acima (herdada de <span>)
+   não cobre. */
+#scr-timeinsights button.ti-reac-chip.minha{font:inherit;cursor:pointer;margin:0}
+#scr-timeinsights button.ti-reac-chip.minha:hover{border-color:#e8bd52;background:rgba(245,208,107,.22)}
 body:not(.dark) #scr-timeinsights .ti-reac-chip{background:#fff;border-color:#dfe7ec;color:#15252F}
 body:not(.dark) #scr-timeinsights .ti-reac-chip.minha{background:#fff7e0;border-color:#F5D06B}
+body:not(.dark) #scr-timeinsights button.ti-reac-chip.minha:hover{background:#fdecb8}
 #scr-timeinsights .ti-cit{color:#8CA3B3;font-size:.74rem;font-style:italic;border-left:2px solid #3d5b72;padding-left:8px;margin-bottom:7px}
 #scr-timeinsights .ti-cit-resp{display:flex;align-items:center;gap:9px;font-style:normal;margin-bottom:8px}
 #scr-timeinsights .ti-comp{background:rgba(255,255,255,.03);border:1px solid #243849;border-radius:12px;padding:13px;margin-bottom:22px}
@@ -24390,10 +24416,20 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     var chaves=Object.keys(reac); if(!chaves.length) return '';
     var porEmoji={};
     chaves.forEach(function(uKey){ var em=reac[uKey]; if(em){ porEmoji[em]=(porEmoji[em]||0)+1; } });
-    var meu=tiUsuario();
+    var meu=tiUsuario(), alvoId=(obj && obj.id)||'';
     return '<div class="ti-reacoes">'+
       Object.keys(porEmoji).map(function(em){
         var minha=(meu && reac[meu]===em);
+        /* (·325) a chip da MINHA reação vira botão clicável — clicar nela
+           remove, mesmo caminho de tiAplicarReacao que já faz o toggle
+           (reagir de novo com o MESMO emoji remove). As chips dos outros
+           continuam <span>, sem ação — só a própria reação é removível
+           por aqui. */
+        if(minha && alvoId){
+          return '<button type="button" class="ti-reac-chip minha" data-ti-reac-del="'+tiEsc(alvoId)+'" '+
+            'data-ti-reac-emoji="'+tiEsc(em)+'" title="Clique para remover sua reação">'+
+            em+(porEmoji[em]>1?' '+porEmoji[em]:'')+'</button>';
+        }
         return '<span class="ti-reac-chip'+(minha?' minha':'')+'">'+em+(porEmoji[em]>1?' '+porEmoji[em]:'')+'</span>';
       }).join('')+
     '</div>';
@@ -24644,6 +24680,15 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
             tiEmojiAberto='';
             window.renderTimeInsights(); return; }
     if(e.target.closest('#tiRespCancel')){ tiRespondendo=''; window.renderTimeInsights(); return; }
+    /* (·325) clicar na chip da MINHA reação remove — reusa tiAplicarReacao
+       (mesmo emoji que já era meu = toggle remove), sem precisar reabrir o
+       seletor. Só existe data-ti-reac-del na chip "minha" (ver tiReacoesHtml),
+       então nunca dispara ao clicar na reação de outra pessoa. */
+    var rcDel=e.target.closest('[data-ti-reac-del]');
+    if(rcDel){
+      tiAplicarReacao(rcDel.getAttribute('data-ti-reac-del'), rcDel.getAttribute('data-ti-reac-emoji'));
+      window.renderTimeInsights(); return;
+    }
     /* (·321) TAREFA 2 — seletor de emoticons. O botão só ABRE/FECHA o painel
        (toggle: clicar de novo no mesmo card fecha); guarda o rascunho atual
        antes de reabrir a tela, pelo mesmo motivo do "Responder" acima — sem
