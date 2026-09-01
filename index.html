@@ -4179,7 +4179,48 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 322; // (·322) CORREÇÃO DO SELETOR DE EMOTICONS DO ·321 — DUAS FALHAS
+var UV_BUILD_NUM = 323; // (·323) A CAUSA-RAIZ REAL DO "EMOJI ABRINDO CARD NOVO" —
+// ERA CSS, NÃO ESTRUTURA. O Nando mandou print de novo mostrando o mesmo sintoma mesmo
+// depois do ·322 (que já tinha movido o painel para DENTRO da linha de botões). Reproduzi
+// em Chromium REAL e MEDI, em vez de deduzir: com o seletor de 32 emojis aberto, os botões
+// "Responder"/"Excluir" da linha viravam BARRAS VERTICAIS esticadas até a altura do painel
+// inteiro (180px), ao lado de um bloco à parte — exatamente a leitura de "abriu outra
+// coisa". CAUSA: `.ti-msg-acoes` é `display:flex` mas NUNCA declarou `align-items`, e o
+// padrão do CSS para isso é `stretch` — então, ao virar o painel um ITEM da MESMA linha
+// flex que os botões (decisão do ·322, para resolver o problema anterior de "bloco solto
+// abaixo"), o navegador esticou os botões pequenos até a altura do item mais alto da MESMA
+// linha, que agora era o painel. CORREÇÃO: `flex-basis:100%` em `.ti-emoji-picker` — o
+// painel passa a ocupar a linha INTEIRA sozinho dentro do mesmo flex-wrap, forçando quebra
+// própria; assim "stretch" só compara os BOTÕES entre si na primeira linha (alturas
+// parecidas, sem distorção) e o painel forma a segunda linha sozinho, esticando só a si
+// mesmo. Reforcei com uma segunda camada — `align-items:flex-start` direto em
+// `.ti-msg-acoes` — para essa linha nunca mais esticar nada que for adicionado ali no
+// futuro, mesmo sem o flex-basis. SEGUNDO PROBLEMA ENCONTRADO NA MESMA INVESTIGAÇÃO: o
+// painel da MENSAGEM PRINCIPAL (dentro de `.eq-acoes`, que usa
+// `justify-content:space-between`) tinha um bug DIFERENTE — como item largo (até 280px)
+// dividindo espaço com botões estreitos numa linha space-between, o navegador podia
+// desenhar o painel ANTES dos botões na ordem visual (painel em cima, botões embaixo),
+// invertido — medido e fotografado, não só suposto. CORREÇÃO: o painel do título SAIU de
+// dentro de `.eq-acoes` e virou um bloco IRMÃO, logo depois de `.ti-head` fechar (antes do
+// card de etiquetas) — evita de vez a mistura de um item largo dentro de uma linha
+// space-between, com `margin-left:auto` para ele nascer alinhado à direita, do mesmo lado
+// dos botões que o abrem. LIÇÃO REGISTRADA (a mesma do ·264/etc. deste arquivo, aplicada a
+// flexbox): "dentro do mesmo bloco" não significa "item da mesma linha flex" — quando o
+// item novo tem tamanho muito diferente dos vizinhos, colocá-lo como IRMÃO logo depois do
+// bloco é mais previsível do que forçá-lo para dentro de uma linha flex já ajustada para
+// outra coisa. NADA MAIS MUDOU: os 32 emojis, o toggle, a inserção no compositor compar-
+// tilhado, a fonte única tiEmojiPickerHtml() e o estado 100% de tela continuam idênticos ao
+// ·322 — só a geometria CSS foi corrigida, em dois pontos. VALIDAÇÃO: reproduzi o cenário
+// EXATO do print (mensagem com "Responder"/emoji/"Excluir", seletor aberto) em Chromium
+// real e tirei screenshot ANTES (confirmando visualmente os botões esticados, batendo com
+// o relato) e DEPOIS (botões normais, painel colado embaixo, dentro do mesmo card) — e
+// reescrevi t_insightsemoji.mjs (7 checagens) para PROVAR a causa-raiz diretamente: mede a
+// ALTURA real do botão "Responder" com o seletor aberto (tem que continuar pequena, ~24px,
+// nunca perto da altura do painel) e confirma que o painel do título nasce como IRMÃO de
+// `.ti-head`, não mais dentro de `.eq-acoes`. Reexecutei t_insightsbadge.mjs (12),
+// t_insights.mjs (22) e t_armadilha.mjs (11) sem regressão, e t_tresbugs.mjs fechou 34/34.
+// node --check limpo nos 20 blocos. NÃO REQUER DEPLOY DO WORKER — é CSS puro. ANTERIOR:
+// (·322) CORREÇÃO DO SELETOR DE EMOTICONS DO ·321 — DUAS FALHAS
 // REAIS QUE O NANDO ACHOU (print da tela real, marcações em amarelo). CORREÇÃO 1 — O
 // BOTÃO SÓ EXISTIA NOS COMENTÁRIOS: a mensagem PRINCIPAL do feedback (o texto que abre o
 // tópico, no topo da página) não tinha o botão de emoji — o ·321 só colocou nas respostas
@@ -19706,20 +19747,37 @@ function excluirNotaUI(id){
 #scr-timeinsights .ti-msg-topo{color:#E6EEF3;font-size:.85rem}
 #scr-timeinsights .ti-msg-data{color:#7d93a5;font-size:.73rem;font-weight:400}
 #scr-timeinsights .ti-msg-txt{color:#cfe0f0;font-size:.88rem;line-height:1.5;margin-top:5px;white-space:pre-wrap;word-break:break-word}
-#scr-timeinsights .ti-msg-acoes{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+#scr-timeinsights .ti-msg-acoes{display:flex;flex-wrap:wrap;align-items:flex-start;gap:7px;margin-top:9px}
 #scr-timeinsights .ti-mini{cursor:pointer;font-family:inherit;font-size:.72rem;font-weight:700;border-radius:8px;padding:4px 10px;
   background:rgba(255,255,255,.04);border:1px solid #243849;color:#8CA3B3}
 #scr-timeinsights .ti-mini:hover{color:#cfe0f0;border-color:#3d5b72}
 #scr-timeinsights .ti-mini-del:hover{color:#ff9a9a;border-color:rgba(255,82,82,.5)}
 #scr-timeinsights .ti-mini.on{color:#F5D06B;border-color:#F5D06B;background:rgba(245,208,107,.12)}
-/* (·321) TAREFA 2 — painel do seletor de emoticons, aberto por card (mensagem). */
-#scr-timeinsights .ti-emoji-picker{display:flex;flex-wrap:wrap;gap:4px;margin-top:9px;padding:9px;
+/* (·323) A CAUSA REAL DO "CARD NOVO": .ti-msg-acoes é flex mas nunca declarou
+   align-items — o padrão do CSS é "stretch", então quando o painel virou
+   ITEM da mesma linha flex dos botões (·322), o navegador ESTICOU
+   "Responder"/emoji/"Excluir" até a altura do painel inteiro (que é alto,
+   por ter várias linhas de emoji), transformando três botões pequenos em
+   três barras verticais ao lado de um bloco à parte — exatamente a leitura
+   de "abriu outra coisa" que o Nando reportou de novo, com print mostrando
+   isso. flex-basis:100% aqui é o que resolve na raiz: o painel passa a
+   ocupar a linha INTEIRA sozinho (força quebra própria dentro do mesmo
+   flex-wrap), então "stretch" só compara os botões ENTRE SI na primeira
+   linha (altura parecida, sem distorção) e o painel forma a SEGUNDA linha
+   sozinho, esticando só a si mesmo. Mesma classe usada nos dois lugares
+   (mensagem principal e comentário) — corrige as duas de uma vez. */
+#scr-timeinsights .ti-emoji-picker{display:flex;flex-wrap:wrap;flex-basis:100%;gap:4px;margin-top:9px;padding:9px;
   background:rgba(255,255,255,.03);border:1px solid #243849;border-radius:10px;max-width:280px}
 #scr-timeinsights .ti-emoji-op{cursor:pointer;font-family:inherit;font-size:1.05rem;line-height:1;padding:5px 6px;
   background:transparent;border:1px solid transparent;border-radius:8px}
 #scr-timeinsights .ti-emoji-op:hover{background:rgba(255,255,255,.08);border-color:#3d5b72}
 body:not(.dark) #scr-timeinsights .ti-emoji-picker{background:#fff;border-color:#dfe7ec}
 body:not(.dark) #scr-timeinsights .ti-emoji-op:hover{background:#eef4f8}
+/* (·323) o painel do TÍTULO vive FORA de .eq-acoes (ver comentário no JS) —
+   como bloco solto ele nasceria colado à esquerda; margin-left:auto o
+   empurra pro lado direito, onde os botões que o abrem já ficam (o cabeçalho
+   usa justify-content:space-between). */
+#scr-timeinsights .ti-emoji-picker-titulo{margin-left:auto;margin-top:-2px;margin-bottom:14px}
 #scr-timeinsights .ti-cit{color:#8CA3B3;font-size:.74rem;font-style:italic;border-left:2px solid #3d5b72;padding-left:8px;margin-bottom:7px}
 #scr-timeinsights .ti-cit-resp{display:flex;align-items:center;gap:9px;font-style:normal;margin-bottom:8px}
 #scr-timeinsights .ti-comp{background:rgba(255,255,255,.03);border:1px solid #243849;border-radius:12px;padding:13px;margin-bottom:22px}
@@ -24379,9 +24437,20 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
           (podeApagarFb?'<button type="button" class="eq-bt perigo" id="tiDelFb">🗑 Excluir feedback</button>':'')+
           (u?'<button type="button" class="eq-bt'+(pickerAbertoTitulo?' on':'')+'" data-ti-emoji="'+tiEsc(c.id)+'" title="Inserir emoticon">😊</button>':'')+
           '<button type="button" class="eq-bt" id="tiVoltarPessoa">← Voltar</button>'+
-          (pickerAbertoTitulo?tiEmojiPickerHtml():'')+
         '</div>'+
       '</div>'+
+      /* (·323) o painel do TÍTULO saiu de DENTRO de .eq-acoes. Lá ele virava
+         item da MESMA linha flex que tem justify-content:space-between —
+         com um item largo (o painel, até 280px) entrando nessa conta, a
+         ordem visual do wrap ficava imprevisível (o painel chegou a
+         desenhar ACIMA dos botões, invertido). Como bloco PRÓPRIO logo
+         abaixo do cabeçalho, ele sempre aparece exatamente onde deveria —
+         colado ao botão que o abriu, sem depender de como o navegador
+         resolve o wrap de uma linha space-between com um item bem mais
+         largo que os outros. */
+      (pickerAbertoTitulo?('<div class="ti-emoji-picker ti-emoji-picker-titulo">'+
+        TI_EMOJIS.map(function(em){ return '<button type="button" class="ti-emoji-op" data-ti-emoji-pick="'+tiEsc(em)+'">'+em+'</button>'; }).join('')+
+      '</div>'):'')+
       '<div class="ti-fb-card" style="border-color:'+tiCor(c.pessoa)+'">'+tiTagsHtml(c)+seletor+'</div>'+
       '<div class="ti-msgs">'+linhas+'</div>'+
       compositor+
