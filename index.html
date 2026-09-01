@@ -4179,7 +4179,19 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 325; // (·325) REMOVER REAÇÃO CLICANDO NA PRÓPRIA CHIP. Pedido do
+var UV_BUILD_NUM = 326; // (·326) SEM EMOJI NO TÍTULO DO FEEDBACK — regra nova do Nando:
+// título de bug/assunto não leva emoji, emoji fica só nos cards/tópicos ABAIXO do título
+// (que já era o padrão de qualquer forma). Único lugar da base onde um emoji nascia
+// GRUDADO no título de um card aberto (h2.eq-title) era o 💬 fixo antes de `c.tit` na
+// tela do feedback do Insights (tiHtmlThread) — removido, o `<h2>` agora mostra só o
+// texto do assunto. NÃO mexi em mais nada: os cabeçalhos de TELA (📣 "Ações Comerciais",
+// 🧠 "Insights", 👥 "Equipe" — rótulos fixos da navegação, não "título de bug/assunto")
+// continuam com ícone, exatamente como o Nando pediu pra não alterar. O título das
+// conversas de Ações Comerciais (`ac-thread-tit`) já nascia sem emoji — nada a fazer lá.
+// As linhas de META abaixo do título (🗓 data · ✍️ autor · 💬 nº de mensagens, tanto na
+// lista de feedbacks quanto no card do Espelho do admin) continuam com emoji, porque são
+// exatamente os "cards/tópicos abaixo do título" que a regra manda preservar.
+// ANTERIOR: (·325) REMOVER REAÇÃO CLICANDO NA PRÓPRIA CHIP. Pedido do
 // Nando junto do print confirmando que o ·324 funcionou: faltava uma forma de tirar a
 // reação sem reabrir o seletor de 32 emojis para escolher de novo o mesmo. SINTOMA: a
 // única forma de remover era clicar no botão 😊, achar o MESMO emoji que já era seu no
@@ -24569,7 +24581,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
 
     var pickerAbertoTitulo=(tiEmojiAberto===c.id);
     return '<div class="ti-head">'+
-        '<div><h2 class="eq-title">💬 '+tiEsc(c.tit)+'</h2>'+
+        '<div><h2 class="eq-title">'+tiEsc(c.tit)+'</h2>'+
         '<div class="eq-sub">Feedback de <b>'+tiEsc(c.pessoa)+'</b> · criado por '+tiEsc(c.autor||'—')+' em '+tiData(c.ts)+'</div>'+
         tiReacoesHtml(c)+
         '</div>'+
