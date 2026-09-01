@@ -4179,7 +4179,39 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 321; // (·321) DUAS FUNCIONALIDADES NA PASTA INSIGHTS, PEDIDAS PELO
+var UV_BUILD_NUM = 322; // (·322) CORREÇÃO DO SELETOR DE EMOTICONS DO ·321 — DUAS FALHAS
+// REAIS QUE O NANDO ACHOU (print da tela real, marcações em amarelo). CORREÇÃO 1 — O
+// BOTÃO SÓ EXISTIA NOS COMENTÁRIOS: a mensagem PRINCIPAL do feedback (o texto que abre o
+// tópico, no topo da página) não tinha o botão de emoji — o ·321 só colocou nas respostas
+// abaixo. Agora existe UM botão a mais, dentro do MESMO bloco de ações do topo (ao lado de
+// "Excluir feedback" e "Voltar", com o estilo eq-bt que já é o padrão daquela linha — não
+// inventei botão novo), com o MESMO comportamento: clique alterna o seletor, escolher um
+// emoji insere no compositor da resposta e fecha. CORREÇÃO 2 — O SELETOR PARECIA UM
+// "CARD NOVO": no ·321 o painel nascia DEPOIS de fechar o `<div>` da linha de botões — ainda
+// dentro do card da mensagem, mas como um bloco PRÓPRIO logo abaixo dela, com a MESMA
+// borda/fundo do card em volta. Visualmente isso lê como "abriu outra coisa", que foi
+// exatamente a leitura do Nando, mesmo o painel nunca tendo sido modal (sempre static,
+// nunca fixed/absolute, nunca com overlay). CORREÇÃO: o painel passou a nascer DENTRO da
+// PRÓPRIA linha de botões (.ti-msg-acoes ou .eq-acoes, ambas flex+wrap) — é o MESMO
+// container do botão que foi clicado, então ele quebra linha e aparece colado embaixo do
+// botão, dentro do espaço que a mensagem já reserva para as ações, e não como um adendo
+// visualmente separado. FONTE ÚNICA DO PAINEL: tiEmojiPickerHtml() virou função própria,
+// chamada nos DOIS lugares (mensagem principal e comentário) — pedido explícito de
+// "replicar o mesmo padrão de emoji em todas as áreas", e com uma função só as duas telas
+// não têm como se desencontrar em estilo ou em opções no futuro (mesma lição já registrada
+// várias vezes neste arquivo: ·286, ·294, ·296, ·298, ·302, ·303). NADA MAIS MUDOU: o
+// conjunto de 32 emoticons, o comportamento de toggle (clicar de novo fecha), a inserção no
+// MESMO compositor compartilhado e o estado 100% de tela (tiEmojiAberto, nunca vai pra
+// nuvem) continuam idênticos ao ·321 — layout, permissões e as demais funções do card
+// (Responder, Excluir, etiquetas, badge de notificação) ficaram intocados, como pedido.
+// VALIDAÇÃO: t_insightsemoji.mjs (novo, 6 checagens em Chromium real) — botão de emoji
+// presente na mensagem principal; o seletor dela abre DENTRO do mesmo bloco de ações do
+// botão; escolher insere no compositor e fecha; o seletor do COMENTÁRIO também abre DENTRO
+// da própria .ti-msg-acoes, nunca como bloco separado abaixo; nenhum elemento overlay/modal
+// existe em nenhum dos dois casos (position sempre "static"); zero erro de JS. Reexecutei
+// t_insightsbadge.mjs (12), t_insights.mjs (22) e t_armadilha.mjs (11) sem regressão — e
+// t_tresbugs.mjs fechou 34/34 fora da janela de plantão. node --check limpo nos 20 blocos.
+// NÃO REQUER DEPLOY DO WORKER. ANTERIOR: (·321) DUAS FUNCIONALIDADES NA PASTA INSIGHTS, PEDIDAS PELO
 // Nando. TAREFA 1 — badge de notificação no menu: ícone vermelho ao lado de "🧠 Insights"
 // no menu lateral, disparado por CARD NOVO ou RESPOSTA NOVA em qualquer feedback da pasta,
 // visível para TODOS os usuários com acesso (não é um contador global — cada pessoa vê a
@@ -24219,6 +24251,15 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
   var tiEmojiAberto='';
   var TI_EMOJIS=['😀','😁','😂','🤣','😊','🙂','😉','😍','😘','😜','🤔','😐','😢','😭','😡','😱',
                  '👍','👎','👏','🙏','💪','🙌','🤝','✌️','❤️','💔','🔥','⭐','✅','❌','🎉','🥳'];
+  /* (·322) FONTE ÚNICA do painel do seletor — usada tanto na mensagem
+     principal quanto em cada comentário/resposta, para as duas áreas nunca
+     poderem se desencontrar em estilo ou em opções (pedido explícito do
+     Nando: "replicar o mesmo padrão de emoji em todas as áreas"). */
+  function tiEmojiPickerHtml(){
+    return '<div class="ti-emoji-picker">'+
+      TI_EMOJIS.map(function(em){ return '<button type="button" class="ti-emoji-op" data-ti-emoji-pick="'+tiEsc(em)+'">'+em+'</button>'; }).join('')+
+    '</div>';
+  }
 
   /* ---------- painel fixo das categorias ---------- */
   function tiPainelCats(){
@@ -24318,10 +24359,8 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
           (u?'<button type="button" class="ti-mini" data-ti-resp="'+tiEsc(m.id)+'">↩ Responder</button>':'')+
           (u?'<button type="button" class="ti-mini'+(pickerAberto?' on':'')+'" data-ti-emoji="'+tiEsc(m.id)+'" title="Inserir emoticon">😊</button>':'')+
           ((m.autorU===u||tiSouAdmin())?'<button type="button" class="ti-mini ti-mini-del" data-ti-del="'+tiEsc(m.id)+'">🗑 Excluir</button>':'')+
+          (pickerAberto?tiEmojiPickerHtml():'')+
         '</div>'+
-        (pickerAberto?('<div class="ti-emoji-picker">'+
-          TI_EMOJIS.map(function(em){ return '<button type="button" class="ti-emoji-op" data-ti-emoji-pick="'+tiEsc(em)+'">'+em+'</button>'; }).join('')+
-        '</div>'):'')+
       '</div>';
     }).join('') : '<div class="cr-vazio">Nenhuma mensagem neste feedback ainda.</div>';
 
@@ -24332,12 +24371,15 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
         '<div class="ti-msg-acoes"><button type="button" class="eq-bt primario" id="tiPostar">Publicar</button></div>'+
       '</div>' : '';
 
+    var pickerAbertoTitulo=(tiEmojiAberto===c.id);
     return '<div class="ti-head">'+
         '<div><h2 class="eq-title">💬 '+tiEsc(c.tit)+'</h2>'+
         '<div class="eq-sub">Feedback de <b>'+tiEsc(c.pessoa)+'</b> · criado por '+tiEsc(c.autor||'—')+' em '+tiData(c.ts)+'</div></div>'+
         '<div class="eq-acoes">'+
           (podeApagarFb?'<button type="button" class="eq-bt perigo" id="tiDelFb">🗑 Excluir feedback</button>':'')+
+          (u?'<button type="button" class="eq-bt'+(pickerAbertoTitulo?' on':'')+'" data-ti-emoji="'+tiEsc(c.id)+'" title="Inserir emoticon">😊</button>':'')+
           '<button type="button" class="eq-bt" id="tiVoltarPessoa">← Voltar</button>'+
+          (pickerAbertoTitulo?tiEmojiPickerHtml():'')+
         '</div>'+
       '</div>'+
       '<div class="ti-fb-card" style="border-color:'+tiCor(c.pessoa)+'">'+tiTagsHtml(c)+seletor+'</div>'+
