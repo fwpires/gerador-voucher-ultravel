@@ -4179,7 +4179,41 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 328; // (·328) O ·327 AINDA NÃO ERA SUFICIENTE — O BOTÃO 😊 TINHA IDO
+var UV_BUILD_NUM = 329; // (·329) NOME DO HOTEL "ROYAL PALM TOWER" UNIFICADO — este build
+// é do GERADOR DE VOUCHER, não do Insights. Pedido do Nando: a leitura por IA lê o mesmo
+// hotel do WeCann Summit e preenche o voucher com nomes diferentes — "Royal Palm Tower
+// Campinas" numa vez, "Royal Palm Tower Anhanguera" noutra, e por aí vai — e isso quebra
+// qualquer contagem/agrupamento por hotel. Pedido tinha DUAS metades: (1) vouchers JÁ
+// SALVOS com essa divergência precisam virar todos "Royal Palm Tower Anhanguera"; (2) a
+// IA precisa, DAQUI PRA FRENTE, preencher SEMPRE só esse nome, nunca outra variação.
+// FIX, PARTE 1 (futuro): `WEC_NOME_CANONICO_TOWER` + `wecNomeCanonico()` (perto de
+// `wecEhTower`, ~linha 5475) — uma função só decide o nome final, reaproveitando a MESMA
+// âncora que `wecEhTower` já usa pra reconhecer esse hotel (mesma regra do estoque, da
+// ocupação e da contagem de hóspedes desde o ·295/·296 — "dado derivado nunca duplicado").
+// Em `aplicarIA()`, todo serviço tipo "hotel" agora passa `data.hotel` por
+// `wecNomeCanonico()` antes de `addService()` — não importa que variação a IA devolveu, o
+// campo nasce sempre unificado. REFORÇO NO PROMPT (worker.js, `construirPrompt()`): pedi
+// explicitamente pra IA já devolver "Royal Palm Tower Anhanguera" quando reconhecer esse
+// hotel — defesa em profundidade, mas quem GARANTE o nome final é o passo determinístico
+// em `aplicarIA()`, não a instrução por si só (a IA pode errar; a função não).
+// FIX, PARTE 2 (vouchers antigos): `vouchersHotelTowerDivergentes()` acha, entre os
+// vouchers já salvos, todo SERVIÇO de hotel com `wecEhTower(hotel)` verdadeiro mas o texto
+// diferente do canônico. `corrigirHoteisTowerDivergentes()` (admin-only — reescreve dados
+// de outras pessoas) pede confirmação, corrige em memória e salva cada voucher afetado
+// com `salvarVoucherEditado()` — a MESMA porta de edição que o resto do Hub já usa,
+// nenhuma escrita nova direto no KV. A tela: o painel "vouchers WeCann sem etiqueta"
+// (`renderAvisoWecannSemEtiqueta`, o ícone roxo ao lado de "Vouchers salvos") ganhou uma
+// TERCEIRA seção — lista os vouchers divergentes e, só para admin, o botão "Unificar
+// todos agora". Reaproveitei o painel e as classes CSS já existentes (`.wse-*`, `.btn
+// btn-primary`) — nenhuma classe CSS nova, regra do Nando.
+// VALIDAÇÃO: sem a suíte t_*.mjs (não veio anexada nesta sessão nova — ver nota na seção
+// 2 do handoff), escrevi um teste isolado com o código REAL extraído do arquivo (não
+// reescrito) cobrindo: as variações reais citadas pelo Nando unificando certo, outros
+// hotéis (Contemporâneo, Plaza) intocados, detecção certeira de quais vouchers/serviços
+// mudam, o fluxo completo de correção (salva só quem precisa, não mexe em quem já estava
+// certo, não mexe em outros campos do mesmo voucher), cancelar a confirmação não muda
+// nada, e "nada para corrigir" nem pergunta nem salva. 22 checagens, todas verdes.
+// ANTERIOR: (·328) O ·327 AINDA NÃO ERA SUFICIENTE — O BOTÃO 😊 TINHA IDO
 // PRO CARD DE ETIQUETAS, E O NANDO CIRCULOU DE NOVO NO PRINT. Pedido dele foi literal
 // desta vez: "remover somente o emoji das etiquetas, o restante tá tudo como deve estar,
 // não mexa em nada" — perguntei antes (se o botão devia ganhar uma linha própria nova ou
@@ -5478,6 +5512,23 @@ const wecEhTower = n=>{ const s=_normE(n||'');
 const wecEhContemporaneo = n=>_normE(n||'').includes('contemporaneo');
 const wecEhPlaza = n=>{ const s=_normE(n||'');
   return s.includes('plaza') && (s.includes('royal palm') || s.includes('campinas')); };
+
+/* (·329) NOME ÚNICO DO TOWER — pedido do Nando: a IA lia o mesmo hotel e
+   preenchia o voucher com variações diferentes ("Royal Palm Tower Campinas",
+   "Royal Palm Tower Anhanguera", etc.) — mesmo hotel, nomes diferentes,
+   quebrando qualquer contagem/agrupamento por hotel. DADO DERIVADO, NUNCA
+   DUPLICADO (regra da seção 3 do handoff): em vez de espalhar "Royal Palm
+   Tower Anhanguera" pelo código em mais de um lugar, existe UMA constante e
+   UMA função — reutilizam o MESMO `wecEhTower` que já decide se um nome
+   qualquer É esse hotel (a mesma âncora usada pela ocupação, pelo estoque e
+   pela contagem de hóspedes desde o ·295/·296). Usada em dois lugares: (1)
+   `aplicarIA()`, para toda leitura NOVA já nascer com o nome certo; (2) o
+   corretor de vouchers já salvos, em `renderAvisoWecannSemEtiqueta()` /
+   `corrigirHoteisTowerDivergentes()` — ver ambos mais abaixo. */
+const WEC_NOME_CANONICO_TOWER = 'Royal Palm Tower Anhanguera';
+function wecNomeCanonico(nomeHotel){
+  return wecEhTower(nomeHotel) ? WEC_NOME_CANONICO_TOWER : nomeHotel;
+}
 
 const HOTEIS_ESTOQUE = [
   {
@@ -8833,7 +8884,15 @@ function renderAvisoWecannSemEtiqueta(list){
       if(g) ambiguos.push({ num:v.num, cliente:(v.cliente||'').trim(), hotel:hn, palavra:g });
     });
   });
-  if(!faltantes.length && !ambiguos.length){ el.innerHTML=''; el.style.display='none'; _wecannSemEtiqUltimaAssinatura=''; return; }
+  // (·329) TOWER COM NOME DIVERGENTE — mesmo hotel gravado com variações
+  // diferentes ("Royal Palm Tower Campinas", só "Royal Palm Tower Anhanguera"
+  // em outro, etc.). Detector reaproveitado: vouchersHotelTowerDivergentes()
+  // é a MESMA função que corrigirHoteisTowerDivergentes() usa pra corrigir —
+  // um lugar só decide "o que está divergente", nunca dois critérios soltos.
+  const divergentesRaw=vouchersHotelTowerDivergentes(list);
+  const divergentesNums=new Set(); const divergentes=[];
+  divergentesRaw.forEach(d=>{ if(!divergentesNums.has(d.v.num)){ divergentesNums.add(d.v.num); divergentes.push({ num:d.v.num, cliente:(d.v.cliente||'').trim(), hotel:d.hotel }); } });
+  if(!faltantes.length && !ambiguos.length && !divergentes.length){ el.innerHTML=''; el.style.display='none'; _wecannSemEtiqUltimaAssinatura=''; return; }
   const e=esc, qtd=faltantes.length;
   const itens=faltantes.map(v=>{
     const serv=(v.services||[]).find(sv=>sv.type==='hotel' && HOTEIS_OCUPACAO.some(h=>h.match(sv.data&&sv.data.hotel)));
@@ -8841,11 +8900,12 @@ function renderAvisoWecannSemEtiqueta(list){
     const nome=(v.cliente||'').trim() || ((serv&&serv.data&&serv.data.hospedes&&serv.data.hospedes[0])||'—');
     return `<li><b>#${e(v.num||'—')}</b> ${e(nome)} <span class="wse-hotel">${e(hotel)}</span></li>`;
   }).join('');
+  const souAdmin=(typeof uvAuthPerfil==='function' && uvAuthPerfil()==='admin');
   el.style.display='inline-flex';
   el.innerHTML=`
     <button type="button" class="ab-btn wse-btn" id="wseBtn" title="Vouchers com hotel WeCann mas sem a etiqueta 'WeCann' — clique para ver">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <span class="wse-badge">${qtd+ambiguos.length}</span>
+      <span class="wse-badge">${qtd+ambiguos.length+divergentes.length}</span>
     </button>
     <div class="ab-pop wse-pop" id="wsePop">
       ${qtd?`<b>${qtd} voucher(s) com hotel WeCann mas SEM a etiqueta "WeCann"</b>
@@ -8854,13 +8914,58 @@ function renderAvisoWecannSemEtiqueta(list){
       ${ambiguos.length?`<b class="wse-amb-tit">${ambiguos.length} hotel(is) com "Plaza"/"Tower" que NÃO são do WeCann</b>
       <span class="wse-dica">Ficam fora da contagem do evento. Se algum for do WeCann, escreva o nome completo (ex.: "Royal Palm Plaza") para voltar a contar:</span>
       <ul class="wse-lista">${ambiguos.map(a=>`<li><b>#${e(a.num||'—')}</b> ${e(a.cliente||'—')} <span class="wse-hotel">${e(a.hotel)}</span></li>`).join('')}</ul>`:''}
+      ${divergentes.length?`<b class="wse-amb-tit">${divergentes.length} voucher(s) com "${e(WEC_NOME_CANONICO_TOWER)}" grafado diferente</b>
+      <span class="wse-dica">Mesmo hotel, nomes diferentes — atrapalha a contagem por hotel. Nome único: "${e(WEC_NOME_CANONICO_TOWER)}".</span>
+      <ul class="wse-lista">${divergentes.map(d=>`<li><b>#${e(d.num||'—')}</b> ${e(d.cliente||'—')} <span class="wse-hotel">${e(d.hotel)}</span></li>`).join('')}</ul>
+      ${souAdmin?`<button type="button" class="btn btn-primary wse-fix-btn" id="wseFixTowerBtn">Unificar todos agora (${divergentes.length})</button>`:''}`:''}
     </div>`;
-  el.onclick=(ev)=>{ if(ev.target.closest('#wseBtn')){ const p=el.querySelector('#wsePop'); if(p) p.classList.toggle('show'); } };
-  const assinatura=faltantes.map(v=>v.num).join(',');
+  el.onclick=(ev)=>{
+    if(ev.target.closest('#wseBtn')){ const p=el.querySelector('#wsePop'); if(p) p.classList.toggle('show'); return; }
+    if(ev.target.closest('#wseFixTowerBtn')){ corrigirHoteisTowerDivergentes(); return; }
+  };
+  const assinatura=faltantes.map(v=>v.num).join(',')+'|'+divergentes.map(d=>d.num).join(',');
   if(assinatura!==_wecannSemEtiqUltimaAssinatura){
     _wecannSemEtiqUltimaAssinatura=assinatura;
-    logRemoto('wecann_sem_etiqueta', qtd+' voucher(s) com hotel WeCann sem a etiqueta no evento', { nums:faltantes.map(v=>v.num) });
+    logRemoto('wecann_sem_etiqueta', qtd+' voucher(s) com hotel WeCann sem a etiqueta no evento, '+divergentes.length+' com hotel Tower divergente', { nums:faltantes.map(v=>v.num), towerDivergente:divergentes.map(d=>d.num) });
   }
+}
+
+/* (·329) Detector do "Tower com nome divergente" — devolve, para cada
+   SERVIÇO de hotel (não voucher) fora do nome canônico, a referência real
+   do voucher e do serviço (não uma cópia), porque corrigirHoteisTowerDivergentes()
+   precisa MUTAR esses mesmos objetos antes de salvar. renderAvisoWecannSemEtiqueta()
+   só lê `.v.num`/`.v.cliente`/`.hotel` daqui — nunca calcula "o que está divergente"
+   por conta própria, pra não existir dois critérios que podem se desencontrar. */
+function vouchersHotelTowerDivergentes(list){
+  const out=[];
+  (list||savedCache||[]).forEach(v=>{
+    (v.services||[]).forEach(sv=>{
+      if(!sv || sv.type!=='hotel' || !sv.data) return;
+      const hn=sv.data.hotel||'';
+      if(wecEhTower(hn) && hn!==WEC_NOME_CANONICO_TOWER) out.push({ v, sv, hotel:hn });
+    });
+  });
+  return out;
+}
+// corrige em massa os vouchers JÁ SALVOS cujo hotel é o Tower grafado
+// diferente — pedido explícito do Nando (admin-only: reescreve dados na
+// nuvem de outras pessoas). Reusa salvarVoucherEditado(), a MESMA porta de
+// edição que o resto do Hub já usa — nenhuma escrita direta nova no KV.
+async function corrigirHoteisTowerDivergentes(){
+  const alvos=vouchersHotelTowerDivergentes(savedCache);
+  if(!alvos.length){ toast('Nada para corrigir — nenhum hotel Tower divergente','info'); return; }
+  const vouchersUnicos=[]; const vistos=new Set();
+  alvos.forEach(a=>{ if(!vistos.has(a.v.id)){ vistos.add(a.v.id); vouchersUnicos.push(a.v); } });
+  if(!window.confirm('Unificar o nome do hotel em '+vouchersUnicos.length+' voucher(s) para "'+WEC_NOME_CANONICO_TOWER+'"?\n\nGrava direto na nuvem, um voucher por vez. Não dá pra desfazer com um clique — mas nada além do nome do hotel muda.')) return;
+  alvos.forEach(a=>{ a.sv.data.hotel=WEC_NOME_CANONICO_TOWER; });
+  let ok=0, falhas=0;
+  for(const v of vouchersUnicos){
+    try{ await salvarVoucherEditado(v); ok++; }
+    catch(e){ falhas++; }
+  }
+  toast(ok+' voucher(s) com hotel unificado para "'+WEC_NOME_CANONICO_TOWER+'"'+(falhas?(' · '+falhas+' falharam'):''), falhas?'err':'ok');
+  try{ logRemoto('voucher_hotel_unificado', ok+' voucher(s) com hotel Tower unificado para "'+WEC_NOME_CANONICO_TOWER+'"'+(falhas?(', '+falhas+' falharam'):''), { ok, falhas, nums:vouchersUnicos.map(v=>v.num) }); }catch(e){}
+  renderSaved(savedCache);
 }
 
 function renderSaved(list){
@@ -9176,6 +9281,11 @@ function aplicarIA(r){
     if(type==='hotel'){
       const nh=norm(data.hotel);
       if(HOTEIS_WECANN.some(h=>nh.includes(h))) eventoWecann=true;
+      // (·329) Nome do Tower sempre unificado, não importa como a IA devolveu
+      // ("Royal Palm Tower Campinas", "Royal Palm Tower Anhanguera", só
+      // "Tower"...) — mesma função usada pelo corretor de vouchers antigos,
+      // pra nunca haver dois caminhos decidindo o nome de formas diferentes.
+      if(data.hotel) data.hotel=wecNomeCanonico(data.hotel);
     }
     if(type==='aereo' && !String(data.companhia||'').trim()){
       const cia=companhiaPorCodigo(data.voo);
