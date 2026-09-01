@@ -4179,7 +4179,22 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 327; // (·327) O ·326 FOI INCOMPLETO — TIREI O 💬 GRUDADO NO TEXTO DO
+var UV_BUILD_NUM = 328; // (·328) O ·327 AINDA NÃO ERA SUFICIENTE — O BOTÃO 😊 TINHA IDO
+// PRO CARD DE ETIQUETAS, E O NANDO CIRCULOU DE NOVO NO PRINT. Pedido dele foi literal
+// desta vez: "remover somente o emoji das etiquetas, o restante tá tudo como deve estar,
+// não mexa em nada" — perguntei antes (se o botão devia ganhar uma linha própria nova ou
+// sumir de vez) e a resposta foi clara: sumir, sem criar nada novo em lugar nenhum. FIX:
+// o botão "😊 Reagir com emoticon" e o painel de emoji que ele abria SAÍRAM de dentro do
+// `ti-fb-card` — não existe mais NENHUM lugar na mensagem principal onde dá pra ABRIR uma
+// reação nova. O que fica exatamente como estava: os CHIPS de reação já existentes
+// (`tiReacoesHtml(c)`) continuam aparecendo dentro do `ti-fb-card` — quem já reagiu antes
+// (era o caso do print, ✅ do Fernando) continua vendo a própria reação e pode clicar nela
+// pra remover (toggle do ·325, que não mudou em nada). Título sem emoji (·326) e cabeçalho
+// sem o botão (·327) continuam intocados. Testei: nenhum `[data-ti-emoji]` sobra em lugar
+// nenhum da tela do feedback principal, a chip da minha reação continua visível e
+// clicável, e as etiquetas (`data-ti-cat`) continuam funcionando normalmente — nada mais
+// no `ti-fb-card` foi tocado.
+// ANTERIOR: (·327) O ·326 FOI INCOMPLETO — TIREI O 💬 GRUDADO NO TEXTO DO
 // TÍTULO, MAS FICOU DE FORA O BOTÃO 😊 (REAGIR) QUE MORAVA NA MESMA LINHA DO TÍTULO,
 // ao lado de "Excluir feedback"/"Voltar". O Nando mandou print circulando exatamente
 // esse botão: pra ele, qualquer coisa relacionada a emoji — não só o caractere decorativo
@@ -24597,16 +24612,18 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
         '<div class="ti-msg-acoes"><button type="button" class="eq-bt primario" id="tiPostar">Publicar</button></div>'+
       '</div>' : '';
 
-    var pickerAbertoTitulo=(tiEmojiAberto===c.id);
-    /* (·327) O 😊 (reagir) e o painel de emoji SAÍRAM da linha do título —
-       moraram ali desde o ·321, mas o Nando marcou no print que emoji não
-       pode estar "no título", só nos cards ABAIXO dele (regra do ·326).
-       O botão 🗑 Excluir feedback e o ← Voltar continuam no cabeçalho —
-       são ícones de ação da tela, não o recurso de "reagir com emoticon"
-       que o Nando apontou. Reação + botão + painel foram para DENTRO do
-       ti-fb-card (o card de etiquetas, que já é "um card abaixo do
-       título"), no MESMO padrão `.ti-msg-acoes` que cada mensagem/
-       comentário já usa — reaproveitando classe existente, sem CSS novo. */
+    /* (·328) O ·327 tinha movido o 😊 (reagir) pra DENTRO do ti-fb-card (o
+       card de etiquetas) — o Nando circulou de novo no print: emoji também
+       não pode estar ali. Pedido dele foi literal: "remover somente o
+       emoji das etiquetas, o restante tá tudo como deve estar, não mexa em
+       nada" — então o botão de reagir (e o painel de emoji que ele abria)
+       SAEM do card de etiquetas e não nascem em NENHUM outro lugar da
+       mensagem principal. O que continua exatamente como estava: os CHIPS
+       de reação já existentes (tiReacoesHtml(c)) — quem já reagiu antes
+       continua vendo a própria reação e pode cliclar nela pra remover
+       (·325), só não existe mais um botão para CRIAR uma reação nova no
+       texto principal por aqui. Título sem emoji (·326) e cabeçalho sem o
+       botão (·327) continuam intocados — só o card de etiquetas mudou. */
     return '<div class="ti-head">'+
         '<div><h2 class="eq-title">'+tiEsc(c.tit)+'</h2>'+
         '<div class="eq-sub">Feedback de <b>'+tiEsc(c.pessoa)+'</b> · criado por '+tiEsc(c.autor||'—')+' em '+tiData(c.ts)+'</div>'+
@@ -24616,13 +24633,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
           '<button type="button" class="eq-bt" id="tiVoltarPessoa">← Voltar</button>'+
         '</div>'+
       '</div>'+
-      '<div class="ti-fb-card" style="border-color:'+tiCor(c.pessoa)+'">'+tiTagsHtml(c)+seletor+
-        '<div class="ti-msg-acoes">'+
-          tiReacoesHtml(c)+
-          (u?'<button type="button" class="ti-mini'+(pickerAbertoTitulo?' on':'')+'" data-ti-emoji="'+tiEsc(c.id)+'" title="Reagir com emoticon">😊</button>':'')+
-          (pickerAbertoTitulo?tiEmojiPickerHtml():'')+
-        '</div>'+
-      '</div>'+
+      '<div class="ti-fb-card" style="border-color:'+tiCor(c.pessoa)+'">'+tiTagsHtml(c)+seletor+tiReacoesHtml(c)+'</div>'+
       '<div class="ti-msgs">'+linhas+'</div>'+
       compositor+
       tiPainelCats();
