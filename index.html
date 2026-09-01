@@ -238,6 +238,14 @@ main{max-width:none;
 body.dark .nav-add{color:var(--verde)}
 .nav-sub-row{display:flex;align-items:center;gap:6px}
 .nav-sub-row .nav-item{flex:1}
+/* (·321) Badge de notificação no menu — item novo/resposta nova na pasta Insights.
+   Reaproveita a paleta vermelha que .ti-badge já usa dentro da própria pasta
+   (mesmo tom, mesma forma de pílula), só que menor, para caber ao lado do
+   texto do item sem alterar a altura nem o layout do botão do menu — ele já
+   é flex (.nav-item), então o span novo só entra na fileira existente. */
+.nav-badge{margin-left:auto;background:rgba(255,77,94,.18);border:1px solid rgba(255,77,94,.65);
+  color:#FF7D8B;border-radius:20px;padding:1px 7px;font-size:.66rem;font-weight:900;line-height:1.4;flex-shrink:0}
+body.dark .nav-badge{color:#FF9DA8}
 /* ===== HUB v2·15 — Sidebar dark: fundo igual ao conteúdo + fontes brancas (verde preservado) ===== */
 body.dark .hub-sidebar{background:var(--fundo);border-color:var(--fundo)}
 body.dark .hub-sidebar .nav-item{color:#fff}
@@ -3241,7 +3249,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
                (uv-auth-hidden) e só aparece para quem tiPodeVer() libera — quem
                revela é aplicarIdentidadeNaTela, no mesmo ponto onde os botões
                admin-only do Control Desk já são revelados (·216). -->
-          <button class="nav-item nav-sub uv-auth-hidden" id="navTimeInsights" data-screen="timeinsights"><span>🧠 Insights</span></button>
+          <button class="nav-item nav-sub uv-auth-hidden" id="navTimeInsights" data-screen="timeinsights"><span>🧠 Insights</span><span class="nav-badge" id="tiNavBadge" style="display:none">0</span></button>
         </div>
         <button class="nav-item open" data-tree="comercial"><span class="nav-ic">📣</span><span>Comercial</span><b class="nav-caret">▾</b></button>
         <div class="nav-children show" data-tree-body="comercial">
@@ -4171,7 +4179,52 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 320; // (·320) RENOMEAR PASTA — "Time Insights" VIROU "Insights". Pedido do
+var UV_BUILD_NUM = 321; // (·321) DUAS FUNCIONALIDADES NA PASTA INSIGHTS, PEDIDAS PELO
+// Nando. TAREFA 1 — badge de notificação no menu: ícone vermelho ao lado de "🧠 Insights"
+// no menu lateral, disparado por CARD NOVO ou RESPOSTA NOVA em qualquer feedback da pasta,
+// visível para TODOS os usuários com acesso (não é um contador global — cada pessoa vê a
+// PRÓPRIA pendência, calculada pelo mesmo relógio "já vi" — S.lido — que o "não lidas" de
+// cada card já usa, então os dois nunca podem se desencontrar). Card novo conta como
+// notificação para quem NUNCA abriu esse card específico (ausência de S.lido[usuario::id]
+// — quem CRIA já sai com a chave carimbada, então o próprio autor nunca se autonotifica).
+// O badge só MEXE no <span> que já nasce no HTML estático do menu — nunca reconstrói o
+// botão nem a árvore, e por isso não toca em NADA do layout do menu além da própria
+// inserção, como pedido. Atualizado em quatro pontos: no boot (dentro de init(), depois
+// dos dois carregarConfig()), na ressincronização de sessão (aplicarIdentidadeNaTela, que
+// já roda no boot e sempre que o servidor confirma a identidade), dentro do próprio
+// renderTimeInsights (cobre abrir/ler o card) e — o ponto que faz a notificação alcançar
+// QUALQUER PC mesmo longe da pasta — na lista "sempre" de uvRedesenharTudo, a MESMA lista
+// que já mantém renderOcupacao e renderStatusColunas vivos com a tela fechada desde o
+// ·317/·306; entrar nela foi a forma de dar ao badge o mesmo alcance em tempo real que o
+// resto do Hub já tem, sem inventar um mecanismo de aviso paralelo. TAREFA 2 — seletor de
+// emoticons: um botão 😊 ao lado de "↩ Responder" e "🗑 Excluir" em CADA mensagem (card) da
+// thread — mesma classe .ti-mini das outras duas, então nasce com a MESMA aparência, sem
+// CSS novo pro botão em si. Clicar abre um painel com 32 emoticons comuns (o "padrão
+// WhatsApp" pedido — carinhas, gestos e reações mais usados); escolher um insere no
+// compositor da resposta e fecha o painel; clicar de novo no MESMO botão fecha sem
+// escolher nada (toggle). Estado 100% de TELA (tiEmojiAberto, nunca vai pra nuvem, mesmo
+// padrão de tiRespondendo) — não criei estrutura de dado nova nem toquei no merge, porque
+// o pedido foi "abrir seletor e inserir", não "reação persistente por pessoa" (que exigiria
+// contagem, autoria e sincronização — escopo maior que o pedido). Nenhuma estrutura do
+// card foi alterada além da inclusão do botão e, quando aberto, do próprio painel — igual
+// exigido. ESCOPO CONFIRMADO: as duas mudanças vivem inteiramente dentro do módulo
+// Insights (IIFE de tiUsuario/tiPodeVer/etc.) — nenhuma linha tocada em Control Desk,
+// Prospecção ou Ações Comerciais. PERMISSÃO INTOCADA nas duas: tiPodeVer() decide sozinho
+// se a contagem do badge é zero (linha 1 de tiContagemNotificacoes) e quem já não via o
+// item do menu continua sem ver — nem o item, nem o badge, nem os cards para gerar
+// notificação. VALIDAÇÃO: t_insightsbadge.mjs (novo, 12 checagens em Chromium real, quatro
+// perfis) — o badge já existe no HTML desde o boot; quem CRIA o card não se autonotifica;
+// um segundo PC (Diego, que não participou) VÊ a notificação parada no Control Desk sem
+// precisar entrar na pasta; abrir o card apaga a notificação só pra quem abriu; uma
+// resposta nova de outra pessoa REACENDE a notificação pra quem ainda não leu; quem não
+// tem acesso continua sem ver o item do menu; o botão de emoticon está em cada mensagem
+// na MESMA linha de ações (sem estrutura nova); o seletor abre com 32 opções; escolher
+// insere e fecha; clicar de novo fecha sem escolher; zero erro de JS. Reexecutei
+// t_insights.mjs (22 checagens) e t_armadilha.mjs (11) sem regressão — a suíte t_tresbugs.mjs
+// (34) também fechou 34/34 fora da janela de plantão (dentro da janela ela é sensível ao
+// horário por design, não por esta build, como já registrado no ·320). node --check limpo
+// nos 20 blocos. NÃO REQUER DEPLOY DO WORKER — os dois recursos são inteiramente do lado
+// do Hub, sem campo novo em appConfig e sem merge novo. ANTERIOR: (·320) RENOMEAR PASTA — "Time Insights" VIROU "Insights". Pedido do
 // Nando: trocar o rótulo em todo lugar visível, mantendo permissão e acesso como estão.
 // ONDE MUDOU (só texto que a pessoa lê): item do menu (🧠 Insights), o botão de atalho
 // dentro da tela Equipe, o título da página (h2 dentro da própria tela) e o rótulo "área"
@@ -4386,8 +4439,9 @@ try{ window.UV_SESSAO_ID = UV_SESSAO_ID; }catch(e){}
    é pintada agora, e as outras 19 ao entrar nelas — pelo mesmo uvRenderDaTela()
    que hubGoScreen já chamava desde sempre, então não é mecanismo novo.
 
-   AS DUAS QUE CONTINUAM RODANDO SEMPRE, com a tela fechada, porque NÃO são só
-   desenho — auditadas uma a uma antes de cortar:
+   AS TRÊS QUE CONTINUAM RODANDO SEMPRE, com a tela fechada, porque NÃO são só
+   desenho — auditadas uma a uma antes de cortar (e a terceira, do ·321, é só
+   leitura + um <span> — nunca escreve nada):
      • renderOcupacao      -> chama ocpRepararSlotsDuplicados e SALVA a correção
                                 (·147): mesmo cliente em duas bolinhas se conserta
                                 sozinho e sobe para a nuvem, sem depender de
@@ -4397,12 +4451,19 @@ try{ window.UV_SESSAO_ID = UV_SESSAO_ID; }catch(e){}
                                 __kbRealizadoNomes, que é a fonte única das
                                 cobranças do ·88. Parar isto atrasaria baixa de
                                 cliente — dado, não pixel.
+     • tiAtualizarBadgeMenu -> (·321) mantém o badge de "conteúdo novo" da
+                                pasta Insights no menu atualizado mesmo com a
+                                pessoa em outra tela — é exatamente o caso que
+                                a notificação existe para cobrir: alguém cria
+                                um card ou responde enquanto você está no
+                                Control Desk, e o menu precisa avisar sem você
+                                precisar entrar na pasta para descobrir.
    renderAcoes NÃO precisou entrar: acRegistrarVisualizacao (·289) já exige
    acTelaVisivel(), então com a tela fechada ele nunca carimbou leitura nenhuma —
    conferido no código antes de cortar. loadSaved também saiu: busca em rede da
    tela de Vouchers Salvos, que se recarrega ao abrir. */
 function uvRedesenharTudo(){
-  var sempre=['renderOcupacao','renderStatusColunas'];
+  var sempre=['renderOcupacao','renderStatusColunas','tiAtualizarBadgeMenu'];
   for(var i=0;i<sempre.length;i++){
     try{ if(typeof window[sempre[i]]==='function') window[sempre[i]](); }catch(e){}
   }
@@ -9319,10 +9380,12 @@ async function init(){
   loadLocal();
   renderSaved(savedCache);
   await carregarConfig();
+  try{ if(typeof window.tiAtualizarBadgeMenu==='function') window.tiAtualizarBadgeMenu(); }catch(e){}
   await carregarParticipantes();
   await carregarStatusHotel();
   const online=await checkCloud();
-  if(online){ await loadSaved(); await refreshNext(); await carregarConfig(); await carregarStatusHotel(); }
+  if(online){ await loadSaved(); await refreshNext(); await carregarConfig(); await carregarStatusHotel();
+    try{ if(typeof window.tiAtualizarBadgeMenu==='function') window.tiAtualizarBadgeMenu(); }catch(e){} }
 }
 /* ===== Registro de Atividades (log) ===== */
 let logCache=[]; let logFiltro='todos';
@@ -9963,6 +10026,10 @@ init();
       var podeTI=false; try{ podeTI=(typeof window.tiPodeVer==='function') && window.tiPodeVer(); }catch(e){}
       if(podeTI) navTI.classList.remove('uv-auth-hidden'); else navTI.classList.add('uv-auth-hidden');
     }
+    /* (·321) badge de Insights: reaplicado aqui também porque este ponto roda
+       no boot e toda vez que a sessão é ressincronizada (·221) — sem isso o
+       badge só apareceria depois da primeira navegação até a própria tela. */
+    try{ if(typeof window.tiAtualizarBadgeMenu==='function') window.tiAtualizarBadgeMenu(); }catch(e){}
     var btnUsers=document.getElementById('ocpUsersBtn');
     if(btnUsers){
       if(perfil==='admin') btnUsers.classList.remove('uv-auth-hidden');
@@ -19612,6 +19679,15 @@ function excluirNotaUI(id){
   background:rgba(255,255,255,.04);border:1px solid #243849;color:#8CA3B3}
 #scr-timeinsights .ti-mini:hover{color:#cfe0f0;border-color:#3d5b72}
 #scr-timeinsights .ti-mini-del:hover{color:#ff9a9a;border-color:rgba(255,82,82,.5)}
+#scr-timeinsights .ti-mini.on{color:#F5D06B;border-color:#F5D06B;background:rgba(245,208,107,.12)}
+/* (·321) TAREFA 2 — painel do seletor de emoticons, aberto por card (mensagem). */
+#scr-timeinsights .ti-emoji-picker{display:flex;flex-wrap:wrap;gap:4px;margin-top:9px;padding:9px;
+  background:rgba(255,255,255,.03);border:1px solid #243849;border-radius:10px;max-width:280px}
+#scr-timeinsights .ti-emoji-op{cursor:pointer;font-family:inherit;font-size:1.05rem;line-height:1;padding:5px 6px;
+  background:transparent;border:1px solid transparent;border-radius:8px}
+#scr-timeinsights .ti-emoji-op:hover{background:rgba(255,255,255,.08);border-color:#3d5b72}
+body:not(.dark) #scr-timeinsights .ti-emoji-picker{background:#fff;border-color:#dfe7ec}
+body:not(.dark) #scr-timeinsights .ti-emoji-op:hover{background:#eef4f8}
 #scr-timeinsights .ti-cit{color:#8CA3B3;font-size:.74rem;font-style:italic;border-left:2px solid #3d5b72;padding-left:8px;margin-bottom:7px}
 #scr-timeinsights .ti-cit-resp{display:flex;align-items:center;gap:9px;font-style:normal;margin-bottom:8px}
 #scr-timeinsights .ti-comp{background:rgba(255,255,255,.03);border:1px solid #243849;border-radius:12px;padding:13px;margin-bottom:22px}
@@ -24021,6 +24097,50 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     return out;
   }
   function tiChaveLido(id){ var u=tiUsuario(); return u ? (u+'::'+id) : ''; }
+  /* (·321) TAREFA 1 — notificação de conteúdo novo. "Novo" cobre os DOIS
+     disparos pedidos: (a) card novo — feedback criado por OUTRA pessoa que eu
+     nunca abri; (b) resposta nova — mensagem de outro autor depois do meu
+     último "já vi" naquele card (é o mesmo relógio S.lido que tiNaoLidas já
+     usa, então os dois nunca podem se desencontrar). "Nunca abri" é lido por
+     AUSÊNCIA de entrada em S.lido[usuario::id] — tiNovoFeedback já carimba
+     essa chave para quem CRIA o card (linha acima), então o autor nunca conta
+     o próprio card como notificação. */
+  function tiFoiAbertoPorMim(id){
+    var ch=tiChaveLido(id); if(!ch) return false;
+    var S=tiStore();
+    return Object.prototype.hasOwnProperty.call(S.lido, ch);
+  }
+  function tiCardNotificado(c){
+    var u=tiUsuario(); if(!u) return false;
+    if(c.autorU!==u && !tiFoiAbertoPorMim(c.id)) return true;
+    return tiNaoLidas(c)>0;
+  }
+  /* Visibilidade: TODOS os usuários com acesso à pasta veem a notificação —
+     a contagem roda por USUÁRIO (não é um contador global), então cada
+     pessoa com acesso vê a própria pendência, exatamente como o "não lidas"
+     de cada feedback já funciona por pessoa. */
+  function tiContagemNotificacoes(){
+    if(!tiPodeVer()) return 0;
+    var n=0; tiVivos().forEach(function(c){ if(tiCardNotificado(c)) n++; });
+    return n;
+  }
+  window.tiContagemNotificacoes=tiContagemNotificacoes;
+  /* Só MEXE no <span> já inserido no HTML estático do menu (·321) — nunca
+     reconstrói o botão nem o restante da árvore, para não tocar em nada do
+     layout além do próprio badge, como pedido. Chamada em: aplicarIdentidade-
+     NaTela (boot e ressincronização de sessão), dentro de renderTimeInsights
+     (cobre abrir/ler o próprio card) e na lista "sempre" de uvRedesenharTudo
+     (cobre o aviso em tempo real vindo de QUALQUER um dos 12 PCs, mesmo com
+     a pessoa em outra tela — é a mesma lista que já mantém renderOcupacao e
+     renderStatusColunas vivos com a tela fechada). */
+  function tiAtualizarBadgeMenu(){
+    var b=document.getElementById('tiNavBadge');
+    if(!b) return;
+    var n=0; try{ n=tiContagemNotificacoes(); }catch(e){}
+    if(n>0){ b.textContent = n>9 ? '9+' : String(n); b.style.display='inline-block'; }
+    else { b.style.display='none'; }
+  }
+  window.tiAtualizarBadgeMenu=tiAtualizarBadgeMenu;
   function tiNaoLidas(c){
     var ch=tiChaveLido(c.id); if(!ch) return 0;
     var S=tiStore(), marca=S.lido[ch]||0, u=tiUsuario(), n=0;
@@ -24090,6 +24210,15 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
 
   /* ---------- estado de tela (memória, nunca na nuvem) ---------- */
   var tiPessoaAberta=null, tiFbAberto=null, tiRascunho='', tiRespondendo='', tiNovoAberto=false;
+  /* (·321) TAREFA 2 — seletor de emoticons. Guarda SÓ o id da mensagem cujo
+     seletor está aberto (nunca vai para a nuvem, é estado de tela como o
+     resto desta lista) — no máximo um seletor aberto por vez, mesmo padrão
+     de "um estado por tela" que tiRespondendo já usa. O conjunto abaixo é o
+     típico "padrão WhatsApp" pedido: reações e carinhas mais comuns, sem
+     precisar de biblioteca nem de dependência externa nova. */
+  var tiEmojiAberto='';
+  var TI_EMOJIS=['😀','😁','😂','🤣','😊','🙂','😉','😍','😘','😜','🤔','😐','😢','😭','😡','😱',
+                 '👍','👎','👏','🙏','💪','🙌','🤝','✌️','❤️','💔','🔥','⭐','✅','❌','🎉','🥳'];
 
   /* ---------- painel fixo das categorias ---------- */
   function tiPainelCats(){
@@ -24180,14 +24309,20 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     var linhas = msgs.length ? msgs.map(function(m){
       var meu=(m.autorU===u && !!u);
       var citado=(m.resp && mapa[m.resp]) ? mapa[m.resp] : null;
+      var pickerAberto=(tiEmojiAberto===m.id);
       return '<div class="ti-msg'+(meu?' meu':'')+'">'+
         (citado?'<div class="ti-cit">↪ resposta a <b>'+tiEsc(citado.autor||'—')+'</b>: '+tiEsc((citado.txt||'').slice(0,90))+((citado.txt||'').length>90?'…':'')+'</div>':'')+
         '<div class="ti-msg-topo"><b>'+tiEsc(m.autor||'—')+'</b> <span class="ti-msg-data">'+tiData(m.ts)+'</span></div>'+
         '<div class="ti-msg-txt">'+tiEsc(m.txt)+'</div>'+
         '<div class="ti-msg-acoes">'+
           (u?'<button type="button" class="ti-mini" data-ti-resp="'+tiEsc(m.id)+'">↩ Responder</button>':'')+
+          (u?'<button type="button" class="ti-mini'+(pickerAberto?' on':'')+'" data-ti-emoji="'+tiEsc(m.id)+'" title="Inserir emoticon">😊</button>':'')+
           ((m.autorU===u||tiSouAdmin())?'<button type="button" class="ti-mini ti-mini-del" data-ti-del="'+tiEsc(m.id)+'">🗑 Excluir</button>':'')+
-        '</div></div>';
+        '</div>'+
+        (pickerAberto?('<div class="ti-emoji-picker">'+
+          TI_EMOJIS.map(function(em){ return '<button type="button" class="ti-emoji-op" data-ti-emoji-pick="'+tiEsc(em)+'">'+em+'</button>'; }).join('')+
+        '</div>'):'')+
+      '</div>';
     }).join('') : '<div class="cr-vazio">Nenhuma mensagem neste feedback ainda.</div>';
 
     var alvo=(tiRespondendo && mapa[tiRespondendo]) ? mapa[tiRespondendo] : null;
@@ -24213,6 +24348,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
 
   window.renderTimeInsights=function(w){
     if(!w) w=document.getElementById('timeInsightsWrap');
+    try{ tiAtualizarBadgeMenu(); }catch(e){}
     if(!w) return;
     /* (·305) SEGUNDA PORTA da permissão. O item do menu já não é desenhado para
        quem não pode, mas navegar para a tela por outro caminho (hubGoScreen na
@@ -24290,8 +24426,26 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     var rp=e.target.closest('[data-ti-resp]');
     if(rp){ tiRespondendo=rp.getAttribute('data-ti-resp');
             var t0=document.getElementById('tiTexto'); tiRascunho=t0?t0.value:'';
+            tiEmojiAberto='';
             window.renderTimeInsights(); return; }
     if(e.target.closest('#tiRespCancel')){ tiRespondendo=''; window.renderTimeInsights(); return; }
+    /* (·321) TAREFA 2 — seletor de emoticons. O botão só ABRE/FECHA o painel
+       (toggle: clicar de novo no mesmo card fecha); guarda o rascunho atual
+       antes de reabrir a tela, pelo mesmo motivo do "Responder" acima — sem
+       isso, alternar o seletor apagaria o que a pessoa já tinha digitado. */
+    var em=e.target.closest('[data-ti-emoji]');
+    if(em){
+      var id=em.getAttribute('data-ti-emoji');
+      var tE=document.getElementById('tiTexto'); tiRascunho=tE?tE.value:tiRascunho;
+      tiEmojiAberto=(tiEmojiAberto===id)?'':id;
+      window.renderTimeInsights(); return;
+    }
+    var pick=e.target.closest('[data-ti-emoji-pick]');
+    if(pick){
+      tiRascunho=(tiRascunho||'')+pick.getAttribute('data-ti-emoji-pick');
+      tiEmojiAberto='';
+      window.renderTimeInsights(); return;
+    }
     var dl=e.target.closest('[data-ti-del]');
     if(dl){ if(window.confirm('Excluir esta mensagem?')){ tiExcluirMsg(tiFbAberto, dl.getAttribute('data-ti-del')); window.renderTimeInsights(); } return; }
     if(e.target.closest('#tiDelFb')){
