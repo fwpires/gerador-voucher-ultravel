@@ -4179,7 +4179,25 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 326; // (·326) SEM EMOJI NO TÍTULO DO FEEDBACK — regra nova do Nando:
+var UV_BUILD_NUM = 327; // (·327) O ·326 FOI INCOMPLETO — TIREI O 💬 GRUDADO NO TEXTO DO
+// TÍTULO, MAS FICOU DE FORA O BOTÃO 😊 (REAGIR) QUE MORAVA NA MESMA LINHA DO TÍTULO,
+// ao lado de "Excluir feedback"/"Voltar". O Nando mandou print circulando exatamente
+// esse botão: pra ele, qualquer coisa relacionada a emoji — não só o caractere decorativo
+// — precisa estar SÓ nos cards abaixo do título, nunca no cabeçalho. FIX: o botão "😊
+// Reagir com emoticon", os chips de reação (tiReacoesHtml(c)) e o painel de emoji saíram
+// de dentro de `.eq-acoes` (linha do cabeçalho, ao lado de Excluir/Voltar) e foram para
+// DENTRO do `ti-fb-card` (o card de etiquetas — já é "um card abaixo do título"), numa
+// linha `.ti-msg-acoes` — a MESMA classe que cada mensagem/comentário já usa pro próprio
+// botão de reagir, então nasce com a MESMA aparência, sem CSS novo (regra do Nando: nunca
+// criar classe sem grep prévio). O `.ti-emoji-picker-titulo` (posicionamento próprio que
+// só servia pro painel dentro de `.eq-acoes`) ficou órfão e foi removido do CSS — o
+// `.ti-emoji-picker` base já resolve o layout dentro do `.ti-msg-acoes` novo, igual faz
+// pra cada mensagem. NÃO mudei `tiAplicarReacao`, `tiReacoesHtml`, nem os handlers de
+// clique (`[data-ti-emoji]`, `[data-ti-emoji-pick]`, `[data-ti-reac-del]`) — todos usam
+// `closest()`, então continuam funcionando não importa ONDE o botão está no DOM; só
+// movi onde o HTML nasce. O 🗑 "Excluir feedback" e o ← "Voltar" continuam no cabeçalho
+// — são ícones de ação de tela, não o recurso de reação que o Nando apontou.
+// ANTERIOR: (·326) SEM EMOJI NO TÍTULO DO FEEDBACK — regra nova do Nando:
 // título de bug/assunto não leva emoji, emoji fica só nos cards/tópicos ABAIXO do título
 // (que já era o padrão de qualquer forma). Único lugar da base onde um emoji nascia
 // GRUDADO no título de um card aberto (h2.eq-title) era o 💬 fixo antes de `c.tit` na
@@ -19837,11 +19855,11 @@ function excluirNotaUI(id){
 #scr-timeinsights .ti-emoji-op:hover{background:rgba(255,255,255,.08);border-color:#3d5b72}
 body:not(.dark) #scr-timeinsights .ti-emoji-picker{background:#fff;border-color:#dfe7ec}
 body:not(.dark) #scr-timeinsights .ti-emoji-op:hover{background:#eef4f8}
-/* (·323) o painel do TÍTULO vive FORA de .eq-acoes (ver comentário no JS) —
-   como bloco solto ele nasceria colado à esquerda; margin-left:auto o
-   empurra pro lado direito, onde os botões que o abrem já ficam (o cabeçalho
-   usa justify-content:space-between). */
-#scr-timeinsights .ti-emoji-picker-titulo{margin-left:auto;margin-top:-2px;margin-bottom:14px}
+/* (·327) `.ti-emoji-picker-titulo` foi removida — o botão/painel de reagir
+   do título saiu de .eq-acoes e foi para dentro do ti-fb-card, reaproveitando
+   o MESMO `.ti-msg-acoes` que as mensagens já usam (regra do ·326: emoji só
+   em cards abaixo do título, nunca no cabeçalho). Sem posicionamento próprio
+   pra manter — o `.ti-emoji-picker` base já cobre o layout ali dentro. */
 /* (·324) chips de reação — mesmos nos dois lugares (mensagem principal e
    comentário), pela função central tiReacoesHtml(). */
 #scr-timeinsights .ti-reacoes{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
@@ -24580,30 +24598,31 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       '</div>' : '';
 
     var pickerAbertoTitulo=(tiEmojiAberto===c.id);
+    /* (·327) O 😊 (reagir) e o painel de emoji SAÍRAM da linha do título —
+       moraram ali desde o ·321, mas o Nando marcou no print que emoji não
+       pode estar "no título", só nos cards ABAIXO dele (regra do ·326).
+       O botão 🗑 Excluir feedback e o ← Voltar continuam no cabeçalho —
+       são ícones de ação da tela, não o recurso de "reagir com emoticon"
+       que o Nando apontou. Reação + botão + painel foram para DENTRO do
+       ti-fb-card (o card de etiquetas, que já é "um card abaixo do
+       título"), no MESMO padrão `.ti-msg-acoes` que cada mensagem/
+       comentário já usa — reaproveitando classe existente, sem CSS novo. */
     return '<div class="ti-head">'+
         '<div><h2 class="eq-title">'+tiEsc(c.tit)+'</h2>'+
         '<div class="eq-sub">Feedback de <b>'+tiEsc(c.pessoa)+'</b> · criado por '+tiEsc(c.autor||'—')+' em '+tiData(c.ts)+'</div>'+
-        tiReacoesHtml(c)+
         '</div>'+
         '<div class="eq-acoes">'+
           (podeApagarFb?'<button type="button" class="eq-bt perigo" id="tiDelFb">🗑 Excluir feedback</button>':'')+
-          (u?'<button type="button" class="eq-bt'+(pickerAbertoTitulo?' on':'')+'" data-ti-emoji="'+tiEsc(c.id)+'" title="Reagir com emoticon">😊</button>':'')+
           '<button type="button" class="eq-bt" id="tiVoltarPessoa">← Voltar</button>'+
         '</div>'+
       '</div>'+
-      /* (·323) o painel do TÍTULO saiu de DENTRO de .eq-acoes. Lá ele virava
-         item da MESMA linha flex que tem justify-content:space-between —
-         com um item largo (o painel, até 280px) entrando nessa conta, a
-         ordem visual do wrap ficava imprevisível (o painel chegou a
-         desenhar ACIMA dos botões, invertido). Como bloco PRÓPRIO logo
-         abaixo do cabeçalho, ele sempre aparece exatamente onde deveria —
-         colado ao botão que o abriu, sem depender de como o navegador
-         resolve o wrap de uma linha space-between com um item bem mais
-         largo que os outros. */
-      (pickerAbertoTitulo?('<div class="ti-emoji-picker ti-emoji-picker-titulo">'+
-        TI_EMOJIS.map(function(em){ return '<button type="button" class="ti-emoji-op" data-ti-emoji-pick="'+tiEsc(em)+'">'+em+'</button>'; }).join('')+
-      '</div>'):'')+
-      '<div class="ti-fb-card" style="border-color:'+tiCor(c.pessoa)+'">'+tiTagsHtml(c)+seletor+'</div>'+
+      '<div class="ti-fb-card" style="border-color:'+tiCor(c.pessoa)+'">'+tiTagsHtml(c)+seletor+
+        '<div class="ti-msg-acoes">'+
+          tiReacoesHtml(c)+
+          (u?'<button type="button" class="ti-mini'+(pickerAbertoTitulo?' on':'')+'" data-ti-emoji="'+tiEsc(c.id)+'" title="Reagir com emoticon">😊</button>':'')+
+          (pickerAbertoTitulo?tiEmojiPickerHtml():'')+
+        '</div>'+
+      '</div>'+
       '<div class="ti-msgs">'+linhas+'</div>'+
       compositor+
       tiPainelCats();
