@@ -4204,7 +4204,28 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 332; // (·332) FALSO ALARME DO TOWER-096 CORRIGIDO — O NUMERO DA COLUNA
+var UV_BUILD_NUM = 333; // (·333) O TOWER-096 CONTINUAVA ACUSADO NO ·332 — A PROVA TINHA
+// QUE SER POR GRUPO DE LINHAS, NAO PELO QUARTO INTEIRO. O Nando subiu o ·332, o console
+// confirmou "build HUB-v3-332", e o falso alarme seguiu identico na tela. MEDI EM VEZ DE
+// DEDUZIR: o ·332 exigia q.vouchers.length>1 (o quarto ter caido em mais de um voucher)
+// pra acusar "n de voucher diferente" — e o TOWER-096 SATISFAZ essa condicao, so que por
+// um motivo que eu nao tinha visto: "Maria Jose Ribeiro" casa por nome com DOIS vouchers,
+// o #00162 (o dela mesma, junto da Angelica) e o de "Maria Leonor de Barros Ribeiro",
+// porque umNomeBate() compara primeiro+ultimo nome e as duas sao "maria...ribeiro". Ou
+// seja: minha "confirmacao pelo sistema" estava sendo dada por um falso casamento de
+// nome. REGRA DO ·333: a separacao e verificada POR GRUPO DE LINHAS — cada grupo (mesmas
+// datas + mesmo n de voucher no CSV) resolve o SEU proprio conjunto de vouchers, e so
+// acusa colagem quando dois grupos caem em conjuntos COMPLETAMENTE disjuntos. Se os
+// grupos compartilham qualquer voucher, e UM quarto so, por mais que datas ou numeros da
+// planilha divirjam — que e exatamente o TOWER-096 (os dois grupos contem o #00162).
+// Isso tambem blinda contra o caso legitimo de duas pessoas do MESMO quarto com check-in
+// em dias diferentes, que o ·330/·331/·332 acusariam. Quando o quarto nao existe em
+// voucher nenhum (nada a confirmar), datas divergentes voltam a valer sozinhas. O
+// TOWER-121 continua pego: Walter (#00259) e Edson+filho (#00261) sao disjuntos de
+// verdade. Caso intermediario (um grupo achou voucher, o outro nao): nao da pra confirmar
+// pelo sistema, entao exige as DUAS divergencias do CSV juntas (datas E numeros), padrao
+// do TOWER-121 e nao de um casal do mesmo quarto com check-in em dias diferentes. O achado F ("n de voucher errado na planilha") passou a usar a INTERSECAO dos
+// grupos pra saber qual e o voucher certo, em vez de q.vouchers[0]. ANTERIOR: (·332) FALSO ALARME DO TOWER-096 CORRIGIDO — O NUMERO DA COLUNA
 // "VOUCHER" DO CSV NAO E PROVA DE NADA. Relato do Nando com as 3 telas lado a lado: a
 // auditoria acusou o TOWER-096 de "duas reservas diferentes grudadas (n de voucher
 // diferente)" porque as duas linhas do CSV citavam 00162 e 00163. So que, olhando os
@@ -6776,18 +6797,55 @@ function auditoriaDisparidadeQuartos(){
     const gs=[...grupos.values()];
     const datas=new Set(gs.map(g=>g.checkin+'|'+g.checkout));
     const vchs=new Set(gs.map(g=>g.voucher).filter(Boolean));
+
+    // ⚠️ ·333 — a prova tem que ser POR GRUPO, não pelo quarto inteiro. O ·332 olhava
+    // q.vouchers.length>1, e isso ainda deixava o TOWER-096 passar: a Maria Jose Ribeiro
+    // casa por nome com DOIS vouchers (o #00162, que é o dela mesmo junto da Angélica, e
+    // o de "Maria Leonor de Barros Ribeiro", porque umNomeBate compara primeiro+último
+    // nome e os dois são "maria…ribeiro"). O quarto então tinha 2 vouchers e a regra
+    // disparava do mesmo jeito. Agora cada grupo de linhas resolve os SEUS vouchers e só
+    // acusa colagem quando dois grupos caem em vouchers COMPLETAMENTE separados. Se os
+    // grupos dividem algum voucher, é UM quarto só — por mais que datas ou números da
+    // planilha divirjam.
+    const vouchersDoGrupo=g=>{
+      const set=new Set();
+      g.pessoas.forEach(nm=>vInfo.forEach(vi=>{
+        if(q.hotelPrefixo && vi.hotelKey && q.hotelPrefixo!==vi.hotelKey) return;
+        if(vi.nomes.some(vn=>umNomeBate(_limpaNome(nm),_limpaNome(vn)))) set.add(vi.num);
+      }));
+      return set;
+    };
+    const sets=gs.map(vouchersDoGrupo);
+    let disjuntos=false, umLadoSemVoucher=false;
+    for(let i=0;i<sets.length;i++){
+      for(let j=i+1;j<sets.length;j++){
+        if(sets[i].size && sets[j].size){ if(![...sets[i]].some(x=>sets[j].has(x))) disjuntos=true; }
+        else if(sets[i].size!==sets[j].size) umLadoSemVoucher=true;   // um grupo achou voucher, o outro não
+      }
+    }
+    const nenhumNoSistema=sets.every(x=>!x.size);
     const motivos=[];
     if(datas.size>1) motivos.push('datas diferentes');
-    if(vchs.size>1 && q.vouchers.length>1) motivos.push('nº de voucher diferente');
-    if(motivos.length){
+    if(vchs.size>1) motivos.push('nº de voucher diferente');
+    // Acusa quando o SISTEMA confirma a separação (grupos em vouchers disjuntos). Quando
+    // um grupo achou voucher e o outro não, não dá pra confirmar nada pelo sistema — aí
+    // exige que o CSV traga as DUAS divergências juntas (datas E números diferentes),
+    // que é o padrão do TOWER-121 e não o de um casal do mesmo quarto com check-in em
+    // dias diferentes. E se o quarto não existe em voucher nenhum, as datas valem sozinhas.
+    const suspeitoFraco = umLadoSemVoucher && datas.size>1 && vchs.size>1;
+    if(motivos.length && (disjuntos || suspeitoFraco || (nenhumNoSistema && datas.size>1))){
       idsColados.push({ chave:'c:'+_audKeyQ(q.id), id:q.id, grupos:gs, motivo:motivos.join(' e ') });
       return;
     }
-    // F) o quarto está num voucher SÓ, mas alguma linha cita outro número. Só reporta
-    // quando dá pra PROVAR que o número está errado: ele existe no sistema e pertence a
-    // outro voucher. Assim um número truncado/inexistente não vira alarme.
-    if(vchs.size>1 && q.vouchers.length===1){
-      const certo=q.vouchers[0], kCerto=_audKeyV(certo), errados=[];
+
+    // F) os grupos COMPARTILHAM um voucher (logo é 1 quarto só), mas alguma linha cita
+    // outro número. Só reporta quando dá pra PROVAR o erro: o número existe no sistema e
+    // pertence a outro voucher. Número truncado/inexistente não vira alarme.
+    if(vchs.size>1){
+      let inter=null;
+      sets.forEach(x=>{ if(!x.size) return; inter = (inter===null) ? new Set(x) : new Set([...inter].filter(y=>x.has(y))); });
+      if(!inter || inter.size!==1) return;
+      const certo=[...inter][0], kCerto=_audKeyV(certo), errados=[];
       vchs.forEach(v=>{
         const k=_numVch(v); if(!k || k===kCerto) return;
         const alvo=porNumero.get(k); if(!alvo || alvo.num===certo) return;
