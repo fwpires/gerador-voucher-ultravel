@@ -4204,7 +4204,26 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 331; // (·331) BAIXA POR ITEM NA AUDITORIA DE DISPARIDADE. Pedido do
+var UV_BUILD_NUM = 332; // (·332) FALSO ALARME DO TOWER-096 CORRIGIDO — O NUMERO DA COLUNA
+// "VOUCHER" DO CSV NAO E PROVA DE NADA. Relato do Nando com as 3 telas lado a lado: a
+// auditoria acusou o TOWER-096 de "duas reservas diferentes grudadas (n de voucher
+// diferente)" porque as duas linhas do CSV citavam 00162 e 00163. So que, olhando os
+// vouchers salvos, o #00162 e "Maria Jose Ribeiro // Angelica Ribeiro de Moura" — as
+// DUAS pessoas no MESMO voucher, um quarto so, exatamente como deveria — e o #00163 e de
+// outra pessoa (Aurea Maria Leite Nunes), que nada tem a ver com esse quarto. Ou seja: o
+// 00163 era ERRO DE DIGITACAO na planilha, e a auditoria transformou o erro de digitacao
+// em acusacao de quarto escondido. CAUSA-RAIZ: eu tratei divergencia de numero na coluna
+// Voucher como sinal auto-suficiente, sendo que essa coluna e justamente a mais suja do
+// CSV (ja documentado no ·330: vem truncada — "005", "008" — e as vezes apontando pro
+// voucher errado). REGRA NOVA: numero de voucher divergente so acusa "reservas grudadas"
+// quando o quarto REALMENTE caiu em mais de um voucher no sistema (q.vouchers.length>1) —
+// isto e, quando o proprio sistema confirma a divisao. Divergencia de DATAS continua
+// valendo sozinha, porque essa e informacao do proprio CSV e nao depende dessa coluna (e
+// e o que pega o TOWER-121 de verdade). No lugar do falso alarme entrou um achado NOVO e
+// honesto: "n de voucher errado na planilha", que so aparece quando da pra PROVAR o erro
+// — o quarto esta num voucher so, a linha cita outro numero, e esse numero existe no
+// sistema pertencendo a outra pessoa (mostra de quem e). Nao entra na conta de quartos,
+// so aponta a digitacao a corrigir, e tem botao Conferido como os demais. ANTERIOR: (·331) BAIXA POR ITEM NA AUDITORIA DE DISPARIDADE. Pedido do
 // Nando sobre o ·330: cada nome da auditoria precisa de um botao "Conferido" que tira
 // aquele registro da lista PARA SEMPRE — "nao volta nunca mais mesmo com novas
 // atualizacoes do csv dentro do hub". Botao "Conferido" em TODOS os 5 grupos da
@@ -6730,7 +6749,19 @@ function auditoriaDisparidadeQuartos(){
     .map(vi=>({ chave:'m:'+_audKeyV(vi.num), num:vi.num, cliente:vi.cliente, quartos:vi.quartos.slice(), extra:vi.quartos.length-1 }));
 
   // E) DIAGNÓSTICO — ID Reserva com duas reservas incompatíveis grudadas
-  const idsColados=[];
+  //    + F) DIAGNÓSTICO — nº de voucher errado na planilha
+  //
+  // ⚠️ CORREÇÃO DO ·332 (falso alarme no TOWER-096): o número da coluna "Voucher" do CSV
+  // NÃO é prova de que existem duas reservas. No TOWER-096 as duas linhas tinham as
+  // MESMAS datas e apontavam 00162 e 00163 — mas no sistema o voucher #00162 é
+  // "Maria José Ribeiro // Angélica Ribeiro de Moura", ou seja, as DUAS pessoas no MESMO
+  // voucher (1 quarto, correto), e o #00163 é de outra pessoa (Aurea Maria Leite Nunes).
+  // O 00163 era simplesmente um ERRO DE DIGITAÇÃO na planilha. Regra nova: número de
+  // voucher divergente só acusa "reservas grudadas" quando o quarto REALMENTE caiu em
+  // mais de um voucher no sistema (q.vouchers.length>1). Se caiu num voucher só, o que
+  // existe é um número errado na planilha — vira o achado F, que não afeta a contagem.
+  // Datas diferentes continuam valendo sozinhas: são sinal do próprio CSV (TOWER-121).
+  const idsColados=[], voucherErradoCsv=[];
   quartos.forEach(q=>{
     if(q.linhas.length<2) return;
     const grupos=new Map();
@@ -6743,15 +6774,28 @@ function auditoriaDisparidadeQuartos(){
     });
     if(grupos.size<2) return;
     const gs=[...grupos.values()];
-    // exige divergência REAL: datas diferentes OU dois números de voucher diferentes.
-    // Voucher preenchido em uma linha e vazio na outra é coluna incompleta, não colagem.
     const datas=new Set(gs.map(g=>g.checkin+'|'+g.checkout));
     const vchs=new Set(gs.map(g=>g.voucher).filter(Boolean));
     const motivos=[];
     if(datas.size>1) motivos.push('datas diferentes');
-    if(vchs.size>1) motivos.push('nº de voucher diferente');
-    if(!motivos.length) return;
-    idsColados.push({ chave:'c:'+_audKeyQ(q.id), id:q.id, grupos:gs, motivo:motivos.join(' e ') });
+    if(vchs.size>1 && q.vouchers.length>1) motivos.push('nº de voucher diferente');
+    if(motivos.length){
+      idsColados.push({ chave:'c:'+_audKeyQ(q.id), id:q.id, grupos:gs, motivo:motivos.join(' e ') });
+      return;
+    }
+    // F) o quarto está num voucher SÓ, mas alguma linha cita outro número. Só reporta
+    // quando dá pra PROVAR que o número está errado: ele existe no sistema e pertence a
+    // outro voucher. Assim um número truncado/inexistente não vira alarme.
+    if(vchs.size>1 && q.vouchers.length===1){
+      const certo=q.vouchers[0], kCerto=_audKeyV(certo), errados=[];
+      vchs.forEach(v=>{
+        const k=_numVch(v); if(!k || k===kCerto) return;
+        const alvo=porNumero.get(k); if(!alvo || alvo.num===certo) return;
+        errados.push({ num:v, deQuem:alvo.cliente||(alvo.nomes||[]).join(', ')||'—' });
+      });
+      if(errados.length) voucherErradoCsv.push({ chave:'x:'+_audKeyQ(q.id), id:q.id, certo, errados,
+        pessoas:q.pessoas.slice() });
+    }
   });
 
   // 4) A CONTA — a soma dos achados tem que dar exatamente a diferença do topo.
@@ -6763,19 +6807,20 @@ function auditoriaDisparidadeQuartos(){
   const extraDividido=quartoDividido.reduce((s,q)=>s+q.extra,0);
   const extraMulti=voucherMultiQuarto.reduce((s,v)=>s+v.extra,0);
   const explicado=voucherSemQuarto.length - quartoSemVoucher.length + extraDividido - extraMulti;
-  const achados=voucherSemQuarto.length+quartoSemVoucher.length+quartoDividido.length+voucherMultiQuarto.length+idsColados.length;
+  const achados=voucherSemQuarto.length+quartoSemVoucher.length+quartoDividido.length+voucherMultiQuarto.length+idsColados.length+voucherErradoCsv.length;
 
   // 5) tira da TELA o que já foi conferido/baixado (decisão permanente, salva na nuvem)
   const bx=_audBaixados();
   const vis=arr=>arr.filter(it=>!bx[it.chave]);
   const visVSQ=vis(voucherSemQuarto), visQSV=vis(quartoSemVoucher),
-        visDIV=vis(quartoDividido),   visMUL=vis(voucherMultiQuarto), visCOL=vis(idsColados);
-  const visiveis=visVSQ.length+visQSV.length+visDIV.length+visMUL.length+visCOL.length;
+        visDIV=vis(quartoDividido),   visMUL=vis(voucherMultiQuarto), visCOL=vis(idsColados),
+        visERR=vis(voucherErradoCsv);
+  const visiveis=visVSQ.length+visQSV.length+visDIV.length+visMUL.length+visCOL.length+visERR.length;
 
   return {
     semColuna:false, totalQuartos, totalVouchers, delta,
     voucherSemQuarto:visVSQ, quartoSemVoucher:visQSV, quartoDividido:visDIV,
-    voucherMultiQuarto:visMUL, idsColados:visCOL,
+    voucherMultiQuarto:visMUL, idsColados:visCOL, voucherErradoCsv:visERR,
     extraDividido, extraMulti, explicado, restante: delta-explicado,
     fecha: explicado===delta,
     achados: visiveis,                       // o que ainda aparece na tela
@@ -6831,6 +6876,14 @@ function textoAuditoriaDisparidade(ad){
   if(ad.voucherMultiQuarto.length){
     L.push('[-'+ad.extraMulti+'] UM VOUCHER COBRINDO VARIOS QUARTOS DO CSV:');
     ad.voucherMultiQuarto.forEach(v=>L.push('   #'+v.num+' ('+(v.cliente||'-')+') -> quartos '+v.quartos.join(', ')));
+    L.push('');
+  }
+  if((ad.voucherErradoCsv||[]).length){
+    L.push('[!] N DE VOUCHER ERRADO NA PLANILHA (nao afeta a contagem) ('+ad.voucherErradoCsv.length+'):');
+    ad.voucherErradoCsv.forEach(x=>{
+      L.push('   '+x.id+' ('+x.pessoas.join(', ')+'): no sistema estao no voucher '+x.certo);
+      x.errados.forEach(er=>L.push('      - a planilha cita '+er.num+', que e de '+er.deQuem));
+    });
     L.push('');
   }
   if(ad.idsColados.length){
@@ -7122,6 +7175,14 @@ function montarBlocoAuditoriaDisparidade(ad){
        ${c.grupos.map(g=>`<div class="aud-sub">• ${g.pessoas.map(e).join(', ')} — ${e(g.checkin||'?')} a ${e(g.checkout||'?')}${g.voucher?' · voucher <b>'+e(g.voucher)+'</b>':' · sem voucher'}</div>`).join('')}
        <div class="aud-dica">São reservas distintas com o mesmo ID: o CSV conta 1 quarto onde existem ${c.grupos.length}. Dê um <b>ID Reserva novo</b> a uma delas.</div>`)));
 
+  // F) nº de voucher errado na planilha (não mexe na contagem — é conserto de digitação)
+  const gF=grupo('aud-diag', `✏️ Nº de voucher <b>errado na planilha</b> <span class="aud-peso">não afeta a contagem</span>`,
+    (ad.voucherErradoCsv||[]).map(x=>item(x.chave, x.id+' — voucher correto #'+x.certo,
+      `<div><b>${e(x.id)}</b> — ${x.pessoas.map(e).join(', ')}</div>
+       <div class="aud-sub">• No sistema estão todos no voucher <b>#${e(x.certo)}</b></div>
+       ${x.errados.map(er=>`<div class="aud-sub">• A planilha cita <b>#${e(er.num)}</b>, que na verdade é de <b>${e(er.deQuem)}</b></div>`).join('')}
+       <div class="aud-dica">O quarto está certo no sistema; só a coluna <b>Voucher</b> do CSV está com o número trocado.</div>`)));
+
   const fecha=ad.fecha
     ? `<div class="aud-conta aud-conta-ok">✅ <b>Conta fechada:</b> os itens acima explicam exatamente a diferença de <b>${sinal(ad.delta)}</b>.</div>`
     : `<div class="aud-conta aud-conta-warn">⚠️ Os itens acima explicam <b>${sinal(ad.explicado)}</b> de <b>${sinal(ad.delta)}</b> — restam <b>${ad.restante}</b> sem explicação (provável nome escrito de forma diferente entre o CSV e o voucher).</div>`;
@@ -7138,7 +7199,7 @@ function montarBlocoAuditoriaDisparidade(ad){
         <span class="aud-tit">🔎 Auditoria da disparidade — onde exatamente está a diferença</span>
         <button class="aud-copiar" id="btnAudCopiar" type="button" title="Copiar o relatório completo em texto">📋 Copiar relatório</button>
       </div>
-      ${gA}${gB}${gC}${gD}${gE}${fecha}${nota}
+      ${gA}${gB}${gC}${gD}${gE}${gF}${fecha}${nota}
     </div>`;
 }
 
