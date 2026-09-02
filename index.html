@@ -2625,6 +2625,26 @@ body:not(.dark) .mt-lock-card select,body:not(.dark) .mt-lock-card input[type=pa
 .conc-baixa{flex:0 0 auto;background:rgba(53,208,127,.14);color:#5FE0A0;border:1px solid rgba(53,208,127,.4);border-radius:8px;padding:7px 12px;font-size:11.5px;font-weight:800;cursor:pointer;transition:all .14s;white-space:nowrap}
 .conc-baixa:hover{background:#35D07F;color:#0A1929;border-color:#35D07F;transform:translateY(-1px)}
 .conc-vazio{color:#5BE0A8;font-size:12px}
+/* AUDITORIA DA DISPARIDADE DE QUARTOS (·330) — diz ONDE está a diferença, item a item */
+.aud-wrap{border:1px solid rgba(242,150,60,.38);border-radius:10px;padding:11px;background:rgba(242,150,60,.06);margin-bottom:11px}
+.aud-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px;flex-wrap:wrap}
+.aud-tit{font-size:12.5px;font-weight:800;color:#F5B873}
+.aud-copiar{flex:0 0 auto;background:rgba(127,178,245,.14);color:#9DC0FF;border:1px solid rgba(127,178,245,.4);border-radius:8px;padding:6px 11px;font-size:11.5px;font-weight:800;cursor:pointer;transition:all .14s;white-space:nowrap}
+.aud-copiar:hover{background:#3F8AE0;color:#fff;border-color:#3F8AE0;transform:translateY(-1px)}
+.aud-grupo{margin-bottom:9px}
+.aud-grupo-tit{font-size:12px;font-weight:800;margin-bottom:6px;color:#E7EDF7}
+.aud-mais .aud-grupo-tit{color:#C9A6F5}
+.aud-menos .aud-grupo-tit{color:#FF8A85}
+.aud-diag .aud-grupo-tit{color:#F2C829}
+.aud-peso{font-size:11px;font-weight:800;color:#8595AD;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:6px;padding:2px 7px;margin-left:5px;white-space:nowrap}
+.aud-lista{list-style:none;margin:0;padding:0;max-height:230px;overflow-y:auto;display:flex;flex-direction:column;gap:5px}
+.aud-lista li{font-size:12px;color:#E7EDF7;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:7px;padding:7px 10px}
+.aud-sub{font-size:11.5px;color:#C4D2E8;margin-top:3px;padding-left:4px}
+.aud-dica{font-size:11px;color:#8FA0BC;font-style:italic;margin-top:3px}
+.aud-dica b{color:#C4D2E8;font-style:normal}
+.aud-conta{font-size:12px;border-radius:8px;padding:8px 11px;margin-top:4px}
+.aud-conta-ok{background:rgba(53,208,127,.10);border:1px solid rgba(53,208,127,.35);color:#7DE8B0}
+.aud-conta-warn{background:rgba(242,200,41,.09);border:1px solid rgba(242,200,41,.35);color:#F2C829}
 /* desempate de nomes ambíguos */
 .conc-ambiguo{flex:1 1 100%}
 .conc-ambiguo .conc-grupo-tit{color:#7FB2F5}
@@ -4179,7 +4199,30 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 329; // (·329) NOME DO HOTEL "ROYAL PALM TOWER" UNIFICADO — este build
+var UV_BUILD_NUM = 330; // (·330) AUDITORIA DA DISPARIDADE DE QUARTOS — O PAINEL AGORA DIZ
+// ONDE ESTA A DIFERENCA, NAO SO QUE ELA EXISTE. Pedido do Nando: a Conciliacao ja
+// avisava "167 quarto(s) no CSV x 170 voucher(s) — a contagem NAO bate", mas nao
+// apontava o registro exato que causou a diferenca; ele estava conferindo isso a mao,
+// fora do sistema. Agora essa mesma conferencia roda DENTRO do Hub. Nova funcao
+// auditoriaDisparidadeQuartos(): recasa quarto (ID Reserva, so status Fechado) com
+// voucher pelos nomes dos hospedes — o MESMO criterio umNomeBate() ja usado pela
+// conciliacao, sem regra de casamento nova — e classifica cada unidade de diferenca em
+// 4 causas com sinal: (A) voucher no sistema sem quarto no CSV = +1 cada (foi o caso da
+// Nicole Halcartegaray: a linha dela sumiu do CSV quando o ID TOWER-120 foi reaproveitado
+// por outro hospede, e o voucher #00258 ficou orfao); (B) quarto no CSV sem voucher = -1
+// cada; (C) 1 quarto espalhado em N vouchers = +(N-1); (D) 1 voucher cobrindo N quartos =
+// -(N-1). Fecha com a linha da CONTA: a soma dos achados tem que dar exatamente a
+// diferenca do topo — se nao der, o painel DIZ quanto ficou sem explicacao em vez de
+// fingir que fechou (quase sempre nome escrito diferente entre CSV e voucher). Somado a
+// isso, um 5o achado que e DIAGNOSTICO e nao entra na conta: idsColados — mesmo ID
+// Reserva com duas reservas incompativeis grudadas (datas ou n de voucher diferentes),
+// que foi exatamente o TOWER-121 (Walter Lopes, individual 28/10-01/11, voucher 00259,
+// junto de Edson Martins + filho, duplo twin 29/10-31/10, voucher 00261): o CSV contava
+// 1 quarto onde existiam 2, escondendo um da contagem. DIFERENCA IMPORTANTE em relacao
+// a conciliacao por quarto logo abaixo: a auditoria NAO aplica o filtro de quarto
+// "baixado/conferido" — a contagem do topo inclui todo mundo, entao a explicacao tambem
+// precisa incluir, senao a conta nunca fecharia. Botao "Copiar relatorio" gera o mesmo
+// conteudo em texto puro (textoAuditoriaDisparidade) pra colar onde quiser. ANTERIOR: (·329) NOME DO HOTEL "ROYAL PALM TOWER" UNIFICADO — este build
 // é do GERADOR DE VOUCHER, não do Insights. Pedido do Nando: a leitura por IA lê o mesmo
 // hotel do WeCann Summit e preenche o voucher com nomes diferentes — "Royal Palm Tower
 // Campinas" numa vez, "Royal Palm Tower Anhanguera" noutra, e por aí vai — e isso quebra
@@ -6567,6 +6610,188 @@ function conciliacaoPorQuarto(){
   };
 }
 
+/* ===== AUDITORIA DA DISPARIDADE DE QUARTOS (·330) =====
+   O painel de conciliação já dizia QUE a contagem não bate ("167 quartos × 170
+   vouchers"), mas não dizia ONDE. Esta auditoria fecha a conta: para cada unidade
+   de diferença ela aponta o registro exato que a causou, com nome e número.
+
+   Diferente da conciliação por quarto acima, aqui NÃO se aplica o filtro de
+   "quarto baixado/conferido" — a contagem do topo inclui todo mundo, então a
+   explicação também precisa incluir. Senão a conta nunca fecharia.
+
+   As 4 causas possíveis, com o efeito de cada uma sobre (vouchers − quartos):
+   A) voucherSemQuarto   — voucher no sistema sem nenhum quarto no CSV ....... +1 cada
+   B) quartoSemVoucher   — quarto no CSV sem nenhum voucher no sistema ....... −1 cada
+   C) quartoDividido     — 1 quarto do CSV espalhado em N vouchers ........... +(N−1)
+   D) voucherMultiQuarto — 1 voucher cobrindo N quartos do CSV .............. −(N−1)
+   E) idsColados         — DIAGNÓSTICO (não entra na conta): mesmo ID Reserva
+      com duas reservas incompatíveis (datas ou nº de voucher diferentes). Foi
+      exatamente o caso TOWER-121 — duas reservas distintas grudadas num ID só,
+      escondendo um quarto da contagem. */
+function auditoriaDisparidadeQuartos(){
+  const rowsAll=(statusHotelData&&statusHotelData.rows)||[];
+  const temIdNasLinhas=rowsAll.some(r=>r && (r.idReserva||'').trim());
+  if(!temIdNasLinhas && !(statusHotelData && statusHotelData.__idReservaOk)) return { semColuna:true };
+
+  // 1) quartos do CSV — mesma regra da conciliação: só status "Fechado", agrupado por ID Reserva
+  const mapQ=new Map();
+  rowsAll.forEach(r=>{
+    if(normStatusHotel(r.statusRaw)!=='fechado') return;
+    const id=(r.idReserva||'').trim(); if(!id) return;
+    const k=id.toUpperCase();
+    if(!mapQ.has(k)) mapQ.set(k,{ id, hotelPrefixo:_prefixoHotelId(id), linhas:[] });
+    mapQ.get(k).linhas.push(r);
+  });
+  const quartos=[...mapQ.values()].map(q=>({
+    id:q.id, hotelPrefixo:q.hotelPrefixo, linhas:q.linhas,
+    pessoas:q.linhas.map(l=>(l.nome||'').trim()).filter(Boolean), vouchers:[]
+  }));
+
+  // 2) vouchers WeCann do sistema
+  const vInfo=vouchersWecannLista().map(v=>{
+    const nomes=(v.hospedes&&v.hospedes.length)?v.hospedes.slice():[];
+    if(!nomes.length && v.cliente) nomes.push(v.cliente);
+    return { num:v.num, cliente:v.cliente||'', hotel:v.hotel||'', hotelKey:_hotelKeyDoNome(v.hotel), nomes:nomes.filter(Boolean), quartos:[] };
+  });
+
+  // 3) casa quarto ↔ voucher por DUAS âncoras, nesta ordem:
+  //    (a) os NOMES dos hóspedes, com o MESMO umNomeBate() que a conciliação já usa —
+  //        só com uma limpeza de pontuação antes ("Magda. Vaissman" → "Magda Vaissman"),
+  //        local desta auditoria, sem mexer no matcher compartilhado;
+  //    (b) SÓ para o quarto que sobrou sem NENHUM voucher: a coluna "Voucher" do CSV,
+  //        como último recurso. Ela resolve o caso do nome escrito curto ("Walter Lopes"
+  //        no CSV × "Walter Matheus Lopes Rueda Arce" no voucher), mas NÃO serve como
+  //        âncora principal: no CSV real ela vem truncada e às vezes errada ("005",
+  //        "008", "Nº 00009" apontando para outro voucher). Por isso ela só entra quando
+  //        o nome não achou nada, exige 4+ dígitos, e só liga a voucher que também está
+  //        sobrando — assim um número errado nunca rouba o voucher de outro quarto.
+  const _limpaNome=s=>String(s==null?'':s).replace(/[^\p{L}\p{N}\s]/gu,' ');
+  const _numVch=v=>{ const d=String(v==null?'':v).replace(/[^0-9]/g,''); return d.length>=4 ? String(parseInt(d,10)) : ''; };
+  const liga=(q,vi)=>{ if(q.vouchers.indexOf(vi.num)<0) q.vouchers.push(vi.num); if(vi.quartos.indexOf(q.id)<0) vi.quartos.push(q.id); };
+  quartos.forEach(q=>{                                      // passo (a): nomes
+    q.pessoas.forEach(nm=>{
+      vInfo.forEach(vi=>{
+        if(q.hotelPrefixo && vi.hotelKey && q.hotelPrefixo!==vi.hotelKey) return;  // hotel diferente: não casa
+        if(vi.nomes.some(vn=>umNomeBate(_limpaNome(nm),_limpaNome(vn)))) liga(q,vi);
+      });
+    });
+  });
+  const porNumero=new Map();
+  vInfo.forEach(vi=>{ const k=_numVch(vi.num); if(k && !porNumero.has(k)) porNumero.set(k,vi); });
+  quartos.forEach(q=>{                                      // passo (b): último recurso
+    if(q.vouchers.length) return;
+    q.linhas.forEach(l=>{
+      const k=_numVch(l.voucher); if(!k) return;
+      const vi=porNumero.get(k);
+      if(vi && !vi.quartos.length) liga(q,vi);
+    });
+  });
+
+  // A) voucher no sistema sem quarto nenhum no CSV (foi o caso da Nicole Halcartegaray)
+  const voucherSemQuarto=vInfo.filter(vi=>!vi.quartos.length)
+    .map(vi=>({ num:vi.num, cliente:vi.cliente, nomes:vi.nomes.slice(), hotel:vi.hotel }));
+  // B) quarto no CSV sem voucher nenhum
+  const quartoSemVoucher=quartos.filter(q=>!q.vouchers.length)
+    .map(q=>({ id:q.id, pessoas:q.pessoas.slice(), hotelPrefixo:q.hotelPrefixo }));
+  // C) 1 quarto do CSV espalhado em vários vouchers
+  const quartoDividido=quartos.filter(q=>q.vouchers.length>1)
+    .map(q=>({ id:q.id, pessoas:q.pessoas.slice(), vouchers:q.vouchers.slice(), extra:q.vouchers.length-1 }));
+  // D) 1 voucher cobrindo vários quartos do CSV
+  const voucherMultiQuarto=vInfo.filter(vi=>vi.quartos.length>1)
+    .map(vi=>({ num:vi.num, cliente:vi.cliente, quartos:vi.quartos.slice(), extra:vi.quartos.length-1 }));
+
+  // E) DIAGNÓSTICO — ID Reserva com duas reservas incompatíveis grudadas
+  const idsColados=[];
+  quartos.forEach(q=>{
+    if(q.linhas.length<2) return;
+    const grupos=new Map();
+    q.linhas.forEach(l=>{
+      const vch=(l.voucher||'').replace(/[^0-9]/g,'');          // "Nº 00009" / " 00007" → só os dígitos
+      const ci=normDataFlexivel(l.checkin)||'', co=normDataFlexivel(l.checkout)||'';
+      const gk=ci+'|'+co+'|'+vch;
+      if(!grupos.has(gk)) grupos.set(gk,{ checkin:ci, checkout:co, voucher:vch, pessoas:[] });
+      grupos.get(gk).pessoas.push((l.nome||'').trim());
+    });
+    if(grupos.size<2) return;
+    const gs=[...grupos.values()];
+    // exige divergência REAL: datas diferentes OU dois números de voucher diferentes.
+    // Voucher preenchido em uma linha e vazio na outra é coluna incompleta, não colagem.
+    const datas=new Set(gs.map(g=>g.checkin+'|'+g.checkout));
+    const vchs=new Set(gs.map(g=>g.voucher).filter(Boolean));
+    const motivos=[];
+    if(datas.size>1) motivos.push('datas diferentes');
+    if(vchs.size>1) motivos.push('nº de voucher diferente');
+    if(!motivos.length) return;
+    idsColados.push({ id:q.id, grupos:gs, motivo:motivos.join(' e ') });
+  });
+
+  // 4) A CONTA — a soma dos achados tem que dar exatamente a diferença do topo
+  const totalQuartos=quartos.length, totalVouchers=vInfo.length;
+  const delta=totalVouchers-totalQuartos;
+  const extraDividido=quartoDividido.reduce((s,q)=>s+q.extra,0);
+  const extraMulti=voucherMultiQuarto.reduce((s,v)=>s+v.extra,0);
+  const explicado=voucherSemQuarto.length - quartoSemVoucher.length + extraDividido - extraMulti;
+  const achados=voucherSemQuarto.length+quartoSemVoucher.length+quartoDividido.length+voucherMultiQuarto.length+idsColados.length;
+  return {
+    semColuna:false, totalQuartos, totalVouchers, delta,
+    voucherSemQuarto, quartoSemVoucher, quartoDividido, voucherMultiQuarto, idsColados,
+    extraDividido, extraMulti, explicado, restante: delta-explicado,
+    fecha: explicado===delta, achados,
+    ok: delta===0 && achados===0
+  };
+}
+
+// relatório em TEXTO da auditoria — o mesmo conteúdo do painel, pronto para copiar/colar
+function textoAuditoriaDisparidade(ad){
+  if(!ad || ad.semColuna) return 'CSV sem a coluna "ID Reserva" — auditoria indisponível.';
+  const L=[];
+  L.push('AUDITORIA DE DISPARIDADE DE QUARTOS — WeCann');
+  L.push('Gerado em '+new Date().toLocaleString('pt-BR'));
+  L.push('');
+  L.push(ad.totalQuartos+' quarto(s) no CSV x '+ad.totalVouchers+' voucher(s) no sistema  =>  diferenca de '+(ad.delta>0?'+':'')+ad.delta);
+  L.push('');
+  if(ad.voucherSemQuarto.length){
+    L.push('[+'+ad.voucherSemQuarto.length+'] VOUCHER NO SISTEMA SEM QUARTO NO CSV:');
+    ad.voucherSemQuarto.forEach(v=>L.push('   #'+v.num+' - '+(v.cliente||v.nomes.join(', ')||'-')));
+    L.push('');
+  }
+  if(ad.quartoSemVoucher.length){
+    L.push('[-'+ad.quartoSemVoucher.length+'] QUARTO NO CSV SEM VOUCHER NO SISTEMA:');
+    ad.quartoSemVoucher.forEach(q=>L.push('   '+q.id+' - '+q.pessoas.join(', ')));
+    L.push('');
+  }
+  if(ad.quartoDividido.length){
+    L.push('[+'+ad.extraDividido+'] QUARTO DO CSV DIVIDIDO EM VOUCHERS DIFERENTES:');
+    ad.quartoDividido.forEach(q=>L.push('   '+q.id+' ('+q.pessoas.join(', ')+') -> vouchers '+q.vouchers.map(n=>'#'+n).join(', ')));
+    L.push('');
+  }
+  if(ad.voucherMultiQuarto.length){
+    L.push('[-'+ad.extraMulti+'] UM VOUCHER COBRINDO VARIOS QUARTOS DO CSV:');
+    ad.voucherMultiQuarto.forEach(v=>L.push('   #'+v.num+' ('+(v.cliente||'-')+') -> quartos '+v.quartos.join(', ')));
+    L.push('');
+  }
+  if(ad.idsColados.length){
+    L.push('[!] ID RESERVA COM DUAS RESERVAS DIFERENTES GRUDADAS ('+ad.idsColados.length+'):');
+    ad.idsColados.forEach(c=>{
+      L.push('   '+c.id+' ('+c.motivo+'):');
+      c.grupos.forEach(g=>L.push('      - '+g.pessoas.join(', ')+' | '+(g.checkin||'?')+' a '+(g.checkout||'?')+(g.voucher?' | voucher '+g.voucher:' | sem voucher')));
+    });
+    L.push('');
+  }
+  L.push(ad.fecha ? 'CONTA FECHADA: os achados acima explicam exatamente a diferenca de '+(ad.delta>0?'+':'')+ad.delta+'.'
+                  : 'ATENCAO: os achados explicam '+(ad.explicado>0?'+':'')+ad.explicado+' de '+(ad.delta>0?'+':'')+ad.delta+' — restam '+ad.restante+' sem explicacao (provavel nome escrito diferente entre CSV e voucher).');
+  return L.join('\n');
+}
+function copiarAuditoriaDisparidade(){
+  const txt=textoAuditoriaDisparidade(auditoriaDisparidadeQuartos());
+  const ok=()=>toast('Relatório da auditoria copiado ✅','ok');
+  try{
+    if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(ok,()=>{}); return; }
+  }catch(e){}
+  const ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); ok(); }catch(e){ toast('Não consegui copiar','err'); }
+  document.body.removeChild(ta);
+}
 
 let shIntegrarBusca='';  // texto de busca de voucher no integrador
 
@@ -6780,9 +7005,62 @@ function montarBlocoQuartos(cq){
       </li>`).join('')}</ul>
     </div>` : '';
 
+  // 6) AUDITORIA DA DISPARIDADE (·330) — entra logo abaixo da contagem, que é onde
+  //    o Nando lia "a contagem NÃO bate" sem saber onde estava o furo.
+  const blocoAud=montarBlocoAuditoriaDisparidade(auditoriaDisparidadeQuartos());
+
   return `<div class="conc-quartos-wrap">
       <div class="conc-quartos-titulo">🛏️ Conciliação por quarto (ID Reserva)</div>
-      ${contagem}${bFalta}${bSem}${bDiv}${bSobra}
+      ${contagem}${blocoAud}${bFalta}${bSem}${bDiv}${bSobra}
+    </div>`;
+}
+
+// painel "onde exatamente está a disparidade" — só aparece quando há algo a explicar
+function montarBlocoAuditoriaDisparidade(ad){
+  if(!ad || ad.semColuna || ad.ok) return '';
+  const e=esc;
+  const sinal=n=> (n>0?'+':'')+n;
+  const grupo=(cls,tit,itens)=> itens.length ? `<div class="aud-grupo ${cls}">
+      <div class="aud-grupo-tit">${tit}</div>
+      <ul class="aud-lista">${itens.join('')}</ul>
+    </div>` : '';
+
+  // A) voucher sem quarto no CSV
+  const gA=grupo('aud-mais', `🟣 Voucher no sistema <b>sem quarto no CSV</b> <span class="aud-peso">${sinal(ad.voucherSemQuarto.length)} voucher(s)</span>`,
+    ad.voucherSemQuarto.map(v=>`<li><b>#${e(v.num)}</b> — ${e(v.cliente||v.nomes.join(', ')||'—')}
+      <div class="aud-dica">A linha desta pessoa não existe no CSV. Costuma ser linha apagada ou <b>ID Reserva reaproveitado</b> por outro hóspede.</div></li>`));
+
+  // B) quarto sem voucher
+  const gB=grupo('aud-menos', `🔴 Quarto no CSV <b>sem voucher no sistema</b> <span class="aud-peso">−${ad.quartoSemVoucher.length} voucher(s)</span>`,
+    ad.quartoSemVoucher.map(q=>`<li><b>${e(q.id)}</b> — ${q.pessoas.map(e).join(', ')}
+      <div class="aud-dica">Reserva fechada no CSV mas sem voucher emitido no sistema.</div></li>`));
+
+  // C) quarto dividido em vários vouchers
+  const gC=grupo('aud-mais', `🔀 Quarto do CSV <b>dividido em vouchers diferentes</b> <span class="aud-peso">${sinal(ad.extraDividido)} voucher(s)</span>`,
+    ad.quartoDividido.map(q=>`<li><b>${e(q.id)}</b> (${q.pessoas.map(e).join(', ')}) → ${q.vouchers.map(n=>'<b>#'+e(n)+'</b>').join(' · ')}
+      <div class="aud-dica">Um ID de reserva só, mas ${q.vouchers.length} vouchers no sistema.</div></li>`));
+
+  // D) um voucher cobrindo vários quartos
+  const gD=grupo('aud-menos', `🧲 Um voucher cobrindo <b>vários quartos do CSV</b> <span class="aud-peso">−${ad.extraMulti} voucher(s)</span>`,
+    ad.voucherMultiQuarto.map(v=>`<li><b>#${e(v.num)}</b> ${v.cliente?'— '+e(v.cliente):''} → ${v.quartos.map(x=>'<b>'+e(x)+'</b>').join(' · ')}
+      <div class="aud-dica">Um voucher só para ${v.quartos.length} quartos distintos do CSV.</div></li>`));
+
+  // E) diagnóstico: ID Reserva com duas reservas grudadas (caso TOWER-121)
+  const gE=grupo('aud-diag', `🧷 ID Reserva com <b>duas reservas diferentes grudadas</b> <span class="aud-peso">esconde quarto na contagem</span>`,
+    ad.idsColados.map(c=>`<li><b>${e(c.id)}</b> <span class="conc-amb-n">(${e(c.motivo)})</span>
+      ${c.grupos.map(g=>`<div class="aud-sub">• ${g.pessoas.map(e).join(', ')} — ${e(g.checkin||'?')} a ${e(g.checkout||'?')}${g.voucher?' · voucher <b>'+e(g.voucher)+'</b>':' · sem voucher'}</div>`).join('')}
+      <div class="aud-dica">São reservas distintas com o mesmo ID: o CSV conta 1 quarto onde existem ${c.grupos.length}. Dê um <b>ID Reserva novo</b> a uma delas.</div></li>`));
+
+  const fecha=ad.fecha
+    ? `<div class="aud-conta aud-conta-ok">✅ <b>Conta fechada:</b> os itens acima explicam exatamente a diferença de <b>${sinal(ad.delta)}</b>.</div>`
+    : `<div class="aud-conta aud-conta-warn">⚠️ Os itens acima explicam <b>${sinal(ad.explicado)}</b> de <b>${sinal(ad.delta)}</b> — restam <b>${ad.restante}</b> sem explicação (provável nome escrito de forma diferente entre o CSV e o voucher).</div>`;
+
+  return `<div class="aud-wrap">
+      <div class="aud-head">
+        <span class="aud-tit">🔎 Auditoria da disparidade — onde exatamente está a diferença</span>
+        <button class="aud-copiar" id="btnAudCopiar" type="button" title="Copiar o relatório completo em texto">📋 Copiar relatório</button>
+      </div>
+      ${gA}${gB}${gC}${gD}${gE}${fecha}
     </div>`;
 }
 
@@ -6833,6 +7111,7 @@ function renderConciliacao(){
 
   const resumo = [
     (!cq.semColuna && !cq.quartosBatem)?`🛏️ ${cq.totalQuartos} quarto(s) no CSV × ${cq.totalVouchers} voucher(s)`:'',
+    (()=>{ const a=auditoriaDisparidadeQuartos(); return (!a.semColuna && a.achados) ? `🔎 ${a.achados} causa(s) identificada(s) na auditoria` : ''; })(),
     (!cq.semColuna && (cq.faltaPessoa.length||cq.quartoSemVoucher.length||cq.quartoDividido.length))?`${cq.faltaPessoa.length+cq.quartoSemVoucher.length+cq.quartoDividido.length} divergência(s) de quarto`:'',
     nAmb?`${nAmb} aguardando sua escolha`:'',
     c.promovidos.length?`${c.promovidos.length} p/ atualizar no WeCann`:'',
@@ -6914,6 +7193,7 @@ function renderConciliacao(){
     // ação 2 — adicionar como novo hóspede
     const an=e.target.closest('[data-novo-num]');
     if(an){ integrarNovoHospede(an.getAttribute('data-novo-nome'), an.getAttribute('data-novo-num')); return; }
+    if(e.target.closest('#btnAudCopiar')){ copiarAuditoriaDisparidade(); return; }
     if(e.target.closest('#btnConc')){ toggleConciliacao(); return; }
   };
   // busca de voucher dentro do integrador (mantém o foco, atualiza só a lista)
