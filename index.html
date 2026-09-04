@@ -4204,7 +4204,25 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 333; // (·333) O TOWER-096 CONTINUAVA ACUSADO NO ·332 — A PROVA TINHA
+var UV_BUILD_NUM = 334; // (·334) "FALTA ADICIONAR PESSOA NO VOUCHER" ACUSANDO GENTE QUE JA
+// ESTAVA CADASTRADA — DOIS NOMES NUM CAMPO SO. Relato do Nando com as duas telas: a
+// conciliacao listava 16 quartos do Contemporaneo com "Falta no sistema: USA Hemp 19 /
+// 17 / 15 / 13", enquanto os vouchers #00300, #00299, #00298 e #00297 mostram na tela
+// "USA Hemp 19 // USA Hemp 20", "USA Hemp 17//USA Hemp 18" etc. — as duas pessoas ESTAO
+// cadastradas. O padrao denunciou o mecanismo: o ausente era SEMPRE o impar, ou seja
+// sempre o PRIMEIRO nome do par. CAUSA-RAIZ: quando duas pessoas dividem um campo de
+// nome ("A // B"), aquilo e UMA string so, e umNomeBate() compara primeiro nome +
+// ultimo sobrenome — no texto inteiro, o "primeiro nome" e da pessoa A e o "ultimo
+// sobrenome" e da pessoa B, entao so a pessoa B casava. A pessoa A caia como faltante.
+// Segundo problema no mesmo lugar: o titular (v.cliente) so entrava na lista de nomes
+// quando NAO havia hospedes cadastrados — sendo que o titular e gente do quarto como
+// qualquer outro. CORRECAO: _nomesSeparados() quebra "A // B" (e as variantes / e |) em
+// uma pessoa por item, aplicado tanto aos hospedes quanto ao cliente; e a lista de nomes
+// usada para ACHAR a pessoa passou a somar hospedes + titular. Para NAO criar barulho
+// novo, a lista que aponta quem SOBRA no voucher continua olhando so os hospedes
+// (nomesHosp), com o mesmo fallback de antes — assim o titular nunca vira "pessoa a
+// mais no sistema". Vale para a conciliacao por quarto E para a auditoria do ·330/·333,
+// que compartilham vouchersWecannLista(). ANTERIOR: (·333) O TOWER-096 CONTINUAVA ACUSADO NO ·332 — A PROVA TINHA
 // QUE SER POR GRUPO DE LINHAS, NAO PELO QUARTO INTEIRO. O Nando subiu o ·332, o console
 // confirmou "build HUB-v3-332", e o falso alarme seguiu identico na tela. MEDI EM VEZ DE
 // DEDUZIR: o ·332 exigia q.vouchers.length>1 (o quarto ter caido em mais de um voucher)
@@ -6598,11 +6616,19 @@ function conciliacaoPorQuarto(){
   const quartos=quartosDoCSV();
   const vouchers=vouchersWecannLista();   // [{num, cliente, hospedes:[], hotel}]
 
-  // pré-processa os vouchers: nomes normalizados + chave de hotel
+  // pré-processa os vouchers: nomes normalizados + chave de hotel.
+  // `nomes` (usado para ACHAR a pessoa e para dizer quem falta) inclui os hóspedes E o
+  // titular — o titular é gente do quarto igual aos outros, e antes só entrava quando a
+  // lista de hóspedes estava vazia; por isso um quarto de casal cujo titular carrega as
+  // duas pessoas no texto acusava a primeira como ausente.
+  // `nomesHosp` (usado só para dizer quem SOBRA) segue apenas os hóspedes, como antes —
+  // assim o titular não passa a gerar "pessoa a mais no sistema".
   const vInfo=vouchers.map(v=>{
-    const nomes=(v.hospedes&&v.hospedes.length)?v.hospedes.slice():[];
-    if(!nomes.length && v.cliente) nomes.push(v.cliente);
-    return { num:v.num, hotelKey:_hotelKeyDoNome(v.hotel), nomes:nomes.filter(Boolean), usado:false };
+    const hosp=(v.hospedes||[]).filter(Boolean);
+    const cli=(v.clienteNomes||[]).filter(Boolean);
+    const nomes=hosp.slice();
+    cli.forEach(c=>{ if(!nomes.some(n=>umNomeBate(n,c))) nomes.push(c); });
+    return { num:v.num, hotelKey:_hotelKeyDoNome(v.hotel), nomes, nomesHosp:(hosp.length?hosp:cli), usado:false };
   });
 
   const faltaPessoa=[];      // {id, voucherNum, faltantes:[nomes], hotelPrefixo}
@@ -6659,7 +6685,7 @@ function conciliacaoPorQuarto(){
       faltaPessoa.push({ id:q.id, voucherNum:numV, faltantes, hotelPrefixo:q.hotelPrefixo, pessoasQuarto:q.pessoas.slice() });
     }
     // pessoas do voucher que NÃO estão no quarto do CSV → sobrando no sistema
-    const sobrando=vi.nomes.filter(vn=> !q.pessoas.some(nm=>umNomeBate(nm,vn)) );
+    const sobrando=vi.nomesHosp.filter(vn=> !q.pessoas.some(nm=>umNomeBate(nm,vn)) );
     if(sobrando.length){
       sobraPessoa.push({ id:q.id, voucherNum:numV, sobrando, pessoasQuarto:q.pessoas.slice() });
     }
@@ -6715,9 +6741,10 @@ function auditoriaDisparidadeQuartos(){
 
   // 2) vouchers WeCann do sistema
   const vInfo=vouchersWecannLista().map(v=>{
-    const nomes=(v.hospedes&&v.hospedes.length)?v.hospedes.slice():[];
-    if(!nomes.length && v.cliente) nomes.push(v.cliente);
-    return { num:v.num, cliente:v.cliente||'', hotel:v.hotel||'', hotelKey:_hotelKeyDoNome(v.hotel), nomes:nomes.filter(Boolean), quartos:[] };
+    const hosp=(v.hospedes||[]).filter(Boolean), cli=(v.clienteNomes||[]).filter(Boolean);
+    const nomes=hosp.slice();
+    cli.forEach(c=>{ if(!nomes.some(n=>umNomeBate(n,c))) nomes.push(c); });   // titular também é gente do quarto
+    return { num:v.num, cliente:v.cliente||'', hotel:v.hotel||'', hotelKey:_hotelKeyDoNome(v.hotel), nomes, quartos:[] };
   });
 
   // 3) casa quarto ↔ voucher por DUAS âncoras, nesta ordem:
@@ -6989,12 +7016,24 @@ function voucherTemEtiquetaWecann(v){
 function vouchersWecannSemEtiqueta(list){
   return (list||savedCache||[]).filter(v=>voucherTemHotelWecann(v) && !voucherTemEtiquetaWecann(v));
 }
+/* Um campo de nome pode carregar DUAS pessoas num texto só — é como o próprio Hub
+   escreve o titular de um quarto de casal: "USA Hemp 19 // USA Hemp 20",
+   "Maria José Ribeiro // Angélica Ribeiro de Moura". Enquanto isso ficava numa string
+   única, umNomeBate() (que compara primeiro nome + último sobrenome) só reconhecia a
+   ÚLTIMA pessoa do texto — a primeira era dada como ausente. Daí a lista "falta
+   adicionar pessoa no voucher" acusar justamente os ímpares (USA Hemp 19, 17, 15, 13),
+   que são sempre os primeiros de cada par. Aqui o texto vira uma pessoa por item. */
+function _nomesSeparados(txt){
+  return String(txt==null?'':txt).split(/\s*(?:\/\/|\|\|)\s*|\s+\/\s+|\s+\|\s+/)
+    .map(x=>x.trim()).filter(Boolean);
+}
 function vouchersWecannLista(){
   return (savedCache||[]).filter(v=>(v.services||[]).some(sv=>sv.type==='hotel' && HOTEIS_OCUPACAO.some(h=>h.match(sv.data&&sv.data.hotel))))
     .map(v=>{
       const serv=(v.services||[]).filter(sv=>sv.type==='hotel' && HOTEIS_OCUPACAO.some(h=>h.match(sv.data&&sv.data.hotel)));
-      const hosp=[]; serv.forEach(sv=>{ const h=sv.data&&sv.data.hospedes; if(Array.isArray(h)) h.forEach(x=>x&&hosp.push(x)); });
-      return { num:v.num, cliente:v.cliente||'', hospedes:hosp, hotel:(serv[0]&&serv[0].data&&serv[0].data.hotel)||'' };
+      const hosp=[]; serv.forEach(sv=>{ const h=sv.data&&sv.data.hospedes; if(Array.isArray(h)) h.forEach(x=>{ if(x) _nomesSeparados(x).forEach(n=>hosp.push(n)); }); });
+      return { num:v.num, cliente:v.cliente||'', clienteNomes:_nomesSeparados(v.cliente||''),
+               hospedes:hosp, hotel:(serv[0]&&serv[0].data&&serv[0].data.hotel)||'' };
     })
     .sort((a,b)=>(parseInt(b.num)||0)-(parseInt(a.num)||0));
 }
