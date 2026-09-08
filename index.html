@@ -2449,6 +2449,9 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .mt-pasta-abre{display:flex;align-items:center;gap:9px;flex:1 1 auto;min-width:0;background:transparent;border:0;color:color-mix(in srgb, var(--pcor) 78%, #ffffff);font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer;text-align:left;padding:4px 2px}
 .mt-pasta-abre:hover{color:color-mix(in srgb, var(--pcor) 55%, #ffffff)}
 .mt-pasta-cab{border-left:4px solid var(--pcor)}
+/* (·340) ícone da pasta em SVG, pintado pela mesma variável de cor da pasta */
+.mt-pasta-ic{flex:0 0 auto;display:inline-flex;align-items:center;line-height:0}
+.mt-pasta-ic svg{fill:var(--pcor);display:block}
 .mt-pasta-nome{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mt-pasta-acoes{display:flex;gap:5px;flex:0 0 auto}
 .mt-mini{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);border-radius:8px;color:#E8EEF4;font-family:inherit;font-size:11.5px;font-weight:700;padding:5px 9px;cursor:pointer;transition:all .14s;white-space:nowrap}
@@ -4257,7 +4260,15 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 339; // (·339) COR DA PASTA, DENTRO DO BOTAO DE LAPIS. Pedido do Nando:
+var UV_BUILD_NUM = 340; // (·340) O SIMBOLO DA PASTA AGORA TROCA DE COR JUNTO. Print do
+// Nando depois do ·339: escolheu verde, e borda/fundo/titulo/faixa ficaram verdes, mas o
+// iconezinho continuou laranja. MOTIVO: era o EMOJI 📁/📂, e emoji nao aceita cor por CSS
+// — ele nao herda `color`, desenha com a paleta propria da fonte, entao nenhuma regra de
+// estilo alcancaria aquilo. Trocado por um SVG inline (mtIconePasta, com variante aberta
+// e fechada) pintado com fill:var(--pcor) — a MESMA variavel que ja colore o resto do
+// bloco desde o ·339. Assim o icone acompanha qualquer cor sozinho, sem regra por cor e
+// sem nenhuma cor escrita duas vezes no codigo.
+// ANTERIOR: (·339) COR DA PASTA, DENTRO DO BOTAO DE LAPIS. Pedido do Nando:
 // o lapis so renomeava; agora ele abre um popover com "Renomear pasta" + paleta de 9
 // cores. Reaproveitei a casca visual .mt-corpop que os popovers de cor do post-it ja
 // usam (nenhum estilo de popover novo) e a funcao de renomear virou mtRenomearPasta(),
@@ -22597,6 +22608,19 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
                    : '<div class="mt-vazio">'+vazioTxt+'</div>')
       + '</div></div>';
   }
+  /* (·340) O ícone da pasta era o emoji 📁/📂, e emoji NÃO aceita cor por CSS — a
+     `color` não o alcança, ele desenha com a paleta própria da fonte. Por isso, ao
+     trocar a cor da pasta no ·339, tudo mudava menos o símbolo. Trocado por um SVG
+     inline pintado com `fill:var(--pcor)`, a MESMA variável que já colore borda, fundo,
+     título e faixa lateral — então o ícone passa a acompanhar sozinho, sem regra por cor. */
+  function mtIconePasta(aberta){
+    var corpo = aberta
+      ? '<path d="M2 5.2A2.2 2.2 0 0 1 4.2 3h3.4c.6 0 1.18.25 1.58.7l.88 1H15.8A2.2 2.2 0 0 1 18 6.9v1.3H2V5.2z"/>'
+        +'<path d="M2 9.5h16.1a1 1 0 0 1 .97 1.26l-1.3 4.9A1.8 1.8 0 0 1 16.03 17H4.2A2.2 2.2 0 0 1 2 14.8V9.5z" opacity=".72"/>'
+      : '<path d="M2 5.2A2.2 2.2 0 0 1 4.2 3h3.4c.6 0 1.18.25 1.58.7l.88 1H15.8A2.2 2.2 0 0 1 18 6.9v7.9A2.2 2.2 0 0 1 15.8 17H4.2A2.2 2.2 0 0 1 2 14.8V5.2z"/>';
+    return '<span class="mt-pasta-ic" aria-hidden="true">'
+      + '<svg viewBox="0 0 20 20" width="17" height="17">'+corpo+'</svg></span>';
+  }
   function mtPastasHtml(g){
     var pastas=mtPastasLista(g);
     if(!pastas.length) return '';
@@ -22607,7 +22631,7 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
         + '<div class="mt-pasta-cab">'
         +   '<button type="button" class="mt-pasta-abre" data-mt-pasta="'+mtEsc(fid)+'" aria-expanded="'+(ab?'true':'false')+'">'
         +     '<span class="mt-sec-seta">'+(ab?'▾':'▸')+'</span>'
-        +     '<span class="mt-pasta-ic">'+(ab?'📂':'📁')+'</span>'
+        +     mtIconePasta(ab)
         +     '<span class="mt-pasta-nome">'+mtEsc(f.nome||'Pasta sem nome')+'</span>'
         +     '<span class="mt-sec-qtd">'+ids.length+'</span>'
         +   '</button>'
