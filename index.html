@@ -4274,7 +4274,20 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 350; // (·350) ACOES COMERCIAIS GANHOU O BADGE DE NOTIFICACAO DO MENU E
+var UV_BUILD_NUM = 351; // (·351) MODO "NOTIFICAR TUDO PRO ADMIN" — pra o Nando conseguir
+// TESTAR sozinho a notificacao do ·350. Ligado pela constante AC_NOTIF_ADMIN_TUDO, o
+// admin passa a ser avisado de QUALQUER acao em Acoes Comerciais, inclusive das dele
+// mesmo (topico novo, mensagem, resposta e reacao com emoji). Vale SO pro perfil admin —
+// pro resto do time o ·350 continua identico, ninguem e notificado da propria acao.
+// TRES BARREIRAS TIVERAM QUE CAIR, e todas consultam a MESMA funcao acAdminNotifTudo(),
+// entao desligar o teste depois e trocar UMA constante: (1) acNaoLidas e acReacoesNovas
+// excluiam o proprio autor; (2) acPostar e acNovoCard carimbavam "quem escreve ja leu",
+// que apagaria o aviso antes de ele nascer; (3) a baixa automatica por visualizacao
+// (·289) daria baixa no mesmo render, porque quem escreve esta DENTRO do card. Pra (3)
+// criei acAdminPend: enquanto o admin esta no card onde acabou de agir, a baixa espera;
+// ao sair, a pendencia de teste cai e reabrir da baixa normalmente, zerando o badge —
+// que e exatamente o passo a passo do teste (responder -> badge acende -> Voltar -> card
+// destacado na lista -> abrir -> tudo limpo). ANTERIOR: (·350) ACOES COMERCIAIS GANHOU O BADGE DE NOTIFICACAO DO MENU E
 // O DESTAQUE DE CARD NAO LIDO. Pedido do Nando: icone identico ao do Insights, numero em
 // vermelho, TODO MUNDO recebe (marcado ou nao), valendo para conversa nova, resposta e
 // tambem reacao com emoji; e ao entrar na pasta, card nao lido em destaque, que some
@@ -23746,7 +23759,8 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
   function acNaoLidas(c){
     var ch=acChaveLido(c.id); if(!ch) return 0;
     var S=acStore(), marca=S.lido[ch]||0, u=acUsuario(), n=0;
-    acMsgsVivas(c).forEach(function(m){ if((m.ts||0)>marca && m.autorU!==u) n++; });
+    var tudo=acAdminNotifTudo();   // (·351) no modo teste, a própria mensagem também conta
+    acMsgsVivas(c).forEach(function(m){ if((m.ts||0)>marca && (tudo || m.autorU!==u)) n++; });
     return n;
   }
   /* ===== (·350) NOTIFICAÇÃO DE NOVIDADE — badge no menu + destaque do card =====
@@ -23763,6 +23777,21 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
        c) REAÇÃO NOVA — emoji de outra pessoa com reacTs depois do meu último "já vi".
           A reação não é mensagem, então precisa de leitura própria: sem isso, reagir
           num card não acenderia nada. */
+  /* ===== (·351) MODO "NOTIFICAR TUDO PRO ADMIN" =====
+     Pedido do Nando para poder TESTAR a notificação sozinho: enquanto ligado, o admin é
+     avisado de QUALQUER ação em Ações Comerciais — inclusive das ações dele mesmo.
+     Vale só para o perfil admin; para todo o resto do time o comportamento do ·350
+     continua idêntico (ninguém é notificado da própria ação).
+     Para desligar depois do teste, basta trocar esta constante para false — é o único
+     lugar que decide, e todas as exceções de autoria consultam a mesma função. */
+  var AC_NOTIF_ADMIN_TUDO=true;
+  function acAdminNotifTudo(){ try{ return !!AC_NOTIF_ADMIN_TUDO && acSouAdmin(); }catch(e){ return false; } }
+  /* Enquanto o admin está DENTRO do card em que acabou de agir, a visualização
+     automática não pode dar baixa — senão o aviso nasceria e morreria no mesmo instante
+     e não daria pra ver nada. A pendência de teste some quando ele sai do card; ao
+     reabrir, a baixa acontece normalmente e o badge zera. */
+  var acAdminPend={};
+  function acAdminMarcarAcao(cardId){ if(cardId && acAdminNotifTudo()) acAdminPend[cardId]=1; }
   function acFoiAbertoPorMim(id){
     var ch=acChaveLido(id); if(!ch) return false;
     return Object.prototype.hasOwnProperty.call(acStore().lido, ch);
@@ -23772,14 +23801,16 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     var S=acStore(), marca=S.lido[ch]||0, u=acUsuario(), n=0;
     acMsgsVivas(c).forEach(function(m){
       var ts=(m&&m.reacTs&&typeof m.reacTs==='object')?m.reacTs:{};
-      Object.keys(ts).forEach(function(quem){ if(quem!==u && (ts[quem]||0)>marca) n++; });
+      var tudo=acAdminNotifTudo();   // (·351) no modo teste, a própria reação também conta
+      Object.keys(ts).forEach(function(quem){ if((tudo || quem!==u) && (ts[quem]||0)>marca) n++; });
     });
     return n;
   }
   function acNovidades(c){ return acNaoLidas(c)+acReacoesNovas(c); }
   function acCardPendente(c){
     var u=acUsuario(); if(!u || !c || c.del) return false;
-    if(c.autorU!==u && !acFoiAbertoPorMim(c.id)) return true;   // tópico novo que nunca abri
+    // (·351) no modo teste o admin também é avisado do tópico que ELE criou
+    if((acAdminNotifTudo() || c.autorU!==u) && !acFoiAbertoPorMim(c.id)) return true;
     return acNovidades(c)>0;
   }
   function acContagemNotificacoes(){
@@ -23893,6 +23924,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     if(m.reac[u]===emoji){ delete m.reac[u]; delete m.reacTs[u]; }   // reagir igual = remover
     else { m.reac[u]=emoji; m.reacTs[u]=agora; }
     m.mts=agora;              // (crítico) é o que faz uvMesclarAcoes escolher ESTA versão
+    acAdminMarcarAcao(cardId);   // (·351) reagir também acende o aviso no modo de teste
     acSalvar();
   }
 
@@ -23925,7 +23957,8 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     var S=acStore(), agora=Date.now(), id=acId('ac');
     S.cards[id]={ id:id, tit:tit.slice(0,180), autor:acNome()||'—', autorU:acUsuario(),
                   ts:agora, mts:agora, status:'', marcados:[], del:0, msgs:{} };
-    S.lido[acChaveLido(id)]=agora;
+    if(!acAdminNotifTudo()) S.lido[acChaveLido(id)]=agora;   // (·351) idem para tópico novo
+    acAdminMarcarAcao(id);
     acSalvar();
     try{ if(typeof logRemoto==='function') logRemoto('acoes_comerciais','Tópico "'+tit+'" criado em Ações Comerciais',{topico:tit}); }catch(e){}
     return id;
@@ -24048,7 +24081,10 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
                   ts:agora, mts:agora, del:0, resp:respId||'' };
     // (·290) etiqueta do anexo — só metadado; o arquivo está no R2
     if(anexo && anexo.id) c.msgs[mid].anexo={ id:anexo.id, nome:String(anexo.nome||'arquivo').slice(0,180), tipo:anexo.tipo||'', tam:anexo.tam||0 };
-    S.lido[acChaveLido(cardId)]=agora;   // quem escreve já leu
+    // (·351) "quem escreve já leu" fica suspenso no modo de teste do admin — é justamente
+    // este carimbo que apagaria o aviso da própria mensagem antes de ele aparecer.
+    if(!acAdminNotifTudo()) S.lido[acChaveLido(cardId)]=agora;
+    acAdminMarcarAcao(cardId);
     acSalvar();
     try{ if(typeof logRemoto==='function') logRemoto('acoes_comerciais',(respId?'Resposta':'Mensagem')+' publicada no tópico "'+(c.tit||'—')+'"',{topico:c.tit, anexo:(anexo&&anexo.nome)||''}); }catch(e){}
   }
@@ -24235,6 +24271,9 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
   function acRegistrarVisualizacao(){
     if(!acAberto || !acUsuario()) return false;
     if(!acTelaVisivel()) return false;
+    // (·351) o admin acabou de agir NESTE card: segura a baixa até ele sair, senão o
+    // aviso apareceria e sumiria no mesmo render e não daria pra conferir nada.
+    if(acAdminPend[acAberto]) return false;
     if(!acHaPendenciaNoCard(acAberto)) return false;
     acMarcarLido(acAberto);                             // mesmo relógio "já vi" de sempre
     return true;
@@ -24245,6 +24284,9 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     var wrap=document.getElementById('acoesWrap'); if(!wrap) return;
     var S=acStore();
     if(acAberto && (!S.cards[acAberto] || S.cards[acAberto].del)) acAberto=null;
+    // (·351) trocou de card (ou voltou pra lista): a pendência de teste dos OUTROS cards
+    // cai, então reabrir qualquer um deles dá baixa normalmente e o badge zera.
+    Object.keys(acAdminPend).forEach(function(k){ if(k!==acAberto) delete acAdminPend[k]; });
     // (·289) a visualização em si já dá baixa — qualquer que seja a rota de entrada
     var deuBaixa=acRegistrarVisualizacao();
     wrap.innerHTML = acAberto ? acHtmlThread(S.cards[acAberto]) : acHtmlLista();
