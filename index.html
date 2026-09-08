@@ -4274,7 +4274,21 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 343; // (·343) SELETOR DE CORES NASCIA FORA DA TELA. Print do Nando: com
+var UV_BUILD_NUM = 344; // (·344) NOTA FICAVA GIGANTE SOZINHA — <font size="7"> CRU VAZANDO
+// DO SELETOR DE TAMANHO. Print do Nando: ao criar uma nota nova, a nota ANTERIOR (GTA
+// Seguros) apareceu com o texto enorme, sem ninguem ter formatado nada. CAUSA-RAIZ:
+// notaAplicarTamanho() usa um truque de dois passos porque execCommand('fontSize') so
+// aceita 1..7 — marca a selecao com size="7" e depois troca esses <font size="7"> pelo
+// px real. Com o cursor apenas PISCANDO (selecao colapsada), o passo 1 nao envolve nada:
+// o navegador guarda um "formato pendente" e o passo 2 nao acha o que trocar. O size="7"
+// cru sobra e o navegador o aplica no texto digitado DEPOIS — size 7 rende ~48px, dai a
+// nota gigante do nada. DUAS TRAVAS: (1) a funcao agora RECUSA aplicar tamanho sem texto
+// selecionado (avisa e limpa o seletor), que e onde o formato pendente nascia, e varre
+// qualquer font[size] que sobre no editor depois da troca; (2) mtHtmlSeguro remove o
+// atributo size de <font> na RENDERIZACAO das notas — nesta tela um size cru e SEMPRE
+// acidente, porque tamanho escolhido de proposito e gravado como style="font-size:Npx".
+// Essa segunda trava conserta sozinhas as notas que ja ficaram gigantes, sem reescrever
+// dado nenhum. ANTERIOR: (·343) SELETOR DE CORES NASCIA FORA DA TELA. Print do Nando: com
 // o quadro cheio, o card "Nova nota" do ·342 fica perto do rodape, e o popover de cores
 // abria pra baixo como sempre — indo parar atras da barra de tarefas, so a tarja do
 // titulo aparecendo. CAUSA: os tres popovers (cor do post-it, cor do LED, editar pasta)
@@ -11083,6 +11097,19 @@ function notaAplicarTamanho(px){
   if(!px || isNaN(n)) return;   // opção vazia ("Tam.") não faz nada
   n=Math.max(1, Math.min(72, n)); // trava de segurança entre 1 e 72
   ed.focus();
+  /* (·344) SEM TEXTO SELECIONADO NÃO SE APLICA TAMANHO. Esta função usa um truque de dois
+     passos (marca com size="7" e troca por px). Com o cursor apenas piscando, o passo 1
+     não envolve nada — o navegador guarda um "formato pendente" e o passo 2 não acha o
+     que trocar, então o size="7" cru vai parar no texto digitado DEPOIS e a nota aparece
+     gigante sozinha. Era essa a causa do bug relatado. */
+  try{
+    var s2=window.getSelection&&window.getSelection();
+    if(!s2 || s2.rangeCount===0 || s2.isCollapsed || !ed.contains(s2.anchorNode)){
+      if(typeof toast==='function') toast('Selecione o texto antes de escolher o tamanho','info');
+      if(sel) sel.value='';
+      return;
+    }
+  }catch(e){}
   try{
     // 1) aplica um tamanho "âncora" (7) na seleção para envolvê-la em <font size="7">
     document.execCommand('fontSize', false, '7');
@@ -11092,6 +11119,8 @@ function notaAplicarTamanho(px){
       fonts[i].removeAttribute('size');
       fonts[i].style.fontSize=n+'px';
     }
+    // rede de segurança: se ainda sobrou algum size cru no editor, ele não pode ficar
+    ed.querySelectorAll('font[size]').forEach(function(f){ f.removeAttribute('size'); });
   }catch(e){}
   // NÃO reseta o select: mantém visível o último tamanho selecionado
   if(sel) sel.value=String(n);
@@ -22037,6 +22066,13 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
   function mtHtmlSeguro(html){
     var t=document.createElement('div'); t.innerHTML=(html||'');
     t.querySelectorAll('script,style,iframe,object,embed,link,meta').forEach(function(n){ n.remove(); });
+    /* (·344) <font size="N"> NUNCA é tamanho escolhido de propósito nesta tela: quando a
+       pessoa escolhe um tamanho, notaAplicarTamanho() grava style="font-size:Npx" e apaga
+       o atributo. Um size="7" sobrando é sempre resto do execCommand disparado com o
+       cursor colapsado (o navegador arma o formato e o aplica no texto seguinte), e é
+       exatamente ele que faz a nota aparecer gigante do nada. Removido na renderização —
+       o que também conserta sozinho as notas que já ficaram assim, sem reescrever dado. */
+    t.querySelectorAll('font[size]').forEach(function(n){ n.removeAttribute('size'); });
     t.querySelectorAll('*').forEach(function(n){
       [].slice.call(n.attributes).forEach(function(at){
         var nm=at.name.toLowerCase();
@@ -22852,6 +22888,7 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
   // DataTransfer para simular o drop nativo.
   window.mtMoverNota=mtMoverNota;
   window.mtAutoLink=mtAutoLink;   // exposta para o teste automatizado, como as demais portas
+  window.mtHtmlSeguro=mtHtmlSeguro;
   var mtArrastando='';
   function mtLimpaDrop(){
     document.querySelectorAll('.mt-drop-ativo').forEach(function(el){ el.classList.remove('mt-drop-ativo'); });
