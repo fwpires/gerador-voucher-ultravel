@@ -4294,7 +4294,15 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 354; // (·354) O MODO DE TESTE DO ADMIN NASCEU DESLIGADO NO INSIGHTS —
+var UV_BUILD_NUM = 355; // (·355) O NOME DE QUEM REAGIU APARECE NA HORA. O ·353 usou o
+// atributo `title`, e o tooltip nativo do navegador so aparece depois de cerca de um
+// segundo com o mouse parado em cima — esse atraso e do proprio navegador e NAO tem como
+// encurtar por codigo. Trocado por um balao desenhado em CSS (data-tip + ::after), que
+// aparece no instante do hover. Uma regra so serve as DUAS pastas, porque a chip de
+// reacao usa a mesma classe no Insights e em Acoes Comerciais. O aria-label ficou junto
+// no lugar do title, senao a troca tiraria a leitura em voz alta que o title dava de
+// graca. Balao com largura maxima e reticencias: com muita gente no mesmo emoji ele nao
+// atravessa a tela. ANTERIOR: (·354) O MODO DE TESTE DO ADMIN NASCEU DESLIGADO NO INSIGHTS —
 // BUG DE ESCOPO ENTRE MODULOS, MEU. O Nando testou no Insights depois do ·352 e nao
 // recebeu notificacao nenhuma das proprias acoes. CAUSA-RAIZ: cada modulo do Hub vive
 // dentro da PROPRIA IIFE, e eu liguei o modo do Insights lendo AC_NOTIF_ADMIN_TUDO, que
@@ -20860,6 +20868,21 @@ body:not(.dark) #scr-timeinsights .ti-emoji-op:hover, body:not(.dark) #scr-acoes
 body:not(.dark) #scr-timeinsights .ti-reac-chip, body:not(.dark) #scr-acoes .ti-reac-chip{background:#fff;border-color:#dfe7ec;color:#15252F}
 body:not(.dark) #scr-timeinsights .ti-reac-chip.minha, body:not(.dark) #scr-acoes .ti-reac-chip.minha{background:#fff7e0;border-color:#F5D06B}
 body:not(.dark) #scr-timeinsights button.ti-reac-chip.minha:hover, body:not(.dark) #scr-acoes button.ti-reac-chip.minha:hover{background:#fdecb8}
+/* (·355) BALÃO INSTANTÂNEO com quem reagiu. O `title` nativo só aparece depois de ~1s
+   parado em cima e esse atraso não é configurável — por isso o balão é desenhado aqui.
+   Uma regra só serve as duas pastas, porque a chip usa a mesma classe nos dois lugares. */
+#scr-timeinsights .ti-reac-chip[data-tip], #scr-acoes .ti-reac-chip[data-tip]{position:relative}
+#scr-timeinsights .ti-reac-chip[data-tip]:hover::after, #scr-acoes .ti-reac-chip[data-tip]:hover::after{
+  content:attr(data-tip);position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);
+  display:block;max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  background:#0F1B26;color:#E7EDF7;border:1px solid #2C3B66;border-radius:8px;padding:5px 9px;
+  font-size:11.5px;font-weight:700;line-height:1.3;box-shadow:0 6px 18px rgba(0,0,0,.5);
+  z-index:60;pointer-events:none}
+#scr-timeinsights .ti-reac-chip[data-tip]:hover::before, #scr-acoes .ti-reac-chip[data-tip]:hover::before{
+  content:'';position:absolute;bottom:calc(100% + 2px);left:50%;transform:translateX(-50%);
+  border:5px solid transparent;border-top-color:#2C3B66;z-index:60;pointer-events:none}
+body:not(.dark) #scr-timeinsights .ti-reac-chip[data-tip]:hover::after,
+body:not(.dark) #scr-acoes .ti-reac-chip[data-tip]:hover::after{background:#fff;color:#15252F;border-color:#dfe7ec}
 /* (·345) citação no modelo do WhatsApp — bloco próprio, faixa colorida do autor citado */
 #scr-timeinsights .ti-cit{--citcor:#3d5b72;background:rgba(255,255,255,.05);border-left:3px solid var(--citcor);
   border-radius:6px;padding:7px 10px;margin-bottom:9px;font-size:.76rem;line-height:1.35;overflow:hidden}
@@ -23998,12 +24021,14 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
         var minha=(meu && reac[meu]===em);
         // como no Insights: a chip da MINHA reação é clicável e remove (mesmo toggle)
         var quem=acQuemReagiu(m, em).join(', ');   // (·353) tooltip com quem reagiu
+        // (·355) mesmo balão instantâneo do Insights — data-tip, não title
         if(minha && alvoId){
           return '<button type="button" class="ti-reac-chip minha" data-ac-reac-del="'+acEsc(alvoId)+'" '+
-            'data-ac-reac-emoji="'+acEsc(em)+'" title="'+acEsc(quem)+' · clique para remover a sua reação">'+
+            'data-ac-reac-emoji="'+acEsc(em)+'" data-tip="'+acEsc(quem)+' · clique para remover a sua reação" '+
+            'aria-label="'+acEsc(quem)+' · clique para remover a sua reação">'+
             em+(porEmoji[em]>1?' '+porEmoji[em]:'')+'</button>';
         }
-        return '<span class="ti-reac-chip'+(minha?' minha':'')+'" title="'+acEsc(quem)+'">'+em+(porEmoji[em]>1?' '+porEmoji[em]:'')+'</span>';
+        return '<span class="ti-reac-chip'+(minha?' minha':'')+'" data-tip="'+acEsc(quem)+'" aria-label="'+acEsc(quem)+'">'+em+(porEmoji[em]>1?' '+porEmoji[em]:'')+'</span>';
       }).join('')+
     '</div>';
   }
@@ -26063,12 +26088,17 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
            por aqui. */
         // (·353) o tooltip diz QUEM reagiu com este emoji
         var quem=tiQuemReagiu(obj, em).join(', ');
+        /* (·355) data-tip em vez de title: o tooltip nativo do navegador só aparece depois
+           de cerca de um segundo parado em cima, e não há como encurtar esse tempo. O
+           balão desenhado por CSS aparece na hora. aria-label fica junto para quem usa
+           leitor de tela, que era o que o title dava de graça. */
         if(minha && alvoId){
           return '<button type="button" class="ti-reac-chip minha" data-ti-reac-del="'+tiEsc(alvoId)+'" '+
-            'data-ti-reac-emoji="'+tiEsc(em)+'" title="'+tiEsc(quem)+' · clique para remover a sua reação">'+
+            'data-ti-reac-emoji="'+tiEsc(em)+'" data-tip="'+tiEsc(quem)+' · clique para remover a sua reação" '+
+            'aria-label="'+tiEsc(quem)+' · clique para remover a sua reação">'+
             em+(porEmoji[em]>1?' '+porEmoji[em]:'')+'</button>';
         }
-        return '<span class="ti-reac-chip'+(minha?' minha':'')+'" title="'+tiEsc(quem)+'">'+em+(porEmoji[em]>1?' '+porEmoji[em]:'')+'</span>';
+        return '<span class="ti-reac-chip'+(minha?' minha':'')+'" data-tip="'+tiEsc(quem)+'" aria-label="'+tiEsc(quem)+'">'+em+(porEmoji[em]>1?' '+porEmoji[em]:'')+'</span>';
       }).join('')+
     '</div>';
   }
