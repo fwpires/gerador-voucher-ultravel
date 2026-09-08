@@ -2452,6 +2452,12 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 /* (·340) ícone da pasta em SVG, pintado pela mesma variável de cor da pasta */
 .mt-pasta-ic{flex:0 0 auto;display:inline-flex;align-items:center;line-height:0}
 .mt-pasta-ic svg{fill:var(--pcor);display:block}
+/* (·342) "card" tracejado no fim do quadro, pra criar nota sem subir até o botão */
+.mt-post-novo{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+  min-height:230px;border:2px dashed rgba(255,255,255,.20);border-radius:6px;background:rgba(255,255,255,.02);
+  color:#8FA0BC;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;transition:all .16s}
+.mt-post-novo:hover{border-color:rgba(18,176,255,.65);background:rgba(18,176,255,.08);color:#9DC0FF;transform:translateY(-2px)}
+.mt-post-novo-mais{font-size:30px;line-height:1;font-weight:400}
 .mt-pasta-nome{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mt-pasta-acoes{display:flex;gap:5px;flex:0 0 auto}
 .mt-mini{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);border-radius:8px;color:#E8EEF4;font-family:inherit;font-size:11.5px;font-weight:700;padding:5px 9px;cursor:pointer;transition:all .14s;white-space:nowrap}
@@ -4268,7 +4274,15 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 341; // (·341) FONTE PADRAO DAS NOTAS: ARIAL, COM O TITULO EM NEGRITO.
+var UV_BUILD_NUM = 342; // (·342) CARD "NOVA NOTA" NO FIM DO QUADRO. Print do Nando com um
+// X no espaco vazio ao lado do ultimo post-it: com a pasta cheia, criar nota obrigava a
+// rolar de volta ate o cabecalho. Agora o ultimo lugar do quadro e um card tracejado que
+// cria a nota ALI, no contexto daquele quadro — dentro da pasta se estiver numa pasta,
+// avulsa se estiver no quadro solto (o contexto viaja no data-mt-novo-em). Chama
+// mtCriarNota, a MESMA porta dos dois botoes "＋ Nota" — nenhuma logica de criacao nova.
+// So aparece quando o quadro JA tem nota: no quadro vazio continua valendo a mensagem
+// que ensina o caminho, que ficaria concorrendo com o card se os dois aparecessem.
+// ANTERIOR: (·341) FONTE PADRAO DAS NOTAS: ARIAL, COM O TITULO EM NEGRITO.
 // Pedido do Nando. O titulo do post-it nascia numa fonte manuscrita ('Segoe Script',
 // 'Bradley Hand', 'Comic Sans MS', cursive) e o corpo herdava a fonte da tela; agora os
 // dois nascem em Arial e o titulo em negrito. Feito no CSS, que e onde mora o padrao —
@@ -22618,13 +22632,18 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
       + (ab? '<div class="mt-sec-corpo">'+corpoHtml+'</div>' : '')
       + '</div>';
   }
-  function mtBoardHtml(ids, g, vazioTxt, dropId){
-    // dropId: '' = quadro das avulsas (soltar aqui TIRA a nota da pasta). Dentro de uma
-    // pasta a zona é o bloco da pasta inteiro, então o board interno não recebe zona.
+  function mtBoardHtml(ids, g, vazioTxt, pastaId, dropAqui){
+    // dropAqui: só o quadro das avulsas é zona de soltura própria (soltar lá TIRA a nota
+    // da pasta). Dentro de uma pasta a zona é o bloco da pasta inteiro.
+    // (·342) o último "card" do quadro é um espaço tracejado que cria nota ALI MESMO,
+    // no contexto daquele quadro (pastaId ''=avulsa). Reaproveita mtCriarNota, a mesma
+    // porta dos botões "＋ Nota" — nenhuma criação nova de nota no código.
+    var fantasma='<button type="button" class="mt-post-novo" data-mt-novo-em="'+mtEsc(pastaId||'')+'"'
+      + ' title="Criar uma nota aqui"><span class="mt-post-novo-mais">＋</span><span>Nova nota</span></button>';
     return '<div class="mt-board'+(ids.length?'':' mt-board-vazio')+'"'
-      + (dropId!=null?' data-mt-drop="'+mtEsc(dropId)+'"':'')
+      + (dropAqui?' data-mt-drop="'+mtEsc(pastaId||'')+'"':'')
       + '><div class="mt-grid">'
-      + (ids.length? ids.map(function(id){ return mtPostitHtml(id, g.postits[id]); }).join('')
+      + (ids.length? ids.map(function(id){ return mtPostitHtml(id, g.postits[id]); }).join('')+fantasma
                    : '<div class="mt-vazio">'+vazioTxt+'</div>')
       + '</div></div>';
   }
@@ -22661,7 +22680,7 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
         +     '<button type="button" class="mt-mini mt-mini-del" data-mt-pasta-del="'+mtEsc(fid)+'" title="Excluir pasta">🗑</button>'
         +   '</div>'
         + '</div>'
-        + (ab? mtBoardHtml(ids, g, 'Pasta vazia.<br>Use o “＋ Nota” do cabeçalho desta pasta. 🗒️') : '')
+        + (ab? mtBoardHtml(ids, g, 'Pasta vazia.<br>Use o “＋ Nota” do cabeçalho desta pasta. 🗒️', fid, false) : '')
         + '</div>';
     }).join('')+'</div>';
   }
@@ -22682,7 +22701,7 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
       // há nenhuma nota — e volta ao tamanho normal sozinho assim que a
       // primeira nota é criada, porque a classe é decidida por ids.length a
       // cada render (nenhum estado próprio pra manter em sincronia).
-      + mtBoardHtml(avulsas, g, 'Nenhuma nota avulsa.<br>Clique em “＋ Nota” e escolha a cor do papel. 🗒️<br><span class="mt-dica-arrasta">Arraste uma nota para uma pasta — ou traga de volta pra cá.</span>', '');
+      + mtBoardHtml(avulsas, g, 'Nenhuma nota avulsa.<br>Clique em “＋ Nota” e escolha a cor do papel. 🗒️<br><span class="mt-dica-arrasta">Arraste uma nota para uma pasta — ou traga de volta pra cá.</span>', '', true);
 
     var corpoCheckin=''
       // (·264) Controle de Check-in migrou do topo pra logo ABAIXO do quadro,
@@ -22720,7 +22739,7 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
   function mtFecharPops(){ ['mtCorPop','mtLedPop'].forEach(function(id){ var p=document.getElementById(id); if(p) p.remove(); }); }
   document.addEventListener('mousedown', function(e){
     var p1=document.getElementById('mtCorPop'), p2=document.getElementById('mtLedPop');
-    if(p1 && !p1.contains(e.target) && !e.target.closest('[data-mt-cor],#mtNovo,[data-mt-pasta-nota],[data-mt-pasta-edit]')) p1.remove();
+    if(p1 && !p1.contains(e.target) && !e.target.closest('[data-mt-cor],#mtNovo,[data-mt-pasta-nota],[data-mt-pasta-edit],[data-mt-novo-em]')) p1.remove();
     if(p2 && !p2.contains(e.target) && !e.target.closest('.mt-led')) p2.remove();
   }, true);
   function mtAbrirCorPop(btn, aoEscolher, titulo){
@@ -22931,6 +22950,13 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
       return;
     }
 
+    // (·342) card tracejado no fim do quadro: cria nota no contexto daquele quadro
+    var bNovoEm=e.target.closest('[data-mt-novo-em]');
+    if(bNovoEm){
+      var ctx=bNovoEm.getAttribute('data-mt-novo-em')||'';
+      mtAbrirCorPop(bNovoEm, function(cor){ mtCriarNota(cor, ctx); }, '🗒️ Escolha a cor do post-it');
+      return;
+    }
     var novo=e.target.closest('#mtNovo');
     if(novo){
       mtAbrirCorPop(novo, function(cor){ mtCriarNota(cor, ''); }, '🗒️ Escolha a cor do post-it');
