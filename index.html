@@ -2444,10 +2444,11 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .mt-btn-pasta{background:linear-gradient(180deg,#F2C05A,#D89413);border-color:transparent;color:#241a00}
 .mt-btn-pasta:hover{box-shadow:0 0 14px rgba(242,192,90,.45)}
 .mt-pastas{display:flex;flex-direction:column;gap:10px;margin:14px 0 18px}
-.mt-pasta{border:1px solid rgba(242,192,90,.28);border-radius:12px;background:rgba(242,192,90,.05);overflow:hidden}
+.mt-pasta{--pcor:#F2C05A;border:1px solid color-mix(in srgb, var(--pcor) 30%, transparent);border-radius:12px;background:color-mix(in srgb, var(--pcor) 6%, transparent);overflow:hidden}
 .mt-pasta-cab{display:flex;align-items:center;gap:8px;padding:8px 10px}
-.mt-pasta-abre{display:flex;align-items:center;gap:9px;flex:1 1 auto;min-width:0;background:transparent;border:0;color:#F2D79A;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer;text-align:left;padding:4px 2px}
-.mt-pasta-abre:hover{color:#FFE9B8}
+.mt-pasta-abre{display:flex;align-items:center;gap:9px;flex:1 1 auto;min-width:0;background:transparent;border:0;color:color-mix(in srgb, var(--pcor) 78%, #ffffff);font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer;text-align:left;padding:4px 2px}
+.mt-pasta-abre:hover{color:color-mix(in srgb, var(--pcor) 55%, #ffffff)}
+.mt-pasta-cab{border-left:4px solid var(--pcor)}
 .mt-pasta-nome{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mt-pasta-acoes{display:flex;gap:5px;flex:0 0 auto}
 .mt-mini{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);border-radius:8px;color:#E8EEF4;font-family:inherit;font-size:11.5px;font-weight:700;padding:5px 9px;cursor:pointer;transition:all .14s;white-space:nowrap}
@@ -2465,6 +2466,10 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 /* (·338) link dentro da nota: aparência e cursor de link mesmo em campo editável */
 .mt-post a[href]{color:#1155cc;text-decoration:underline;cursor:pointer;word-break:break-word}
 .mt-post a[href]:hover{color:#0b3f9e;background:rgba(17,85,204,.10);border-radius:3px}
+/* (·339) popover de edição da pasta */
+.mt-pastapop-ren{display:block;width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);border-radius:8px;color:#E8EEF4;font-family:inherit;font-size:12px;font-weight:700;padding:8px 10px;cursor:pointer;transition:all .14s;text-align:left}
+.mt-pastapop-ren:hover{background:rgba(255,255,255,.15)}
+.mt-corpop-sw.sel{outline:2px solid #fff;outline-offset:2px}
 /* (·337) cor por seção — Notas azul, Controle de Check-in laranja. Reaproveita os
    MESMOS gradientes que os botões já usam (mt-btn-novo e mt-btn-checkin), pra tela
    continuar com uma paleta só. */
@@ -4252,7 +4257,17 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 338; // (·338) LINK CLICAVEL DENTRO DAS NOTAS. Pedido do Nando: nas
+var UV_BUILD_NUM = 339; // (·339) COR DA PASTA, DENTRO DO BOTAO DE LAPIS. Pedido do Nando:
+// o lapis so renomeava; agora ele abre um popover com "Renomear pasta" + paleta de 9
+// cores. Reaproveitei a casca visual .mt-corpop que os popovers de cor do post-it ja
+// usam (nenhum estilo de popover novo) e a funcao de renomear virou mtRenomearPasta(),
+// chamada pelo popover em vez de estar solta dentro do handler de clique. A cor vai em
+// f.cor e chega ao CSS como a variavel --pcor no bloco da pasta: borda, fundo, titulo e
+// uma faixa lateral saem todos dela via color-mix, entao trocar a cor pinta a pasta
+// inteira sem regra por cor. O DOURADO e o primeiro da paleta E o valor padrao do --pcor,
+// entao pasta antiga (sem f.cor gravado) continua exatamente como estava — nada a migrar.
+// A cor entra pelo mesmo carimbo de ts das outras edicoes, entao o merge multi-PC do ·335
+// ja cuida dela sem codigo novo. ANTERIOR: (·338) LINK CLICAVEL DENTRO DAS NOTAS. Pedido do Nando: nas
 // notas de senha ele guarda a URL do sistema junto do login, e clicar em cima nao abria
 // nada. Eram DOIS problemas somados: (1) URL DIGITADA como texto puro nunca virava link
 // — so o que era COLADO do navegador chegava como <a>; (2) mesmo sendo <a>, o clique nao
@@ -21906,6 +21921,13 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
   }
   // cores de papel (9, como a foto de referência)
   var MT_PAPEIS=['#f5ef9e','#b9e4b4','#f9cad5','#c9a7e8','#ded3f2','#bfdcf7','#f27cb4','#d9f0e3','#cfe98d'];
+  // (·339) cores da PASTA — o dourado atual continua sendo o padrão (primeiro da lista),
+  // então pasta antiga, sem cor gravada, não muda de aparência.
+  var MT_CORES_PASTA=[
+    {n:'Dourado',  c:'#F2C05A'}, {n:'Azul',     c:'#3F8AE0'}, {n:'Verde',    c:'#35D07F'},
+    {n:'Vermelho', c:'#FF5A55'}, {n:'Roxo',     c:'#B05CFF'}, {n:'Rosa',     c:'#FF5CA8'},
+    {n:'Laranja',  c:'#FF8C1A'}, {n:'Ciano',    c:'#22C6D8'}, {n:'Cinza',    c:'#8FA0BC'}
+  ];
   // cores do LED (as 7 pedidas)
   var MT_LEDS=[
     {n:'Azul',     c:'#2f9bff'}, {n:'Verde',   c:'#2ee56b'}, {n:'Vermelho', c:'#ff3b3b'},
@@ -22580,7 +22602,8 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
     if(!pastas.length) return '';
     return '<div class="mt-pastas">'+pastas.map(function(fid){
       var f=g.pastas[fid], ids=mtNotasDe(g,fid), ab=!!mtPastaAberta[fid];
-      return '<div class="mt-pasta'+(ab?' aberta':'')+'" data-mt-drop="'+mtEsc(fid)+'">'
+      var cor=f.cor||MT_CORES_PASTA[0].c;
+      return '<div class="mt-pasta'+(ab?' aberta':'')+'" data-mt-drop="'+mtEsc(fid)+'" style="--pcor:'+mtEsc(cor)+'">'
         + '<div class="mt-pasta-cab">'
         +   '<button type="button" class="mt-pasta-abre" data-mt-pasta="'+mtEsc(fid)+'" aria-expanded="'+(ab?'true':'false')+'">'
         +     '<span class="mt-sec-seta">'+(ab?'▾':'▸')+'</span>'
@@ -22590,7 +22613,7 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
         +   '</button>'
         +   '<div class="mt-pasta-acoes">'
         +     '<button type="button" class="mt-mini" data-mt-pasta-nota="'+mtEsc(fid)+'" title="Adicionar nota nesta pasta">＋ Nota</button>'
-        +     '<button type="button" class="mt-mini" data-mt-pasta-ren="'+mtEsc(fid)+'" title="Renomear pasta">✏️</button>'
+        +     '<button type="button" class="mt-mini" data-mt-pasta-edit="'+mtEsc(fid)+'" title="Editar pasta — renomear ou trocar a cor">✏️</button>'
         +     '<button type="button" class="mt-mini mt-mini-del" data-mt-pasta-del="'+mtEsc(fid)+'" title="Excluir pasta">🗑</button>'
         +   '</div>'
         + '</div>'
@@ -22653,7 +22676,7 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
   function mtFecharPops(){ ['mtCorPop','mtLedPop'].forEach(function(id){ var p=document.getElementById(id); if(p) p.remove(); }); }
   document.addEventListener('mousedown', function(e){
     var p1=document.getElementById('mtCorPop'), p2=document.getElementById('mtLedPop');
-    if(p1 && !p1.contains(e.target) && !e.target.closest('[data-mt-cor],#mtNovo')) p1.remove();
+    if(p1 && !p1.contains(e.target) && !e.target.closest('[data-mt-cor],#mtNovo,[data-mt-pasta-nota],[data-mt-pasta-edit]')) p1.remove();
     if(p2 && !p2.contains(e.target) && !e.target.closest('.mt-led')) p2.remove();
   }, true);
   function mtAbrirCorPop(btn, aoEscolher, titulo){
@@ -22670,6 +22693,40 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
       var sw=ev.target.closest('.mt-corpop-sw'); if(!sw) return;
       aoEscolher(sw.getAttribute('data-c')); pop.remove();
     });
+  }
+  // (·339) popover do lápis: renomear + escolher a cor da pasta, na mesma casca visual
+  // (.mt-corpop) que os popovers de cor do post-it já usam.
+  function mtAbrirPastaPop(btn, fid){
+    mtFecharPops();
+    var g=mtDe(mtSessao), f=g.pastas[fid]; if(!f) return;
+    var atual=f.cor||MT_CORES_PASTA[0].c;
+    var pop=document.createElement('div');
+    pop.className='mt-corpop'; pop.id='mtCorPop';
+    pop.innerHTML='<div class="mt-corpop-tit">✏️ Editar pasta</div>'
+      +'<button type="button" class="mt-pastapop-ren" data-pp-ren="1">✏️ Renomear pasta</button>'
+      +'<div class="mt-corpop-tit" style="margin-top:8px">🎨 Cor da pasta</div>'
+      +'<div class="mt-corpop-grade">'+MT_CORES_PASTA.map(function(o){
+          return '<button type="button" class="mt-corpop-sw'+(o.c===atual?' sel':'')+'" data-pp-cor="'+o.c+'" style="background:'+o.c+'" title="'+o.n+'"></button>';
+        }).join('')+'</div>';
+    document.body.appendChild(pop);
+    var r=btn.getBoundingClientRect();
+    var esq=Math.max(8, Math.min(r.left+window.scrollX, window.scrollX+document.documentElement.clientWidth-244));
+    pop.style.top=(r.bottom+window.scrollY+6)+'px'; pop.style.left=esq+'px';
+    pop.addEventListener('click', function(ev){
+      var sw=ev.target.closest('[data-pp-cor]');
+      if(sw){
+        var pf=mtDe(mtSessao).pastas[fid]; if(!pf) return;
+        pf.cor=sw.getAttribute('data-pp-cor'); pf.ts=Date.now();
+        mtAgendarSalvar(); pop.remove(); renderBoard(); return;
+      }
+      if(ev.target.closest('[data-pp-ren]')){ pop.remove(); mtRenomearPasta(fid); return; }
+    });
+  }
+  function mtRenomearPasta(fid){
+    var g=mtDe(mtSessao), pf=g.pastas[fid]; if(!pf) return;
+    var novoNome=prompt('Renomear pasta:', pf.nome||''); if(novoNome==null) return;
+    novoNome=String(novoNome).trim(); if(!novoNome){ toast('O nome não pode ficar vazio','info'); return; }
+    pf.nome=novoNome; pf.ts=Date.now(); mtAgendarSalvar(); renderBoard();
   }
   function mtAbrirLedPop(btn, aoEscolher){
     mtFecharPops();
@@ -22803,14 +22860,9 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
       mtPastaAberta[fidNovo]=true; mtSecAberta.notas=true;
       mtAgendarSalvar(); renderBoard(); return;
     }
-    // (·335) renomear pasta
-    var bRen=e.target.closest('[data-mt-pasta-ren]');
-    if(bRen){
-      var fr=bRen.getAttribute('data-mt-pasta-ren'), gr=mtDe(mtSessao), pf=gr.pastas[fr]; if(!pf) return;
-      var novoNome=prompt('Renomear pasta:', pf.nome||''); if(novoNome==null) return;
-      novoNome=String(novoNome).trim(); if(!novoNome){ toast('O nome não pode ficar vazio','info'); return; }
-      pf.nome=novoNome; pf.ts=Date.now(); mtAgendarSalvar(); renderBoard(); return;
-    }
+    // (·339) lápis: abre o popover com "Renomear" + paleta de cor da pasta
+    var bEdit=e.target.closest('[data-mt-pasta-edit]');
+    if(bEdit){ mtAbrirPastaPop(bEdit, bEdit.getAttribute('data-mt-pasta-edit')); return; }
     // (·335) excluir pasta — as notas de dentro NÃO são apagadas, voltam a ser avulsas.
     // Apagar nota junto seria perda de dado silenciosa; aqui o pior caso é a nota
     // reaparecer no quadro solto, de onde dá pra recolocar em outra pasta.
