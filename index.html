@@ -2517,14 +2517,22 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
   transform:rotate(var(--giro,0deg));transition:transform .15s, box-shadow .15s}
 .mt-post:hover{transform:rotate(0deg) translateY(-3px);box-shadow:0 1px 0 rgba(255,255,255,.5) inset, 3px 5px 0 -1.5px rgba(0,0,0,.08), 8px 16px 30px rgba(0,0,0,.5)}
 .mt-post-data{font-size:9.5px;color:rgba(40,44,52,.55);font-weight:700;letter-spacing:.4px}
-.mt-post-tit{text-align:center;font-family:'Segoe Script','Bradley Hand','Comic Sans MS',cursive;font-size:21px;font-weight:700;color:#23262d;outline:none;min-height:30px;margin:-2px 0 8px;line-height:1.2}
+.mt-post-tit{text-align:center;font-family:Arial,Helvetica,sans-serif;font-size:21px;font-weight:700;color:#23262d;outline:none;min-height:30px;margin:-2px 0 8px;line-height:1.2}
 .mt-post-tit:empty:before{content:attr(data-ph);color:rgba(40,44,52,.35)}
+/* (·341) o campo do título é contenteditable: a barra de formatação injeta <font>/<span>
+   com estilos próprios, e essas tags trariam a fonte/peso delas por cima do padrão.
+   Estas duas regras garantem que, SEM escolha explícita, título e texto nasçam em Arial
+   e o título em negrito — quem escolher outra fonte na barra continua mandando, porque
+   aí o estilo vem inline no elemento e ganha da regra de herança abaixo. */
+.mt-post-tit, .mt-post-tit *{font-family:inherit}
+.mt-post-tit{font-weight:700}
+.mt-txt, .mt-txt *{font-family:inherit}
 .mt-linhas{display:flex;flex-direction:column}
 .mt-linha{display:flex;align-items:flex-start;gap:8px;padding:3px 0}
 .mt-led{flex:0 0 15px;width:15px;height:15px;margin-top:3px;border-radius:3.5px;border:1.6px solid rgba(40,44,52,.55);cursor:pointer;padding:0;background:rgba(0,0,0,.07);box-shadow:inset 0 1px 2px rgba(0,0,0,.2);transition:all .15s;position:relative}
 .mt-led:hover{transform:scale(1.18);border-color:rgba(40,44,52,.85)}
 .mt-led.on{border-color:rgba(0,0,0,.35);background:var(--led);box-shadow:0 0 7px 1.5px var(--led), 0 0 2px var(--led), inset 0 0 3px rgba(255,255,255,.65)}
-.mt-txt{flex:1 1 auto;min-width:0;outline:none;font-size:13.5px;line-height:1.45;color:#2c3038;border-bottom:1.4px solid rgba(40,44,52,.4);padding:1px 2px 2px;min-height:21px;word-break:break-word}
+.mt-txt{flex:1 1 auto;min-width:0;outline:none;font-family:Arial,Helvetica,sans-serif;font-size:13.5px;line-height:1.45;color:#2c3038;border-bottom:1.4px solid rgba(40,44,52,.4);padding:1px 2px 2px;min-height:21px;word-break:break-word}
 .mt-txt:empty:before{content:'…';color:rgba(40,44,52,.25)}
 .mt-txt:focus{border-bottom-color:rgba(20,110,220,.75);background:rgba(255,255,255,.28)}
 .mt-linha-x{flex:0 0 auto;width:16px;height:16px;margin-top:3px;border:none;background:none;color:rgba(40,44,52,.35);font-size:12px;line-height:1;cursor:pointer;padding:0;opacity:0;transition:opacity .15s}
@@ -4260,7 +4268,19 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 340; // (·340) O SIMBOLO DA PASTA AGORA TROCA DE COR JUNTO. Print do
+var UV_BUILD_NUM = 341; // (·341) FONTE PADRAO DAS NOTAS: ARIAL, COM O TITULO EM NEGRITO.
+// Pedido do Nando. O titulo do post-it nascia numa fonte manuscrita ('Segoe Script',
+// 'Bradley Hand', 'Comic Sans MS', cursive) e o corpo herdava a fonte da tela; agora os
+// dois nascem em Arial e o titulo em negrito. Feito no CSS, que e onde mora o padrao —
+// nao no dado: escrever a fonte dentro de cada nota nova criaria duas fontes padrao
+// convivendo (a das notas novas e a das antigas) e travaria qualquer mudanca futura.
+// DETALHE QUE PRECISOU DE REGRA EXTRA: os campos sao contenteditable e a barra de
+// formatacao injeta <font>/<span> com fonte propria; por isso `.mt-post-tit *` e
+// `.mt-txt *` herdam a familia, senao qualquer trecho ja formatado ignoraria o padrao.
+// Quem ESCOLHER outra fonte na barra continua mandando, porque ai o estilo vem inline no
+// elemento. Notas antigas sem fonte escolhida passam a exibir Arial tambem — e o
+// comportamento esperado de "fonte padrao", e nenhum conteudo e reescrito.
+// ANTERIOR: (·340) O SIMBOLO DA PASTA AGORA TROCA DE COR JUNTO. Print do
 // Nando depois do ·339: escolheu verde, e borda/fundo/titulo/faixa ficaram verdes, mas o
 // iconezinho continuou laranja. MOTIVO: era o EMOJI 📁/📂, e emoji nao aceita cor por CSS
 // — ele nao herda `color`, desenha com a paleta propria da fonte, entao nenhuma regra de
