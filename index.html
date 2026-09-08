@@ -4274,7 +4274,12 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 345; // (·345) INSIGHTS: RESPOSTA CITA A MENSAGEM ORIGINAL NO MODELO DO
+var UV_BUILD_NUM = 346; // (·346) EMOJI DE FOGUETE 🚀 NO SELETOR DE REACAO DO INSIGHTS.
+// Pedido do Nando. Uma linha: entrou no fim de TI_EMOJIS, que desde o ·322 e a fonte
+// UNICA do seletor — a mensagem principal e cada resposta leem a mesma lista, entao o
+// foguete aparece nos dois lugares sem nenhuma outra alteracao. Reacoes ja gravadas nao
+// sao afetadas: a lista so define o que o painel OFERECE, nao o que ja foi escolhido.
+// ANTERIOR: (·345) INSIGHTS: RESPOSTA CITA A MENSAGEM ORIGINAL NO MODELO DO
 // WHATSAPP + ETIQUETA "RESPOSTA". Pedido do Nando com print do WhatsApp de referencia. A
 // citacao existia, mas era uma linha italica apagada ("↪ resposta a Fulano: texto...")
 // que se perdia no meio do card. Agora e um BLOCO proprio acima da mensagem: fundo
@@ -25678,7 +25683,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
      precisar de biblioteca nem de dependência externa nova. */
   var tiEmojiAberto='';
   var TI_EMOJIS=['😀','😁','😂','🤣','😊','🙂','😉','😍','😘','😜','🤔','😐','😢','😭','😡','😱',
-                 '👍','👎','👏','🙏','💪','🙌','🤝','✌️','❤️','💔','🔥','⭐','✅','❌','🎉','🥳'];
+                 '👍','👎','👏','🙏','💪','🙌','🤝','✌️','❤️','💔','🔥','⭐','✅','❌','🎉','🥳','🚀'];
   /* (·322) FONTE ÚNICA do painel do seletor — usada tanto na mensagem
      principal quanto em cada comentário/resposta, para as duas áreas nunca
      poderem se desencontrar em estilo ou em opções (pedido explícito do
