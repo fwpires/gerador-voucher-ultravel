@@ -4274,7 +4274,16 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 342; // (·342) CARD "NOVA NOTA" NO FIM DO QUADRO. Print do Nando com um
+var UV_BUILD_NUM = 343; // (·343) SELETOR DE CORES NASCIA FORA DA TELA. Print do Nando: com
+// o quadro cheio, o card "Nova nota" do ·342 fica perto do rodape, e o popover de cores
+// abria pra baixo como sempre — indo parar atras da barra de tarefas, so a tarja do
+// titulo aparecendo. CAUSA: os tres popovers (cor do post-it, cor do LED, editar pasta)
+// repetiam o MESMO calculo de posicao pela metade — travavam so o eixo horizontal e
+// cravavam o vertical em "abaixo do botao", sem nunca medir se cabia. Agora existe uma
+// funcao so, mtPosicionarPop(pop, btn), usada pelos tres: ela mede o popover DEPOIS de
+// ele entrar no DOM (offsetHeight so existe ai) e escolhe — abaixo se couber, senao vira
+// pra cima, senao gruda na borda visivel. Vale pra qualquer popover que apareca no rodape
+// da tela, nao so pro card novo. ANTERIOR: (·342) CARD "NOVA NOTA" NO FIM DO QUADRO. Print do Nando com um
 // X no espaco vazio ao lado do ultimo post-it: com a pasta cheia, criar nota obrigava a
 // rolar de volta ate o cabecalho. Agora o ultimo lugar do quadro e um card tracejado que
 // cria a nota ALI, no contexto daquele quadro — dentro da pasta se estiver numa pasta,
@@ -22742,6 +22751,25 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
     if(p1 && !p1.contains(e.target) && !e.target.closest('[data-mt-cor],#mtNovo,[data-mt-pasta-nota],[data-mt-pasta-edit],[data-mt-novo-em]')) p1.remove();
     if(p2 && !p2.contains(e.target) && !e.target.closest('.mt-led')) p2.remove();
   }, true);
+  /* (·343) POSIÇÃO DOS POPOVERS (cor do post-it, cor do LED, editar pasta).
+     Antes o popover era jogado sempre ABAIXO do botão. Com o card "Nova nota" do ·342
+     ficando no fim de um quadro longo, o botão vive perto do rodapé — e o seletor de
+     cores nascia fora da tela, atrás da barra de tarefas. Agora ele mede o próprio
+     tamanho depois de entrar no DOM e vira PRA CIMA quando não cabe embaixo; se não
+     couber de nenhum dos dois lados, gruda na borda visível. Uma função só, usada pelos
+     três popovers — antes cada um repetia o mesmo cálculo pela metade. */
+  function mtPosicionarPop(pop, btn){
+    var r=btn.getBoundingClientRect();
+    var larg=document.documentElement.clientWidth, alt=document.documentElement.clientHeight;
+    var pw=pop.offsetWidth||236, ph=pop.offsetHeight||180;
+    var esq=Math.max(8, Math.min(r.left, larg-pw-8));        // encosta na borda em vez de vazar
+    var topo;
+    if(r.bottom+6+ph<=alt-8) topo=r.bottom+6;                // cabe embaixo
+    else if(r.top-6-ph>=8)   topo=r.top-6-ph;                // não cabe: vira pra cima
+    else                     topo=Math.max(8, alt-ph-8);     // não cabe dos dois lados
+    pop.style.left=(esq+window.scrollX)+'px';
+    pop.style.top=(topo+window.scrollY)+'px';
+  }
   function mtAbrirCorPop(btn, aoEscolher, titulo){
     mtFecharPops();
     var pop=document.createElement('div');
@@ -22749,9 +22777,7 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
     pop.innerHTML='<div class="mt-corpop-tit">'+titulo+'</div>'
       +'<div class="mt-corpop-grade">'+MT_PAPEIS.map(function(c){ return '<button type="button" class="mt-corpop-sw" data-c="'+c+'" style="background:'+c+'" title="'+c+'"></button>'; }).join('')+'</div>';
     document.body.appendChild(pop);
-    var r=btn.getBoundingClientRect();
-    var esq=Math.max(8, Math.min(r.left+window.scrollX, window.scrollX+document.documentElement.clientWidth-244));
-    pop.style.top=(r.bottom+window.scrollY+6)+'px'; pop.style.left=esq+'px';
+    mtPosicionarPop(pop, btn);
     pop.addEventListener('click', function(ev){
       var sw=ev.target.closest('.mt-corpop-sw'); if(!sw) return;
       aoEscolher(sw.getAttribute('data-c')); pop.remove();
@@ -22772,9 +22798,7 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
           return '<button type="button" class="mt-corpop-sw'+(o.c===atual?' sel':'')+'" data-pp-cor="'+o.c+'" style="background:'+o.c+'" title="'+o.n+'"></button>';
         }).join('')+'</div>';
     document.body.appendChild(pop);
-    var r=btn.getBoundingClientRect();
-    var esq=Math.max(8, Math.min(r.left+window.scrollX, window.scrollX+document.documentElement.clientWidth-244));
-    pop.style.top=(r.bottom+window.scrollY+6)+'px'; pop.style.left=esq+'px';
+    mtPosicionarPop(pop, btn);
     pop.addEventListener('click', function(ev){
       var sw=ev.target.closest('[data-pp-cor]');
       if(sw){
@@ -22798,9 +22822,7 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
     pop.innerHTML=MT_LEDS.map(function(l){ return '<button type="button" class="mt-ledpop-sw" style="--c:'+l.c+'" data-c="'+l.c+'" title="'+l.n+'"></button>'; }).join('')
       +'<button type="button" class="mt-ledpop-off" data-c="" title="Apagar o LED">off</button>';
     document.body.appendChild(pop);
-    var r=btn.getBoundingClientRect();
-    var esq=Math.max(8, Math.min(r.left+window.scrollX-8, window.scrollX+document.documentElement.clientWidth-180));
-    pop.style.top=(r.bottom+window.scrollY+6)+'px'; pop.style.left=esq+'px';
+    mtPosicionarPop(pop, btn);
     pop.addEventListener('click', function(ev){
       var sw=ev.target.closest('[data-c]'); if(!sw) return;
       aoEscolher(sw.getAttribute('data-c')||''); pop.remove();
