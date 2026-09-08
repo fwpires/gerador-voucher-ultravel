@@ -4274,7 +4274,20 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 346; // (·346) EMOJI DE FOGUETE 🚀 NO SELETOR DE REACAO DO INSIGHTS.
+var UV_BUILD_NUM = 347; // (·347) REACAO COM EMOJI TAMBEM EM ACOES COMERCIAIS — a MESMA do
+// Insights, nao um clone. Pedido do Nando: "igualzinho como ja funciona na pasta
+// insights". Tres decisoes pra isso nao virar copia que envelhece sozinha: (1) a LISTA de
+// emojis nao foi duplicada — o Insights passou a expor window.UV_EMOJIS_REACAO e Acoes
+// Comerciais le de la, entao acrescentar um emoji (como o foguete do ·346) continua sendo
+// UMA edicao em UM lugar valendo pras duas telas; (2) as CLASSES visuais tambem sao as do
+// Insights (ti-emoji-picker/ti-emoji-op/ti-reacoes/ti-reac-chip) e os seletores de CSS
+// foram estendidos com #scr-acoes — zero regra de estilo duplicada, e as duas telas nao
+// tem como divergir de aparencia; (3) o dado mora na propria mensagem (m.reac
+// {usuario:emoji} + m.reacTs) e reagir carimba m.mts, que e EXATAMENTE o campo que
+// uvMesclarAcoes ja usa pra escolher a versao vencedora de cada mensagem — nenhum campo
+// novo no merge multi-PC, nenhuma migracao (mensagem sem reac simplesmente nao mostra
+// chip). Comportamento identico ao de la, incluindo clicar na propria chip pra remover.
+// ANTERIOR: (·346) EMOJI DE FOGUETE 🚀 NO SELETOR DE REACAO DO INSIGHTS.
 // Pedido do Nando. Uma linha: entrou no fim de TI_EMOJIS, que desde o ·322 e a fonte
 // UNICA do seletor — a mensagem principal e cada resposta leem a mesma lista, entao o
 // foguete aparece nos dois lugares sem nenhuma outra alteracao. Reacoes ja gravadas nao
@@ -20702,13 +20715,16 @@ function excluirNotaUI(id){
    linha (altura parecida, sem distorção) e o painel forma a SEGUNDA linha
    sozinho, esticando só a si mesmo. Mesma classe usada nos dois lugares
    (mensagem principal e comentário) — corrige as duas de uma vez. */
-#scr-timeinsights .ti-emoji-picker{display:flex;flex-wrap:wrap;flex-basis:100%;gap:4px;margin-top:9px;padding:9px;
+/* (·347) as MESMAS regras servem Ações Comerciais: o módulo de lá reusa estas classes
+   em vez de ganhar uma cópia do CSS, então as duas telas não têm como divergir. */
+#scr-acoes .ac-mini.on{color:#F5D06B;border-color:#F5D06B;background:rgba(245,208,107,.12)}
+#scr-timeinsights .ti-emoji-picker, #scr-acoes .ti-emoji-picker{display:flex;flex-wrap:wrap;flex-basis:100%;gap:4px;margin-top:9px;padding:9px;
   background:rgba(255,255,255,.03);border:1px solid #243849;border-radius:10px;max-width:280px}
-#scr-timeinsights .ti-emoji-op{cursor:pointer;font-family:inherit;font-size:1.05rem;line-height:1;padding:5px 6px;
+#scr-timeinsights .ti-emoji-op, #scr-acoes .ti-emoji-op{cursor:pointer;font-family:inherit;font-size:1.05rem;line-height:1;padding:5px 6px;
   background:transparent;border:1px solid transparent;border-radius:8px}
-#scr-timeinsights .ti-emoji-op:hover{background:rgba(255,255,255,.08);border-color:#3d5b72}
-body:not(.dark) #scr-timeinsights .ti-emoji-picker{background:#fff;border-color:#dfe7ec}
-body:not(.dark) #scr-timeinsights .ti-emoji-op:hover{background:#eef4f8}
+#scr-timeinsights .ti-emoji-op:hover, #scr-acoes .ti-emoji-op:hover{background:rgba(255,255,255,.08);border-color:#3d5b72}
+body:not(.dark) #scr-timeinsights .ti-emoji-picker, body:not(.dark) #scr-acoes .ti-emoji-picker{background:#fff;border-color:#dfe7ec}
+body:not(.dark) #scr-timeinsights .ti-emoji-op:hover, body:not(.dark) #scr-acoes .ti-emoji-op:hover{background:#eef4f8}
 /* (·327) `.ti-emoji-picker-titulo` foi removida — o botão/painel de reagir
    do título saiu de .eq-acoes e foi para dentro do ti-fb-card, reaproveitando
    o MESMO `.ti-msg-acoes` que as mensagens já usam (regra do ·326: emoji só
@@ -20716,19 +20732,19 @@ body:not(.dark) #scr-timeinsights .ti-emoji-op:hover{background:#eef4f8}
    pra manter — o `.ti-emoji-picker` base já cobre o layout ali dentro. */
 /* (·324) chips de reação — mesmos nos dois lugares (mensagem principal e
    comentário), pela função central tiReacoesHtml(). */
-#scr-timeinsights .ti-reacoes{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
-#scr-timeinsights .ti-reac-chip{display:inline-flex;align-items:center;gap:3px;
+#scr-timeinsights .ti-reacoes, #scr-acoes .ti-reacoes{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+#scr-timeinsights .ti-reac-chip, #scr-acoes .ti-reac-chip{display:inline-flex;align-items:center;gap:3px;
   background:rgba(255,255,255,.05);border:1px solid #243849;border-radius:20px;
   padding:2px 8px;font-size:.82rem;color:#cfe0f0}
-#scr-timeinsights .ti-reac-chip.minha{border-color:#F5D06B;background:rgba(245,208,107,.14)}
+#scr-timeinsights .ti-reac-chip.minha, #scr-acoes .ti-reac-chip.minha{border-color:#F5D06B;background:rgba(245,208,107,.14)}
 /* (·325) a chip "minha" agora é um <button> (clicável, remove a reação) —
    reset dos estilos nativos de botão que a regra acima (herdada de <span>)
    não cobre. */
-#scr-timeinsights button.ti-reac-chip.minha{font:inherit;cursor:pointer;margin:0}
-#scr-timeinsights button.ti-reac-chip.minha:hover{border-color:#e8bd52;background:rgba(245,208,107,.22)}
-body:not(.dark) #scr-timeinsights .ti-reac-chip{background:#fff;border-color:#dfe7ec;color:#15252F}
-body:not(.dark) #scr-timeinsights .ti-reac-chip.minha{background:#fff7e0;border-color:#F5D06B}
-body:not(.dark) #scr-timeinsights button.ti-reac-chip.minha:hover{background:#fdecb8}
+#scr-timeinsights button.ti-reac-chip.minha, #scr-acoes button.ti-reac-chip.minha{font:inherit;cursor:pointer;margin:0}
+#scr-timeinsights button.ti-reac-chip.minha:hover, #scr-acoes button.ti-reac-chip.minha:hover{border-color:#e8bd52;background:rgba(245,208,107,.22)}
+body:not(.dark) #scr-timeinsights .ti-reac-chip, body:not(.dark) #scr-acoes .ti-reac-chip{background:#fff;border-color:#dfe7ec;color:#15252F}
+body:not(.dark) #scr-timeinsights .ti-reac-chip.minha, body:not(.dark) #scr-acoes .ti-reac-chip.minha{background:#fff7e0;border-color:#F5D06B}
+body:not(.dark) #scr-timeinsights button.ti-reac-chip.minha:hover, body:not(.dark) #scr-acoes button.ti-reac-chip.minha:hover{background:#fdecb8}
 /* (·345) citação no modelo do WhatsApp — bloco próprio, faixa colorida do autor citado */
 #scr-timeinsights .ti-cit{--citcor:#3d5b72;background:rgba(255,255,255,.05);border-left:3px solid var(--citcor);
   border-radius:6px;padding:7px 10px;margin-bottom:9px;font-size:.76rem;line-height:1.35;overflow:hidden}
@@ -23713,6 +23729,61 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
   // desistir da mensagem não deixe lixo no bucket.
   var acAnexoPend=null;
   var acAnexoEnviando=false;  // trava anti-clique-duplo durante o upload
+  /* ===== (·347) REAÇÃO COM EMOJI — a MESMA do Insights, trazida para cá =====
+     Três decisões pra isso não virar um clone que envelhece sozinho:
+     1) a LISTA de emojis não é copiada: vem de window.UV_EMOJIS_REACAO, que é a mesma
+        variável que o Insights usa. Acrescentar um emoji continua sendo uma edição só.
+     2) as CLASSES visuais também são as do Insights (ti-emoji-picker, ti-reac-chip…) e o
+        CSS delas foi estendido para valer nesta tela — nenhuma regra de estilo duplicada,
+        e as duas telas não têm como divergir de aparência.
+     3) o dado mora na própria mensagem (m.reac {usuário:emoji} + m.reacTs), e reagir
+        carimba m.mts — que é exatamente o campo que uvMesclarAcoes já usa para escolher
+        a versão vencedora de cada mensagem. Sem campo novo no merge. */
+  var acEmojiAberto='';     // id da mensagem com o seletor de emoji aberto
+  function acEmojisLista(){
+    var L=window.UV_EMOJIS_REACAO;
+    return (Array.isArray(L)&&L.length)?L:['👍','❤️','🔥','✅','🎉','🚀'];   // fallback só por segurança
+  }
+  function acEmojiPickerHtml(){
+    return '<div class="ti-emoji-picker">'+
+      acEmojisLista().map(function(em){
+        return '<button type="button" class="ti-emoji-op" data-ac-emoji-pick="'+acEsc(em)+'">'+em+'</button>';
+      }).join('')+
+    '</div>';
+  }
+  function acReacoesHtml(m){
+    var reac=(m && m.reac && typeof m.reac==='object')?m.reac:{};
+    var chaves=Object.keys(reac); if(!chaves.length) return '';
+    var porEmoji={};
+    chaves.forEach(function(uKey){ var em=reac[uKey]; if(em){ porEmoji[em]=(porEmoji[em]||0)+1; } });
+    var meu=acUsuario(), alvoId=(m&&m.id)||'';
+    return '<div class="ti-reacoes">'+
+      Object.keys(porEmoji).map(function(em){
+        var minha=(meu && reac[meu]===em);
+        // como no Insights: a chip da MINHA reação é clicável e remove (mesmo toggle)
+        if(minha && alvoId){
+          return '<button type="button" class="ti-reac-chip minha" data-ac-reac-del="'+acEsc(alvoId)+'" '+
+            'data-ac-reac-emoji="'+acEsc(em)+'" title="Clique para remover sua reação">'+
+            em+(porEmoji[em]>1?' '+porEmoji[em]:'')+'</button>';
+        }
+        return '<span class="ti-reac-chip'+(minha?' minha':'')+'">'+em+(porEmoji[em]>1?' '+porEmoji[em]:'')+'</span>';
+      }).join('')+
+    '</div>';
+  }
+  function acAplicarReacao(cardId, msgId, emoji){
+    if(!cardId || !msgId || !emoji) return;
+    var u=acUsuario(); if(!u) return;
+    var S=acStore(), c=S.cards[cardId]; if(!c || c.del) return;
+    var m=(c.msgs&&c.msgs[msgId]); if(!m || m.del) return;
+    if(!m.reac || typeof m.reac!=='object') m.reac={};
+    if(!m.reacTs || typeof m.reacTs!=='object') m.reacTs={};
+    var agora=Date.now();
+    if(m.reac[u]===emoji){ delete m.reac[u]; delete m.reacTs[u]; }   // reagir igual = remover
+    else { m.reac[u]=emoji; m.reacTs[u]=agora; }
+    m.mts=agora;              // (crítico) é o que faz uvMesclarAcoes escolher ESTA versão
+    acSalvar();
+  }
+
   var acRespondendo='';     // id da mensagem sendo respondida
   var acEditando='';        // id da mensagem sendo editada
   var acEditandoTit='';     // (·254) id do card com o TÍTULO em edição
@@ -24178,10 +24249,13 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
         + '<div class="ac-msg-topo"><b>'+acEsc(m.autor||'—')+'</b> <span class="ac-msg-data">'+acData(m.ts)+(m.edt?' · editada':'')+'</span></div>'
         + (m.txt?'<div class="ac-msg-txt">'+acEsc(m.txt)+'</div>':'')
         + acAnexoHtml(m.anexo)                                     // (·290) anexo junto do autor/data
+        + acReacoesHtml(m)                                         // (·347) chips de reação
         + '<div class="ac-msg-acoes">'
         + (u?'<button type="button" class="ac-mini" data-ac-resp="'+acEsc(m.id)+'">↩ Responder</button>':'')
+        + (u?'<button type="button" class="ac-mini'+(acEmojiAberto===m.id?' on':'')+'" data-ac-emoji="'+acEsc(m.id)+'" title="Reagir com emoticon">😊</button>':'')
         + (podeMexerMsg?'<button type="button" class="ac-mini" data-ac-edit="'+acEsc(m.id)+'">✎ Editar</button>':'')
         + (podeMexerMsg?'<button type="button" class="ac-mini ac-mini-del" data-ac-del="'+acEsc(m.id)+'">🗑 Excluir</button>':'')
+        + (acEmojiAberto===m.id?acEmojiPickerHtml():'')
         + '</div></div>';
     }).join('') : '<div class="ac-vazio">Nenhuma mensagem neste tópico ainda.</div>';
 
@@ -24312,6 +24386,16 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       }catch(er){}
       return;
     }
+    // (·347) abre/fecha o seletor de emoji da mensagem
+    var em1=e.target.closest('[data-ac-emoji]');
+    if(em1){ var idE=em1.getAttribute('data-ac-emoji'); acEmojiAberto=(acEmojiAberto===idE)?'':idE; window.renderAcoes(); return; }
+    // escolheu um emoji no seletor
+    var em2=e.target.closest('[data-ac-emoji-pick]');
+    if(em2){ acAplicarReacao(acAberto, acEmojiAberto, em2.getAttribute('data-ac-emoji-pick')); acEmojiAberto=''; window.renderAcoes(); return; }
+    // clicou na PRÓPRIA chip: remove a reação (mesmo toggle de acAplicarReacao)
+    var em3=e.target.closest('[data-ac-reac-del]');
+    if(em3){ acAplicarReacao(acAberto, em3.getAttribute('data-ac-reac-del'), em3.getAttribute('data-ac-reac-emoji')); window.renderAcoes(); return; }
+
     var rp=e.target.closest('[data-ac-resp]');
     if(rp){ acRespondendo=rp.getAttribute('data-ac-resp'); acEditando=''; window.renderAcoes();
             var t2=document.getElementById('acTexto'); if(t2){ try{ t2.focus(); }catch(er){} } return; }
@@ -25688,6 +25772,10 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
      principal quanto em cada comentário/resposta, para as duas áreas nunca
      poderem se desencontrar em estilo ou em opções (pedido explícito do
      Nando: "replicar o mesmo padrão de emoji em todas as áreas"). */
+  // (·347) MESMA lista servindo Ações Comerciais: exposta em window para o outro módulo
+  // ler daqui, em vez de ganhar uma cópia. Assim, acrescentar um emoji (como o 🚀 do
+  // ·346) continua sendo UMA edição em UM lugar, valendo para as duas telas.
+  window.UV_EMOJIS_REACAO=TI_EMOJIS;
   function tiEmojiPickerHtml(){
     return '<div class="ti-emoji-picker">'+
       TI_EMOJIS.map(function(em){ return '<button type="button" class="ti-emoji-op" data-ti-emoji-pick="'+tiEsc(em)+'">'+em+'</button>'; }).join('')+
