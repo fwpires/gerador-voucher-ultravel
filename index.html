@@ -4294,7 +4294,14 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 355; // (·355) O NOME DE QUEM REAGIU APARECE NA HORA. O ·353 usou o
+var UV_BUILD_NUM = 356; // (·356) CLICAR FORA FECHA O SELETOR DE EMOJI — nas duas pastas.
+// Antes so o proprio botao 😊 fechava, entao o painel ficava aberto por cima da conversa
+// ate a pessoa lembrar de clicar nele de novo. ARMADILHA: o listener novo e no document,
+// igual ao handler principal do modulo, e o clique que ABRE o painel tambem chega nele —
+// abrir e fechar aconteceriam no MESMO clique. Por isso ele ignora cliques no botao, no
+// proprio painel e nos emojis dentro dele; e e registrado DEPOIS do handler principal,
+// que continua tratando o toggle e a escolha do emoji primeiro. Esc tambem fecha, que e o
+// que se espera de qualquer painel flutuante. ANTERIOR: (·355) O NOME DE QUEM REAGIU APARECE NA HORA. O ·353 usou o
 // atributo `title`, e o tooltip nativo do navegador so aparece depois de cerca de um
 // segundo com o mouse parado em cima — esse atraso e do proprio navegador e NAO tem como
 // encurtar por codigo. Trocado por um balao desenhado em CSS (data-tip + ::after), que
@@ -24398,6 +24405,18 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     return true;
   }
 
+  /* (·356) mesma regra do Insights: clicar em qualquer lugar fora fecha o seletor de
+     emoji, e Esc também. Registrado depois do handler principal do módulo pelo mesmo
+     motivo — o clique no botão 😊 e a escolha de um emoji são tratados lá antes. */
+  document.addEventListener('click', function(e){
+    if(!acEmojiAberto) return;
+    if(e.target.closest && e.target.closest('[data-ac-emoji],[data-ac-emoji-pick],.ti-emoji-picker')) return;
+    acEmojiAberto=''; if(typeof window.renderAcoes==='function') window.renderAcoes();
+  });
+  document.addEventListener('keydown', function(e){
+    if(e.key==='Escape' && acEmojiAberto){ acEmojiAberto=''; if(typeof window.renderAcoes==='function') window.renderAcoes(); }
+  });
+
   /* ========================= RENDER ========================= */
   window.renderAcoes=function(){
     var wrap=document.getElementById('acoesWrap'); if(!wrap) return;
@@ -26279,6 +26298,21 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       compositor+
       tiPainelCats();
   }
+
+  /* (·356) CLICAR FORA FECHA O SELETOR DE EMOJI. Antes só o próprio botão 😊 fechava, e o
+     painel ficava aberto atrapalhando a leitura da conversa. Este listener é registrado
+     DEPOIS do handler principal do módulo, então roda em segundo — o clique no botão e o
+     clique num emoji continuam sendo tratados lá primeiro, e aqui são ignorados pela
+     checagem abaixo (sem ela, abrir o painel e fechá-lo aconteceria no mesmo clique).
+     Também fecha com Esc, que é o que se espera de qualquer painel flutuante. */
+  document.addEventListener('click', function(e){
+    if(!tiEmojiAberto) return;
+    if(e.target.closest && e.target.closest('[data-ti-emoji],[data-ti-emoji-pick],.ti-emoji-picker')) return;
+    tiEmojiAberto=''; window.renderTimeInsights();
+  });
+  document.addEventListener('keydown', function(e){
+    if(e.key==='Escape' && tiEmojiAberto){ tiEmojiAberto=''; window.renderTimeInsights(); }
+  });
 
   window.renderTimeInsights=function(w){
     if(!w) w=document.getElementById('timeInsightsWrap');
