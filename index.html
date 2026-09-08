@@ -2462,6 +2462,9 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 [data-mt-drop].mt-drop-ativo{outline:2px dashed #35D07F;outline-offset:-4px;background:rgba(53,208,127,.10)}
 .mt-pasta[data-mt-drop].mt-drop-ativo{border-color:#35D07F;box-shadow:0 0 0 1px rgba(53,208,127,.35) inset}
 .mt-dica-arrasta{display:inline-block;margin-top:8px;font-size:11.5px;font-weight:600;color:#8FA0BC;font-style:italic}
+/* (·338) link dentro da nota: aparência e cursor de link mesmo em campo editável */
+.mt-post a[href]{color:#1155cc;text-decoration:underline;cursor:pointer;word-break:break-word}
+.mt-post a[href]:hover{color:#0b3f9e;background:rgba(17,85,204,.10);border-radius:3px}
 /* (·337) cor por seção — Notas azul, Controle de Check-in laranja. Reaproveita os
    MESMOS gradientes que os botões já usam (mt-btn-novo e mt-btn-checkin), pra tela
    continuar com uma paleta só. */
@@ -4249,7 +4252,19 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 337; // (·337) COR NAS DUAS SECOES DE MINHAS TAREFAS: "Notas" azul e
+var UV_BUILD_NUM = 338; // (·338) LINK CLICAVEL DENTRO DAS NOTAS. Pedido do Nando: nas
+// notas de senha ele guarda a URL do sistema junto do login, e clicar em cima nao abria
+// nada. Eram DOIS problemas somados: (1) URL DIGITADA como texto puro nunca virava link
+// — so o que era COLADO do navegador chegava como <a>; (2) mesmo sendo <a>, o clique nao
+// navegava, porque o campo e contenteditable e ali o navegador trata clique como "poe o
+// cursor aqui", nao como "abre a pagina". Corrigi os dois: mtAutoLink() varre os NOS DE
+// TEXTO do conteudo ja sanitizado e transforma http(s):// e www. em <a> (varrer texto e
+// nao string e o que evita relinkar o que ja esta dentro de um <a> e evita remontar tag
+// na mao); e um handler de clique abre o href em aba nova, aceitando SO http/https/mailto
+// — javascript:/data: sao ignorados, alem do que mtHtmlSeguro ja limpa. A pontuacao final
+// fica fora do link ("acesse www.x.com." nao leva o ponto junto). O autolink acontece na
+// RENDERIZACAO, entao a URL vira link quando a nota e redesenhada, nao a cada tecla.
+// ANTERIOR: (·337) COR NAS DUAS SECOES DE MINHAS TAREFAS: "Notas" azul e
 // "Controle de Check-in" laranja, pedido do Nando. Puramente visual — mtSecHtml passou a
 // carimbar a classe mt-sec-<chave> no bloco e o resto e CSS. Reaproveitei os MESMOS
 // gradientes que os botoes daquela tela ja usavam (mt-btn-novo azul, mt-btn-checkin
@@ -21899,6 +21914,50 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
   ];
   var mtEsc=function(v){ return (v==null?'':String(v)).replace(/[&<>"]/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); };
   // sanitiza HTML vindo do armazenamento antes de reinjetar (só formatação básica)
+  /* (·338) LINK CLICÁVEL DENTRO DA NOTA.
+     Duas metades do problema:
+     1) URL digitada como texto puro nunca virava link — só o que era COLADO do navegador
+        chegava como <a>. mtAutoLink() varre os nós de TEXTO do conteúdo já sanitizado e
+        transforma http(s)://… e www.… em <a>. Varre texto, não string: assim uma URL que
+        já está dentro de um <a> não é linkada de novo (o walker pula quem tem <a> acima),
+        e nada de tag é remontado na mão.
+     2) mesmo sendo <a>, clicar não abria nada: o campo é contenteditable, e ali o
+        navegador entende clique como "põe o cursor aqui". Quem abre é o handler de clique
+        mais abaixo. */
+  var MT_URL_RE=/(https?:\/\/|www\.)[^\s<>"')\]]+/gi;
+  function mtAutoLink(html){
+    var box=document.createElement('div'); box.innerHTML=(html||'');
+    var pilha=[box], alvos=[];
+    while(pilha.length){
+      var no=pilha.pop();
+      for(var i=0;i<no.childNodes.length;i++){
+        var f=no.childNodes[i];
+        if(f.nodeType===3){ if(MT_URL_RE.test(f.nodeValue||'')){ MT_URL_RE.lastIndex=0; alvos.push(f); } MT_URL_RE.lastIndex=0; }
+        else if(f.nodeType===1 && f.tagName!=='A') pilha.push(f);
+      }
+    }
+    alvos.forEach(function(no){
+      var txt=no.nodeValue||'', frag=document.createDocumentFragment(), ult=0, m;
+      MT_URL_RE.lastIndex=0;
+      while((m=MT_URL_RE.exec(txt))!==null){
+        var bruto=m[0];
+        // pontuação final costuma ser da frase, não da URL ("acesse www.x.com.")
+        var corte=bruto.replace(/[.,;:!?)\]]+$/,'');
+        var ini=m.index;
+        if(ini>ult) frag.appendChild(document.createTextNode(txt.slice(ult,ini)));
+        var a=document.createElement('a');
+        a.href=(/^www\./i.test(corte)?'https://':'')+corte;
+        a.target='_blank'; a.rel='noopener noreferrer'; a.textContent=corte;
+        frag.appendChild(a);
+        ult=ini+corte.length;
+      }
+      if(ult<txt.length) frag.appendChild(document.createTextNode(txt.slice(ult)));
+      if(no.parentNode) no.parentNode.replaceChild(frag, no);
+    });
+    // garante que TODO link (inclusive os colados) abra em aba nova
+    box.querySelectorAll('a[href]').forEach(function(a){ a.target='_blank'; a.rel='noopener noreferrer'; });
+    return box.innerHTML;
+  }
   function mtHtmlSeguro(html){
     var t=document.createElement('div'); t.innerHTML=(html||'');
     t.querySelectorAll('script,style,iframe,object,embed,link,meta').forEach(function(n){ n.remove(); });
@@ -22467,7 +22526,7 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
             var led=(l.led||'');
             return '<div class="mt-linha" data-mt-linha="'+i+'">'
               +'<button type="button" class="mt-led'+(led?' on':'')+'" style="--led:'+mtEsc(led||'transparent')+'" data-mt-led="'+mtEsc(id)+'|'+i+'" title="Clique para escolher a cor do LED"></button>'
-              +'<div class="mt-txt" contenteditable="true" data-mt-txt="'+mtEsc(id)+'|'+i+'">'+mtHtmlSeguro(l.html||'')+'</div>'
+              +'<div class="mt-txt" contenteditable="true" data-mt-txt="'+mtEsc(id)+'|'+i+'">'+mtAutoLink(mtHtmlSeguro(l.html||''))+'</div>'
               +'<button type="button" class="mt-linha-x" data-mt-delx="'+mtEsc(id)+'|'+i+'" title="Remover esta linha">✕</button>'
             +'</div>';
           }).join('')
@@ -22650,6 +22709,7 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
   // que o teste automatizado exercita o arrasto de verdade, já que o jsdom não tem
   // DataTransfer para simular o drop nativo.
   window.mtMoverNota=mtMoverNota;
+  window.mtAutoLink=mtAutoLink;   // exposta para o teste automatizado, como as demais portas
   var mtArrastando='';
   function mtLimpaDrop(){
     document.querySelectorAll('.mt-drop-ativo').forEach(function(el){ el.classList.remove('mt-drop-ativo'); });
@@ -22711,6 +22771,19 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
   document.addEventListener('click', function(e){
     var root=document.getElementById('mtRoot'); if(!root || !root.contains(e.target) || !mtSessao) return;
     mtArmarOcioso();
+
+    // (·338) clique num link dentro da nota abre a página. Dentro de contenteditable o
+    // navegador não navega sozinho — ele só posiciona o cursor —, então abrimos na mão.
+    // Só http/https/mailto: qualquer outro esquema (javascript:, data:) é ignorado.
+    var lk=e.target.closest('.mt-post a[href]');
+    if(lk){
+      var href=lk.getAttribute('href')||'';
+      if(/^(https?:|mailto:)/i.test(href)){
+        e.preventDefault();
+        try{ window.open(href,'_blank','noopener'); }catch(_){ location.href=href; }
+      }
+      return;
+    }
 
     // (·335) abrir/fechar as seções "Notas" e "Controle de Check-in"
     var bSec=e.target.closest('[data-mt-sec]');
