@@ -4294,7 +4294,20 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 353; // (·353) PASSAR O MOUSE NO EMOJI MOSTRA QUEM REAGIU — nas DUAS
+var UV_BUILD_NUM = 354; // (·354) O MODO DE TESTE DO ADMIN NASCEU DESLIGADO NO INSIGHTS —
+// BUG DE ESCOPO ENTRE MODULOS, MEU. O Nando testou no Insights depois do ·352 e nao
+// recebeu notificacao nenhuma das proprias acoes. CAUSA-RAIZ: cada modulo do Hub vive
+// dentro da PROPRIA IIFE, e eu liguei o modo do Insights lendo AC_NOTIF_ADMIN_TUDO, que
+// e um `var` declarado dentro da IIFE de Acoes Comerciais — aquele nome simplesmente NAO
+// EXISTE no bloco do Insights. Pior: eu tinha escrito a leitura com a guarda
+// `typeof ...!=='undefined'`, entao em vez de estourar erro o modo ficava DESLIGADO EM
+// SILENCIO, que e o pior jeito de falhar. E o meu teste do ·352 nao pegou porque injetava
+// a constante direto no contexto do Insights — artificio de teste que nao existe na
+// pagina real. CORRECAO: o interruptor continua sendo UM SO, mas agora e publicado em
+// window.UV_NOTIF_ADMIN_TUDO no modulo que o define, e o Insights le de la. O teste novo
+// carrega os DOIS blocos <script> no MESMO contexto, como o navegador faz, e so entao
+// checa se o modo acende — assim um erro de escopo como este nao passa mais.
+// ANTERIOR: (·353) PASSAR O MOUSE NO EMOJI MOSTRA QUEM REAGIU — nas DUAS
 // pastas (Insights e Acoes Comerciais). Pedido do Nando. O dado ja existia: reac guarda
 // {login: emoji} e reacTs {login: quando}; faltava traduzir login em NOME. CADEIA DE TRES
 // FONTES, nessa ordem: (1) o historico do proprio modulo, onde autor e autorU viajam
@@ -23836,6 +23849,13 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
      Para desligar depois do teste, basta trocar esta constante para false — é o único
      lugar que decide, e todas as exceções de autoria consultam a mesma função. */
   var AC_NOTIF_ADMIN_TUDO=true;
+  /* (·354) PRECISA ESTAR NO window. Cada módulo do Hub vive dentro da PRÓPRIA IIFE, e um
+     `var` declarado aqui dentro simplesmente não existe lá no bloco do Insights — foi
+     exatamente por isso que o ·352 nasceu sem efeito naquela pasta: a guarda
+     `typeof AC_NOTIF_ADMIN_TUDO!=='undefined'` era falsa e o modo ficava desligado em
+     silêncio. Publicando aqui, o interruptor continua sendo UM só e as duas pastas leem
+     o mesmo valor. */
+  window.UV_NOTIF_ADMIN_TUDO=AC_NOTIF_ADMIN_TUDO;
   function acAdminNotifTudo(){ try{ return !!AC_NOTIF_ADMIN_TUDO && acSouAdmin(); }catch(e){ return false; } }
   /* Enquanto o admin está DENTRO do card em que acabou de agir, a visualização
      automática não pode dar baixa — senão o aviso nasceria e morreria no mesmo instante
@@ -25835,8 +25855,9 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
        Comerciais liga aqui também. É de propósito: um interruptor só para o teste
        inteiro, em vez de dois que podem ficar desencontrados. */
   function tiAdminNotifTudo(){
-    try{ return (typeof AC_NOTIF_ADMIN_TUDO!=='undefined' ? !!AC_NOTIF_ADMIN_TUDO : false) && tiSouAdmin(); }
-    catch(e){ return false; }
+    // (·354) lê pelo window: o `var` do outro módulo não alcança esta IIFE (ver o
+    // comentário em window.UV_NOTIF_ADMIN_TUDO, no módulo de Ações Comerciais).
+    try{ return !!window.UV_NOTIF_ADMIN_TUDO && tiSouAdmin(); }catch(e){ return false; }
   }
   function tiReacoesNovas(c){
     var ch=tiChaveLido(c.id); if(!ch) return 0;
