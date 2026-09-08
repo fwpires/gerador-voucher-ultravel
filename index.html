@@ -4274,7 +4274,18 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 347; // (·347) REACAO COM EMOJI TAMBEM EM ACOES COMERCIAIS — a MESMA do
+var UV_BUILD_NUM = 348; // (·348) ACOES COMERCIAIS: A LINHA "RESPOSTA A FULANO" EM AMARELO
+// NEON. Print do Nando: a citacao que aparece no card da resposta era cinza-azulado
+// apagado (#8CA3B3 sobre fundo escuro) e sumia no meio da conversa. Agora e amarelo neon
+// vivo (#F2FF33) com faixa lateral da mesma cor, fundo levemente tingido e brilho suave —
+// da pra achar a resposta correndo o olho. So CSS, nenhuma mudanca de comportamento ou de
+// dado. DUAS EXCLUSOES DE PROPOSITO: (1) a ".ac-cit-resp", que e o aviso "respondendo
+// fulano" dentro do COMPOSITOR, continua discreta — ela e um estado temporario da caixa
+// de digitacao, e em neon competiria com a leitura da conversa; como as duas classes
+// convivem no mesmo elemento, precisei devolver cor/fundo/brilho nela explicitamente;
+// (2) no tema claro o mesmo amarelo seria ilegivel sobre branco, entao la ele vira um
+// destaque escuro sobre fundo amarelado, mantendo a mesma leitura sem ofuscar.
+// ANTERIOR: (·347) REACAO COM EMOJI TAMBEM EM ACOES COMERCIAIS — a MESMA do
 // Insights, nao um clone. Pedido do Nando: "igualzinho como ja funciona na pasta
 // insights". Tres decisoes pra isso nao virar copia que envelhece sozinha: (1) a LISTA de
 // emojis nao foi duplicada — o Insights passou a expor window.UV_EMOJIS_REACAO e Acoes
@@ -23490,8 +23501,19 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
 #scr-acoes .ac-mini{cursor:pointer;font-family:inherit;font-size:.72rem;font-weight:700;border-radius:8px;padding:4px 10px;background:rgba(255,255,255,.04);border:1px solid #2c4356;color:#8CA3B3;transition:all .14s}
 #scr-acoes .ac-mini:hover{color:#cfe0f0;border-color:#3d5b72}
 #scr-acoes .ac-mini-del:hover{color:#ff9a9a;border-color:rgba(255,82,82,.5)}
-#scr-acoes .ac-cit{color:#8CA3B3;font-size:.74rem;font-style:italic;border-left:2px solid #3d5b72;padding-left:8px;margin-bottom:7px}
-#scr-acoes .ac-cit-resp{display:flex;align-items:center;gap:9px;font-style:normal;margin-bottom:8px}
+/* (·348) a linha que mostra QUEM está sendo respondido em amarelo neon vivo — era
+   cinza-azulado apagado e se perdia no card. Só a citação da mensagem publicada; a
+   ".ac-cit-resp" (aviso de "respondendo fulano" no compositor) fica de fora, senão a
+   área de digitação passaria a competir com a leitura da conversa. */
+#scr-acoes .ac-cit{color:#F2FF33;font-size:.74rem;font-style:italic;
+  border-left:3px solid #F2FF33;padding:4px 8px;margin-bottom:7px;border-radius:0 6px 6px 0;
+  background:rgba(242,255,51,.09);text-shadow:0 0 8px rgba(242,255,51,.45)}
+#scr-acoes .ac-cit b{color:#FBFFA6;text-shadow:0 0 10px rgba(242,255,51,.6)}
+body:not(.dark) #scr-acoes .ac-cit{color:#6b6f00;background:rgba(242,255,51,.22);border-left-color:#d8e600;text-shadow:none}
+body:not(.dark) #scr-acoes .ac-cit b{color:#4d5100;text-shadow:none}
+#scr-acoes .ac-cit-resp{display:flex;align-items:center;gap:9px;font-style:normal;margin-bottom:8px;
+  color:#8CA3B3;background:transparent;border-left-color:#3d5b72;text-shadow:none}
+#scr-acoes .ac-cit-resp b{color:#cfe0f0;text-shadow:none}
 #scr-acoes .ac-comp{background:rgba(255,255,255,.03);border:1px solid #243849;border-radius:12px;padding:13px}
 /* (·291) ESPELHO DO ADMIN — vive dentro de .cd-notif no Control Desk, então
    herda a caixa; aqui só o miolo (um bloco por tópico, uma linha por pessoa). */
