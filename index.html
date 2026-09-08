@@ -2454,6 +2454,14 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .mt-mini:hover{background:rgba(255,255,255,.15)}
 .mt-mini-del:hover{background:rgba(255,90,85,.22);border-color:rgba(255,90,85,.5);color:#FF8A85}
 .mt-pasta .mt-board{margin:0 10px 10px;min-height:0}
+/* (·336) arrastar nota para dentro/fora de pasta */
+.mt-grip{cursor:grab;color:rgba(40,44,52,.45);font-size:12px;letter-spacing:-1px;user-select:none}
+.mt-grip:active{cursor:grabbing}
+.mt-post[draggable="true"]{cursor:default}
+.mt-post.mt-arrastando{opacity:.45;transform:rotate(0deg) scale(.97)}
+[data-mt-drop].mt-drop-ativo{outline:2px dashed #35D07F;outline-offset:-4px;background:rgba(53,208,127,.10)}
+.mt-pasta[data-mt-drop].mt-drop-ativo{border-color:#35D07F;box-shadow:0 0 0 1px rgba(53,208,127,.35) inset}
+.mt-dica-arrasta{display:inline-block;margin-top:8px;font-size:11.5px;font-weight:600;color:#8FA0BC;font-style:italic}
 /* seletor de cor de post-it (popover) */
 .mt-corpop{position:absolute;z-index:10000;background:#141C26;border:1px solid rgba(255,255,255,.16);border-radius:14px;box-shadow:0 16px 44px rgba(0,0,0,.55);padding:14px;width:236px}
 .mt-corpop-tit{color:#fff;font-size:12.5px;font-weight:800;margin-bottom:10px}
@@ -4226,7 +4234,22 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 335; // (·335) MINHAS TAREFAS: SECOES RECOLHIDAS POR PADRAO + PASTAS
+var UV_BUILD_NUM = 336; // (·336) ARRASTAR NOTA PARA DENTRO (E PARA FORA) DAS PASTAS.
+// Continuacao do ·335, pedido do Nando. O card do post-it virou draggable e as zonas de
+// soltura sao o BLOCO INTEIRO de cada pasta (funciona ate com a pasta fechada, que e o
+// caso comum: arrastar de cima pra baixo sem precisar abrir) e o quadro das avulsas —
+// soltar la TIRA a nota da pasta, entao o caminho e de ida e volta. ARMADILHA RESOLVIDA:
+// o post-it e cheio de contenteditable, e um card draggable rouba o gesto do mouse, o
+// que impediria selecionar texto dentro da nota; por isso um mousedown em captura
+// desliga draggable quando o clique comeca num contenteditable/input/botao e o mouseup
+// religa. mtMoverNota(id, pastaId) e uma funcao PURA de dado (nao le evento nenhum), o
+// que deixou ela testavel sem DataTransfer — jsdom nao implementa DataTransfer, entao o
+// teste exercita a funcao de movimentacao de verdade e confere separadamente que os
+// atributos draggable/data-mt-drop estao no HTML renderizado. Ela retorna false quando
+// nada mudou (soltar na mesma pasta, pasta apagada, nota inexistente) e nesses casos NAO
+// carimba ts nem agenda gravacao — um arrasto sem efeito nao pode virar escrita na nuvem
+// e muito menos vencer, no merge por ts, uma alteracao real feita em outro PC.
+// ANTERIOR: (·335) MINHAS TAREFAS: SECOES RECOLHIDAS POR PADRAO + PASTAS
 // DENTRO DE NOTAS. Pedido do Nando, com guardrail explicito de nao mexer em layout nem
 // permissao fora desta pasta — e nao mexi: tudo vive dentro do modulo mt* e do
 // appConfig.minhasTarefas. (1) "Notas" e "Controle de Check-in" viraram duas secoes com
@@ -22413,8 +22436,11 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
     var dataTxt=String(criado.getDate()).padStart(2,'0')+'/'+String(criado.getMonth()+1).padStart(2,'0')+'/'+String(criado.getFullYear()).slice(2);
     var linhas=(p.linhas&&p.linhas.length)?p.linhas:[{html:'',led:''}];
     return ''
-    +'<div class="mt-post" data-mt-post="'+mtEsc(id)+'" style="--papel:'+mtEsc(p.cor||MT_PAPEIS[0])+';--giro:'+mtGiro(id)+'">'
-    +  '<div class="mt-post-data">Data: '+dataTxt+'</div>'
+    // (·336) draggable no card inteiro. O card tem contenteditable dentro, e isso
+    // brigaria com selecionar texto — por isso o mousedown desliga o draggable enquanto
+    // a pessoa está escrevendo e religa depois (ver handler mais abaixo).
+    +'<div class="mt-post" draggable="true" data-mt-post="'+mtEsc(id)+'" style="--papel:'+mtEsc(p.cor||MT_PAPEIS[0])+';--giro:'+mtGiro(id)+'">'
+    +  '<div class="mt-post-data"><span class="mt-grip" title="Arraste para mover esta nota para uma pasta">⠿</span> Data: '+dataTxt+'</div>'
     +  '<div class="mt-post-tit" contenteditable="true" data-ph="To Do" data-mt-tit="'+mtEsc(id)+'">'+mtHtmlSeguro(p.titulo||'')+'</div>'
     +  '<div class="mt-linhas">'
     +     linhas.map(function(l,i){
@@ -22460,8 +22486,12 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
       + (ab? '<div class="mt-sec-corpo">'+corpoHtml+'</div>' : '')
       + '</div>';
   }
-  function mtBoardHtml(ids, g, vazioTxt){
-    return '<div class="mt-board'+(ids.length?'':' mt-board-vazio')+'"><div class="mt-grid">'
+  function mtBoardHtml(ids, g, vazioTxt, dropId){
+    // dropId: '' = quadro das avulsas (soltar aqui TIRA a nota da pasta). Dentro de uma
+    // pasta a zona é o bloco da pasta inteiro, então o board interno não recebe zona.
+    return '<div class="mt-board'+(ids.length?'':' mt-board-vazio')+'"'
+      + (dropId!=null?' data-mt-drop="'+mtEsc(dropId)+'"':'')
+      + '><div class="mt-grid">'
       + (ids.length? ids.map(function(id){ return mtPostitHtml(id, g.postits[id]); }).join('')
                    : '<div class="mt-vazio">'+vazioTxt+'</div>')
       + '</div></div>';
@@ -22471,7 +22501,7 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
     if(!pastas.length) return '';
     return '<div class="mt-pastas">'+pastas.map(function(fid){
       var f=g.pastas[fid], ids=mtNotasDe(g,fid), ab=!!mtPastaAberta[fid];
-      return '<div class="mt-pasta'+(ab?' aberta':'')+'">'
+      return '<div class="mt-pasta'+(ab?' aberta':'')+'" data-mt-drop="'+mtEsc(fid)+'">'
         + '<div class="mt-pasta-cab">'
         +   '<button type="button" class="mt-pasta-abre" data-mt-pasta="'+mtEsc(fid)+'" aria-expanded="'+(ab?'true':'false')+'">'
         +     '<span class="mt-sec-seta">'+(ab?'▾':'▸')+'</span>'
@@ -22506,7 +22536,7 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
       // há nenhuma nota — e volta ao tamanho normal sozinho assim que a
       // primeira nota é criada, porque a classe é decidida por ids.length a
       // cada render (nenhum estado próprio pra manter em sincronia).
-      + mtBoardHtml(avulsas, g, 'Nenhuma nota avulsa.<br>Clique em “＋ Nota” e escolha a cor do papel. 🗒️');
+      + mtBoardHtml(avulsas, g, 'Nenhuma nota avulsa.<br>Clique em “＋ Nota” e escolha a cor do papel. 🗒️<br><span class="mt-dica-arrasta">Arraste uma nota para uma pasta — ou traga de volta pra cá.</span>', '');
 
     var corpoCheckin=''
       // (·264) Controle de Check-in migrou do topo pra logo ABAIXO do quadro,
@@ -22581,6 +22611,72 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
   /* ---------- interações (delegação no mtRoot) ---------- */
   function mtPost(id){ return mtDe(mtSessao).postits[id]; }
   function mtCarimba(p){ p.ts=Date.now(); }
+  /* (·336) MOVER NOTA ENTRE PASTAS — função pura, é ela que o drop chama.
+     Retorna true só quando algo REALMENTE mudou: soltar a nota na mesma pasta onde ela
+     já estava não carimba ts nem agenda gravação (senão cada arrasto sem efeito viraria
+     escrita na nuvem e ainda venceria, no merge, uma alteração real feita em outro PC). */
+  function mtMoverNota(id, pastaId){
+    var g=mtDe(mtSessao), n=g.postits[id];
+    if(!n || n.del) return false;
+    pastaId=pastaId||'';
+    if(pastaId && (!g.pastas[pastaId] || g.pastas[pastaId].del)) return false;  // pasta sumiu
+    if((n.pasta||'')===pastaId) return false;                                    // nada mudou
+    n.pasta=pastaId; mtCarimba(n);
+    if(pastaId) mtPastaAberta[pastaId]=true;   // abre a pasta de destino pra pessoa ver onde caiu
+    mtAgendarSalvar(); renderBoard();
+    return true;
+  }
+  // exposta como as outras portas do módulo (renderTarefas/uvMesclarTarefas): é por ela
+  // que o teste automatizado exercita o arrasto de verdade, já que o jsdom não tem
+  // DataTransfer para simular o drop nativo.
+  window.mtMoverNota=mtMoverNota;
+  var mtArrastando='';
+  function mtLimpaDrop(){
+    document.querySelectorAll('.mt-drop-ativo').forEach(function(el){ el.classList.remove('mt-drop-ativo'); });
+    document.querySelectorAll('.mt-post.mt-arrastando').forEach(function(el){ el.classList.remove('mt-arrastando'); });
+  }
+  // enquanto a pessoa escreve/seleciona dentro do card, o card NÃO pode ser arrastável —
+  // senão o navegador rouba o gesto e não dá pra selecionar texto. Religa no mouseup.
+  document.addEventListener('mousedown', function(e){
+    var card=e.target.closest && e.target.closest('.mt-post'); if(!card) return;
+    var editando=e.target.closest('[contenteditable="true"], input, textarea, button');
+    card.setAttribute('draggable', editando?'false':'true');
+  }, true);
+  document.addEventListener('mouseup', function(){
+    document.querySelectorAll('.mt-post[draggable="false"]').forEach(function(c){ c.setAttribute('draggable','true'); });
+  }, true);
+  document.addEventListener('dragstart', function(e){
+    var root=document.getElementById('mtRoot'); if(!root || !root.contains(e.target) || !mtSessao) return;
+    var card=e.target.closest('.mt-post'); if(!card) return;
+    mtArrastando=card.getAttribute('data-mt-post')||'';
+    card.classList.add('mt-arrastando');
+    try{ e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('text/plain', mtArrastando); }catch(_){}
+  });
+  document.addEventListener('dragover', function(e){
+    if(!mtArrastando) return;
+    var zona=e.target.closest && e.target.closest('[data-mt-drop]'); if(!zona) return;
+    e.preventDefault();                                  // sem isso o navegador recusa o drop
+    try{ e.dataTransfer.dropEffect='move'; }catch(_){}
+    if(!zona.classList.contains('mt-drop-ativo')){
+      document.querySelectorAll('.mt-drop-ativo').forEach(function(el){ el.classList.remove('mt-drop-ativo'); });
+      zona.classList.add('mt-drop-ativo');
+    }
+  });
+  document.addEventListener('drop', function(e){
+    if(!mtArrastando) return;
+    var zona=e.target.closest && e.target.closest('[data-mt-drop]'); if(!zona) return;
+    e.preventDefault();
+    var id=mtArrastando; mtArrastando=''; mtLimpaDrop();
+    var destino=zona.getAttribute('data-mt-drop')||'';
+    var g=mtDe(mtSessao), n=g.postits[id];
+    var origem=n?(n.pasta||''):'';
+    if(mtMoverNota(id, destino)){
+      var f=destino?(g.pastas[destino]||{}).nome:'';
+      toast(destino? 'Nota movida para “'+(f||'pasta')+'” 📁' : 'Nota tirada da pasta 🗒️','ok');
+    }
+  });
+  document.addEventListener('dragend', function(){ mtArrastando=''; mtLimpaDrop(); });
+
   // (·335) porta ÚNICA de criação de nota: o "＋ Nota" do topo manda pasta '' (avulsa) e
   // o "＋ Nota" do cabeçalho de uma pasta manda o id dela. Nenhuma lógica duplicada.
   function mtCriarNota(cor, pastaId){
