@@ -4294,7 +4294,16 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 356; // (·356) CLICAR FORA FECHA O SELETOR DE EMOJI — nas duas pastas.
+var UV_BUILD_NUM = 357; // (·357) O BALAO COM O NOME DE QUEM REAGIU SAIA DA TELA. Print do
+// Nando: o texto aparecia cortado pela metade. CAUSA: no ·355 eu centralizei o balao na
+// chip (left:50% + translateX(-50%)), entao ele crescia para os DOIS lados — e as chips
+// de reacao ficam encostadas na margem esquerda do card, entao a metade esquerda do texto
+// nascia fora da area visivel. CORRECAO: o balao passou a ser ancorado na BORDA ESQUERDA
+// da chip e cresce so para a direita, onde sempre ha espaco dentro do card; a setinha
+// acompanhou. Aproveitei pra trocar o corte por reticencias por QUEBRA DE LINHA: com
+// varias pessoas no mesmo emoji o que interessa e ler os nomes, nao caber numa linha so —
+// antes o "…" escondia justamente a informacao que o balao existe pra mostrar.
+// ANTERIOR: (·356) CLICAR FORA FECHA O SELETOR DE EMOJI — nas duas pastas.
 // Antes so o proprio botao 😊 fechava, entao o painel ficava aberto por cima da conversa
 // ate a pessoa lembrar de clicar nele de novo. ARMADILHA: o listener novo e no document,
 // igual ao handler principal do modulo, e o clique que ABRE o painel tambem chega nele —
@@ -20880,13 +20889,19 @@ body:not(.dark) #scr-timeinsights button.ti-reac-chip.minha:hover, body:not(.dar
    Uma regra só serve as duas pastas, porque a chip usa a mesma classe nos dois lugares. */
 #scr-timeinsights .ti-reac-chip[data-tip], #scr-acoes .ti-reac-chip[data-tip]{position:relative}
 #scr-timeinsights .ti-reac-chip[data-tip]:hover::after, #scr-acoes .ti-reac-chip[data-tip]:hover::after{
-  content:attr(data-tip);position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);
-  display:block;max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  /* (·356b) ANCORADO NA ESQUERDA DA CHIP, não centralizado. Centralizado, o balão crescia
+     para os dois lados e, como as chips ficam encostadas na margem esquerda do card, a
+     metade esquerda do texto saía da área visível — foi o que o Nando viu cortado.
+     Crescendo só para a direita, ele sempre nasce dentro do card.
+     E o texto agora QUEBRA LINHA em vez de virar "…": com várias pessoas no mesmo emoji,
+     o que interessa é ler os nomes, não caber numa linha só. */
+  content:attr(data-tip);position:absolute;bottom:calc(100% + 7px);left:0;
+  display:block;width:max-content;max-width:260px;white-space:normal;overflow-wrap:anywhere;
   background:#0F1B26;color:#E7EDF7;border:1px solid #2C3B66;border-radius:8px;padding:5px 9px;
-  font-size:11.5px;font-weight:700;line-height:1.3;box-shadow:0 6px 18px rgba(0,0,0,.5);
+  font-size:11.5px;font-weight:700;line-height:1.35;box-shadow:0 6px 18px rgba(0,0,0,.5);
   z-index:60;pointer-events:none}
 #scr-timeinsights .ti-reac-chip[data-tip]:hover::before, #scr-acoes .ti-reac-chip[data-tip]:hover::before{
-  content:'';position:absolute;bottom:calc(100% + 2px);left:50%;transform:translateX(-50%);
+  content:'';position:absolute;bottom:calc(100% + 2px);left:14px;
   border:5px solid transparent;border-top-color:#2C3B66;z-index:60;pointer-events:none}
 body:not(.dark) #scr-timeinsights .ti-reac-chip[data-tip]:hover::after,
 body:not(.dark) #scr-acoes .ti-reac-chip[data-tip]:hover::after{background:#fff;color:#15252F;border-color:#dfe7ec}
