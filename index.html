@@ -2462,6 +2462,21 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 [data-mt-drop].mt-drop-ativo{outline:2px dashed #35D07F;outline-offset:-4px;background:rgba(53,208,127,.10)}
 .mt-pasta[data-mt-drop].mt-drop-ativo{border-color:#35D07F;box-shadow:0 0 0 1px rgba(53,208,127,.35) inset}
 .mt-dica-arrasta{display:inline-block;margin-top:8px;font-size:11.5px;font-weight:600;color:#8FA0BC;font-style:italic}
+/* (·337) cor por seção — Notas azul, Controle de Check-in laranja. Reaproveita os
+   MESMOS gradientes que os botões já usam (mt-btn-novo e mt-btn-checkin), pra tela
+   continuar com uma paleta só. */
+.mt-sec-notas{border-color:rgba(18,176,255,.38)}
+.mt-sec-notas > .mt-sec-cab{background:linear-gradient(180deg,#12b0ff,#0670d8);color:#fff}
+.mt-sec-notas > .mt-sec-cab:hover{background:linear-gradient(180deg,#3ac0ff,#0b81ee)}
+.mt-sec-notas.aberta > .mt-sec-cab{border-bottom-color:rgba(18,176,255,.45)}
+.mt-sec-notas .mt-sec-seta{color:rgba(255,255,255,.8)}
+.mt-sec-notas .mt-sec-qtd{color:#fff;background:rgba(0,0,0,.22);border-color:rgba(255,255,255,.35)}
+.mt-sec-checkin{border-color:rgba(255,138,26,.38)}
+.mt-sec-checkin > .mt-sec-cab{background:linear-gradient(180deg,#FF9A2E,#E8600C);color:#fff;text-shadow:0 0 8px rgba(120,50,0,.35)}
+.mt-sec-checkin > .mt-sec-cab:hover{background:linear-gradient(180deg,#FFAB4D,#FF7A1F)}
+.mt-sec-checkin.aberta > .mt-sec-cab{border-bottom-color:rgba(255,138,26,.45)}
+.mt-sec-checkin .mt-sec-seta{color:rgba(255,255,255,.85)}
+.mt-sec-checkin .mt-sec-qtd{color:#fff;background:rgba(0,0,0,.22);border-color:rgba(255,255,255,.35)}
 /* seletor de cor de post-it (popover) */
 .mt-corpop{position:absolute;z-index:10000;background:#141C26;border:1px solid rgba(255,255,255,.16);border-radius:14px;box-shadow:0 16px 44px rgba(0,0,0,.55);padding:14px;width:236px}
 .mt-corpop-tit{color:#fff;font-size:12.5px;font-weight:800;margin-bottom:10px}
@@ -4234,7 +4249,12 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 336; // (·336) ARRASTAR NOTA PARA DENTRO (E PARA FORA) DAS PASTAS.
+var UV_BUILD_NUM = 337; // (·337) COR NAS DUAS SECOES DE MINHAS TAREFAS: "Notas" azul e
+// "Controle de Check-in" laranja, pedido do Nando. Puramente visual — mtSecHtml passou a
+// carimbar a classe mt-sec-<chave> no bloco e o resto e CSS. Reaproveitei os MESMOS
+// gradientes que os botoes daquela tela ja usavam (mt-btn-novo azul, mt-btn-checkin
+// laranja) em vez de inventar tom novo, pra paleta continuar uma so; seta e contador
+// ganharam contraste em cima do fundo colorido. ANTERIOR: (·336) ARRASTAR NOTA PARA DENTRO (E PARA FORA) DAS PASTAS.
 // Continuacao do ·335, pedido do Nando. O card do post-it virou draggable e as zonas de
 // soltura sao o BLOCO INTEIRO de cada pasta (funciona ate com a pasta fechada, que e o
 // caso comum: arrastar de cima pra baixo sem precisar abrir) e o quadro das avulsas —
@@ -22477,7 +22497,7 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
   }
   function mtSecHtml(chave, titulo, qtd, corpoHtml){
     var ab=!!mtSecAberta[chave];
-    return '<div class="mt-sec'+(ab?' aberta':'')+'">'
+    return '<div class="mt-sec mt-sec-'+chave+(ab?' aberta':'')+'">'
       + '<button type="button" class="mt-sec-cab" data-mt-sec="'+chave+'" aria-expanded="'+(ab?'true':'false')+'">'
       +   '<span class="mt-sec-seta">'+(ab?'▾':'▸')+'</span>'
       +   '<span class="mt-sec-tit">'+titulo+'</span>'
