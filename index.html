@@ -4274,7 +4274,18 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 344; // (·344) NOTA FICAVA GIGANTE SOZINHA — <font size="7"> CRU VAZANDO
+var UV_BUILD_NUM = 345; // (·345) INSIGHTS: RESPOSTA CITA A MENSAGEM ORIGINAL NO MODELO DO
+// WHATSAPP + ETIQUETA "RESPOSTA". Pedido do Nando com print do WhatsApp de referencia. A
+// citacao existia, mas era uma linha italica apagada ("↪ resposta a Fulano: texto...")
+// que se perdia no meio do card. Agora e um BLOCO proprio acima da mensagem: fundo
+// levemente destacado, faixa colorida a esquerda, nome do autor citado em negrito e o
+// trecho original embaixo — igual ao balao de resposta do WhatsApp. A cor da faixa e do
+// nome sai de tiCor(autor), a MESMA cor que a pessoa ja tem no modulo, entao da pra saber
+// quem esta sendo respondido so pela cor, sem ler. Trecho subiu de 90 pra 160 caracteres
+// (o bloco tem espaco agora) e respeita quebras de linha. Junto veio a etiqueta
+// "↩ Resposta" no cabecalho, so nas mensagens que citam alguem. O destaque de card
+// proprio (.meu) NAO foi tocado, como pedido — a mensagem continua na cor que ja tinha.
+// ANTERIOR: (·344) NOTA FICAVA GIGANTE SOZINHA — <font size="7"> CRU VAZANDO
 // DO SELETOR DE TAMANHO. Print do Nando: ao criar uma nota nova, a nota ANTERIOR (GTA
 // Seguros) apareceu com o texto enorme, sem ninguem ter formatado nada. CAUSA-RAIZ:
 // notaAplicarTamanho() usa um truque de dois passos porque execCommand('fontSize') so
@@ -20713,8 +20724,15 @@ body:not(.dark) #scr-timeinsights .ti-emoji-op:hover{background:#eef4f8}
 body:not(.dark) #scr-timeinsights .ti-reac-chip{background:#fff;border-color:#dfe7ec;color:#15252F}
 body:not(.dark) #scr-timeinsights .ti-reac-chip.minha{background:#fff7e0;border-color:#F5D06B}
 body:not(.dark) #scr-timeinsights button.ti-reac-chip.minha:hover{background:#fdecb8}
-#scr-timeinsights .ti-cit{color:#8CA3B3;font-size:.74rem;font-style:italic;border-left:2px solid #3d5b72;padding-left:8px;margin-bottom:7px}
-#scr-timeinsights .ti-cit-resp{display:flex;align-items:center;gap:9px;font-style:normal;margin-bottom:8px}
+/* (·345) citação no modelo do WhatsApp — bloco próprio, faixa colorida do autor citado */
+#scr-timeinsights .ti-cit{--citcor:#3d5b72;background:rgba(255,255,255,.05);border-left:3px solid var(--citcor);
+  border-radius:6px;padding:7px 10px;margin-bottom:9px;font-size:.76rem;line-height:1.35;overflow:hidden}
+#scr-timeinsights .ti-cit-autor{color:var(--citcor);font-weight:800;margin-bottom:2px}
+#scr-timeinsights .ti-cit-txt{color:#9FB3C4;white-space:pre-wrap;word-break:break-word}
+#scr-timeinsights .ti-tag-resp{display:inline-block;margin-left:8px;font-size:.66rem;font-weight:800;letter-spacing:.3px;
+  color:#7FD4FF;background:rgba(127,212,255,.13);border:1px solid rgba(127,212,255,.35);border-radius:20px;padding:2px 8px;vertical-align:middle}
+#scr-timeinsights .ti-cit-resp{display:flex;align-items:center;gap:9px;background:transparent;border-left:3px solid #7FD4FF;
+  border-radius:6px;font-style:normal;margin-bottom:8px;color:#8CA3B3}
 #scr-timeinsights .ti-comp{background:rgba(255,255,255,.03);border:1px solid #243849;border-radius:12px;padding:13px;margin-bottom:22px}
 #scr-timeinsights .ti-ta{width:100%;box-sizing:border-box;min-height:92px;resize:vertical;background:#0F1923;border:1px solid #243849;
   border-radius:10px;color:#E6EEF3;font-size:.9rem;padding:11px 13px;font-family:inherit;outline:none}
@@ -25761,9 +25779,20 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       var meu=(m.autorU===u && !!u);
       var citado=(m.resp && mapa[m.resp]) ? mapa[m.resp] : null;
       var pickerAberto=(tiEmojiAberto===m.id);
-      return '<div class="ti-msg'+(meu?' meu':'')+'">'+
-        (citado?'<div class="ti-cit">↪ resposta a <b>'+tiEsc(citado.autor||'—')+'</b>: '+tiEsc((citado.txt||'').slice(0,90))+((citado.txt||'').length>90?'…':'')+'</div>':'')+
-        '<div class="ti-msg-topo"><b>'+tiEsc(m.autor||'—')+'</b> <span class="ti-msg-data">'+tiData(m.ts)+'</span></div>'+
+      // (·345) citação no modelo do WhatsApp: bloco com faixa colorida à esquerda, nome
+      // do autor citado em destaque e o trecho da mensagem original logo abaixo. A cor da
+      // faixa e do nome é a MESMA cor que a pessoa já tem no módulo (tiCor), então a
+      // citação identifica quem está sendo respondido sem precisar ler o nome.
+      var corCit=citado?tiCor(citado.autor||''):'';
+      var txtCit=citado?String(citado.txt||''):'';
+      return '<div class="ti-msg'+(meu?' meu':'')+(citado?' tem-cit':'')+'">'+
+        (citado?'<div class="ti-cit" style="--citcor:'+corCit+'">'+
+            '<div class="ti-cit-autor">'+tiEsc(citado.autor||'—')+'</div>'+
+            '<div class="ti-cit-txt">'+tiEsc(txtCit.slice(0,160))+(txtCit.length>160?'…':'')+'</div>'+
+          '</div>':'')+
+        '<div class="ti-msg-topo"><b>'+tiEsc(m.autor||'—')+'</b> <span class="ti-msg-data">'+tiData(m.ts)+'</span>'+
+          (citado?'<span class="ti-tag-resp">↩ Resposta</span>':'')+
+        '</div>'+
         '<div class="ti-msg-txt">'+tiEsc(m.txt)+'</div>'+
         tiReacoesHtml(m)+
         '<div class="ti-msg-acoes">'+
