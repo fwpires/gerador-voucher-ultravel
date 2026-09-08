@@ -4274,7 +4274,23 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 351; // (·351) MODO "NOTIFICAR TUDO PRO ADMIN" — pra o Nando conseguir
+var UV_BUILD_NUM = 352; // (·352) INSIGHTS EMPARELHADO COM ACOES COMERCIAIS: REACAO CONTA
+// NA NOTIFICACAO, MODO DE TESTE DO ADMIN E DESTAQUE DE CARD NAO LIDO. Pedido do Nando:
+// "faca a mesma coisa para as notificacoes da pasta Insights". Vieram tres coisas.
+// (1) tiReacoesNovas: reagir com emoji num feedback nao acendia NADA — reacao nao e
+// mensagem, precisava de leitura propria. Conta nos DOIS lugares onde ela existe, o card
+// do feedback e cada mensagem, porque tiAplicarReacao grava nos dois. (2) Modo de teste:
+// reusa a MESMA constante AC_NOTIF_ADMIN_TUDO do ·351, de proposito — um interruptor so
+// pro teste inteiro, em vez de dois que podem ficar desencontrados; com ele ligado o
+// admin e avisado das proprias mensagens, das proprias reacoes e dos feedbacks que ele
+// mesmo criou, e o carimbo "quem escreve ja leu" fica suspenso (era ele que apagaria o
+// aviso antes de nascer). Aqui NAO precisou do acAdminPend do ·351: o Insights so da
+// baixa quando a pessoa CLICA para abrir o feedback, nunca a cada render, entao nao
+// existe o auto-apagamento que Acoes Comerciais tinha. (3) tiMarcarLido passou a
+// considerar tambem o reacTs mais novo, senao reacao vinda de PC com relogio adiantado
+// deixaria o card aceso pra sempre; e a lista de feedbacks ganhou o mesmo realce
+// vermelho de card nao lido que Acoes Comerciais tem, com a etiqueta "novo" pro
+// feedback que nunca foi aberto. ANTERIOR: (·351) MODO "NOTIFICAR TUDO PRO ADMIN" — pra o Nando conseguir
 // TESTAR sozinho a notificacao do ·350. Ligado pela constante AC_NOTIF_ADMIN_TUDO, o
 // admin passa a ser avisado de QUALQUER acao em Acoes Comerciais, inclusive das dele
 // mesmo (topico novo, mensagem, resposta e reacao com emoji). Vale SO pro perfil admin —
@@ -20724,6 +20740,10 @@ function excluirNotaUI(id){
 #scr-timeinsights .ti-badge{display:inline-block;margin-left:8px;background:rgba(255,77,94,.16);border:1px solid rgba(255,77,94,.6);
   color:#FF7D8B;border-radius:20px;padding:1px 9px;font-size:.68rem;font-weight:900}
 #scr-timeinsights .ti-lista{display:flex;flex-direction:column;gap:11px;margin-bottom:22px}
+/* (·352) feedback com novidade — mesmo realce vermelho que Ações Comerciais usa, para
+   os dois avisos falarem a mesma língua visual. Some quando a pessoa abre o card. */
+#scr-timeinsights .ti-fb.ti-fb-novo{border-color:rgba(255,77,94,.75) !important;box-shadow:0 0 0 1px rgba(255,77,94,.28) inset,0 0 14px rgba(255,77,94,.20)}
+#scr-timeinsights .ti-fb.ti-fb-novo .ti-fb-tit{color:#FFD9DD}
 #scr-timeinsights .ti-fb{cursor:pointer;font-family:inherit;text-align:left;display:block;width:100%;box-sizing:border-box;
   background:var(--card,#141d26);border:1px solid #243849;border-radius:12px;padding:14px 15px;transition:transform .15s}
 #scr-timeinsights .ti-fb:hover{transform:translateY(-2px);border-color:#3d5b72}
@@ -25751,6 +25771,31 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
      AUSÊNCIA de entrada em S.lido[usuario::id] — tiNovoFeedback já carimba
      essa chave para quem CRIA o card (linha acima), então o autor nunca conta
      o próprio card como notificação. */
+  /* ===== (·352) INSIGHTS: REAÇÃO CONTA + MODO "NOTIFICAR TUDO PRO ADMIN" =====
+     Mesma dupla que Ações Comerciais ganhou no ·350/·351, agora aqui:
+     • tiReacoesNovas — reação com emoji de outra pessoa depois do meu último "já vi"
+       passa a acender o badge. Reação não é mensagem, então sem leitura própria reagir
+       num feedback não acendia nada. Conta nos DOIS lugares onde ela existe: no card do
+       feedback e em cada mensagem (o tiAplicarReacao já grava nos dois);
+     • AC_NOTIF_ADMIN_TUDO — a MESMA constante que liga o modo de teste em Ações
+       Comerciais liga aqui também. É de propósito: um interruptor só para o teste
+       inteiro, em vez de dois que podem ficar desencontrados. */
+  function tiAdminNotifTudo(){
+    try{ return (typeof AC_NOTIF_ADMIN_TUDO!=='undefined' ? !!AC_NOTIF_ADMIN_TUDO : false) && tiSouAdmin(); }
+    catch(e){ return false; }
+  }
+  function tiReacoesNovas(c){
+    var ch=tiChaveLido(c.id); if(!ch) return 0;
+    var S=tiStore(), marca=S.lido[ch]||0, u=tiUsuario(), tudo=tiAdminNotifTudo(), n=0;
+    var conta=function(obj){
+      var ts=(obj&&obj.reacTs&&typeof obj.reacTs==='object')?obj.reacTs:{};
+      Object.keys(ts).forEach(function(quem){ if((tudo || quem!==u) && (ts[quem]||0)>marca) n++; });
+    };
+    conta(c);                                   // reação no card do feedback
+    tiMsgsVivas(c).forEach(conta);              // reação em cada mensagem
+    return n;
+  }
+  function tiNovidades(c){ return tiNaoLidas(c)+tiReacoesNovas(c); }
   function tiFoiAbertoPorMim(id){
     var ch=tiChaveLido(id); if(!ch) return false;
     var S=tiStore();
@@ -25758,8 +25803,9 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
   }
   function tiCardNotificado(c){
     var u=tiUsuario(); if(!u) return false;
-    if(c.autorU!==u && !tiFoiAbertoPorMim(c.id)) return true;
-    return tiNaoLidas(c)>0;
+    // (·352) no modo de teste o admin também é avisado do feedback que ELE criou
+    if((tiAdminNotifTudo() || c.autorU!==u) && !tiFoiAbertoPorMim(c.id)) return true;
+    return tiNovidades(c)>0;                    // (·352) mensagem NOVA ou reação nova
   }
   /* Visibilidade: TODOS os usuários com acesso à pasta veem a notificação —
      a contagem roda por USUÁRIO (não é um contador global), então cada
@@ -25790,7 +25836,8 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
   function tiNaoLidas(c){
     var ch=tiChaveLido(c.id); if(!ch) return 0;
     var S=tiStore(), marca=S.lido[ch]||0, u=tiUsuario(), n=0;
-    tiMsgsVivas(c).forEach(function(m){ if((m.ts||0)>marca && m.autorU!==u) n++; });
+    var tudo=tiAdminNotifTudo();   // (·352) no modo teste, a própria mensagem também conta
+    tiMsgsVivas(c).forEach(function(m){ if((m.ts||0)>marca && (tudo || m.autorU!==u)) n++; });
     return n;
   }
   /* mesmo cuidado do acMarcarLido (·254): o carimbo é o MAIOR entre agora e a
@@ -25799,7 +25846,15 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
   function tiMarcarLido(id){
     var ch=tiChaveLido(id); if(!ch) return;
     var S=tiStore(), c=S.fb[id], maior=0;
-    tiMsgsVivas(c||{}).forEach(function(m){ if((m.ts||0)>maior) maior=m.ts||0; });
+    // (·352) além das mensagens, o carimbo tem que passar da REAÇÃO mais nova (do card e
+    // das mensagens) — senão uma reação vinda de PC com relógio adiantado deixaria o
+    // feedback aceso pra sempre depois de aberto.
+    var maiorReac=function(obj){
+      var ts=(obj&&obj.reacTs&&typeof obj.reacTs==='object')?obj.reacTs:{};
+      Object.keys(ts).forEach(function(q){ if((ts[q]||0)>maior) maior=ts[q]||0; });
+    };
+    maiorReac(c||{});
+    tiMsgsVivas(c||{}).forEach(function(m){ if((m.ts||0)>maior) maior=m.ts||0; maiorReac(m); });
     S.lido[ch]=Math.max(Date.now(), maior);
     tiSalvar();
   }
@@ -25815,7 +25870,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     var S=tiStore(), agora=Date.now(), id=tiId('tif');
     S.fb[id]={ id:id, pessoa:pessoa, tit:tit.slice(0,180), cats:[], catsTs:{}, reac:{}, reacTs:{},
                autor:tiNome()||'—', autorU:tiUsuario(), ts:agora, mts:agora, del:0, msgs:{} };
-    S.lido[tiChaveLido(id)]=agora;
+    if(!tiAdminNotifTudo()) S.lido[tiChaveLido(id)]=agora;   // (·352) suspenso no modo de teste
     tiSalvar();
     try{ if(typeof logRemoto==='function') logRemoto('time_insights','Feedback "'+tit+'" criado para '+pessoa,{area:'Insights', pessoa:pessoa}); }catch(e){}
     return id;
@@ -25827,7 +25882,8 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     var agora=Date.now(), mid=tiId('tim');
     c.msgs[mid]={ id:mid, txt:txt.slice(0,4000), autor:tiNome()||'—', autorU:tiUsuario(),
                   ts:agora, mts:agora, del:0, resp:respId||'', reac:{}, reacTs:{} };
-    S.lido[tiChaveLido(id)]=agora;                 // quem escreve já leu
+    // (·352) é este carimbo que apagaria o aviso da própria mensagem antes de aparecer
+    if(!tiAdminNotifTudo()) S.lido[tiChaveLido(id)]=agora;   // quem escreve já leu
     tiSalvar();
   }
   function tiExcluirMsg(id, mid){
@@ -25965,7 +26021,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
   function tiHtmlGrid(){
     var cards=TI_ATENDENTES.map(function(nome){
       var lista=tiDaPessoa(nome);
-      var naoLidas=lista.reduce(function(s,c){ return s+tiNaoLidas(c); },0);
+      var naoLidas=lista.reduce(function(s,c){ return s+tiNovidades(c); },0);   // (·352) inclui reação
       var cor=tiCor(nome);
       return '<button type="button" class="ti-pessoa" data-ti-pessoa="'+tiEsc(nome)+'" style="border-color:'+cor+';box-shadow:0 0 6px '+cor+'55">'+
         '<span class="ti-pessoa-bola" style="background:'+cor+'"></span>'+
@@ -25994,9 +26050,12 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
           '</div></div>'
       : '';
     var cards = lista.length ? lista.map(function(c){
-      var nl=tiNaoLidas(c), msgs=tiMsgsVivas(c), ult=msgs.length?msgs[msgs.length-1]:null;
-      return '<button type="button" class="ti-fb" data-ti-abrir="'+tiEsc(c.id)+'">'+
-        '<div class="ti-fb-tit">'+tiEsc(c.tit)+(nl?'<span class="ti-badge">'+nl+' não lida'+(nl>1?'s':'')+'</span>':'')+'</div>'+
+      var nl=tiNovidades(c), msgs=tiMsgsVivas(c), ult=msgs.length?msgs[msgs.length-1]:null;
+      var pend=tiCardNotificado(c);   // (·352) destaque some sozinho ao abrir o feedback
+      return '<button type="button" class="ti-fb'+(pend?' ti-fb-novo':'')+'" data-ti-abrir="'+tiEsc(c.id)+'">'+
+        '<div class="ti-fb-tit">'+tiEsc(c.tit)
+          +(nl?'<span class="ti-badge">'+nl+' não lida'+(nl>1?'s':'')+'</span>'
+              :(pend?'<span class="ti-badge">novo</span>':''))+'</div>'+
         tiTagsHtml(c)+
         '<div class="ti-fb-meta">🗓 '+tiData(c.ts)+' · ✍️ '+tiEsc(c.autor||'—')+' · 💬 '+msgs.length+' mensagem'+(msgs.length===1?'':'ns')+'</div>'+
         (ult?'<div class="ti-fb-ult">“'+tiEsc((ult.txt||'').slice(0,110))+((ult.txt||'').length>110?'…':'')+'”</div>':'')+
