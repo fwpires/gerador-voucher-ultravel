@@ -3348,7 +3348,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
         </div>
         <button class="nav-item open" data-tree="comercial"><span class="nav-ic">📣</span><span>Comercial</span><b class="nav-caret">▾</b></button>
         <div class="nav-children show" data-tree-body="comercial">
-          <button class="nav-item nav-sub" data-screen="acoes"><span>Ações Comerciais</span></button>
+          <button class="nav-item nav-sub" data-screen="acoes"><span>Ações Comerciais</span><span class="nav-badge" id="acNavBadge" style="display:none">0</span></button>
           <button class="nav-item nav-sub" data-screen="prospeccao"><span>Prospecção</span></button>
           <button class="nav-item nav-sub" data-screen="kanbanleads"><span>CRM</span></button>
         </div>
@@ -4274,7 +4274,31 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 348; // (·348) ACOES COMERCIAIS: A LINHA "RESPOSTA A FULANO" EM AMARELO
+var UV_BUILD_NUM = 350; // (·350) ACOES COMERCIAIS GANHOU O BADGE DE NOTIFICACAO DO MENU E
+// O DESTAQUE DE CARD NAO LIDO. Pedido do Nando: icone identico ao do Insights, numero em
+// vermelho, TODO MUNDO recebe (marcado ou nao), valendo para conversa nova, resposta e
+// tambem reacao com emoji; e ao entrar na pasta, card nao lido em destaque, que some
+// depois de aberto. "Todo mundo recebe" saiu de graca: a contagem roda POR USUARIO em
+// cima do relogio S.lido[usuario::card] que ja existia — nao existe contador global, cada
+// pessoa ve a propria pendencia, e nada aqui olha a lista de marcados de proposito.
+// TRES DISPAROS: (a) topico novo = card de outro autor sem chave em S.lido (acNovoCard ja
+// carimba pra quem CRIA, entao ninguem e notificado do proprio topico); (b) mensagem nova
+// = acNaoLidas, que ja existia; (c) reacao nova = acReacoesNovas, funcao NOVA — reacao
+// nao e mensagem, entao sem leitura propria reagir num card nao acenderia nada. O
+// acMarcarLido passou a considerar tambem o reacTs mais novo ao carimbar: sem isso, uma
+// reacao vinda de um PC com relogio adiantado deixaria o card aceso pra sempre depois de
+// aberto (mesmo cuidado que ja existia pras mensagens). O badge do menu reusa o <span
+// class="nav-badge"> e o CSS vermelho que o Insights ja usa, e e recalculado nos MESMOS
+// tres pontos dele (boot, ressincronizacao de sessao e a lista "sempre" do
+// uvRedesenharTudo) mais um render da propria tela, que e o que faz o numero cair no
+// instante em que a pessoa abre o card. Nenhuma migracao: card sem reac/sem chave de
+// leitura se comporta como sempre. ANTERIOR: (·349) O NOME NA CITACAO FICA NA MESMA COR DO RESTO DA FRASE.
+// Ajuste do ·348 pedido pelo Nando: eu tinha dado ao nome um amarelo mais claro pra
+// destacar dentro do destaque, e isso fazia o nome parecer outra informacao em vez de
+// parte da mesma frase. Agora o <b> herda cor e brilho da linha (color:inherit) — quem
+// diferencia o nome e so o negrito, que ja bastava. Vale nos dois temas: no claro o
+// herdar tambem tira o tom escuro proprio que ele tinha. So CSS, duas linhas.
+// ANTERIOR: (·348) ACOES COMERCIAIS: A LINHA "RESPOSTA A FULANO" EM AMARELO
 // NEON. Print do Nando: a citacao que aparece no card da resposta era cinza-azulado
 // apagado (#8CA3B3 sobre fundo escuro) e sumia no meio da conversa. Agora e amarelo neon
 // vivo (#F2FF33) com faixa lateral da mesma cor, fundo levemente tingido e brilho suave —
@@ -5009,7 +5033,7 @@ try{ window.UV_SESSAO_ID = UV_SESSAO_ID; }catch(e){}
    conferido no código antes de cortar. loadSaved também saiu: busca em rede da
    tela de Vouchers Salvos, que se recarrega ao abrir. */
 function uvRedesenharTudo(){
-  var sempre=['renderOcupacao','renderStatusColunas','tiAtualizarBadgeMenu'];
+  var sempre=['renderOcupacao','renderStatusColunas','tiAtualizarBadgeMenu','acAtualizarBadgeMenu'];
   for(var i=0;i<sempre.length;i++){
     try{ if(typeof window[sempre[i]]==='function') window[sempre[i]](); }catch(e){}
   }
@@ -10399,11 +10423,13 @@ async function init(){
   renderSaved(savedCache);
   await carregarConfig();
   try{ if(typeof window.tiAtualizarBadgeMenu==='function') window.tiAtualizarBadgeMenu(); }catch(e){}
+  try{ if(typeof window.acAtualizarBadgeMenu==='function') window.acAtualizarBadgeMenu(); }catch(e){}
   await carregarParticipantes();
   await carregarStatusHotel();
   const online=await checkCloud();
   if(online){ await loadSaved(); await refreshNext(); await carregarConfig(); await carregarStatusHotel();
-    try{ if(typeof window.tiAtualizarBadgeMenu==='function') window.tiAtualizarBadgeMenu(); }catch(e){} }
+    try{ if(typeof window.tiAtualizarBadgeMenu==='function') window.tiAtualizarBadgeMenu(); }catch(e){}
+    try{ if(typeof window.acAtualizarBadgeMenu==='function') window.acAtualizarBadgeMenu(); }catch(e){} }
 }
 /* ===== Registro de Atividades (log) ===== */
 let logCache=[]; let logFiltro='todos';
@@ -11048,6 +11074,7 @@ init();
        no boot e toda vez que a sessão é ressincronizada (·221) — sem isso o
        badge só apareceria depois da primeira navegação até a própria tela. */
     try{ if(typeof window.tiAtualizarBadgeMenu==='function') window.tiAtualizarBadgeMenu(); }catch(e){}
+    try{ if(typeof window.acAtualizarBadgeMenu==='function') window.acAtualizarBadgeMenu(); }catch(e){}
     var btnUsers=document.getElementById('ocpUsersBtn');
     if(btnUsers){
       if(perfil==='admin') btnUsers.classList.remove('uv-auth-hidden');
@@ -23459,6 +23486,10 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
 #scr-acoes .ac-grid{display:flex;flex-direction:column;gap:11px}
 
 /* CARD da lista — botão de bloco inteiro (a área clicável é o card todo) */
+/* (·350) card com novidade — realce até a pessoa abrir. Vermelho igual ao badge do
+   menu, pra ser a mesma linguagem visual dos dois avisos. */
+#scr-acoes .ac-card.ac-card-novo{border-color:rgba(255,77,94,.75);box-shadow:0 0 0 1px rgba(255,77,94,.28) inset,0 0 14px rgba(255,77,94,.20)}
+#scr-acoes .ac-card.ac-card-novo .ac-card-tit{color:#FFD9DD}
 #scr-acoes .ac-card{display:block;width:100%;box-sizing:border-box;text-align:left;cursor:pointer;font-family:inherit;
   background:var(--card);border:2px solid #243849;border-radius:12px;padding:13px 15px;transition:transform .12s,box-shadow .14s,border-color .14s}
 #scr-acoes .ac-card:hover{transform:translateY(-2px);border-color:#3d5b72}
@@ -23508,9 +23539,11 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
 #scr-acoes .ac-cit{color:#F2FF33;font-size:.74rem;font-style:italic;
   border-left:3px solid #F2FF33;padding:4px 8px;margin-bottom:7px;border-radius:0 6px 6px 0;
   background:rgba(242,255,51,.09);text-shadow:0 0 8px rgba(242,255,51,.45)}
-#scr-acoes .ac-cit b{color:#FBFFA6;text-shadow:0 0 10px rgba(242,255,51,.6)}
+/* (·349) o nome fica no MESMO amarelo do resto da frase — só o negrito o distingue.
+   O tom mais claro de antes fazia o nome parecer outra informação, não parte do texto. */
+#scr-acoes .ac-cit b{color:inherit;text-shadow:inherit}
 body:not(.dark) #scr-acoes .ac-cit{color:#6b6f00;background:rgba(242,255,51,.22);border-left-color:#d8e600;text-shadow:none}
-body:not(.dark) #scr-acoes .ac-cit b{color:#4d5100;text-shadow:none}
+body:not(.dark) #scr-acoes .ac-cit b{color:inherit}
 #scr-acoes .ac-cit-resp{display:flex;align-items:center;gap:9px;font-style:normal;margin-bottom:8px;
   color:#8CA3B3;background:transparent;border-left-color:#3d5b72;text-shadow:none}
 #scr-acoes .ac-cit-resp b{color:#cfe0f0;text-shadow:none}
@@ -23716,6 +23749,56 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     acMsgsVivas(c).forEach(function(m){ if((m.ts||0)>marca && m.autorU!==u) n++; });
     return n;
   }
+  /* ===== (·350) NOTIFICAÇÃO DE NOVIDADE — badge no menu + destaque do card =====
+     Regra pedida: TODA MUNDO recebe, marcado ou não. Isso já sai de graça porque a
+     contagem roda POR USUÁRIO em cima do relógio S.lido[usuario::card] — não existe
+     contador global, cada pessoa vê a própria pendência. Nada aqui olha a lista de
+     marcados de propósito.
+
+     O que conta como novidade (os três disparos pedidos):
+       a) TÓPICO NOVO — card de outra pessoa que eu nunca abri. Lido pela AUSÊNCIA da
+          chave em S.lido; acNovoCard já carimba a chave para quem CRIA, então o autor
+          nunca é notificado do próprio tópico;
+       b) MENSAGEM NOVA — acNaoLidas, que já existia;
+       c) REAÇÃO NOVA — emoji de outra pessoa com reacTs depois do meu último "já vi".
+          A reação não é mensagem, então precisa de leitura própria: sem isso, reagir
+          num card não acenderia nada. */
+  function acFoiAbertoPorMim(id){
+    var ch=acChaveLido(id); if(!ch) return false;
+    return Object.prototype.hasOwnProperty.call(acStore().lido, ch);
+  }
+  function acReacoesNovas(c){
+    var ch=acChaveLido(c.id); if(!ch) return 0;
+    var S=acStore(), marca=S.lido[ch]||0, u=acUsuario(), n=0;
+    acMsgsVivas(c).forEach(function(m){
+      var ts=(m&&m.reacTs&&typeof m.reacTs==='object')?m.reacTs:{};
+      Object.keys(ts).forEach(function(quem){ if(quem!==u && (ts[quem]||0)>marca) n++; });
+    });
+    return n;
+  }
+  function acNovidades(c){ return acNaoLidas(c)+acReacoesNovas(c); }
+  function acCardPendente(c){
+    var u=acUsuario(); if(!u || !c || c.del) return false;
+    if(c.autorU!==u && !acFoiAbertoPorMim(c.id)) return true;   // tópico novo que nunca abri
+    return acNovidades(c)>0;
+  }
+  function acContagemNotificacoes(){
+    var n=0; acCardsVivos().forEach(function(c){ if(acCardPendente(c)) n++; });
+    return n;
+  }
+  window.acContagemNotificacoes=acContagemNotificacoes;
+  /* Só mexe no <span> já existente do menu — nunca reconstrói o botão. Chamado nos
+     MESMOS três pontos que o badge do Insights usa (boot, ressincronização de sessão e
+     a lista "sempre" do uvRedesenharTudo), pra acender em tempo real vindo de qualquer
+     PC mesmo com a pessoa em outra tela. */
+  function acAtualizarBadgeMenu(){
+    var b=document.getElementById('acNavBadge'); if(!b) return;
+    var n=0; try{ n=acContagemNotificacoes(); }catch(e){}
+    if(n>0){ b.textContent = n>9 ? '9+' : String(n); b.style.display='inline-block'; }
+    else { b.style.display='none'; }
+  }
+  window.acAtualizarBadgeMenu=acAtualizarBadgeMenu;
+
   function acSouMarcado(c){
     var meu=acNome(); if(!meu) return false;
     var lst=(c.marcados||[]);
@@ -23733,7 +23816,14 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
   function acMarcarLido(cardId){
     var ch=acChaveLido(cardId); if(!ch) return;
     var S=acStore(), c=S.cards[cardId], maior=0;
-    acMsgsVivas(c||{}).forEach(function(m){ if((m.ts||0)>maior) maior=m.ts||0; });
+    acMsgsVivas(c||{}).forEach(function(m){
+      if((m.ts||0)>maior) maior=m.ts||0;
+      // (·350) o carimbo precisa passar da reação MAIS NOVA também: se outro PC estiver
+      // com o relógio adiantado, uma reação com ts no futuro deixaria o card aceso pra
+      // sempre depois de aberto — mesmo cuidado que já existia para as mensagens.
+      var rt=(m&&m.reacTs&&typeof m.reacTs==='object')?m.reacTs:{};
+      Object.keys(rt).forEach(function(q){ if((rt[q]||0)>maior) maior=rt[q]||0; });
+    });
     S.lido[ch]=Math.max(Date.now(), maior);
     acSalvar();
   }
@@ -24163,6 +24253,9 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     if(ta && acRascunho){ try{ ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }catch(e){} }
     // some da caixa do Control Desk na hora, sem recarregar a página
     if(deuBaixa){ try{ if(typeof window.renderCdNotifs==='function') window.renderCdNotifs(); }catch(e){} }
+    // (·350) badge do menu recalculado a cada render da própria tela — é o que faz o
+    // número cair na hora em que a pessoa abre o card, sem esperar o próximo ciclo.
+    try{ acAtualizarBadgeMenu(); }catch(e){}
   };
 
   /* (·289) Voltar para a aba com o tópico aberto também conta como visualização:
@@ -24185,14 +24278,17 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
         +'</div></div>'
       : '';
     var lista = cards.length ? cards.map(function(c){
-      var st=acStatusDef(c.status), nl=acNaoLidas(c), msgs=acMsgsVivas(c);
+      var st=acStatusDef(c.status), nl=acNovidades(c), msgs=acMsgsVivas(c);
+      var pend=acCardPendente(c);   // (·350) destaque some sozinho ao abrir o card
       var ult=msgs.length?msgs[msgs.length-1]:null;
       var marc=(c.marcados||[]).length
         ? '<div class="ac-marc-linha">👥 '+(c.marcados||[]).map(function(n){ return '<span class="ac-tag'+(acMesmaPessoa(n,acNome())?' eu':'')+'">'+acEsc(n)+'</span>'; }).join('')+'</div>'
         : '';
-      return '<button type="button" class="ac-card'+(st?' st-'+st.cod:'')+'" data-ac-abrir="'+acEsc(c.id)+'">'
+      return '<button type="button" class="ac-card'+(st?' st-'+st.cod:'')+(pend?' ac-card-novo':'')+'" data-ac-abrir="'+acEsc(c.id)+'">'
         + (st ? '<div class="ac-st-topo" style="color:'+st.cor+'">● '+acEsc(st.rot)+'</div>' : '')
-        + '<div class="ac-card-tit">'+acEsc(c.tit)+(nl?'<span class="ac-badge">'+nl+' não lida'+(nl>1?'s':'')+'</span>':'')+'</div>'
+        + '<div class="ac-card-tit">'+acEsc(c.tit)
+            +(nl?'<span class="ac-badge">'+nl+' não lida'+(nl>1?'s':'')+'</span>'
+                :(pend?'<span class="ac-badge">novo</span>':''))+'</div>'
         + '<div class="ac-card-meta">🗓 '+acData(c.ts)+' · ✍️ '+acEsc(c.autor||'—')+' · 💬 '+msgs.length+' mensage'+(msgs.length===1?'m':'ns')+'</div>'
         + (ult?'<div class="ac-card-ult">Última: <b>'+acEsc(ult.autor||'—')+'</b> — '+acEsc((ult.txt||'').slice(0,110))+((ult.txt||'').length>110?'…':'')+'</div>':'')
         + marc
