@@ -2432,6 +2432,28 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
    no MESMO formato de barra; só a cor de cada um continua diferente. */
 .mt-btn-full{display:flex;justify-content:center;width:100%;padding:11px 14px}
 .mt-btn-checkin-abaixo{margin:14px 0 22px}
+/* (·335) seções recolhíveis de Minhas Tarefas + pastas dentro de Notas */
+.mt-sec{border:1px solid rgba(255,255,255,.10);border-radius:14px;background:rgba(255,255,255,.02);margin-bottom:14px;overflow:hidden}
+.mt-sec-cab{display:flex;align-items:center;gap:10px;width:100%;background:rgba(255,255,255,.04);border:0;border-bottom:1px solid transparent;color:#E8EEF4;font-family:inherit;font-size:14px;font-weight:800;padding:14px 16px;cursor:pointer;text-align:left;transition:background .15s}
+.mt-sec-cab:hover{background:rgba(255,255,255,.08)}
+.mt-sec.aberta > .mt-sec-cab{border-bottom-color:rgba(255,255,255,.10)}
+.mt-sec-seta{font-size:11px;color:#8FA0BC;flex:0 0 auto}
+.mt-sec-tit{flex:1 1 auto;min-width:0}
+.mt-sec-qtd{flex:0 0 auto;font-size:11px;font-weight:800;color:#9DC0FF;background:rgba(127,178,245,.14);border:1px solid rgba(127,178,245,.3);border-radius:20px;padding:2px 9px}
+.mt-sec-corpo{padding:16px}
+.mt-btn-pasta{background:linear-gradient(180deg,#F2C05A,#D89413);border-color:transparent;color:#241a00}
+.mt-btn-pasta:hover{box-shadow:0 0 14px rgba(242,192,90,.45)}
+.mt-pastas{display:flex;flex-direction:column;gap:10px;margin:14px 0 18px}
+.mt-pasta{border:1px solid rgba(242,192,90,.28);border-radius:12px;background:rgba(242,192,90,.05);overflow:hidden}
+.mt-pasta-cab{display:flex;align-items:center;gap:8px;padding:8px 10px}
+.mt-pasta-abre{display:flex;align-items:center;gap:9px;flex:1 1 auto;min-width:0;background:transparent;border:0;color:#F2D79A;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer;text-align:left;padding:4px 2px}
+.mt-pasta-abre:hover{color:#FFE9B8}
+.mt-pasta-nome{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mt-pasta-acoes{display:flex;gap:5px;flex:0 0 auto}
+.mt-mini{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);border-radius:8px;color:#E8EEF4;font-family:inherit;font-size:11.5px;font-weight:700;padding:5px 9px;cursor:pointer;transition:all .14s;white-space:nowrap}
+.mt-mini:hover{background:rgba(255,255,255,.15)}
+.mt-mini-del:hover{background:rgba(255,90,85,.22);border-color:rgba(255,90,85,.5);color:#FF8A85}
+.mt-pasta .mt-board{margin:0 10px 10px;min-height:0}
 /* seletor de cor de post-it (popover) */
 .mt-corpop{position:absolute;z-index:10000;background:#141C26;border:1px solid rgba(255,255,255,.16);border-radius:14px;box-shadow:0 16px 44px rgba(0,0,0,.55);padding:14px;width:236px}
 .mt-corpop-tit{color:#fff;font-size:12.5px;font-weight:800;margin-bottom:10px}
@@ -4204,7 +4226,24 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 334; // (·334) "FALTA ADICIONAR PESSOA NO VOUCHER" ACUSANDO GENTE QUE JA
+var UV_BUILD_NUM = 335; // (·335) MINHAS TAREFAS: SECOES RECOLHIDAS POR PADRAO + PASTAS
+// DENTRO DE NOTAS. Pedido do Nando, com guardrail explicito de nao mexer em layout nem
+// permissao fora desta pasta — e nao mexi: tudo vive dentro do modulo mt* e do
+// appConfig.minhasTarefas. (1) "Notas" e "Controle de Check-in" viraram duas secoes com
+// cabecalho clicavel, MINIMIZADAS ao entrar na tela. O estado (mtSecAberta/mtPastaAberta)
+// e de TELA, nao de dado, e o zeramento acontece em renderTarefas() — nunca em
+// renderBoard(): renderBoard roda a cada salvamento de digitacao, entao zerar la fecharia
+// a secao no meio da edicao, que seria pior que o problema original. (2) PASTAS: nova
+// gaveta g.pastas {id:{nome,criado,ts,del}} e campo `pasta` no post-it. Nota sem `pasta`
+// continua sendo avulsa, entao a gaveta antiga NAO precisa de migracao — ela ja cai
+// certo no quadro solto. Botao "＋ Nota" existe em dois lugares (topo = avulsa, cabecalho
+// da pasta = dentro dela) mas chama a MESMA funcao mtCriarNota(cor, pastaId) — zero
+// logica duplicada. Excluir pasta NAO apaga as notas: elas voltam para as avulsas, e o
+// confirm diz isso com o numero exato — apagar junto seria perda de dado silenciosa.
+// MERGE MULTI-PC: g.pastas entrou em uvMesclarTarefas com a MESMA regra dos post-its
+// (uniao das chaves, ts mais novo vence, del e soft) — sem isso um PC com estado antigo
+// apagaria pasta criada em outro, que e a armadilha ja paga varias vezes aqui.
+// ANTERIOR: (·334) "FALTA ADICIONAR PESSOA NO VOUCHER" ACUSANDO GENTE QUE JA
 // ESTAVA CADASTRADA — DOIS NOMES NUM CAMPO SO. Relato do Nando com as duas telas: a
 // conciliacao listava 16 quartos do Contemporaneo com "Falta no sistema: USA Hemp 19 /
 // 17 / 15 / 13", enquanto os vouchers #00300, #00299, #00298 e #00297 mostram na tela
@@ -21836,8 +21875,11 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
   }
   function mtDe(at){
     var m=mtStore();
-    if(!m[at] || typeof m[at]!=='object') m[at]={ senhaHash:'', senhaTs:0, postits:{} };
+    if(!m[at] || typeof m[at]!=='object') m[at]={ senhaHash:'', senhaTs:0, postits:{}, pastas:{} };
     if(!m[at].postits || typeof m[at].postits!=='object') m[at].postits={};
+    // (·335) pastas dentro de Notas. Gaveta antiga não tem o campo: nasce vazio, e as
+    // notas sem `pasta` continuam sendo as avulsas — nada precisa ser migrado.
+    if(!m[at].pastas || typeof m[at].pastas!=='object') m[at].pastas={};
     return m[at];
   }
   // MERGE multi-PC: por operador — senha pelo carimbo senhaTs; post-its por id pelo ts
@@ -21848,13 +21890,22 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
     Object.keys(base).forEach(function(k){ ks[k]=1; }); Object.keys(outro).forEach(function(k){ ks[k]=1; });
     Object.keys(ks).forEach(function(at){
       var A=base[at]||{}, B=outro[at]||{};
-      var g={ senhaHash:'', senhaTs:0, postits:{} };
+      var g={ senhaHash:'', senhaTs:0, postits:{}, pastas:{} };
       if((A.senhaTs||0)>=(B.senhaTs||0)){ g.senhaHash=A.senhaHash||''; g.senhaTs=A.senhaTs||0; }
       else { g.senhaHash=B.senhaHash||''; g.senhaTs=B.senhaTs||0; }
       var pk={}; Object.keys(A.postits||{}).forEach(function(k){ pk[k]=1; }); Object.keys(B.postits||{}).forEach(function(k){ pk[k]=1; });
       Object.keys(pk).forEach(function(id){
         var x=(A.postits||{})[id], y=(B.postits||{})[id];
         g.postits[id]=(x&&y)?(((x.ts||0)>=(y.ts||0))?x:y):(x||y);
+      });
+      // (·335) PASTAS: exatamente a mesma regra dos post-its — união das chaves, o ts
+      // mais novo vence, del é soft delete. Sem isso um PC com estado antigo apagaria
+      // uma pasta criada em outro (a armadilha de sempre neste código).
+      g.pastas={};
+      var fk={}; Object.keys(A.pastas||{}).forEach(function(k){ fk[k]=1; }); Object.keys(B.pastas||{}).forEach(function(k){ fk[k]=1; });
+      Object.keys(fk).forEach(function(id){
+        var x=(A.pastas||{})[id], y=(B.pastas||{})[id];
+        g.pastas[id]=(x&&y)?(((x.ts||0)>=(y.ts||0))?x:y):(x||y);
       });
       out[at]=g;
     });
@@ -22382,43 +22433,109 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
     +  '</div>'
     +'</div>';
   }
+  /* ---------- (·335) seções recolhidas + pastas dentro de Notas ---------- */
+  // Estado de tela, não de dado: quais seções/pastas estão abertas AGORA. Zerado em
+  // renderTarefas() (entrar na pasta) e preservado em renderBoard() (editar uma nota
+  // não pode fechar o que a pessoa acabou de abrir).
+  var mtSecAberta={ notas:false, checkin:false };
+  var mtPastaAberta={};
+  function mtPastasLista(g){
+    return Object.keys(g.pastas||{}).filter(function(id){ return !g.pastas[id].del; })
+      .sort(function(a,b){ return (g.pastas[a].criado||0)-(g.pastas[b].criado||0); });
+  }
+  function mtNotasDe(g, pastaId){
+    return Object.keys(g.postits).filter(function(id){
+      var p=g.postits[id];
+      return !p.del && (p.pasta||'')===(pastaId||'');
+    }).sort(function(a,b){ return (g.postits[a].criado||0)-(g.postits[b].criado||0); });
+  }
+  function mtSecHtml(chave, titulo, qtd, corpoHtml){
+    var ab=!!mtSecAberta[chave];
+    return '<div class="mt-sec'+(ab?' aberta':'')+'">'
+      + '<button type="button" class="mt-sec-cab" data-mt-sec="'+chave+'" aria-expanded="'+(ab?'true':'false')+'">'
+      +   '<span class="mt-sec-seta">'+(ab?'▾':'▸')+'</span>'
+      +   '<span class="mt-sec-tit">'+titulo+'</span>'
+      +   (qtd!=null?'<span class="mt-sec-qtd">'+qtd+'</span>':'')
+      + '</button>'
+      + (ab? '<div class="mt-sec-corpo">'+corpoHtml+'</div>' : '')
+      + '</div>';
+  }
+  function mtBoardHtml(ids, g, vazioTxt){
+    return '<div class="mt-board'+(ids.length?'':' mt-board-vazio')+'"><div class="mt-grid">'
+      + (ids.length? ids.map(function(id){ return mtPostitHtml(id, g.postits[id]); }).join('')
+                   : '<div class="mt-vazio">'+vazioTxt+'</div>')
+      + '</div></div>';
+  }
+  function mtPastasHtml(g){
+    var pastas=mtPastasLista(g);
+    if(!pastas.length) return '';
+    return '<div class="mt-pastas">'+pastas.map(function(fid){
+      var f=g.pastas[fid], ids=mtNotasDe(g,fid), ab=!!mtPastaAberta[fid];
+      return '<div class="mt-pasta'+(ab?' aberta':'')+'">'
+        + '<div class="mt-pasta-cab">'
+        +   '<button type="button" class="mt-pasta-abre" data-mt-pasta="'+mtEsc(fid)+'" aria-expanded="'+(ab?'true':'false')+'">'
+        +     '<span class="mt-sec-seta">'+(ab?'▾':'▸')+'</span>'
+        +     '<span class="mt-pasta-ic">'+(ab?'📂':'📁')+'</span>'
+        +     '<span class="mt-pasta-nome">'+mtEsc(f.nome||'Pasta sem nome')+'</span>'
+        +     '<span class="mt-sec-qtd">'+ids.length+'</span>'
+        +   '</button>'
+        +   '<div class="mt-pasta-acoes">'
+        +     '<button type="button" class="mt-mini" data-mt-pasta-nota="'+mtEsc(fid)+'" title="Adicionar nota nesta pasta">＋ Nota</button>'
+        +     '<button type="button" class="mt-mini" data-mt-pasta-ren="'+mtEsc(fid)+'" title="Renomear pasta">✏️</button>'
+        +     '<button type="button" class="mt-mini mt-mini-del" data-mt-pasta-del="'+mtEsc(fid)+'" title="Excluir pasta">🗑</button>'
+        +   '</div>'
+        + '</div>'
+        + (ab? mtBoardHtml(ids, g, 'Pasta vazia.<br>Use o “＋ Nota” do cabeçalho desta pasta. 🗒️') : '')
+        + '</div>';
+    }).join('')+'</div>';
+  }
   function renderBoard(){
     var root=document.getElementById('mtRoot'); if(!root || !mtSessao) return;
     var g=mtDe(mtSessao);
-    var ids=Object.keys(g.postits).filter(function(id){ return !g.postits[id].del; })
-      .sort(function(a,b){ return (g.postits[a].criado||0)-(g.postits[b].criado||0); });
-    root.innerHTML=''
-    +'<div class="mt-topo">'
-    +  '<button type="button" class="mt-btn mt-btn-novo mt-btn-full" id="mtNovo">＋ Nota</button>'
-    +'</div>'
-    + mtToolbarHtml()
-    // (·264) o quadro nasce COMPACTO (·mt-board-vazio, 60% menor) quando não
-    // há nenhuma nota — e volta ao tamanho normal sozinho assim que a
-    // primeira nota é criada, porque a classe é decidida por ids.length a
-    // cada render (nenhum estado próprio pra manter em sincronia).
-    +'<div class="mt-board'+(ids.length?'':' mt-board-vazio')+'"><div class="mt-grid" id="mtGrid">'
-    +   (ids.length? ids.map(function(id){ return mtPostitHtml(id, g.postits[id]); }).join('')
-                   : '<div class="mt-vazio">Nenhuma nota ainda.<br>Clique em “＋ Nota” e escolha a cor do papel. 🗒️</div>')
-    +'</div></div>'
-    // (·264) Controle de Check-in migrou do topo pra logo ABAIXO do quadro,
-    // como pedido — sozinho, na largura toda, marcando a transição pro
-    // histórico de agendamentos que vem em seguida.
-    +'<button type="button" class="mt-btn mt-btn-checkin mt-btn-checkin-abaixo mt-btn-full" id="ciAbrirBtn">🛫 Controle de Check-in</button>'
-    // (·261) HISTÓRICO DE AGENDAMENTOS DE CHECK-IN — logo abaixo do quadro de
-    // post-its, sempre visível (não precisa abrir o modal pra conferir o que
-    // já foi agendado). Mesma função de listagem que o modal usa (ciListaAgendadosHtml),
-    // reaproveitada aqui — as duas listas nunca podem se desencontrar porque
-    // leem a MESMA fonte (appConfig.checkins).
-    +'<div class="mt-hist-wrap">'
-    +  '<h3 class="fn-title" style="margin:20px 0 10px;font-size:1rem">📋 Histórico de agendamentos de check-in</h3>'
-    +  '<div id="ciHistoricoWrap">'+(typeof ciListaAgendadosHtml==='function'?ciListaAgendadosHtml():'')+'</div>'
-    +'</div>';
+    var avulsas=mtNotasDe(g,'');                       // notas fora de qualquer pasta
+    var total=Object.keys(g.postits).filter(function(id){ return !g.postits[id].del; }).length;
+
+    var corpoNotas=''
+      +'<div class="mt-topo">'
+      +  '<button type="button" class="mt-btn mt-btn-novo" id="mtNovo">＋ Nota</button>'
+      +  '<button type="button" class="mt-btn mt-btn-pasta" id="mtNovaPasta">📁 Nova pasta</button>'
+      +'</div>'
+      + mtToolbarHtml()
+      + mtPastasHtml(g)
+      // (·264) o quadro nasce COMPACTO (·mt-board-vazio, 60% menor) quando não
+      // há nenhuma nota — e volta ao tamanho normal sozinho assim que a
+      // primeira nota é criada, porque a classe é decidida por ids.length a
+      // cada render (nenhum estado próprio pra manter em sincronia).
+      + mtBoardHtml(avulsas, g, 'Nenhuma nota avulsa.<br>Clique em “＋ Nota” e escolha a cor do papel. 🗒️');
+
+    var corpoCheckin=''
+      // (·264) Controle de Check-in migrou do topo pra logo ABAIXO do quadro,
+      // como pedido — sozinho, na largura toda, marcando a transição pro
+      // histórico de agendamentos que vem em seguida.
+      +'<button type="button" class="mt-btn mt-btn-checkin mt-btn-checkin-abaixo mt-btn-full" id="ciAbrirBtn">🛫 Controle de Check-in</button>'
+      // (·261) HISTÓRICO DE AGENDAMENTOS DE CHECK-IN — logo abaixo do quadro de
+      // post-its (não precisa abrir o modal pra conferir o que já foi agendado).
+      // Mesma função de listagem que o modal usa (ciListaAgendadosHtml), reaproveitada
+      // aqui — as duas listas nunca podem se desencontrar porque leem a MESMA fonte
+      // (appConfig.checkins).
+      +'<div class="mt-hist-wrap">'
+      +  '<h3 class="fn-title" style="margin:20px 0 10px;font-size:1rem">📋 Histórico de agendamentos de check-in</h3>'
+      +  '<div id="ciHistoricoWrap">'+(typeof ciListaAgendadosHtml==='function'?ciListaAgendadosHtml():'')+'</div>'
+      +'</div>';
+
+    root.innerHTML = mtSecHtml('notas','🗒️ Notas', total, corpoNotas)
+                   + mtSecHtml('checkin','🛫 Controle de Check-in', null, corpoCheckin);
   }
 
   /* ---------- render principal (roteador chama esta) ---------- */
   function renderTarefas(){
     // (·220) resolve automaticamente pelo login do Hub, sem pedir senha
     if(!mtSessao) mtSessao=mtResolverOperadorLogado();
+    // (·335) ao ENTRAR na pasta, as duas seções nascem minimizadas — pedido do Nando.
+    // Zerar aqui (e não no renderBoard) é o que faz editar uma nota NÃO fechar o que a
+    // pessoa acabou de abrir: renderBoard roda a cada tecla salva, renderTarefas só na
+    // entrada da tela.
+    mtSecAberta={ notas:false, checkin:false }; mtPastaAberta={};
     if(mtSessao) renderBoard(); else renderSemCorrespondencia();
   }
   window.renderTarefas=renderTarefas;
@@ -22464,19 +22581,74 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
   /* ---------- interações (delegação no mtRoot) ---------- */
   function mtPost(id){ return mtDe(mtSessao).postits[id]; }
   function mtCarimba(p){ p.ts=Date.now(); }
+  // (·335) porta ÚNICA de criação de nota: o "＋ Nota" do topo manda pasta '' (avulsa) e
+  // o "＋ Nota" do cabeçalho de uma pasta manda o id dela. Nenhuma lógica duplicada.
+  function mtCriarNota(cor, pastaId){
+    var g=mtDe(mtSessao);
+    var id='pt'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+    g.postits[id]={ titulo:'', cor:cor, criado:Date.now(), pasta:pastaId||'',
+                    linhas:[{html:'',led:''},{html:'',led:''},{html:'',led:''}], ts:Date.now(), del:0 };
+    mtSecAberta.notas=true; if(pastaId) mtPastaAberta[pastaId]=true;
+    mtAgendarSalvar(); renderBoard();
+    try{ var t=document.querySelector('[data-mt-tit="'+id+'"]'); if(t) t.focus(); }catch(_){}
+  }
   document.addEventListener('click', function(e){
     var root=document.getElementById('mtRoot'); if(!root || !root.contains(e.target) || !mtSessao) return;
     mtArmarOcioso();
 
+    // (·335) abrir/fechar as seções "Notas" e "Controle de Check-in"
+    var bSec=e.target.closest('[data-mt-sec]');
+    if(bSec){ var k=bSec.getAttribute('data-mt-sec'); mtSecAberta[k]=!mtSecAberta[k]; renderBoard(); return; }
+
+    // (·335) abrir/fechar uma pasta
+    var bPasta=e.target.closest('[data-mt-pasta]');
+    if(bPasta){ var fid=bPasta.getAttribute('data-mt-pasta'); mtPastaAberta[fid]=!mtPastaAberta[fid]; renderBoard(); return; }
+
+    // (·335) criar pasta
+    if(e.target.closest('#mtNovaPasta')){
+      var nome=prompt('Nome da nova pasta:',''); if(nome==null) return;
+      nome=String(nome).trim(); if(!nome){ toast('Dê um nome à pasta','info'); return; }
+      var gp=mtDe(mtSessao);
+      var fidNovo='pf'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+      gp.pastas[fidNovo]={ nome:nome, criado:Date.now(), ts:Date.now(), del:0 };
+      mtPastaAberta[fidNovo]=true; mtSecAberta.notas=true;
+      mtAgendarSalvar(); renderBoard(); return;
+    }
+    // (·335) renomear pasta
+    var bRen=e.target.closest('[data-mt-pasta-ren]');
+    if(bRen){
+      var fr=bRen.getAttribute('data-mt-pasta-ren'), gr=mtDe(mtSessao), pf=gr.pastas[fr]; if(!pf) return;
+      var novoNome=prompt('Renomear pasta:', pf.nome||''); if(novoNome==null) return;
+      novoNome=String(novoNome).trim(); if(!novoNome){ toast('O nome não pode ficar vazio','info'); return; }
+      pf.nome=novoNome; pf.ts=Date.now(); mtAgendarSalvar(); renderBoard(); return;
+    }
+    // (·335) excluir pasta — as notas de dentro NÃO são apagadas, voltam a ser avulsas.
+    // Apagar nota junto seria perda de dado silenciosa; aqui o pior caso é a nota
+    // reaparecer no quadro solto, de onde dá pra recolocar em outra pasta.
+    var bPdel=e.target.closest('[data-mt-pasta-del]');
+    if(bPdel){
+      var fd=bPdel.getAttribute('data-mt-pasta-del'), gd=mtDe(mtSessao), pd=gd.pastas[fd]; if(!pd) return;
+      var dentro=mtNotasDe(gd,fd);
+      if(!confirm('Excluir a pasta "'+(pd.nome||'')+'"?\n\n'+(dentro.length
+        ? 'As '+dentro.length+' nota(s) de dentro NÃO serão apagadas — voltam para o quadro de notas avulsas.'
+        : 'A pasta está vazia.'))) return;
+      dentro.forEach(function(nid){ var n=gd.postits[nid]; n.pasta=''; mtCarimba(n); });
+      pd.del=1; pd.ts=Date.now(); delete mtPastaAberta[fd];
+      mtAgendarSalvar(); renderBoard();
+      toast(dentro.length? 'Pasta excluída — '+dentro.length+' nota(s) voltaram para as avulsas':'Pasta excluída','ok');
+      return;
+    }
+    // (·335) nova nota DENTRO de uma pasta (mesmo fluxo do ＋ Nota, só com o campo pasta)
+    var bPnota=e.target.closest('[data-mt-pasta-nota]');
+    if(bPnota){
+      var fpn=bPnota.getAttribute('data-mt-pasta-nota');
+      mtAbrirCorPop(bPnota, function(cor){ mtCriarNota(cor, fpn); }, '🗒️ Escolha a cor do post-it');
+      return;
+    }
+
     var novo=e.target.closest('#mtNovo');
     if(novo){
-      mtAbrirCorPop(novo, function(cor){
-        var g=mtDe(mtSessao);
-        var id='pt'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
-        g.postits[id]={ titulo:'', cor:cor, criado:Date.now(), linhas:[{html:'',led:''},{html:'',led:''},{html:'',led:''}], ts:Date.now(), del:0 };
-        mtAgendarSalvar(); renderBoard();
-        try{ var t=document.querySelector('[data-mt-tit="'+id+'"]'); if(t) t.focus(); }catch(_){}
-      }, '🗒️ Escolha a cor do post-it');
+      mtAbrirCorPop(novo, function(cor){ mtCriarNota(cor, ''); }, '🗒️ Escolha a cor do post-it');
       return;
     }
     var bCor=e.target.closest('[data-mt-cor]');
