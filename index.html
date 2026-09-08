@@ -3069,6 +3069,26 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
   window.uvAuthToken=uvAuthToken; window.uvAuthPerfil=uvAuthPerfil;
   window.uvAuthNome=uvAuthNome; window.uvAuthUsuario=uvAuthUsuario;
 
+  /* (·353) LOGIN → NOME, pela lista oficial de usuários já cacheada em localStorage
+     (a mesma que o espelho de notificações de Ações Comerciais usa). Serve para mostrar
+     QUEM reagiu com cada emoji, nas duas pastas. É só a segunda fonte: cada módulo tenta
+     primeiro o próprio histórico (autorU/autor viajam juntos em toda mensagem), que é
+     sempre certo para quem já escreveu ali. Não achando em lugar nenhum, devolve '' e
+     quem chama decide o que exibir — inventar um nome seria pior que não mostrar. */
+  function uvNomePorLogin(login){
+    login=(login||'').trim(); if(!login) return '';
+    try{
+      var raw=localStorage.getItem('uv_users_lista_cache_v1');
+      var o=raw?JSON.parse(raw):null, L=(o&&Array.isArray(o.usuarios))?o.usuarios:[];
+      for(var i=0;i<L.length;i++){
+        var us=L[i]||{}, logins=Array.isArray(us.logins)?us.logins:[];
+        if(us.chave===login || logins.indexOf(login)>=0) return us.nome||'';
+      }
+    }catch(e){}
+    return '';
+  }
+  window.uvNomePorLogin=uvNomePorLogin;
+
   function gravarSessao(d){
     try{
       localStorage.setItem('uv_auth_token', d.token||'');
@@ -4274,7 +4294,18 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 352; // (·352) INSIGHTS EMPARELHADO COM ACOES COMERCIAIS: REACAO CONTA
+var UV_BUILD_NUM = 353; // (·353) PASSAR O MOUSE NO EMOJI MOSTRA QUEM REAGIU — nas DUAS
+// pastas (Insights e Acoes Comerciais). Pedido do Nando. O dado ja existia: reac guarda
+// {login: emoji} e reacTs {login: quando}; faltava traduzir login em NOME. CADEIA DE TRES
+// FONTES, nessa ordem: (1) o historico do proprio modulo, onde autor e autorU viajam
+// juntos em cada card/mensagem — e a fonte mais confiavel pra quem ja escreveu ali;
+// (2) a lista oficial de usuarios ja cacheada em localStorage (uv_users_lista_cache_v1),
+// lida pela nova window.uvNomePorLogin, que e a UNICA parte comum e por isso mora numa
+// funcao so; (3) nao achando, mostra o proprio login — melhor um identificador do que um
+// nome errado. Com varias pessoas no mesmo emoji, o tooltip lista todas na ordem em que
+// reagiram (pelo reacTs); na chip que e MINHA, o texto de remover vem depois dos nomes,
+// entao a acao continua explicada sem perder a informacao nova.
+// ANTERIOR: (·352) INSIGHTS EMPARELHADO COM ACOES COMERCIAIS: REACAO CONTA
 // NA NOTIFICACAO, MODO DE TESTE DO ADMIN E DESTAQUE DE CARD NAO LIDO. Pedido do Nando:
 // "faca a mesma coisa para as notificacoes da pasta Insights". Vieram tres coisas.
 // (1) tiReacoesNovas: reagir com emoji num feedback nao acendia NADA — reacao nao e
@@ -23914,6 +23945,28 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       }).join('')+
     '</div>';
   }
+  /* (·353) mesma ideia do Insights: histórico do próprio módulo primeiro (autorU/autor
+     juntos em cada card e mensagem), lista oficial de usuários depois, login como último
+     recurso. Duas funções irmãs, cada uma lendo a gaveta do seu módulo — o que é comum
+     entre as duas (a lista oficial) mora numa função só, uvNomePorLogin. */
+  function acNomePorLogin(u){
+    u=(u||'').trim(); if(!u) return '';
+    var achado='';
+    acCardsVivos().some(function(c){
+      if(c.autorU===u && c.autor){ achado=c.autor; return true; }
+      return acMsgsVivas(c).some(function(m){ if(m.autorU===u && m.autor){ achado=m.autor; return true; } return false; });
+    });
+    if(achado) return achado;
+    try{ if(typeof window.uvNomePorLogin==='function') achado=window.uvNomePorLogin(u)||''; }catch(e){}
+    return achado || u;
+  }
+  function acQuemReagiu(m, emoji){
+    var reac=(m&&m.reac&&typeof m.reac==='object')?m.reac:{};
+    var ts=(m&&m.reacTs&&typeof m.reacTs==='object')?m.reacTs:{};
+    return Object.keys(reac).filter(function(u){ return reac[u]===emoji; })
+      .sort(function(a,b){ return (ts[a]||0)-(ts[b]||0); })
+      .map(acNomePorLogin);
+  }
   function acReacoesHtml(m){
     var reac=(m && m.reac && typeof m.reac==='object')?m.reac:{};
     var chaves=Object.keys(reac); if(!chaves.length) return '';
@@ -23924,12 +23977,13 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       Object.keys(porEmoji).map(function(em){
         var minha=(meu && reac[meu]===em);
         // como no Insights: a chip da MINHA reação é clicável e remove (mesmo toggle)
+        var quem=acQuemReagiu(m, em).join(', ');   // (·353) tooltip com quem reagiu
         if(minha && alvoId){
           return '<button type="button" class="ti-reac-chip minha" data-ac-reac-del="'+acEsc(alvoId)+'" '+
-            'data-ac-reac-emoji="'+acEsc(em)+'" title="Clique para remover sua reação">'+
+            'data-ac-reac-emoji="'+acEsc(em)+'" title="'+acEsc(quem)+' · clique para remover a sua reação">'+
             em+(porEmoji[em]>1?' '+porEmoji[em]:'')+'</button>';
         }
-        return '<span class="ti-reac-chip'+(minha?' minha':'')+'">'+em+(porEmoji[em]>1?' '+porEmoji[em]:'')+'</span>';
+        return '<span class="ti-reac-chip'+(minha?' minha':'')+'" title="'+acEsc(quem)+'">'+em+(porEmoji[em]>1?' '+porEmoji[em]:'')+'</span>';
       }).join('')+
     '</div>';
   }
@@ -25949,6 +26003,29 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
      usados TANTO na mensagem principal QUANTO em cada comentário — mesma
      função central que tiEmojiPickerHtml já é para o painel, pela mesma
      razão: as duas áreas não podem se desencontrar de estilo no futuro. */
+  /* (·353) LOGIN → NOME dentro do Insights. Primeiro o histórico do próprio módulo, onde
+     autor e autorU viajam juntos em cada feedback/mensagem — é a fonte mais confiável
+     para quem já escreveu aqui. Só depois a lista oficial de usuários (uvNomePorLogin).
+     Não achando, mostra o próprio login: melhor um identificador do que um nome errado. */
+  function tiNomePorLogin(u){
+    u=(u||'').trim(); if(!u) return '';
+    var achado='';
+    tiVivos().some(function(c){
+      if(c.autorU===u && c.autor){ achado=c.autor; return true; }
+      return tiMsgsVivas(c).some(function(m){ if(m.autorU===u && m.autor){ achado=m.autor; return true; } return false; });
+    });
+    if(achado) return achado;
+    try{ if(typeof window.uvNomePorLogin==='function') achado=window.uvNomePorLogin(u)||''; }catch(e){}
+    return achado || u;
+  }
+  // quem reagiu com cada emoji, na ordem em que reagiram (reacTs)
+  function tiQuemReagiu(obj, emoji){
+    var reac=(obj&&obj.reac&&typeof obj.reac==='object')?obj.reac:{};
+    var ts=(obj&&obj.reacTs&&typeof obj.reacTs==='object')?obj.reacTs:{};
+    return Object.keys(reac).filter(function(u){ return reac[u]===emoji; })
+      .sort(function(a,b){ return (ts[a]||0)-(ts[b]||0); })
+      .map(tiNomePorLogin);
+  }
   function tiReacoesHtml(obj){
     var reac=(obj && obj.reac && typeof obj.reac==='object')?obj.reac:{};
     var chaves=Object.keys(reac); if(!chaves.length) return '';
@@ -25963,12 +26040,14 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
            (reagir de novo com o MESMO emoji remove). As chips dos outros
            continuam <span>, sem ação — só a própria reação é removível
            por aqui. */
+        // (·353) o tooltip diz QUEM reagiu com este emoji
+        var quem=tiQuemReagiu(obj, em).join(', ');
         if(minha && alvoId){
           return '<button type="button" class="ti-reac-chip minha" data-ti-reac-del="'+tiEsc(alvoId)+'" '+
-            'data-ti-reac-emoji="'+tiEsc(em)+'" title="Clique para remover sua reação">'+
+            'data-ti-reac-emoji="'+tiEsc(em)+'" title="'+tiEsc(quem)+' · clique para remover a sua reação">'+
             em+(porEmoji[em]>1?' '+porEmoji[em]:'')+'</button>';
         }
-        return '<span class="ti-reac-chip'+(minha?' minha':'')+'">'+em+(porEmoji[em]>1?' '+porEmoji[em]:'')+'</span>';
+        return '<span class="ti-reac-chip'+(minha?' minha':'')+'" title="'+tiEsc(quem)+'">'+em+(porEmoji[em]>1?' '+porEmoji[em]:'')+'</span>';
       }).join('')+
     '</div>';
   }
