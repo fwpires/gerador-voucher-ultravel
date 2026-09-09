@@ -4299,7 +4299,26 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 363; // (·363) MINHAS TAREFAS > CONTROLE GERAL, SO PARA FERNANDO E RUTH.
+var UV_BUILD_NUM = 364; // (·364) CONTROLE GERAL: BARRA DE ROLAGEM TAMBEM EM CIMA. Pedido do
+// Nando, marcado de amarelo no print: a tabela so tinha barra horizontal embaixo, e nas
+// abas largas (a maior tem 19 colunas) era preciso descer 554 linhas ate o fim so para
+// arrastar a barra e ver as colunas da direita.
+// COMO: barra NATIVA de verdade, nao desenhada. Uma caixa que so rola, com um espacador
+// da MESMA largura da tabela dentro dela. Por isso nasce identica a de baixo em qualquer
+// sistema, tema ou navegador — e literalmente a mesma peca do sistema operacional. O
+// caminho alternativo (trilha + polegar desenhados, como a barra do Kanban faz) exigiria
+// reimplementar arrasto, clique na trilha e proporcao do polegar a mao.
+// DOIS DETALHES QUE SAO A DIFERENCA ENTRE FUNCIONAR E MORRER EM SILENCIO:
+// (1) A ligacao e refeita a CADA render. cgRender troca o innerHTML inteiro, os nos
+// antigos morrem com os ouvintes junto, e uma marca global de "ja liguei" deixaria a
+// barra nova morta ate o F5 — exatamente o defeito que a barra do Kanban ja teve e que
+// custou um build para achar. Aqui nao ha flag: as duas caixas sao buscadas de novo.
+// (2) Na PRIMEIRA abertura quem injeta o HTML e o renderBoard de Minhas Tarefas, nao o
+// cgRender daqui — entao a ligacao e chamada de la tambem, dentro de um
+// requestAnimationFrame: medir antes de o navegador desenhar devolve largura zero, e a
+// barra nasceria escondida achando que nao ha o que rolar.
+// A barra some sozinha quando a aba cabe na tela: barra que nao rola e so ruido.
+// ANTERIOR: (·363) MINHAS TAREFAS > CONTROLE GERAL, SO PARA FERNANDO E RUTH.
 // Pedido do Nando: uma pasta "Controle Geral" dentro de Minhas Tarefas, visivel no MEU
 // acesso e no da Ruth Alves "somente nesses dois", com todo o conteudo da planilha
 // Controle Geral.xlsx de forma EDITAVEL, organizada e facil de entender.
@@ -23120,6 +23139,22 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
     try{ podeControle = (typeof window.cgPodeVer==='function') && window.cgPodeVer(); }catch(e){}
     if(podeControle && typeof window.cgSecaoHtml==='function'){
       try{ corpoControle=window.cgSecaoHtml()||''; }catch(e){ corpoControle=''; }
+      /* (·364) quem injeta o HTML da PRIMEIRA vez é o renderBoard daqui, não o
+         cgRender de lá — então a barra de rolagem de cima precisa ser ligada
+         depois que este innerHTML entrar no documento. O requestAnimationFrame
+         espera o navegador realmente desenhar: medir antes disso devolveria
+         largura zero e a barra nasceria escondida.
+         TUDO dentro de try, e com setTimeout de reserva: um erro aqui é um
+         detalhe de barra de rolagem, mas jogado para fora ele derrubaria o
+         renderBoard INTEIRO — e a pessoa perderia Notas e Check-in junto, por
+         causa de um enfeite. Defeito pequeno não pode levar a tela junto. */
+      if(corpoControle && typeof window.cgLigarScrollTopo==='function'){
+        try{
+          var _liga=function(){ try{ window.cgLigarScrollTopo(); }catch(e){} };
+          if(typeof requestAnimationFrame==='function') requestAnimationFrame(_liga);
+          else setTimeout(_liga,0);
+        }catch(e){}
+      }
     }
     var qtdControle=null;
     if(podeControle && typeof window.cgTotalLinhas==='function'){
@@ -31799,6 +31834,16 @@ body.dark .csdi-chip-top{border-color:rgba(18,176,255,.28);color:#5FC2FF}
 .cg-kpi-l{font-size:10.5px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--texto-fraco)}
 .cg-kpi-v{font-size:18px;font-weight:800;color:var(--texto);margin-top:3px;letter-spacing:-.3px}
 
+/* (·364) BARRA DE ROLAGEM DE CIMA. É uma barra NATIVA de verdade, não um
+   desenho: uma caixa que só rola, com um espaçador da MESMA largura da tabela
+   dentro. Por isso ela nasce idêntica à de baixo em qualquer sistema, tema ou
+   navegador — é literalmente a mesma peça do sistema operacional. O caminho
+   alternativo (trilha + polegar desenhados, como o Kanban faz) exigiria
+   reimplementar arrasto, clique na trilha e proporção do polegar à mão. */
+.cg-scroll-topo{overflow-x:auto;overflow-y:hidden;border:1px solid var(--borda);border-bottom:0;border-radius:12px 12px 0 0;background:var(--fundo)}
+.cg-scroll-topo>div{height:1px}
+.cg-scroll-topo[hidden]{display:none}
+.cg-scroll-topo+.cg-tab-box{border-radius:0 0 12px 12px}
 .cg-tab-box{border:1px solid var(--borda);border-radius:12px;overflow:auto;background:var(--card);max-height:64vh;position:relative}
 table.cg-tab{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%;font-size:12.5px}
 .cg-tab th{position:sticky;top:0;z-index:3;background:var(--fundo);color:var(--texto-suave);font-size:11px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;text-align:left;padding:9px 11px;border-bottom:1px solid var(--borda-forte);white-space:nowrap}
@@ -32034,7 +32079,8 @@ body.dark .cg-badge.ok{color:#A9DB3A} body.dark .cg-badge.mau{color:#FF8B8B} bod
     });
     h+='</div>';
 
-    h+='<div class="cg-tab-box"><table class="cg-tab"><thead><tr><th class="cg-nl">#</th>';
+    h+='<div class="cg-scroll-topo" id="cgScrollTopo" hidden><div id="cgScrollTopoIn"></div></div>';
+    h+='<div class="cg-tab-box" id="cgTabBox"><table class="cg-tab"><thead><tr><th class="cg-nl">#</th>';
     cols.forEach(function(c,i){ h+='<th'+(i===0?' class="cg-fix"':'')+'>'+cgEsc(c.n)+'</th>'; });
     h+='<th></th></tr></thead><tbody>';
     if(!vis.length){
@@ -32075,9 +32121,40 @@ body.dark .cg-badge.ok{color:#A9DB3A} body.dark .cg-badge.mau{color:#FF8B8B} bod
   /* Redesenha SÓ o Controle Geral. Não chama renderTarefas/renderBoard de
      propósito: aquele redesenho zera as seções abertas e devolveria a pessoa
      para o quadro fechado a cada tecla salva. */
+  /* Liga a barra de cima à caixa da tabela. Chamada a CADA render porque
+     cgRender troca o innerHTML inteiro: os nós antigos morrem com os ouvintes
+     junto, e um "já liguei" global deixaria a barra nova morta até o F5 — foi
+     exatamente o defeito que a barra do Kanban já teve. Aqui não há flag: as
+     duas caixas são buscadas de novo e religadas toda vez.
+     O guard `travado` existe porque cada `scrollLeft=` dispara o onscroll do
+     OUTRO lado; sem ele, os dois ficam se empurrando (e o gesto de rolagem
+     fica trêmulo, meio passo atrás do dedo). */
+  function cgLigarScrollTopo(){
+    var topo=document.getElementById('cgScrollTopo'),
+        esp =document.getElementById('cgScrollTopoIn'),
+        box =document.getElementById('cgTabBox');
+    if(!topo || !esp || !box) return;
+    function medir(){
+      var largura=box.scrollWidth;
+      esp.style.width=largura+'px';
+      // some sozinha quando não há o que rolar — barra que não rola é só ruído
+      topo.hidden = (largura - box.clientWidth) < 2;
+    }
+    medir();
+    var travado=false;
+    topo.onscroll=function(){ if(travado) return; travado=true; box.scrollLeft=topo.scrollLeft; travado=false; };
+    box.onscroll =function(){ if(travado) return; travado=true; topo.scrollLeft=box.scrollLeft; travado=false; };
+    if(window.ResizeObserver){
+      try{ if(cgRO) cgRO.disconnect(); cgRO=new ResizeObserver(medir); cgRO.observe(box); }catch(e){}
+    }
+  }
+  var cgRO=null;
+  window.cgLigarScrollTopo=cgLigarScrollTopo;
+
   function cgRender(){
     var w=document.getElementById('cgWrap'); if(!w) return;
     w.innerHTML=cgCorpoHtml();
+    cgLigarScrollTopo();
   }
   window.cgRender=cgRender;
 
