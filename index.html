@@ -2494,6 +2494,16 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .mt-sec-checkin.aberta > .mt-sec-cab{border-bottom-color:rgba(255,138,26,.45)}
 .mt-sec-checkin .mt-sec-seta{color:rgba(255,255,255,.85)}
 .mt-sec-checkin .mt-sec-qtd{color:#fff;background:rgba(0,0,0,.22);border-color:rgba(255,255,255,.35)}
+/* (·365) CONTROLE GERAL EM VERDE — mesma receita das outras duas (Notas azul,
+   Check-in laranja): as SEIS linhas, na mesma ordem, trocando só o matiz. Verde
+   da marca (--verde #94C11E) escurecido no fim do gradiente para o texto branco
+   ficar legível, como o laranja do Check-in já faz. */
+.mt-sec-controle{border-color:rgba(148,193,30,.42)}
+.mt-sec-controle > .mt-sec-cab{background:linear-gradient(180deg,#9FD11F,#5E8E10);color:#fff;text-shadow:0 0 8px rgba(30,60,0,.35)}
+.mt-sec-controle > .mt-sec-cab:hover{background:linear-gradient(180deg,#B0E22C,#6EA414)}
+.mt-sec-controle.aberta > .mt-sec-cab{border-bottom-color:rgba(148,193,30,.5)}
+.mt-sec-controle .mt-sec-seta{color:rgba(255,255,255,.85)}
+.mt-sec-controle .mt-sec-qtd{color:#fff;background:rgba(0,0,0,.22);border-color:rgba(255,255,255,.35)}
 /* seletor de cor de post-it (popover) */
 .mt-corpop{position:absolute;z-index:10000;background:#141C26;border:1px solid rgba(255,255,255,.16);border-radius:14px;box-shadow:0 16px 44px rgba(0,0,0,.55);padding:14px;width:236px}
 .mt-corpop-tit{color:#fff;font-size:12.5px;font-weight:800;margin-bottom:10px}
@@ -4299,7 +4309,15 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 364; // (·364) CONTROLE GERAL: BARRA DE ROLAGEM TAMBEM EM CIMA. Pedido do
+var UV_BUILD_NUM = 365; // (·365) A PASTA CONTROLE GERAL FICOU VERDE. Pedido do Nando,
+// circulado no print: a faixa vinha cinza (o estilo neutro de .mt-sec), enquanto Notas e
+// Check-in ja tinham cor propria. Segui a MESMA receita das outras duas, as seis linhas na
+// mesma ordem, trocando so o matiz: borda, gradiente do cabecalho, gradiente do hover,
+// borda de baixo quando aberta, cor da seta e cor da bolinha de contagem. Nenhum estilo
+// novo inventado — quem mexer nas tres amanha encontra a mesma forma nas tres.
+// O verde e o da marca (--verde #94C11E), escurecido no fim do gradiente para o texto
+// branco continuar legivel, exatamente como o laranja do Check-in ja faz. So CSS.
+// ANTERIOR: (·364) CONTROLE GERAL: BARRA DE ROLAGEM TAMBEM EM CIMA. Pedido do
 // Nando, marcado de amarelo no print: a tabela so tinha barra horizontal embaixo, e nas
 // abas largas (a maior tem 19 colunas) era preciso descer 554 linhas ate o fim so para
 // arrastar a barra e ver as colunas da direita.
