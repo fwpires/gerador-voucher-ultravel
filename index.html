@@ -2495,13 +2495,15 @@ body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
 .mt-sec-checkin .mt-sec-seta{color:rgba(255,255,255,.85)}
 .mt-sec-checkin .mt-sec-qtd{color:#fff;background:rgba(0,0,0,.22);border-color:rgba(255,255,255,.35)}
 /* (·365) CONTROLE GERAL EM VERDE — mesma receita das outras duas (Notas azul,
-   Check-in laranja): as SEIS linhas, na mesma ordem, trocando só o matiz. Verde
-   da marca (--verde #94C11E) escurecido no fim do gradiente para o texto branco
-   ficar legível, como o laranja do Check-in já faz. */
-.mt-sec-controle{border-color:rgba(148,193,30,.42)}
-.mt-sec-controle > .mt-sec-cab{background:linear-gradient(180deg,#9FD11F,#5E8E10);color:#fff;text-shadow:0 0 8px rgba(30,60,0,.35)}
-.mt-sec-controle > .mt-sec-cab:hover{background:linear-gradient(180deg,#B0E22C,#6EA414)}
-.mt-sec-controle.aberta > .mt-sec-cab{border-bottom-color:rgba(148,193,30,.5)}
+   Check-in laranja): as SEIS linhas, na mesma ordem, trocando só o matiz.
+   (·366) Verde ESCURO: parte do --verde-escuro da marca (#6E9215) e fecha mais
+   escuro ainda, em vez de partir do verde claro. O texto branco fica com
+   contraste bem folgado sobre os dois extremos — verde claro com branco por
+   cima é justamente a combinação que pesa a leitura. */
+.mt-sec-controle{border-color:rgba(110,146,21,.45)}
+.mt-sec-controle > .mt-sec-cab{background:linear-gradient(180deg,#6E9215,#3F5A08);color:#fff;text-shadow:0 0 8px rgba(15,35,0,.4)}
+.mt-sec-controle > .mt-sec-cab:hover{background:linear-gradient(180deg,#7EA51C,#4C6B0D)}
+.mt-sec-controle.aberta > .mt-sec-cab{border-bottom-color:rgba(110,146,21,.55)}
 .mt-sec-controle .mt-sec-seta{color:rgba(255,255,255,.85)}
 .mt-sec-controle .mt-sec-qtd{color:#fff;background:rgba(0,0,0,.22);border-color:rgba(255,255,255,.35)}
 /* seletor de cor de post-it (popover) */
@@ -4309,7 +4311,15 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 365; // (·365) A PASTA CONTROLE GERAL FICOU VERDE. Pedido do Nando,
+var UV_BUILD_NUM = 366; // (·366) VERDE DO CONTROLE GERAL, UM POUCO MAIS ESCURO. Pedido do
+// Nando sobre o ·365. Em vez de escurecer no olho, ancorei na propria paleta: o gradiente
+// agora PARTE do --verde-escuro da marca (#6E9215) e fecha mais escuro ainda (#3F5A08),
+// enquanto antes partia do verde claro (#9FD11F). Ancorar na variavel da marca em vez de
+// inventar um verde qualquer e o que mantem a faixa parecendo do mesmo sistema.
+// Ganho de leitura junto: texto branco sobre verde CLARO e justamente a combinacao que
+// pesa a vista; sobre este par o contraste fica bem folgado nos dois extremos. Borda,
+// hover e sombra do texto acompanharam, para o conjunto continuar coerente. So CSS.
+// ANTERIOR: (·365) A PASTA CONTROLE GERAL FICOU VERDE. Pedido do Nando,
 // circulado no print: a faixa vinha cinza (o estilo neutro de .mt-sec), enquanto Notas e
 // Check-in ja tinham cor propria. Segui a MESMA receita das outras duas, as seis linhas na
 // mesma ordem, trocando so o matiz: borda, gradiente do cabecalho, gradiente do hover,
