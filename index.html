@@ -4299,7 +4299,16 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 361; // (·361) IMERSAO CSDI: "VISUALIZAR" AGORA NOS TRES CARDS. Pedido do
+var UV_BUILD_NUM = 362; // (·362) IMERSAO CSDI: TITULO DA TELA COM O NOME COMPLETO. Pedido do
+// Nando, circulado no print: onde estava "Imersão CSDI" no cabecalho da janela principal,
+// passa a ler "Imersão Códigos Secretos de Israel". So o TITULO DA TELA — o item do MENU
+// continua "Imersão CSDI", de proposito: sao dois trabalhos diferentes. No menu o rotulo
+// divide espaco com dez outras pastas numa coluna estreita, e a sigla cabe; no cabecalho da
+// tela o titulo e a unica coisa que diz onde a pessoa esta, e sigla nao diz.
+// Com o nome inteiro no titulo, a subtitulo passou a repeti-lo ("Códigos Secretos de Israel
+// · Dra. Jane Krüger · 03 a 13 de dezembro de 2026") — eco puro. Tirei a repeticao e deixei
+// a linha de baixo com o que ela sozinha acrescenta: quem conduz e quando.
+// ANTERIOR: (·361) IMERSAO CSDI: "VISUALIZAR" AGORA NOS TRES CARDS. Pedido do
 // Nando: fazer no documento 2 (Guia de Atendimento) e no documento 3 (Voos) a mesma coisa
 // que o ·360 fez na Apresentacao. NAO ESCREVI NENHUMA LOGICA NOVA — e o ponto do build.
 // O ·360 ja tinha sido feito generico de proposito: o botao nasce de d.pdfId no objeto
@@ -31279,8 +31288,14 @@ body.dark .csdi-chip-top{border-color:rgba(18,176,255,.28);color:#5FC2FF}
   function telaCards(){
     var h='';
     h+='<div class="csdi-head"><div>';
-    h+='<h1 class="csdi-title">👥 Imersão CSDI</h1>';
-    h+='<div class="csdi-sub">Códigos Secretos de Israel · Dra. Jane Krüger · 03 a 13 de dezembro de 2026</div>';
+    /* (·362) O TITULO DA TELA E O NOME INTEIRO, o do menu continua curto. Sao
+       dois trabalhos diferentes: no menu o rotulo divide espaco com dez outras
+       pastas e "Imersão CSDI" cabe; no cabecalho da tela ele e a unica coisa
+       que diz onde a pessoa esta, e sigla nao diz. Com o nome completo no
+       titulo, repetir "Códigos Secretos de Israel" na linha de baixo viraria
+       eco — a subtitulo ficou so com quem conduz e quando. */
+    h+='<h1 class="csdi-title">👥 Imersão Códigos Secretos de Israel</h1>';
+    h+='<div class="csdi-sub">Dra. Jane Krüger · 03 a 13 de dezembro de 2026</div>';
     h+='</div><span class="csdi-chip-top">📁 3 documentos do grupo</span></div>';
     h+='<div class="csdi-grid">';
     ['apresentacao','guia','voos'].forEach(function(k){
