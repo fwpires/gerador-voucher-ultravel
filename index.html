@@ -3401,6 +3401,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
 
         <button class="nav-item open" data-tree="grupos"><span class="nav-ic">👥</span><span>Grupos</span><b class="nav-caret">▾</b></button>
         <div class="nav-children show" data-tree-body="grupos">
+          <button class="nav-item nav-sub" data-screen="csdi"><span>🕎 Imersão CSDI</span></button>
           <button class="nav-item nav-sub nav-add" data-screen="addgrupo"><span>＋ Adicionar grupo</span></button>
         </div>
       </nav>
@@ -3737,6 +3738,10 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
 
       <section class="screen" id="scr-tarefas">
         <div id="mtRoot"></div>
+      </section>
+
+      <section class="screen" id="scr-csdi">
+        <div id="csdiWrap"></div>
       </section>
 
     </div>
@@ -4294,7 +4299,35 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 358; // (·358) MATRIZ OPERACIONAL: TRES SUBPASTAS RENOMEADAS. Pedido do
+var UV_BUILD_NUM = 359; // (·359) GRUPOS > IMERSAO CSDI: OS TRES DOCUMENTOS DO GRUPO DENTRO
+// DO HUB. Pedido do Nando: criar a subpasta "Imersão CSDI" dentro de Grupos e, ao clicar
+// nela, mostrar na janela principal TRES CARDS, cada um de uma cor, com o conteúdo dos
+// tres arquivos do grupo Codigos Secretos de Israel (Dra. Jane Kruger, 03 a 13/12/2026):
+// 1) "Apresentação: Os Códigos Secretos de Israel" (dourado) — a jornada em 3 capitulos,
+// os 3 hoteis, conducao e excelencia, inclusoes/nao inclusos e o investimento;
+// 2) "Guia de Atendimento" (azul) — o manual INTERNO em 18 secoes: roteiro dia a dia,
+// investimento e a regra do parcelamento, o que inclui/nao inclui, documentacao, os 17
+// campos do cadastro, os dois fluxos comerciais, quebra de objecoes, follow-up,
+// fechamento e pos-venda;
+// 3) "Vôos" (laranja) — as 5 opcoes aereas (El Al, ITA+Lufthansa, Iberia, Swiss+Lufthansa
+// e Air France) com numero de voo, horarios de saida e chegada e conexoes.
+// COMO FOI FEITO, e por que assim: o conteudo e ESTATICO, escrito no proprio arquivo em
+// tabelas de dados (DOCS, CAPITULOS, HOTEIS, ROTEIRO, VOOS, OBJECOES...) e desenhado por
+// funcao. Ele NAO entra em appConfig, NAO vai para a nuvem e NAO tem estado sincronizado —
+// por isso este modulo e o unico do Hub que nao precisa da regra de uniao em
+// carregarConfig/salvarConfig: nao existe estrutura nova para unir, logo nao existe
+// conflito multi-PC possivel. O unico estado e qual documento esta aberto e quais secoes
+// do guia estao expandidas, ambos variaveis locais do IIFE, que somem no refresh de
+// proposito: a tela sempre abre na visao dos tres cards.
+// TRES PONTOS DE ENCAIXE, os mesmos que qualquer tela do Hub usa (nada de caminho novo):
+// o botao no menu (data-screen="csdi"), a <section id="scr-csdi"> e UMA linha no mapa
+// tela->render de uvRenderDaTela, que ja serve tanto a navegacao quanto ao redesenho de
+// tempo real. Um unico ouvinte delegado no documento cuida de abrir card, voltar, abrir
+// secao do acordeao e copiar script — listener por elemento vazaria a cada redesenho.
+// DETALHE QUE VALE PARA O ATENDENTE: cada texto pronto do guia (primeiro contato,
+// objecoes, follow-up, fechamento, recusa) tem botao de copiar, entao o script vai para o
+// WhatsApp sem passar por seleção de texto na tela.
+// ANTERIOR: (·358) MATRIZ OPERACIONAL: TRES SUBPASTAS RENOMEADAS. Pedido do
 // Nando: "Fornecedor" -> "Fornecedores Online", "Contatos" -> "Fornecedores Offline" e
 // "Cliente" -> "Clientes". Troquei o ROTULO em dois lugares por pasta: o item do menu e o
 // TITULO da propria tela — mudar so o menu deixaria o cabecalho dizendo o nome antigo, o
@@ -10981,6 +11014,7 @@ init();
     if(scr==='cartoes' && typeof window.renderCartoes==='function') window.renderCartoes();
     if(scr==='cias' && typeof window.renderCias==='function') window.renderCias();
     if(scr==='tarefas' && typeof window.renderTarefas==='function') window.renderTarefas();
+    if(scr==='csdi' && typeof window.renderCsdi==='function') window.renderCsdi();
   }
   window.uvRenderDaTela=uvRenderDaTela;
   /* Qual tela está na frente AGORA. Prefere a variável (sabe qual sub-item do
@@ -30976,5 +31010,530 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
 })();
 
 </script>
+<style>
+/* ================= (·359) IMERSÃO CSDI — Grupos > Imersão CSDI =================
+   Tela de leitura dos três documentos do grupo "Códigos Secretos de Israel".
+   Conteúdo ESTÁTICO (não vai para appConfig, não sincroniza, não tem merge):
+   é material de consulta, não dado do sistema — por isso nenhum risco de
+   conflito multi-PC. Três cards de cor distinta na janela principal; clicar
+   abre a leitura limpa daquele documento, com botão de voltar. */
+.csdi-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+.csdi-title{font-size:22px;font-weight:800;color:var(--texto);margin:0;letter-spacing:-.3px}
+.csdi-sub{font-size:13px;color:var(--texto-suave);margin-top:4px}
+.csdi-chip-top{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;padding:5px 11px;border-radius:999px;background:var(--azul-claro);color:var(--azul);border:1px solid rgba(0,93,170,.18)}
+body.dark .csdi-chip-top{border-color:rgba(18,176,255,.28);color:#5FC2FF}
+
+.csdi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.csdi-card{position:relative;background:var(--card);border:1px solid var(--borda);border-radius:16px;padding:0;overflow:hidden;box-shadow:var(--sombra);cursor:pointer;transition:transform .16s,box-shadow .16s,border-color .16s;display:flex;flex-direction:column}
+.csdi-card:hover{transform:translateY(-3px);box-shadow:0 14px 34px rgba(16,40,70,.14);border-color:var(--cor)}
+.csdi-card-top{height:6px;background:var(--cor)}
+.csdi-card-body{padding:18px 18px 16px;display:flex;flex-direction:column;gap:10px;flex:1}
+.csdi-card-ic{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;background:var(--corBg);border:1px solid var(--corBd)}
+.csdi-card-t{font-size:16px;font-weight:800;color:var(--texto);line-height:1.3;margin:0}
+.csdi-card-d{font-size:12.5px;color:var(--texto-suave);line-height:1.55;flex:1}
+.csdi-tags{display:flex;flex-wrap:wrap;gap:6px}
+.csdi-tag{font-size:11px;font-weight:700;padding:4px 9px;border-radius:999px;background:var(--corBg);color:var(--cor);border:1px solid var(--corBd)}
+.csdi-card-cta{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;color:var(--cor);margin-top:2px}
+.csdi-card:hover .csdi-card-cta span{transform:translateX(3px)}
+.csdi-card-cta span{transition:transform .16s;display:inline-block}
+
+/* ---- leitura de um documento ---- */
+.csdi-doc-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 18px;border-radius:14px;background:var(--corBg);border:1px solid var(--corBd);margin-bottom:18px}
+.csdi-back{border:1px solid var(--borda-forte);background:var(--card);color:var(--texto);font-size:12.5px;font-weight:700;padding:7px 13px;border-radius:9px;cursor:pointer;transition:all .15s}
+.csdi-back:hover{border-color:var(--cor);color:var(--cor)}
+.csdi-doc-t{font-size:18px;font-weight:800;color:var(--texto);margin:0;line-height:1.25}
+.csdi-doc-s{font-size:12px;color:var(--texto-suave);margin-top:2px}
+.csdi-doc-badge{margin-left:auto;font-size:11px;font-weight:800;letter-spacing:.4px;padding:5px 11px;border-radius:999px;background:var(--cor);color:#fff}
+
+.csdi-sec{background:var(--card);border:1px solid var(--borda);border-radius:14px;padding:16px 18px;margin-bottom:14px;box-shadow:var(--sombra)}
+.csdi-sec-t{font-size:14px;font-weight:800;color:var(--texto);margin:0 0 12px;display:flex;align-items:center;gap:8px}
+.csdi-sec-t i{font-style:normal;font-size:15px}
+.csdi-hr{height:1px;background:var(--borda);margin:14px 0}
+
+/* linha do tempo dos capítulos */
+.csdi-cap{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.csdi-cap-box{border:1px solid var(--borda);border-left:4px solid var(--cor);border-radius:12px;padding:13px 14px;background:var(--fundo)}
+.csdi-cap-n{font-size:11px;font-weight:800;color:var(--cor);letter-spacing:.6px;text-transform:uppercase}
+.csdi-cap-t{font-size:14px;font-weight:800;color:var(--texto);margin:3px 0 2px}
+.csdi-cap-d{font-size:11.5px;color:var(--texto-fraco);font-weight:700;margin-bottom:8px}
+.csdi-cap-li{font-size:12.5px;color:var(--texto-suave);line-height:1.6;padding-left:15px;position:relative;margin-bottom:5px}
+.csdi-cap-li:before{content:'';position:absolute;left:0;top:8px;width:6px;height:6px;border-radius:50%;background:var(--cor);opacity:.55}
+.csdi-cap-li b{color:var(--texto)}
+
+/* hotéis */
+.csdi-hot{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.csdi-hot-box{border:1px solid var(--borda);border-radius:12px;padding:13px 14px;background:var(--fundo);text-align:center}
+.csdi-hot-c{font-size:11px;font-weight:800;color:var(--cor);letter-spacing:.5px;text-transform:uppercase}
+.csdi-hot-n{font-size:14px;font-weight:800;color:var(--texto);margin:4px 0 5px;line-height:1.3}
+.csdi-hot-d{font-size:11.5px;color:var(--texto-suave);font-weight:600}
+
+/* grade de itens genérica (inclusões, condução) */
+.csdi-ico-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:12px}
+.csdi-ico-box{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--borda);border-radius:12px;padding:12px 13px;background:var(--fundo)}
+.csdi-ico-e{font-size:18px;line-height:1;flex:0 0 auto;margin-top:1px}
+.csdi-ico-t{font-size:12.5px;font-weight:800;color:var(--texto);margin-bottom:2px}
+.csdi-ico-d{font-size:12px;color:var(--texto-suave);line-height:1.5}
+
+/* listas simples */
+.csdi-ul{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:2px 18px}
+.csdi-ul li{font-size:12.5px;color:var(--texto-suave);line-height:1.7;padding-left:18px;position:relative}
+.csdi-ul li:before{content:'✓';position:absolute;left:0;color:var(--verde);font-weight:800;font-size:11px;top:3px}
+.csdi-ul.no li:before{content:'✕';color:var(--vermelho)}
+
+/* avisos */
+.csdi-alert{border-radius:12px;padding:12px 14px;font-size:12.5px;line-height:1.6;border:1px solid;margin-top:12px}
+.csdi-alert b{font-weight:800}
+.csdi-alert.warn{background:rgba(240,165,0,.09);border-color:rgba(240,165,0,.35);color:var(--texto)}
+.csdi-alert.info{background:var(--azul-claro);border-color:rgba(0,93,170,.22);color:var(--texto)}
+.csdi-alert.bad{background:rgba(229,20,26,.07);border-color:rgba(229,20,26,.28);color:var(--texto)}
+
+/* preço */
+.csdi-preco{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;border:1px solid var(--corBd);background:var(--corBg);border-radius:14px;padding:16px 18px}
+.csdi-preco-l{font-size:11.5px;font-weight:800;color:var(--texto-suave);letter-spacing:.6px;text-transform:uppercase}
+.csdi-preco-v{font-size:28px;font-weight:800;color:var(--texto);letter-spacing:-.5px;line-height:1.1}
+.csdi-preco-o{font-size:12.5px;color:var(--texto-suave);line-height:1.7}
+
+/* acordeão do guia */
+.csdi-acc{border:1px solid var(--borda);border-radius:12px;margin-bottom:8px;overflow:hidden;background:var(--card)}
+.csdi-acc-h{width:100%;display:flex;align-items:center;gap:10px;padding:12px 14px;background:none;border:0;cursor:pointer;text-align:left;font-size:13.5px;font-weight:700;color:var(--texto);transition:background .15s}
+.csdi-acc-h:hover{background:var(--fundo)}
+.csdi-acc-n{flex:0 0 auto;width:26px;height:26px;border-radius:8px;background:var(--corBg);color:var(--cor);font-size:11.5px;font-weight:800;display:flex;align-items:center;justify-content:center;border:1px solid var(--corBd)}
+.csdi-acc-c{margin-left:auto;color:var(--texto-fraco);font-size:11px;transition:transform .18s}
+.csdi-acc.open .csdi-acc-c{transform:rotate(180deg)}
+.csdi-acc-b{display:none;padding:2px 16px 16px 50px;font-size:12.5px;color:var(--texto-suave);line-height:1.65}
+.csdi-acc.open .csdi-acc-b{display:block}
+.csdi-acc-b p{margin:0 0 9px}
+.csdi-acc-b b{color:var(--texto)}
+
+/* roteiro dia a dia */
+.csdi-dia{display:flex;gap:12px;padding:11px 0;border-bottom:1px dashed var(--borda)}
+.csdi-dia:last-child{border-bottom:0}
+.csdi-dia-d{flex:0 0 78px;font-size:12px;font-weight:800;color:var(--cor);line-height:1.4}
+.csdi-dia-d small{display:block;font-size:10.5px;color:var(--texto-fraco);font-weight:700}
+.csdi-dia-t{font-size:13px;font-weight:800;color:var(--texto);margin-bottom:3px}
+.csdi-dia-x{font-size:12.5px;color:var(--texto-suave);line-height:1.6}
+.csdi-dia-e{font-size:11.5px;color:var(--texto-fraco);font-style:italic;margin-top:4px}
+
+/* blocos de script com copiar */
+.csdi-script{position:relative;background:var(--fundo);border:1px solid var(--borda);border-left:3px solid var(--cor);border-radius:10px;padding:12px 46px 12px 14px;font-size:12.5px;color:var(--texto);line-height:1.65;white-space:pre-wrap;margin:8px 0}
+.csdi-copy{position:absolute;top:8px;right:8px;border:1px solid var(--borda-forte);background:var(--card);color:var(--texto-suave);border-radius:8px;font-size:14px;line-height:1;padding:5px 7px;cursor:pointer;transition:all .15s}
+.csdi-copy:hover{border-color:var(--cor);color:var(--cor)}
+
+/* fluxos */
+.csdi-fluxo{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.csdi-passo{font-size:11.5px;font-weight:700;color:var(--texto);background:var(--fundo);border:1px solid var(--borda);border-radius:999px;padding:5px 11px}
+.csdi-seta{color:var(--cor);font-weight:800;font-size:12px}
+
+/* voos */
+.csdi-voo{border:1px solid var(--borda);border-radius:14px;margin-bottom:14px;overflow:hidden;background:var(--card);box-shadow:var(--sombra)}
+.csdi-voo-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px;background:var(--fundo);border-bottom:1px solid var(--borda)}
+.csdi-voo-n{width:26px;height:26px;border-radius:8px;background:var(--cor);color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.csdi-voo-c{font-size:14px;font-weight:800;color:var(--texto)}
+.csdi-voo-via{font-size:11.5px;font-weight:700;color:var(--texto-suave);background:var(--card);border:1px solid var(--borda);border-radius:999px;padding:4px 10px}
+.csdi-voo-dir{font-size:10.5px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--texto-fraco);padding:9px 16px 2px}
+.csdi-leg{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:center;padding:9px 16px;border-top:1px solid var(--borda)}
+.csdi-leg:first-of-type{border-top:0}
+.csdi-leg-nr{font-size:11.5px;font-weight:800;color:var(--cor);background:var(--corBg);border:1px solid var(--corBd);border-radius:8px;padding:4px 0;text-align:center}
+.csdi-leg-rt{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:var(--texto);flex-wrap:wrap}
+.csdi-leg-ap{font-weight:800}
+.csdi-leg-ar{color:var(--texto-fraco)}
+.csdi-leg-ct{font-size:11.5px;color:var(--texto-suave);font-weight:600}
+.csdi-leg-hr{font-size:12px;font-weight:700;color:var(--texto-suave);text-align:right;white-space:nowrap}
+.csdi-leg-hr b{color:var(--texto)}
+@media(max-width:640px){
+  .csdi-leg{grid-template-columns:56px 1fr;}
+  .csdi-leg-hr{grid-column:1/-1;text-align:left}
+  .csdi-dia{flex-direction:column;gap:4px}
+  .csdi-dia-d{flex:none}
+  .csdi-acc-b{padding-left:16px}
+}
+</style>
+<script>
+/* ===== (·359) GRUPOS ▸ IMERSÃO CSDI — leitura dos 3 documentos do grupo =====
+   Módulo de LEITURA. Não grava nada, não lê appConfig, não sincroniza: o
+   conteúdo dos três documentos é constante dentro do próprio arquivo. Por isso
+   este módulo não participa da regra de união em carregarConfig/salvarConfig —
+   não há estrutura nova em appConfig para unir. O único estado é qual documento
+   está aberto na tela (variável local do IIFE, some no refresh de propósito:
+   a tela sempre abre na visão dos três cards). */
+(function(){
+  var csdiAberto='';                 // '', 'apresentacao', 'guia', 'voos'
+  var csdiAccAberta={};              // seções do guia expandidas (por índice)
+
+  function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  /* Paleta de cada documento — uma cor por card, no padrão do Hub (borda
+     colorida + fundo translúcido da mesma cor). As três variáveis viajam como
+     custom properties no style do elemento, então todo o CSS acima é escrito
+     uma vez só e serve para os três documentos. */
+  var DOCS={
+    apresentacao:{
+      nome:'Apresentação: Os Códigos Secretos de Israel',
+      curto:'Apresentação',
+      emoji:'🕎',
+      cor:'#C8912A', corBg:'rgba(200,145,42,.10)', corBd:'rgba(200,145,42,.32)',
+      desc:'Material de apresentação ao cliente: a jornada em 3 capítulos, hotéis, condução e tudo o que está incluso.',
+      tags:['03 a 13/12/2026','R$ 29.950,00','Cliente final'],
+      badge:'CLIENTE'
+    },
+    guia:{
+      nome:'Guia de Atendimento',
+      curto:'Guia',
+      emoji:'📘',
+      cor:'#005DAA', corBg:'rgba(0,93,170,.09)', corBd:'rgba(0,93,170,.28)',
+      desc:'Manual interno da equipe: roteiro dia a dia, condições, fluxos comerciais, scripts prontos, quebra de objeções e pós-venda.',
+      tags:['18 seções','Scripts prontos','Uso interno'],
+      badge:'USO INTERNO'
+    },
+    voos:{
+      nome:'Vôos',
+      curto:'Vôos',
+      emoji:'✈️',
+      cor:'#E5581A', corBg:'rgba(229,88,26,.09)', corBd:'rgba(229,88,26,.30)',
+      desc:'As 5 opções aéreas levantadas para o grupo, com número de voo, horários e conexões — ida 02/12 e retorno 13/12.',
+      tags:['5 opções','GRU ⇄ TLV','Vendido à parte'],
+      badge:'AÉREO'
+    }
+  };
+  function corStyle(d){ return 'style="--cor:'+d.cor+';--corBg:'+d.corBg+';--corBd:'+d.corBd+'"'; }
+
+  /* ---------------------------------------------------------------- CAPA */
+  function telaCards(){
+    var h='';
+    h+='<div class="csdi-head"><div>';
+    h+='<h1 class="csdi-title">👥 Imersão CSDI</h1>';
+    h+='<div class="csdi-sub">Códigos Secretos de Israel · Dra. Jane Krüger · 03 a 13 de dezembro de 2026</div>';
+    h+='</div><span class="csdi-chip-top">📁 3 documentos do grupo</span></div>';
+    h+='<div class="csdi-grid">';
+    ['apresentacao','guia','voos'].forEach(function(k){
+      var d=DOCS[k];
+      h+='<div class="csdi-card" data-csdi-abrir="'+k+'" '+corStyle(d)+'>';
+      h+='<div class="csdi-card-top"></div><div class="csdi-card-body">';
+      h+='<div class="csdi-card-ic">'+d.emoji+'</div>';
+      h+='<h2 class="csdi-card-t">'+esc(d.nome)+'</h2>';
+      h+='<div class="csdi-card-d">'+esc(d.desc)+'</div>';
+      h+='<div class="csdi-tags">'+d.tags.map(function(t){ return '<span class="csdi-tag">'+esc(t)+'</span>'; }).join('')+'</div>';
+      h+='<div class="csdi-card-cta">Abrir documento <span>→</span></div>';
+      h+='</div></div>';
+    });
+    h+='</div>';
+    return h;
+  }
+
+  function barra(k){
+    var d=DOCS[k];
+    return '<div class="csdi-doc-bar" '+corStyle(d)+'>'+
+      '<button class="csdi-back" data-csdi-voltar="1">← Voltar</button>'+
+      '<div><h2 class="csdi-doc-t">'+d.emoji+' '+esc(d.nome)+'</h2>'+
+      '<div class="csdi-doc-s">Imersão Códigos Secretos de Israel · 03 a 13/12/2026</div></div>'+
+      '<span class="csdi-doc-badge">'+esc(d.badge)+'</span></div>';
+  }
+
+  /* ------------------------------------------------- DOC 1 — APRESENTAÇÃO */
+  var CAPITULOS=[
+    {n:'Capítulo I',t:'Os Segredos da Cidade Santa',d:'03 a 08 de Dezembro',itens:[
+      '<b>Jerusalém</b> — chegada, Shuk e primeiro contato com a Cidade Santa',
+      '<b>Museu Amigos de Zion</b>, preparação e chegada do <b>Shabat</b>',
+      '<b>Início do Hanukkah</b> — a Festa das Luzes em Jerusalém',
+      '<b>Kotel</b> (Muro das Lamentações), Kotel Igualitário e Cidade Velha Cristã',
+      '<b>Museu de Israel</b>, Monte Herzl e Jerusalem Wineries',
+      '<b>Cidade de Davi</b>, Túmulo de Davi e Torre de Davi'
+    ]},
+    {n:'Capítulo II',t:'O Deserto e as Revelações',d:'08 e 09 de Dezembro',itens:[
+      '<b>Deserto da Judeia</b> e visita a <b>Qumran</b>',
+      '<b>Mar Morto</b> — flutuação e experiência com sais, minerais e óleos',
+      'Saída rumo à Galileia com <b>Parque Nacional de Bet She’an</b>'
+    ]},
+    {n:'Capítulo III',t:'As Águas da Galileia',d:'09 a 13 de Dezembro',itens:[
+      '<b>Os Montes Sagrados</b> — Monte Carmelo, Monte do Precipício e Monte das Bem-Aventuranças',
+      '<b>Os Passos no Mar</b> — Magdala, Cafarnaum e passeio de barco pelo Mar da Galileia',
+      '<b>O Renascimento</b> — batismo nas águas do Rio Jordão (Yardenit)',
+      '<b>O Shabat Final</b> — vivência do Shabat na Galileia, com vinícola local se a operação permitir'
+    ]}
+  ];
+  var HOTEIS=[
+    {c:'Jerusalém',n:'Prima Kings Hotel',d:'03 a 08 de Dezembro'},
+    {c:'Mar Morto',n:'Isrotel Noga',d:'08 a 09 de Dezembro'},
+    {c:'Tiberíades (Galileia)',n:'Hotel Leonardo Club',d:'09 a 13 de Dezembro'}
+  ];
+  var CONDUCAO=[
+    {e:'🚌',t:'Transporte privativo',d:'Ônibus de luxo com ar-condicionado e Wi-Fi.'},
+    {e:'🧭',t:'Guia especializado',d:'Fluente em português durante toda a viagem.'},
+    {e:'🎧',t:'Sistema de áudio',d:'Fones de ouvido para clareza absoluta nas ministrações e passeios.'}
+  ];
+  var INCLUSOES=[
+    {e:'🛏️',t:'Hospedagem & Alimentação',d:'Hotéis com café da manhã diário e jantares (meia-pensão) inclusos em Tiberíades.'},
+    {e:'🛡️',t:'Segurança Total',d:'Seguro viagem completo incluso.'},
+    {e:'🎟️',t:'Acesso VIP',d:'Todas as entradas para as atrações do roteiro já garantidas.'},
+    {e:'🚐',t:'Recepção & Traslados',d:'Assistência no Aeroporto Ben Gurion e traslados privativos.'},
+    {e:'🧳',t:'Conforto Logístico',d:'Serviço de maleiros (1 mala e 1 bolsa) nos aeroportos e hotéis.'},
+    {e:'🎁',t:'Mimos Exclusivos',d:'Cortesias e experiências extras previstas na programação.'}
+  ];
+  function telaApresentacao(){
+    var d=DOCS.apresentacao, h=barra('apresentacao');
+    h+='<div class="csdi-sec" '+corStyle(d)+'>';
+    h+='<div class="csdi-sec-t"><i>✨</i>O convite</div>';
+    h+='<div class="csdi-ico-d" style="font-size:13px;line-height:1.7">Uma imersão desenhada não apenas para ser lembrada, mas para <b>transformar</b>. Uma jornada meticulosamente desenhada e liderada pela <b>Dra. Jane Krüger</b>, garantindo densidade histórica, direcionamento espiritual e acesso aos verdadeiros códigos de Israel — com o diferencial do <b>início do Hanukkah</b> e da <b>Luz do Shabat</b>.</div>';
+    h+='</div>';
+
+    h+='<div class="csdi-sec" '+corStyle(d)+'><div class="csdi-sec-t"><i>🧭</i>A Bússola da Jornada — 03 a 13 de Dezembro</div><div class="csdi-cap">';
+    CAPITULOS.forEach(function(c){
+      h+='<div class="csdi-cap-box"><div class="csdi-cap-n">'+esc(c.n)+'</div><div class="csdi-cap-t">'+esc(c.t)+'</div><div class="csdi-cap-d">'+esc(c.d)+'</div>';
+      c.itens.forEach(function(i){ h+='<div class="csdi-cap-li">'+i+'</div>'; });
+      h+='</div>';
+    });
+    h+='</div></div>';
+
+    h+='<div class="csdi-sec" '+corStyle(d)+'><div class="csdi-sec-t"><i>🏨</i>Seus Refúgios em Israel</div><div class="csdi-hot">';
+    HOTEIS.forEach(function(o){ h+='<div class="csdi-hot-box"><div class="csdi-hot-c">'+esc(o.c)+'</div><div class="csdi-hot-n">'+esc(o.n)+'</div><div class="csdi-hot-d">'+esc(o.d)+'</div></div>'; });
+    h+='</div></div>';
+
+    h+='<div class="csdi-sec" '+corStyle(d)+'><div class="csdi-sec-t"><i>⭐</i>Condução e Excelência</div><div class="csdi-ico-grid">';
+    CONDUCAO.forEach(function(o){ h+='<div class="csdi-ico-box"><div class="csdi-ico-e">'+o.e+'</div><div><div class="csdi-ico-t">'+esc(o.t)+'</div><div class="csdi-ico-d">'+esc(o.d)+'</div></div></div>'; });
+    h+='</div></div>';
+
+    h+='<div class="csdi-sec" '+corStyle(d)+'><div class="csdi-sec-t"><i>✅</i>Tranquilidade Absoluta (Inclusões)</div><div class="csdi-ico-grid">';
+    INCLUSOES.forEach(function(o){ h+='<div class="csdi-ico-box"><div class="csdi-ico-e">'+o.e+'</div><div><div class="csdi-ico-t">'+esc(o.t)+'</div><div class="csdi-ico-d">'+esc(o.d)+'</div></div></div>'; });
+    h+='</div><div class="csdi-alert bad"><b>Não incluso:</b> passagens aéreas, almoços, bebidas, gorjetas, documentação/ETIAS e despesas pessoais.</div></div>';
+
+    h+='<div class="csdi-sec" '+corStyle(d)+'><div class="csdi-preco"><div><div class="csdi-preco-l">Investimento</div><div class="csdi-preco-v">R$ 29.950,00</div><div class="csdi-preco-o">por pessoa</div></div>'+
+       '<div class="csdi-preco-o">💳 <b>PIX à vista</b> ou <b>cartão em até 4x sem juros</b><br>Mais parcelas sob consulta, mediante simulação.</div></div></div>';
+    return h;
+  }
+
+  /* ---------------------------------------------------------- DOC 3 — VOOS */
+  var VOOS=[
+    {cia:'EL AL',via:'via Madri (MAD)',
+     ida:[{nr:'LY 9200',de:'GRU',para:'MAD',cd:'SÃO PAULO',cp:'MADRID',s:'02 Dez 15:10',c:'03 Dez 05:30',alerta:true},
+          {nr:'LY 396',de:'MAD',para:'TLV',cd:'MADRID',cp:'TEL AVIV YAFO',s:'03 Dez 12:15',c:'03 Dez 17:55'}],
+     volta:[{nr:'LY 397',de:'TLV',para:'MAD',cd:'TEL AVIV YAFO',cp:'MADRID',s:'13 Dez 17:15',c:'13 Dez 21:50'},
+            {nr:'LY 9201',de:'MAD',para:'GRU',cd:'MADRID',cp:'SÃO PAULO',s:'13 Dez 23:55',c:'14 Dez 07:05',alerta:true}]},
+    {cia:'ITA Airways + Lufthansa',via:'via Roma (FCO) · volta por Frankfurt (FRA)',
+     ida:[{nr:'AZ 675',de:'GRU',para:'FCO',cd:'SÃO PAULO',cp:'ROMA',s:'02 Dez 15:45',c:'03 Dez 07:05'},
+          {nr:'AZ 806',de:'FCO',para:'TLV',cd:'ROMA',cp:'TEL AVIV YAFO',s:'03 Dez 09:10',c:'03 Dez 13:30'}],
+     volta:[{nr:'LH 687',de:'TLV',para:'FRA',cd:'TEL AVIV YAFO',cp:'FRANKFURT',s:'13 Dez 16:35',c:'13 Dez 20:15'},
+            {nr:'LH 506',de:'FRA',para:'GRU',cd:'FRANKFURT',cp:'SÃO PAULO',s:'13 Dez 21:55',c:'14 Dez 06:00'}]},
+    {cia:'IBERIA',via:'via Madri (MAD)',
+     ida:[{nr:'IB 268',de:'GRU',para:'MAD',cd:'SÃO PAULO',cp:'MADRID',s:'02 Dez 15:10',c:'03 Dez 05:30'},
+          {nr:'IB 1871',de:'MAD',para:'TLV',cd:'MADRID',cp:'TEL AVIV YAFO',s:'03 Dez 11:40',c:'03 Dez 17:30',alerta:true}],
+     volta:[{nr:'IB 7716',de:'TLV',para:'MAD',cd:'TEL AVIV YAFO',cp:'MADRID',s:'13 Dez 17:15',c:'13 Dez 21:50',alerta:true},
+            {nr:'IB 267',de:'MAD',para:'GRU',cd:'MADRID',cp:'SÃO PAULO',s:'13 Dez 23:55',c:'14 Dez 07:05'}]},
+    {cia:'SWISS + Lufthansa',via:'via Zurique (ZRH) · volta por Frankfurt (FRA)',
+     ida:[{nr:'LX 93',de:'GRU',para:'ZRH',cd:'SÃO PAULO',cp:'ZURICH',s:'02 Dez 19:25',c:'03 Dez 10:40'},
+          {nr:'LX 252',de:'ZRH',para:'TLV',cd:'ZURICH',cp:'TEL AVIV YAFO',s:'03 Dez 12:05',c:'03 Dez 16:55'}],
+     volta:[{nr:'LH 687',de:'TLV',para:'FRA',cd:'TEL AVIV YAFO',cp:'FRANKFURT',s:'13 Dez 16:35',c:'13 Dez 20:15'},
+            {nr:'LH 506',de:'FRA',para:'GRU',cd:'FRANKFURT',cp:'SÃO PAULO',s:'13 Dez 21:55',c:'14 Dez 06:00'}]},
+    {cia:'AIR FRANCE',via:'via Paris (CDG)',
+     ida:[{nr:'AF 453',de:'GRU',para:'CDG',cd:'SÃO PAULO',cp:'PARIS',s:'02 Dez 14:40',c:'03 Dez 06:05'},
+          {nr:'AF 962',de:'CDG',para:'TLV',cd:'PARIS',cp:'TEL AVIV YAFO',s:'03 Dez 08:55',c:'03 Dez 14:10'}],
+     volta:[{nr:'AF 963',de:'TLV',para:'CDG',cd:'TEL AVIV YAFO',cp:'PARIS',s:'13 Dez 15:55',c:'13 Dez 19:40'},
+            {nr:'AF 454',de:'CDG',para:'GRU',cd:'PARIS',cp:'SÃO PAULO',s:'13 Dez 23:20',c:'14 Dez 07:20'}]}
+  ];
+  function legHtml(l){
+    return '<div class="csdi-leg"><div class="csdi-leg-nr">'+esc(l.nr)+'</div>'+
+      '<div><div class="csdi-leg-rt"><span class="csdi-leg-ap">'+esc(l.de)+'</span><span class="csdi-leg-ar">→</span><span class="csdi-leg-ap">'+esc(l.para)+'</span>'+(l.alerta?'<span title="Voo operado por parceiro / verificar na emissão">⚠️</span>':'')+'</div>'+
+      '<div class="csdi-leg-ct">'+esc(l.cd)+' → '+esc(l.cp)+'</div></div>'+
+      '<div class="csdi-leg-hr"><b>'+esc(l.s)+'</b> → '+esc(l.c)+'</div></div>';
+  }
+  function telaVoos(){
+    var d=DOCS.voos, h=barra('voos');
+    h+='<div class="csdi-sec" '+corStyle(d)+'><div class="csdi-sec-t"><i>🧾</i>Como ler esta tabela</div>'+
+       '<div class="csdi-ico-d" style="font-size:12.5px">São <b>5 opções aéreas</b> levantadas para o grupo, todas saindo de <b>GRU (São Paulo)</b> em <b>02 de dezembro</b> e chegando em <b>TLV (Tel Aviv)</b> no dia <b>03</b>, a tempo do início da programação terrestre. O retorno sai de <b>TLV em 13 de dezembro</b> e pousa em <b>GRU no dia 14</b>. Os horários mostrados são <b>saída → chegada</b> de cada trecho.</div>'+
+       '<div class="csdi-alert warn">✈️ <b>A passagem aérea é vendida separadamente</b> da imersão. Cotar sempre a cidade de embarque e de retorno do passageiro — estas opções são a referência do grupo saindo de São Paulo, não a única possibilidade. O trecho marcado com ⚠️ é operado por parceiro/codeshare: conferir na emissão.</div></div>';
+    VOOS.forEach(function(v,i){
+      h+='<div class="csdi-voo" '+corStyle(d)+'>';
+      h+='<div class="csdi-voo-h"><div class="csdi-voo-n">'+(i+1)+'</div><div class="csdi-voo-c">'+esc(v.cia)+'</div><span class="csdi-voo-via">'+esc(v.via)+'</span></div>';
+      h+='<div class="csdi-voo-dir">🛫 Ida — 02/12</div>'+v.ida.map(legHtml).join('');
+      h+='<div class="csdi-voo-dir">🛬 Volta — 13/12</div>'+v.volta.map(legHtml).join('');
+      h+='</div>';
+    });
+    return h;
+  }
+
+  /* ---------------------------------------------------------- DOC 2 — GUIA */
+  var ROTEIRO=[
+    {d:'03/12',s:'Quinta',t:'Chegada — Os primeiros passos na Cidade Santa',x:'Chegada em Israel e traslado para Jerusalém. Após check-in, primeiro contato com a atmosfera da Cidade Santa. No início da noite, visita a um bairro tradicional e experiência no tradicional Shuk de Jerusalém. Primeira noite mais leve para ambientação.',e:'Primeiro encontro com Jerusalém — sua cultura, seus sabores e sua atmosfera única.'},
+    {d:'04/12',s:'Sexta',t:'Dia 1 — Jerusalém: conexões, propósito e a chegada do Shabat',x:'Museu Amigos de Zion, centro de Jerusalém, momento de meditação e vivência da preparação e chegada do Shabat. A noite terá significado especial com o início do Hanukkah, a Festa das Luzes.',e:'Sentir Jerusalém se preparar para o Shabat e vivenciar o início do Hanukkah.'},
+    {d:'05/12',s:'Sábado',t:'Dia 2 — Jerusalém: oração, consagração e os Caminhos de Jesus',x:'Kotel (Muro das Lamentações), com entrega de pedidos e consagração; Kotel Igualitário, com aula e meditação; e Cidade Velha Cristã, percorrendo os Caminhos de Jesus.',e:'Oração, consagração, história e os caminhos que marcaram a vida de Jesus em Jerusalém.'},
+    {d:'06/12',s:'Domingo',t:'Dia 3 — Israel: arqueologia, identidade e preparação para a jornada',x:'Museu de Israel, Monte Herzl e Jerusalem Wineries Visitors Center & Tasting Room, conectando arqueologia, história, identidade, aula, meditação e experiência.',e:'Compreender as raízes para enxergar a jornada com outros olhos.'},
+    {d:'07/12',s:'Segunda',t:'Dia 4 — Jerusalém: a Cidade de Davi e suas raízes',x:'Cidade de Davi, Túmulo de Davi e Torre de Davi. Um dia dedicado às raízes de Jerusalém e aos códigos secretos do maior rei de Israel.',e:'Compreender a presença de Davi na história, tradição e identidade da Cidade Santa.'},
+    {d:'08/12',s:'Terça',t:'Dia 5 — Do Deserto da Judeia às águas do Mar Morto',x:'Saída de Jerusalém, jornada pelo Deserto da Judeia, visita a Qumran e chegada ao Mar Morto. Após o check-in, experiência de bem-estar com sais, minerais e óleos, além da flutuação nas águas do Mar Morto.',e:'História, cuidado, descanso e conexão.'},
+    {d:'09/12',s:'Quarta',t:'Dia 6 — Do Mar Morto à Galileia',x:'Saída em direção à Galileia, com visita ao Parque Nacional de Bet She’an. Chegada ao hotel diante do Mar da Galileia.',e:'Atravessar séculos de história até chegar às paisagens da Galileia.'},
+    {d:'10/12',s:'Quinta',t:'Dia 7 — Do Vale ao Cume',x:'Monte Carmelo, Monte do Precipício e Monte das Bem-Aventuranças, conectando paisagem, história, espiritualidade e reflexão.',e:'Transformar cada paisagem em espaço de conhecimento, contemplação e reflexão.'},
+    {d:'11/12',s:'Sexta',t:'Dia 8 — As Águas da Galileia',x:'Experiência junto às águas do Rio Jordão, passeio de barco pelo Mar da Galileia, Cafarnaum e Magdala. Ao entardecer, preparação para a chegada do Shabat.',e:'Águas, renovação e os caminhos de Jesus.'},
+    {d:'12/12',s:'Sábado',t:'Dia 9 — Shabat na Galileia',x:'Experiência do Shabat na Galileia, com contemplação, integração e celebração. Conforme disponibilidade e operação local, a programação poderá incluir experiência nas Colinas de Golã e visita a uma vinícola da região.',e:'Desacelerar, contemplar e celebrar.'},
+    {d:'13/12',s:'Domingo',t:'Retorno — Israel permanece conosco',x:'Café da manhã, check-out e traslado ao aeroporto para o voo de retorno ao Brasil. Encerramento da jornada levando experiências, conhecimentos, conexões e memórias.',e:''}
+  ];
+  var INCLUI=['Seguro viagem','Hospedagem com café da manhã','Guia falando português durante todo o roteiro','Ônibus privativo de luxo com ar-condicionado e Wi-Fi','Transfers de chegada e saída no Aeroporto Ben Gurion','Recepção e assistência do grupo no aeroporto','Entradas nas atrações previstas no roteiro','Sistema de áudio/headsets durante as visitas','Espetáculo noturno Sound &amp; Light na Torre de Davi','Jantares em Tiberias/Galileia, conforme regime contratado','Experiências exclusivas previstas na programação','Serviço de carregadores nos aeroportos e hotéis','Certificado de Peregrinação','Kit de viagem do fornecedor','Programação terrestre da excursão','Gorjetas previstas na contratação'];
+  var NAOINCLUI=['Passagem aérea','Almoços e lanches não especificados','Bebidas','Despesas pessoais','Documentação de viagem e autorização eletrônica de entrada','Locações de toalhas/roupas para experiências específicas','Passeios, entradas ou experiências fora do roteiro','Saídas noturnas não previstas','Água engarrafada no ônibus, quando não prevista'];
+  var DOCUMENTACAO=['Passaporte válido','Cadastro completo no Portal Ultravel','Autorização eletrônica de viagem aplicável ao passageiro','Seguro viagem, conforme contratação','Passagens e vouchers da viagem'];
+  var CADASTRO=['Nome completo exatamente como consta no passaporte','Data de nascimento','CPF','Estado civil','Nacionalidade','Profissão','E-mail','Celular com DDD','CEP','Rua/Avenida','Número','Complemento','Bairro','Cidade','Estado','País','Cópia/foto legível do passaporte válido'];
+  var FLUXO1=['Lead chega','Apresentar-se','Entender o interesse','Apresentar a Imersão','Enviar material atualizado','Entender dúvidas e barreiras','Levantar cidade de embarque/retorno','Cotação aérea personalizada','Apresentar visão completa do investimento','Definir forma de pagamento','Receber pagamento do terrestre','Registrar no site do grupo','Vender e emitir o aéreo','Curadoria de documentos','Pós-venda até o embarque'];
+  var FLUXO2=['Template ativo → cliente responde','Agente assume o atendimento','Agradece e contextualiza a nova programação','Envia apresentação/PDF atualizado','Identifica se já conhecia a imersão','Entende interesse e barreiras','Apresenta investimento e condições','Levanta cidade de embarque/retorno','Cotação aérea personalizada','Apresenta visão completa do investimento','Define forma de pagamento','Recebe pagamento do terrestre','Registra no site do grupo','Vende e emite o aéreo','Curadoria de documentos','Pós-venda até o embarque'];
+  var DESCOBRIR=['Cidade de embarque','Cidade de retorno, se diferente','Se viaja sozinho(a) ou acompanhado(a)','Se possui passaporte válido','Se já conhece a proposta da Dra. Jane','Se já esteve em Israel','Qual ponto pesa mais na decisão','Em que momento da decisão está'];
+  var ARGUMENTOS=['Experiência conduzida pela Dra. Jane — uma imersão, não um roteiro turístico convencional','Início do Hanukkah em Jerusalém — a Festa das Luzes','Shabat em Jerusalém e na Galileia — em dois momentos da jornada','Conteúdo + experiência — aulas, meditações, reflexão e consagração integradas às visitas','Jerusalém + Deserto + Mar Morto + Galileia — cenários e contextos históricos diferentes','Grupo acompanhado e logística organizada'];
+  var POSVENDA=['Confirmar pagamento do terrestre','Registrar o passageiro no site do grupo','Registrar o pagamento no sistema','Anexar comprovantes nos controles internos','Aplicar a TAG do Grupo Dra. Jane','Vender e emitir a passagem aérea','Curadoria de documentos e acompanhamento até o embarque'];
+  var OBJECOES=[
+    {t:'“Preciso pensar”',s:'Claro, é importante que você tome essa decisão com tranquilidade. Para eu conseguir te ajudar melhor, qual ponto você gostaria de analisar com mais calma: investimento, aéreo, segurança, documentação, data ou programação?'},
+    {t:'“Está caro”',s:'Entendo. Existe algum valor de parcela que ficaria mais confortável para você? Além das condições em até 4x sem juros, podemos verificar uma simulação em mais parcelas.',n:'Não oferecer desconto sem autorização.'},
+    {t:'“Não quero viajar sozinho(a)”',s:'Entendo. Muitas pessoas têm essa preocupação antes de uma viagem em grupo. Uma das características dessa experiência é justamente estar inserido em um grupo acompanhado, com programação e logística organizadas. Você tem alguém que gostaria de convidar ou prefere que eu te explique melhor como funciona a dinâmica do grupo?'},
+    {t:'“Preciso falar com meu marido / minha esposa / família”',s:'Claro! Faz todo sentido conversar com quem participa dessa decisão. Se ajudar, posso te encaminhar um resumo ou conversar com vocês juntos para esclarecer as dúvidas. Quando você acredita que consegue conversar com ele(a)? Posso retomar com você depois?'},
+    {t:'“Quero ir em 2027”',s:'Entendi. O que faz 2027 funcionar melhor para você: a data, organização financeira ou alguma outra questão?\n\n(Depois de entender) Pergunto porque dezembro ganhou uma programação muito especial, inclusive com a experiência do início do Hanukkah em Jerusalém. Se a questão for algo que conseguimos trabalhar juntos, vale avaliarmos antes de você deixar essa edição para depois.'},
+    {t:'“Israel está seguro?”',s:'Entendo a sua preocupação. Não trabalhamos com promessa de risco zero. A operação é acompanhada pela Ultravel e pelos fornecedores envolvidos, e as condições do destino são monitoradas até o embarque, respeitando as orientações oficiais e as condições operacionais da viagem. Se houver alguma questão específica que esteja te preocupando, me conta para que eu possa te orientar com mais precisão.',n:'Nunca prometer risco zero.'}
+  ];
+
+  function script(txt){ return '<div class="csdi-script">'+esc(txt)+'<button class="csdi-copy" data-csdi-copiar="1" title="Copiar texto">📋</button></div>'; }
+  function ul(arr,cls){ return '<ul class="csdi-ul'+(cls?' '+cls:'')+'">'+arr.map(function(i){ return '<li>'+i+'</li>'; }).join('')+'</ul>'; }
+  function fluxo(arr){ return '<div class="csdi-fluxo">'+arr.map(function(p,i){ return (i?'<span class="csdi-seta">→</span>':'')+'<span class="csdi-passo">'+esc(p)+'</span>'; }).join('')+'</div>'; }
+
+  function secoesGuia(){
+    var S=[];
+    S.push({n:'1',t:'Sobre a Imersão',h:function(){
+      return '<p><b>Nome:</b> Imersão Códigos Secretos de Israel &nbsp;·&nbsp; <b>Líder:</b> Dra. Jane Kruger &nbsp;·&nbsp; <b>Destino:</b> Israel</p>'+
+        '<p><b>Período:</b> 03 a 13 de dezembro de 2026 &nbsp;·&nbsp; <b>Organização:</b> Ultravel</p>'+
+        '<p><b>Objetivo:</b> proporcionar uma experiência de imersão bíblica, histórica e cultural conduzida pela Dra. Jane Kruger, conectando conhecimento, espiritualidade, história e experiências em Israel.</p>'+
+        '<p><b>Portal da viagem:</b> <a href="https://grupos.ultravel.com.br/excursions/17" target="_blank" rel="noopener">grupos.ultravel.com.br/excursions/17</a></p>'+
+        '<div class="csdi-alert warn"><b>⚠️ Atenção ao aéreo:</b> a passagem é vendida <b>separadamente</b> da imersão. Após o pagamento do terrestre e o cadastro no site do grupo, realizar a venda e a emissão do aéreo do passageiro.</div>';
+    }});
+    S.push({n:'2',t:'Roteiro da Imersão (dia a dia)',h:function(){
+      return ROTEIRO.map(function(r){
+        return '<div class="csdi-dia"><div class="csdi-dia-d">'+esc(r.d)+'<small>'+esc(r.s)+'</small></div>'+
+          '<div><div class="csdi-dia-t">'+esc(r.t)+'</div><div class="csdi-dia-x">'+esc(r.x)+'</div>'+
+          (r.e?'<div class="csdi-dia-e">✨ Experiência do dia: '+esc(r.e)+'</div>':'')+'</div></div>';
+      }).join('');
+    }});
+    S.push({n:'3',t:'Investimento e formas de pagamento',h:function(){
+      return '<p><b>Valor da Imersão:</b> R$ 29.950,00 por pessoa.</p>'+
+        ul(['PIX à vista','Cartão de crédito em até 4x sem juros','Mais parcelas sob consulta, mediante simulação'])+
+        '<div class="csdi-alert warn"><b>Orientação interna:</b> a primeira condição apresentada deve ser <b>PIX à vista ou cartão em até 4x sem juros</b>. Se o número de parcelas for uma barreira, oferecer simulação. <b>Não prometer previamente</b> que parcelamentos acima de 4x serão sem juros.</div>'+
+        script('Podemos verificar também uma condição em mais parcelas. Me diga em quantas vezes você gostaria de realizar o pagamento e fazemos uma simulação para você.');
+    }});
+    S.push({n:'4',t:'O que está incluso',h:function(){ return ul(INCLUI)+'<div class="csdi-alert info"><b>Importante:</b> utilizar sempre a proposta vigente para confirmar detalhes antes de prometer ao cliente algum serviço específico.</div>'; }});
+    S.push({n:'5',t:'O que NÃO está incluso',h:function(){
+      return ul(NAOINCLUI,'no')+
+        '<div class="csdi-alert warn"><b>Atenção à forma de comunicar o aéreo</b><br>❌ Evitar: “O aéreo não está incluso.”<br>✅ Preferir a frase abaixo.</div>'+
+        script('A passagem aérea é personalizada para cada participante. Como temos viajantes saindo de diferentes cidades, a Ultravel realiza a cotação individualmente, buscando a melhor logística e relação de custo-benefício para cada passageiro.');
+    }});
+    S.push({n:'6',t:'Documentação',h:function(){ return ul(DOCUMENTACAO)+'<div class="csdi-alert info"><b>Orientação interna:</b> antes de orientar formalmente um passageiro sobre exigências migratórias, conferir a regra vigente para a data da viagem.</div>'; }});
+    S.push({n:'7',t:'Dados necessários para cadastro (17 campos)',h:function(){ return ul(CADASTRO); }});
+    S.push({n:'8',t:'Fluxo comercial do atendimento',h:function(){
+      return '<p><b>Fluxo 1 — Lead espontâneo</b></p>'+fluxo(FLUXO1)+
+        '<div class="csdi-hr"></div><p><b>Fluxo 2 — Oferta ativa</b> (a Ultravel envia o template sobre a nova data de dezembro e o contato responde)</p>'+fluxo(FLUXO2)+
+        '<div class="csdi-hr"></div><p><b>A. Resposta positiva</b> — ex.: “Quero saber mais”. Primeira mensagem do agente:</p>'+
+        script('Oi, [Nome]! 😊 Que bom que você quis saber mais!\n\nA Imersão Códigos Secretos de Israel, com a Dra. Jane Kruger, acontecerá de 03 a 13 de dezembro de 2026, com uma programação muito especial preparada para esse período.\n\nVou te encaminhar o material atualizado para você conhecer todos os detalhes. 💙\n\nMe conta: você já vinha acompanhando essa imersão anteriormente ou é a primeira vez que está conhecendo a proposta?')+
+        '<div class="csdi-alert info"><b>Orientação interna:</b> o objetivo inicial não é despejar todas as informações. Primeiro, identificar quem é o lead e em que estágio da decisão ele está.</div>'+
+        '<div class="csdi-hr"></div><p><b>B. Resposta negativa</b> — ex.: “Agora não” / “Não tenho interesse”. Registrar, não insistir, encerrar cordialmente e manter o contato disponível.</p>'+
+        script('Perfeito, [Nome]! 😊 Obrigada pelo retorno.\n\nNão vamos seguir com as informações desta imersão neste momento.\n\nDe qualquer forma, estaremos sempre à disposição caso você precise de apoio em alguma viagem futura. 💙\n\nConte com a Ultravel!')+
+        '<div class="csdi-alert bad"><b>Orientação interna:</b> resposta negativa ao template <b>não é objeção</b>. Se a pessoa escolheu explicitamente “Agora não” ou “Não tenho interesse”, não tentar convencê-la, perguntar o motivo ou iniciar quebra de objeção. Isso é diferente de um lead já em atendimento que apresenta uma barreira.</div>'+
+        '<div class="csdi-alert info"><b>Princípio do atendimento:</b> não estamos apenas respondendo perguntas — estamos conduzindo o cliente para o próximo passo. O que esse cliente precisa neste momento? Qual é o próximo passo da jornada dele?</div>';
+    }});
+    S.push({n:'9',t:'O que descobrir na conversa',h:function(){ return ul(DESCOBRIR)+'<div class="csdi-alert info">Não transformar essas perguntas em interrogatório — elas devem surgir naturalmente ao longo da conversa.</div>'; }});
+    S.push({n:'10',t:'Passagem aérea',h:function(){
+      return ul(['Cidade de embarque','Cidade de retorno','Preferência de companhia/horário, se houver','Necessidade/preferência de bagagem despachada'])+
+        script('Além da imersão, nós também cuidaremos da sua logística aérea. Como cada participante pode embarcar de uma cidade diferente, realizamos uma cotação personalizada para apresentar a melhor opção de voo. Assim, conseguimos te dar uma visão mais completa do investimento da sua viagem. Me informe, por favor, sua cidade de embarque e de retorno para levantarmos as melhores possibilidades.')+
+        '<div class="csdi-alert warn"><b>Orientação interna:</b> conferir sempre a compatibilidade dos voos com o início da programação em <b>03/12/2026</b> e com a operação terrestre do grupo.</div>';
+    }});
+    S.push({n:'11',t:'Primeiro contato — lead novo',h:function(){
+      return script('Olá, [Nome]! Tudo bem? 😊\n\nMeu nome é [Nome do agente] e faço parte da equipe da Ultravel. Será um prazer acompanhar você no atendimento da Imersão Códigos Secretos de Israel, conduzida pela Dra. Jane Kruger, que acontecerá de 03 a 13 de dezembro de 2026.\n\nEstou te encaminhando a apresentação atualizada para que você conheça a proposta e toda a programação dessa experiência em Israel.\n\nInvestimento da Imersão: R$ 29.950,00 por pessoa.\n\nO pagamento pode ser realizado via PIX à vista ou cartão em até 4x sem juros. Caso precise de mais parcelas, também podemos fazer uma simulação.\n\nA passagem aérea é personalizada para cada participante e nós também cuidaremos dessa etapa com você.\n\nDá uma olhadinha no material e me conta: o que mais despertou o seu interesse nessa experiência com a Dra. Jane? 💙');
+    }});
+    S.push({n:'12',t:'Argumentos comerciais de dezembro',h:function(){ return ul(ARGUMENTOS); }});
+    S.push({n:'13',t:'Quebra de objeções',h:function(){
+      return OBJECOES.map(function(o){
+        return '<p><b>'+esc(o.t)+'</b></p>'+script(o.s)+(o.n?'<div class="csdi-alert warn"><b>Orientação:</b> '+esc(o.n)+'</div>':'');
+      }).join('<div class="csdi-hr"></div>');
+    }});
+    S.push({n:'14',t:'Follow-up',h:function(){
+      return '<p><b>Primeiro follow-up</b></p>'+
+        script('Olá, [Nome]! Tudo bem? 😊\n\nEstou passando para dar continuidade ao seu atendimento referente à Imersão Códigos Secretos de Israel, com a Dra. Jane Kruger.\n\nVocê conseguiu analisar as informações que enviei?\n\nGostaria de entender como você está em relação à viagem. Existe alguma dúvida ou algum ponto que ainda esteja impedindo sua decisão?\n\nEstou à disposição para ajudar e encontrar a melhor solução para que você possa viver essa experiência.')+
+        '<p><b>Segundo follow-up</b></p>'+
+        script('Oi, [Nome]! Estou retomando nosso contato sobre a Imersão da Dra. Jane. 💙\n\nPara eu conseguir te ajudar de forma mais objetiva, me conta: qual é hoje o principal ponto para sua decisão?\n\nPode ser investimento, forma de pagamento, aéreo, data, segurança, documentação ou até alguma questão pessoal de organização.\n\nA partir disso consigo te orientar melhor.')+
+        '<div class="csdi-alert info"><b>Regra:</b> follow-up não é perguntar repetidamente “já decidiu?”. É descobrir <b>o que falta</b> para o cliente avançar.</div>';
+    }});
+    S.push({n:'15',t:'Fechamento',h:function(){
+      return '<p>Depois de esclarecer as dúvidas:</p>'+
+        script('Pelo que conversamos, acredito que conseguimos alinhar os principais pontos da viagem. Podemos seguir com a sua confirmação?')+
+        '<p>Se <b>sim</b>:</p>'+
+        script('Perfeito! 💙 Vamos então seguir com seu cadastro e a definição da forma de pagamento. Para você fica melhor PIX ou cartão em até 4x sem juros?')+
+        '<p>Se precisar de <b>mais parcelas</b>:</p>'+
+        script('Sem problema. Me diga em quantas parcelas você gostaria e vamos verificar uma simulação.');
+    }});
+    S.push({n:'16',t:'Cadastro e pós-venda',h:function(){
+      return '<p>Após o pagamento do terrestre, o passageiro deve ser registrado no site do grupo. Na sequência, a equipe realiza a venda e emissão da passagem aérea, faz a curadoria de documentos e mantém o passageiro no fluxo de pós-venda até o embarque.</p>'+
+        '<p><b>Portal:</b> <a href="https://grupos.ultravel.com.br/excursions/17" target="_blank" rel="noopener">grupos.ultravel.com.br/excursions/17</a></p>'+ul(POSVENDA);
+    }});
+    S.push({n:'17',t:'Recusa de novo lead',h:function(){
+      return script('Olá, [Nome]!\n\nMuito obrigada pelo seu retorno e pela oportunidade de apresentar essa experiência.\n\nMesmo que desta vez não seja possível, estaremos sempre à disposição para ajudar você em qualquer necessidade de viagem, seja a lazer, corporativa ou em futuras imersões.\n\nConheça um pouco mais do nosso trabalho: www.ultravel.com.br\n\nEsperamos ter a oportunidade de cuidar da sua próxima viagem. Conte conosco! 💙');
+    }});
+    S.push({n:'18',t:'Princípios do atendimento UGroups',h:function(){
+      return '<p>O script é um guia, não uma conversa pronta.</p>'+
+        ul(['Escute primeiro','Entenda em que momento da decisão a pessoa está','Descubra o que ela precisa para avançar','Dê a informação necessária','Conduza para o próximo passo'])+
+        '<div class="csdi-alert info">Um bom atendimento não termina com “qualquer dúvida, estamos à disposição”. Um bom atendimento termina com <b>um próximo passo claro</b>.</div>';
+    }});
+    return S;
+  }
+
+  function telaGuia(){
+    var d=DOCS.guia, h=barra('guia');
+    h+='<div class="csdi-sec" '+corStyle(d)+'><div class="csdi-sec-t"><i>🎯</i>Resumo de bolso</div><div class="csdi-ico-grid">'+
+      '<div class="csdi-ico-box"><div class="csdi-ico-e">📅</div><div><div class="csdi-ico-t">Período</div><div class="csdi-ico-d">03 a 13 de dezembro de 2026</div></div></div>'+
+      '<div class="csdi-ico-box"><div class="csdi-ico-e">💰</div><div><div class="csdi-ico-t">Investimento</div><div class="csdi-ico-d">R$ 29.950,00 por pessoa · PIX ou 4x sem juros</div></div></div>'+
+      '<div class="csdi-ico-box"><div class="csdi-ico-e">✈️</div><div><div class="csdi-ico-t">Aéreo</div><div class="csdi-ico-d">Vendido à parte, cotado individualmente</div></div></div>'+
+      '<div class="csdi-ico-box"><div class="csdi-ico-e">🔗</div><div><div class="csdi-ico-t">Portal do grupo</div><div class="csdi-ico-d"><a href="https://grupos.ultravel.com.br/excursions/17" target="_blank" rel="noopener">excursions/17</a></div></div></div>'+
+      '</div>'+
+      '<div class="csdi-alert bad">🔒 <b>Documento de uso interno da equipe Ultravel.</b> Não encaminhar ao cliente — para o cliente, use a <b>Apresentação</b>.</div>'+
+      '<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap"><button class="csdi-back" data-csdi-todas="1">Expandir tudo</button><button class="csdi-back" data-csdi-nenhuma="1">Recolher tudo</button></div>'+
+      '</div>';
+    secoesGuia().forEach(function(s,i){
+      var ab=!!csdiAccAberta[i];
+      h+='<div class="csdi-acc'+(ab?' open':'')+'" '+corStyle(d)+'>'+
+        '<button class="csdi-acc-h" data-csdi-acc="'+i+'"><span class="csdi-acc-n">'+esc(s.n)+'</span><span>'+esc(s.t)+'</span><span class="csdi-acc-c">▼</span></button>'+
+        '<div class="csdi-acc-b">'+(ab?s.h():'')+'</div></div>';
+    });
+    return h;
+  }
+
+  /* ------------------------------------------------------------- RENDER */
+  window.renderCsdi=function(){
+    var w=document.getElementById('csdiWrap'); if(!w) return;
+    if(csdiAberto==='apresentacao') w.innerHTML=telaApresentacao();
+    else if(csdiAberto==='guia')    w.innerHTML=telaGuia();
+    else if(csdiAberto==='voos')    w.innerHTML=telaVoos();
+    else                            w.innerHTML=telaCards();
+  };
+
+  /* Um único ouvinte delegado na raiz do módulo — nada de listener por card,
+     que é o que faz vazamento quando a tela é redesenhada. */
+  document.addEventListener('click', function(e){
+    var w=document.getElementById('csdiWrap'); if(!w || !w.contains(e.target)) return;
+
+    var ab=e.target.closest('[data-csdi-abrir]');
+    if(ab){ csdiAberto=ab.getAttribute('data-csdi-abrir'); csdiAccAberta={}; window.renderCsdi(); try{ w.scrollIntoView({block:'start'}); }catch(x){} return; }
+
+    if(e.target.closest('[data-csdi-voltar]')){ csdiAberto=''; window.renderCsdi(); return; }
+
+    if(e.target.closest('[data-csdi-todas]')){ secoesGuia().forEach(function(s,i){ csdiAccAberta[i]=true; }); window.renderCsdi(); return; }
+    if(e.target.closest('[data-csdi-nenhuma]')){ csdiAccAberta={}; window.renderCsdi(); return; }
+
+    var acc=e.target.closest('[data-csdi-acc]');
+    if(acc){ var i=acc.getAttribute('data-csdi-acc'); csdiAccAberta[i]=!csdiAccAberta[i]; window.renderCsdi(); return; }
+
+    var cp=e.target.closest('[data-csdi-copiar]');
+    if(cp){
+      e.preventDefault(); e.stopPropagation();
+      var box=cp.parentElement, txt=(box?box.textContent:'').replace(/📋\s*$/,'').trim();
+      function ok(){ cp.textContent='✅'; setTimeout(function(){ cp.textContent='📋'; },1500); try{ if(typeof toast==='function') toast('Texto copiado','ok'); }catch(x){} }
+      try{
+        if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(ok,function(){}); return; }
+      }catch(x){}
+      try{
+        var ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select();
+        document.execCommand('copy'); document.body.removeChild(ta); ok();
+      }catch(x){}
+      return;
+    }
+  });
+})();
+</script>
+
 </body>
 </html>
