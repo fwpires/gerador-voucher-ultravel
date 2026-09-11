@@ -4311,7 +4311,16 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 366; // (·366) VERDE DO CONTROLE GERAL, UM POUCO MAIS ESCURO. Pedido do
+var UV_BUILD_NUM = 367; // (·367) EMOJI 🎯 NO SELETOR, NAS DUAS PASTAS. Pedido do Nando:
+// acrescentar o alvo em Acoes Comerciais E em Insights. FOI UMA EDICAO, EM UM LUGAR SO —
+// e esse e o ponto que vale registrar. No ·347 a lista de emojis deixou de ser copiada
+// entre os dois modulos: o Insights passou a expor window.UV_EMOJIS_REACAO e Acoes
+// Comerciais le DE LA. Entao acrescentar um emoji e mexer em TI_EMOJIS e pronto, as duas
+// telas ganham juntas, sem chance de uma ficar com um emoji que a outra nao tem.
+// Fosse a lista duplicada, este pedido seriam duas edicoes — e a primeira vez que alguem
+// esquecesse a segunda, as duas telas comecariam a divergir em silencio. O teste confere
+// isso medindo: o 🎯 aparece nas DUAS, e a lista continua existindo UMA vez no arquivo.
+// ANTERIOR: (·366) VERDE DO CONTROLE GERAL, UM POUCO MAIS ESCURO. Pedido do
 // Nando sobre o ·365. Em vez de escurecer no olho, ancorei na propria paleta: o gradiente
 // agora PARTE do --verde-escuro da marca (#6E9215) e fecha mais escuro ainda (#3F5A08),
 // enquanto antes partia do verde claro (#9FD11F). Ancorar na variavel da marca em vez de
@@ -26375,7 +26384,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
      precisar de biblioteca nem de dependência externa nova. */
   var tiEmojiAberto='';
   var TI_EMOJIS=['😀','😁','😂','🤣','😊','🙂','😉','😍','😘','😜','🤔','😐','😢','😭','😡','😱',
-                 '👍','👎','👏','🙏','💪','🙌','🤝','✌️','❤️','💔','🔥','⭐','✅','❌','🎉','🥳','🚀'];
+                 '👍','👎','👏','🙏','💪','🙌','🤝','✌️','❤️','💔','🔥','⭐','✅','❌','🎉','🥳','🚀','🎯'];
   /* (·322) FONTE ÚNICA do painel do seletor — usada tanto na mensagem
      principal quanto em cada comentário/resposta, para as duas áreas nunca
      poderem se desencontrar em estilo ou em opções (pedido explícito do
