@@ -4311,7 +4311,21 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 368; // (·368) IMERSAO CSDI: QUARTO CARD "PASSAPORTES". Pedido do Nando:
+var UV_BUILD_NUM = 369; // (·369) PASSAPORTES: CADA FICHA MINIMIZADA, ABRE AO CLICAR. Pedido
+// do Nando: as tres fichas vinham abertas de uma vez, e a tela virava uma parede de dados
+// onde achar UM passageiro exigia rolar por todos. Agora o cabecalho (nome + numero do
+// passaporte + selo do cadastro) e um botao, e a ficha abre so quando alguem pede — a
+// MESMA forma que as secoes de Minhas Tarefas e o acordeao do Guia ja usam nesta base.
+// O CORPO NAO E ESCONDIDO COM CSS: ele so e MONTADO quando a ficha esta aberta. Alem de
+// deixar a tela leve, isso tem um efeito que AQUI interessa de verdade: com a ficha
+// fechada, o CPF, o endereco, o e-mail e o login do passageiro nao existem no HTML da
+// pagina — nao e so questao de estarem fora da vista.
+// EFEITO DE BORDA, e ele e bem-vindo: fechar a ficha volta a senha para os pontinhos,
+// porque o corpo e remontado do zero. Quem revelou uma senha e fechou nao deixa ela
+// aberta na tela sem perceber.
+// O estado de aberto/fechado e de TELA, nao de dado: zera ao entrar no card, entao a
+// pagina sempre abre com as tres fechadas, como pedido.
+// ANTERIOR: (·368) IMERSAO CSDI: QUARTO CARD "PASSAPORTES". Pedido do Nando:
 // um card novo na pasta, com os arquivos de documentacao dos passageiros no mesmo padrao
 // dos outros tres, mais um botao Visualizar que abre a pasta do Drive do grupo.
 // OS DADOS FORAM CONFERIDOS, NAO TRANSCRITOS NO OLHO. Os tres passaportes trazem MRZ, e
@@ -31383,7 +31397,13 @@ body.dark .csdi-chip-top{border-color:rgba(18,176,255,.28);color:#5FC2FF}
    prévia do voucher já usa, para o overlay nascer com a cara do sistema */
 /* (·368) cartão de passageiro do card Passaportes */
 .csdi-pax{border:1px solid var(--borda);border-left:4px solid var(--cor);border-radius:12px;padding:14px 16px;background:var(--fundo);margin-bottom:12px}
-.csdi-pax-cab{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+/* (·369) o cabeçalho virou BOTÃO: a ficha inteira abre e fecha por ele */
+.csdi-pax{padding:0;overflow:hidden}
+.csdi-pax-cab{display:flex;align-items:center;gap:10px;flex-wrap:wrap;width:100%;padding:13px 16px;margin:0;background:none;border:0;font-family:inherit;text-align:left;cursor:pointer;transition:background .15s}
+.csdi-pax-cab:hover{background:var(--corBg)}
+.csdi-pax-seta{color:var(--texto-fraco);font-size:11px;flex:0 0 auto;transition:transform .18s}
+.csdi-pax.aberto .csdi-pax-seta{transform:rotate(90deg)}
+.csdi-pax-corpo{padding:2px 16px 16px}
 .csdi-pax-n{font-size:15px;font-weight:800;color:var(--texto)}
 .csdi-pax-doc{font-size:11.5px;font-weight:800;letter-spacing:.6px;padding:4px 10px;border-radius:999px;background:var(--cor);color:#fff;font-variant-numeric:tabular-nums}
 .csdi-pax-flag{margin-left:auto;font-size:11px;font-weight:800;padding:4px 10px;border-radius:999px}
@@ -31395,7 +31415,7 @@ body.dark .csdi-pax-flag.ok{color:#A9DB3A} body.dark .csdi-pax-flag.falta{color:
 .csdi-campo-v{font-size:12.5px;color:var(--texto);font-weight:600;word-break:break-word}
 .csdi-campo-v.mono{font-variant-numeric:tabular-nums;letter-spacing:.3px}
 .csdi-bloco-t{font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--cor);margin:14px 0 8px;padding-top:12px;border-top:1px dashed var(--borda)}
-.csdi-pax:first-of-type .csdi-bloco-t:first-of-type{padding-top:0;border-top:0;margin-top:0}
+.csdi-pax-corpo .csdi-bloco-t:first-child{padding-top:0;border-top:0;margin-top:0}
 .csdi-senha{display:inline-flex;align-items:center;gap:7px}
 .csdi-senha-bt{border:1px solid var(--borda-forte);background:var(--card);color:var(--texto-suave);border-radius:7px;font-size:11px;font-weight:700;padding:2px 8px;cursor:pointer}
 .csdi-senha-bt:hover{border-color:var(--cor);color:var(--cor)}
@@ -31424,6 +31444,7 @@ body.dark .csdi-pax-flag.ok{color:#A9DB3A} body.dark .csdi-pax-flag.falta{color:
 (function(){
   var csdiAberto='';                 // '', 'apresentacao', 'guia', 'voos'
   var csdiAccAberta={};              // seções do guia expandidas (por índice)
+  var csdiPaxAberto={};              // (·369) fichas de passageiro expandidas (por índice)
 
   function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
@@ -31781,10 +31802,19 @@ body.dark .csdi-pax-flag.ok{color:#A9DB3A} body.dark .csdi-pax-flag.falta{color:
 
     h+='<div class="csdi-sec" '+corStyle(d)+'><div class="csdi-sec-t"><i>👥</i>Passageiros ('+PASSAGEIROS.length+')</div>';
     PASSAGEIROS.forEach(function(p,i){
-      h+='<div class="csdi-pax" '+corStyle(d)+'>';
-      h+='<div class="csdi-pax-cab"><span class="csdi-pax-n">'+esc(p.nome)+'</span>'+
+      /* (·369) fechada por padrão. O corpo só é MONTADO quando está aberta —
+         não é escondido com CSS. Além de deixar a tela leve, isso tem um efeito
+         que aqui interessa: com a ficha fechada, o CPF, o endereço, o e-mail e o
+         login do passageiro simplesmente NÃO existem no HTML da página. */
+      var ab=!!csdiPaxAberto[i];
+      h+='<div class="csdi-pax'+(ab?' aberto':'')+'" '+corStyle(d)+'>';
+      h+='<button type="button" class="csdi-pax-cab" data-csdi-pax="'+i+'" aria-expanded="'+(ab?'true':'false')+'">'+
+         '<span class="csdi-pax-seta">▶</span>'+
+         '<span class="csdi-pax-n">'+esc(p.nome)+'</span>'+
          '<span class="csdi-pax-doc">'+esc(p.doc)+'</span>'+
-         '<span class="csdi-pax-flag '+(p.cadastro?'ok':'falta')+'">'+(p.cadastro?'✓ Cadastro completo':'⚠ Sem ficha de cadastro')+'</span></div>';
+         '<span class="csdi-pax-flag '+(p.cadastro?'ok':'falta')+'">'+(p.cadastro?'✓ Cadastro completo':'⚠ Sem ficha de cadastro')+'</span></button>';
+      if(!ab){ h+='</div>'; return; }
+      h+='<div class="csdi-pax-corpo">';
 
       h+='<div class="csdi-bloco-t">Passaporte</div><div class="csdi-campos">'+
          campo('Nº do passaporte', p.doc, true)+
@@ -31818,7 +31848,7 @@ body.dark .csdi-pax-flag.ok{color:#A9DB3A} body.dark .csdi-pax-flag.falta{color:
            '</div></div>'+
            '</div>';
       }
-      h+='</div>';
+      h+='</div></div>';
     });
     h+='</div>';
     return h;
@@ -31982,7 +32012,7 @@ body.dark .csdi-pax-flag.ok{color:#A9DB3A} body.dark .csdi-pax-flag.falta{color:
     var w=document.getElementById('csdiWrap'); if(!w || !w.contains(e.target)) return;
 
     var ab=e.target.closest('[data-csdi-abrir]');
-    if(ab){ csdiAberto=ab.getAttribute('data-csdi-abrir'); csdiAccAberta={}; window.renderCsdi(); try{ w.scrollIntoView({block:'start'}); }catch(x){} return; }
+    if(ab){ csdiAberto=ab.getAttribute('data-csdi-abrir'); csdiAccAberta={}; csdiPaxAberto={}; window.renderCsdi(); try{ w.scrollIntoView({block:'start'}); }catch(x){} return; }
 
     /* (·368) o Visualizar dos Passaportes abre a pasta do Drive numa aba nova.
        É a única saída do Hub nesta tela, e não por escolha: o Drive manda o
@@ -32000,6 +32030,9 @@ body.dark .csdi-pax-flag.ok{color:#A9DB3A} body.dark .csdi-pax-flag.falta{color:
     /* Senha do portal: fica mascarada porque esta tela abre para qualquer
        pessoa com acesso a Grupos, e senha à mostra numa tela compartilhada é
        senha vazada. O valor só entra na tela quando alguém pede. */
+    var px=e.target.closest('[data-csdi-pax]');
+    if(px){ var pi=px.getAttribute('data-csdi-pax'); csdiPaxAberto[pi]=!csdiPaxAberto[pi]; window.renderCsdi(); return; }
+
     var sn=e.target.closest('[data-csdi-senha]');
     if(sn){
       e.preventDefault();
