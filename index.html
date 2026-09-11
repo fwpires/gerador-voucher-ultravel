@@ -4311,7 +4311,16 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 369; // (·369) PASSAPORTES: CADA FICHA MINIMIZADA, ABRE AO CLICAR. Pedido
+var UV_BUILD_NUM = 370; // (·370) PASSAPORTES: O BLOCO "ARQUIVOS ORIGINAIS" SAIU. Pedido do
+// Nando, circulado no print. Aquele bloco explicava por que ESTE Visualizar abre numa aba
+// nova em vez de embutir a pasta do Drive — explicacao que valia no dia em que o botao
+// nasceu e que, dali em diante, virou um paragrafo para rolar todo dia. O botao esta no
+// alto da tela e diz o que faz ao ser clicado; a razao tecnica continua registrada no
+// changelog do ·368, que e onde a proxima pessoa vai procurar, e nao na cara do usuario.
+// A tela agora abre direto na Conferencia de validade — que e a informacao pela qual
+// alguem entra nesta pasta. Nada mais foi tocado: o botao, a conferencia, o alerta da
+// ficha que falta e as tres fichas continuam iguais. So remocao.
+// ANTERIOR: (·369) PASSAPORTES: CADA FICHA MINIMIZADA, ABRE AO CLICAR. Pedido
 // do Nando: as tres fichas vinham abertas de uma vez, e a tela virava uma parede de dados
 // onde achar UM passageiro exigia rolar por todos. Agora o cabecalho (nome + numero do
 // passaporte + selo do cadastro) e um botao, e a ficha abre so quando alguem pede — a
@@ -31783,10 +31792,12 @@ body.dark .csdi-pax-flag.ok{color:#A9DB3A} body.dark .csdi-pax-flag.falta{color:
     var d=DOCS.passaportes, h=barra('passaportes');
     var comFicha=PASSAGEIROS.filter(function(p){ return p.cadastro; }).length;
 
-    h+='<div class="csdi-sec" '+corStyle(d)+'><div class="csdi-sec-t"><i>📂</i>Arquivos originais</div>'+
-       '<div class="csdi-ico-d" style="font-size:12.5px">Os arquivos completos (passaportes digitalizados e fichas de cadastro) ficam na <b>pasta do Google Drive do grupo</b>. O botão <b>Visualizar</b>, no alto desta tela, abre essa pasta.</div>'+
-       '<div class="csdi-alert info">🔗 <b>Este é o único “Visualizar” que sai do Hub</b>, e não por escolha: o Google Drive recusa ser exibido dentro de outra página, então uma janela embutida aqui mostraria só um quadro em branco. A pasta abre numa aba nova — os outros três documentos continuam abrindo dentro do sistema.</div></div>';
-
+    /* (·370) O bloco "Arquivos originais" saiu. Ele existia para explicar por que
+       este Visualizar abre numa aba nova em vez de embutir a pasta — explicação
+       que valia no dia em que o botão nasceu e virou parágrafo a rolar todo dia
+       depois disso. O botão está ali em cima, dourado, e diz o que faz ao ser
+       clicado; a razão técnica ficou registrada no changelog do ·368, que é onde
+       a próxima pessoa vai procurar. A tela abre direto na conferência. */
     h+='<div class="csdi-sec" '+corStyle(d)+'><div class="csdi-sec-t"><i>✅</i>Conferência de validade</div>'+
        '<div class="csdi-ico-d" style="font-size:12.5px;margin-bottom:10px">A imersão entra em Israel em <b>03/12/2026</b>. A exigência usual é passaporte válido por <b>mais 6 meses</b> a partir da entrada — ou seja, validade a partir de <b>03/06/2027</b>.</div>'+
        '<div class="csdi-ico-grid">'+
