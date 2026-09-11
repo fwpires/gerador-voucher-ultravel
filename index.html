@@ -4311,7 +4311,34 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 367; // (·367) EMOJI 🎯 NO SELETOR, NAS DUAS PASTAS. Pedido do Nando:
+var UV_BUILD_NUM = 368; // (·368) IMERSAO CSDI: QUARTO CARD "PASSAPORTES". Pedido do Nando:
+// um card novo na pasta, com os arquivos de documentacao dos passageiros no mesmo padrao
+// dos outros tres, mais um botao Visualizar que abre a pasta do Drive do grupo.
+// OS DADOS FORAM CONFERIDOS, NAO TRANSCRITOS NO OLHO. Os tres passaportes trazem MRZ, e
+// MRZ tem digito verificador: conferi numero do passaporte, data de nascimento, validade
+// e o digito final da linha nos TRES — todos fecham. Os dois CPFs das fichas passam na
+// validacao de modulo 11, e o da Rosane ainda bate com o CPF impresso na propria MRZ dela.
+// Qualquer erro meu de leitura teria quebrado alguma dessas contas; e por isso que vale
+// gastar a conta em vez de confiar na vista.
+// DUAS COISAS QUE A CONFERENCIA ENCONTROU, e que a tela mostra em destaque:
+// (1) FALTA A FICHA DE CADASTRO DA LUCIANE TONIN MECCA. Chegou o passaporte dela, mas nao
+// os 17 campos do cadastro — sem CPF, contato e endereco o registro no site do grupo nao
+// fecha. (2) VALIDADE: a entrada em Israel e 03/12/2026 e a exigencia usual e passaporte
+// valido por mais 6 meses (ou seja, a partir de 03/06/2027). Os tres atendem, mas a
+// Luciane vence em 13/09/2027 — cerca de 3 meses de folga alem do minimo. Atende hoje; e
+// a primeira a acompanhar se a viagem mudar de data.
+// SENHAS MASCARADAS. As fichas trazem a senha do portal do grupo, e esta tela abre para
+// QUALQUER pessoa com acesso a Grupos. Senha a mostra numa tela compartilhada e senha
+// vazada, entao ela nasce como pontinhos e so aparece quando alguem clica em "mostrar".
+// O BOTAO: este e o unico "Visualizar" que SAI do Hub, e nao por escolha minha. O Google
+// Drive instrui o navegador a nao exibir suas paginas dentro de outra, entao um quadro
+// embutido aqui ficaria EM BRANCO — os outros tres documentos continuam abrindo dentro do
+// sistema porque sao PDFs nossos. Abre em aba nova com noopener: sem isso a aba aberta
+// recebe uma referencia a janela do Hub e pode mexer nela.
+// Quem decide o comportamento do botao e o CAMPO do documento (pdfId abre embutido, link
+// abre a pasta), nao um "if" com o nome do card escrito dentro — assim o proximo card que
+// precisar de link nao mexe em codigo, so declara o campo.
+// ANTERIOR: (·367) EMOJI 🎯 NO SELETOR, NAS DUAS PASTAS. Pedido do Nando:
 // acrescentar o alvo em Acoes Comerciais E em Insights. FOI UMA EDICAO, EM UM LUGAR SO —
 // e esse e o ponto que vale registrar. No ·347 a lista de emojis deixou de ser copiada
 // entre os dois modulos: o Insights passou a expor window.UV_EMOJIS_REACAO e Acoes
@@ -31354,6 +31381,24 @@ body.dark .csdi-chip-top{border-color:rgba(18,176,255,.28);color:#5FC2FF}
 .csdi-leg-hr b{color:var(--texto)}
 /* visualizador do PDF DENTRO do Hub (·360) — reaproveita a casca .pvw-* que a
    prévia do voucher já usa, para o overlay nascer com a cara do sistema */
+/* (·368) cartão de passageiro do card Passaportes */
+.csdi-pax{border:1px solid var(--borda);border-left:4px solid var(--cor);border-radius:12px;padding:14px 16px;background:var(--fundo);margin-bottom:12px}
+.csdi-pax-cab{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.csdi-pax-n{font-size:15px;font-weight:800;color:var(--texto)}
+.csdi-pax-doc{font-size:11.5px;font-weight:800;letter-spacing:.6px;padding:4px 10px;border-radius:999px;background:var(--cor);color:#fff;font-variant-numeric:tabular-nums}
+.csdi-pax-flag{margin-left:auto;font-size:11px;font-weight:800;padding:4px 10px;border-radius:999px}
+.csdi-pax-flag.ok{background:rgba(148,193,30,.16);color:#5f8508}
+.csdi-pax-flag.falta{background:rgba(240,165,0,.18);color:#A96F00}
+body.dark .csdi-pax-flag.ok{color:#A9DB3A} body.dark .csdi-pax-flag.falta{color:#FFC24D}
+.csdi-campos{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px 18px}
+.csdi-campo-l{font-size:10px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--texto-fraco)}
+.csdi-campo-v{font-size:12.5px;color:var(--texto);font-weight:600;word-break:break-word}
+.csdi-campo-v.mono{font-variant-numeric:tabular-nums;letter-spacing:.3px}
+.csdi-bloco-t{font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--cor);margin:14px 0 8px;padding-top:12px;border-top:1px dashed var(--borda)}
+.csdi-pax:first-of-type .csdi-bloco-t:first-of-type{padding-top:0;border-top:0;margin-top:0}
+.csdi-senha{display:inline-flex;align-items:center;gap:7px}
+.csdi-senha-bt{border:1px solid var(--borda-forte);background:var(--card);color:var(--texto-suave);border-radius:7px;font-size:11px;font-weight:700;padding:2px 8px;cursor:pointer}
+.csdi-senha-bt:hover{border-color:var(--cor);color:var(--cor)}
 .csdi-vis{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--cor);background:var(--cor);color:#fff;font-size:12.5px;font-weight:800;padding:8px 15px;border-radius:9px;cursor:pointer;transition:filter .15s}
 .csdi-vis:hover{filter:brightness(1.08)}
 .csdi-pdf-frame{flex:1 1 auto;width:100%;border:0;background:#1b1b1b;border-radius:10px}
@@ -31420,6 +31465,20 @@ body.dark .csdi-chip-top{border-color:rgba(18,176,255,.28);color:#5FC2FF}
       tags:['5 opções','GRU ⇄ TLV','Vendido à parte'],
       badge:'AÉREO',
       pdfId:'csdiVoosB64', pdfNome:'Voos-Imersao-CSDI.pdf'
+    },
+    passaportes:{
+      nome:'Passaportes',
+      curto:'Passaportes',
+      emoji:'🛂',
+      cor:'#0E9E93', corBg:'rgba(14,158,147,.10)', corBd:'rgba(14,158,147,.30)',
+      desc:'Passaportes e fichas de cadastro dos passageiros do grupo, com a conferência de validade para a data da viagem.',
+      tags:['3 passageiros','Validade conferida','Documentação'],
+      badge:'DOCUMENTOS',
+      /* (·368) Aqui o "Visualizar" NÃO abre PDF embutido como nos outros três:
+         abre a pasta do Drive, que foi o que o Nando pediu. Por isso o campo é
+         `link` e não `pdfId` — e é o campo que decide o comportamento do botão,
+         em vez de um `if` com o nome do documento escrito dentro. */
+      link:'https://drive.google.com/drive/folders/11P9uALnZVsxqpWPlOI7D7Drsr2xGJV_l?usp=drive_link'
     }
   };
   function corStyle(d){ return 'style="--cor:'+d.cor+';--corBg:'+d.corBg+';--corBd:'+d.corBd+'"'; }
@@ -31438,7 +31497,7 @@ body.dark .csdi-chip-top{border-color:rgba(18,176,255,.28);color:#5FC2FF}
     h+='<div class="csdi-sub">Dra. Jane Krüger · 03 a 13 de dezembro de 2026</div>';
     h+='</div><span class="csdi-chip-top">📁 3 documentos do grupo</span></div>';
     h+='<div class="csdi-grid">';
-    ['apresentacao','guia','voos'].forEach(function(k){
+    ['apresentacao','guia','voos','passaportes'].forEach(function(k){
       var d=DOCS[k];
       h+='<div class="csdi-card" data-csdi-abrir="'+k+'" '+corStyle(d)+'>';
       h+='<div class="csdi-card-top"></div><div class="csdi-card-body">';
@@ -31455,7 +31514,9 @@ body.dark .csdi-chip-top{border-color:rgba(18,176,255,.28);color:#5FC2FF}
 
   function barra(k){
     var d=DOCS[k];
-    var vis = d.pdfId ? '<button class="csdi-vis" data-csdi-pdf="'+k+'">📄 Visualizar</button>' : '';
+    var vis='';
+    if(d.pdfId)     vis='<button class="csdi-vis" data-csdi-pdf="'+k+'">📄 Visualizar</button>';
+    else if(d.link) vis='<button class="csdi-vis" data-csdi-link="'+k+'">📂 Visualizar</button>';
     return '<div class="csdi-doc-bar" '+corStyle(d)+'>'+
       '<button class="csdi-back" data-csdi-voltar="1">← Voltar</button>'+
       '<div><h2 class="csdi-doc-t">'+d.emoji+' '+esc(d.nome)+'</h2>'+
@@ -31654,6 +31715,115 @@ body.dark .csdi-chip-top{border-color:rgba(18,176,255,.28);color:#5FC2FF}
     return h;
   }
 
+  /* ------------------------------------------------- DOC 4 — PASSAPORTES ----
+     Dados lidos dos documentos que o Nando enviou. CONFERIDOS, não transcritos
+     no olho: os dígitos verificadores das três MRZ (número do passaporte, data
+     de nascimento, validade e o dígito final da linha) fecham, e os dois CPFs
+     das fichas passam na validação de módulo 11 — inclusive batendo com o CPF
+     impresso na MRZ da Rosane. Um erro de leitura teria quebrado alguma dessas
+     contas. As senhas do portal vêm MASCARADAS por padrão (esta tela abre para
+     qualquer pessoa que acesse Grupos): o botão revela quando for preciso. */
+  var PASSAGEIROS=[
+    {
+      nome:'Rosane Baldasso Barth', doc:'GI703836', cadastro:true,
+      pass:{nasc:'27/04/1966', sexo:'F', nat:'Carlos Barbosa/RS',
+            pai:'Ubaldo Baldasso', mae:'Rosalina Canal Baldasso',
+            exp:'30/01/2024', val:'29/01/2034', aut:'DPF/CXS/RS'},
+      ficha:{cpf:'531.143.290-04', civil:'Casada', nacio:'Brasileira', prof:'Professora aposentada',
+             email:'rbbarth@gmail.com', cel:'(54) 99957-9732',
+             cep:'95185-000', rua:'Rua Rosalina Canal Baldasso', num:'74', compl:'—',
+             bairro:'Ponte Seca', cidade:'Carlos Barbosa', uf:'RS', pais:'Brasil'},
+      portal:{login:'wenor83364@bora4d.com', senha:'123viagem'}
+    },
+    {
+      nome:'Rafael Nunez Steffen', doc:'FV639594', cadastro:true,
+      pass:{nasc:'30/06/1979', sexo:'M', nat:'Porto Alegre/RS',
+            pai:'Mario Steffen', mae:'Regina Maria Nunez Steffen',
+            exp:'06/04/2018', val:'05/04/2028', aut:'SR/DPF/SC'},
+      ficha:{cpf:'906.531.730-91', civil:'Casado', nacio:'Brasileira', prof:'Vendedor',
+             email:'rafasteffen@hotmail.com', cel:'(48) 99949-0434',
+             cep:'88075-001', rua:'Rua Fúlvio Aducci', num:'627', compl:'—',
+             bairro:'Estreito', cidade:'Florianópolis', uf:'SC', pais:'Brasil'},
+      portal:{login:'rafasteffen@hotmail.com', senha:'viagem123'}
+    },
+    {
+      nome:'Luciane Tonin Mecca', doc:'FU092712', cadastro:false,
+      pass:{nasc:'24/10/1973', sexo:'F', nat:'Getúlio Vargas/RS',
+            pai:'Jose Carlos Tonin', mae:'Maria Perin Tonin',
+            exp:'14/09/2017', val:'13/09/2027', aut:'DPF/CXS/RS'},
+      ficha:null, portal:null
+    }
+  ];
+  function campo(rot, val, mono){
+    if(!val) return '';
+    return '<div><div class="csdi-campo-l">'+esc(rot)+'</div><div class="csdi-campo-v'+(mono?' mono':'')+'">'+esc(val)+'</div></div>';
+  }
+  function telaPassaportes(){
+    var d=DOCS.passaportes, h=barra('passaportes');
+    var comFicha=PASSAGEIROS.filter(function(p){ return p.cadastro; }).length;
+
+    h+='<div class="csdi-sec" '+corStyle(d)+'><div class="csdi-sec-t"><i>📂</i>Arquivos originais</div>'+
+       '<div class="csdi-ico-d" style="font-size:12.5px">Os arquivos completos (passaportes digitalizados e fichas de cadastro) ficam na <b>pasta do Google Drive do grupo</b>. O botão <b>Visualizar</b>, no alto desta tela, abre essa pasta.</div>'+
+       '<div class="csdi-alert info">🔗 <b>Este é o único “Visualizar” que sai do Hub</b>, e não por escolha: o Google Drive recusa ser exibido dentro de outra página, então uma janela embutida aqui mostraria só um quadro em branco. A pasta abre numa aba nova — os outros três documentos continuam abrindo dentro do sistema.</div></div>';
+
+    h+='<div class="csdi-sec" '+corStyle(d)+'><div class="csdi-sec-t"><i>✅</i>Conferência de validade</div>'+
+       '<div class="csdi-ico-d" style="font-size:12.5px;margin-bottom:10px">A imersão entra em Israel em <b>03/12/2026</b>. A exigência usual é passaporte válido por <b>mais 6 meses</b> a partir da entrada — ou seja, validade a partir de <b>03/06/2027</b>.</div>'+
+       '<div class="csdi-ico-grid">'+
+       PASSAGEIROS.map(function(p){
+         return '<div class="csdi-ico-box"><div class="csdi-ico-e">🛂</div><div><div class="csdi-ico-t">'+esc(p.nome.split(' ')[0])+'</div>'+
+           '<div class="csdi-ico-d">Válido até <b>'+esc(p.pass.val)+'</b><br><span style="color:#5f8508;font-weight:800">✓ atende a regra</span></div></div></div>';
+       }).join('')+'</div>'+
+       '<div class="csdi-alert warn">⏳ <b>Luciane é a de menor folga:</b> o passaporte dela vence em <b>13/09/2027</b>, cerca de <b>3 meses</b> além do mínimo exigido. Atende hoje, mas é o primeiro a acompanhar se a viagem mudar de data. O guia interno já manda <b>conferir a regra vigente</b> antes de orientar formalmente o passageiro.</div>'+
+       (comFicha<PASSAGEIROS.length
+         ? '<div class="csdi-alert bad">📝 <b>Falta a ficha de cadastro da Luciane Tonin Mecca.</b> Temos o passaporte dela, mas não os 17 campos do cadastro (CPF, contato, endereço). Sem isso o registro no site do grupo não fecha.</div>'
+         : '')+
+       '</div>';
+
+    h+='<div class="csdi-sec" '+corStyle(d)+'><div class="csdi-sec-t"><i>👥</i>Passageiros ('+PASSAGEIROS.length+')</div>';
+    PASSAGEIROS.forEach(function(p,i){
+      h+='<div class="csdi-pax" '+corStyle(d)+'>';
+      h+='<div class="csdi-pax-cab"><span class="csdi-pax-n">'+esc(p.nome)+'</span>'+
+         '<span class="csdi-pax-doc">'+esc(p.doc)+'</span>'+
+         '<span class="csdi-pax-flag '+(p.cadastro?'ok':'falta')+'">'+(p.cadastro?'✓ Cadastro completo':'⚠ Sem ficha de cadastro')+'</span></div>';
+
+      h+='<div class="csdi-bloco-t">Passaporte</div><div class="csdi-campos">'+
+         campo('Nº do passaporte', p.doc, true)+
+         campo('Nascimento', p.pass.nasc, true)+
+         campo('Sexo', p.pass.sexo)+
+         campo('Naturalidade', p.pass.nat)+
+         campo('Filiação', p.pass.pai+' · '+p.pass.mae)+
+         campo('Expedição', p.pass.exp, true)+
+         campo('Válido até', p.pass.val, true)+
+         campo('Autoridade', p.pass.aut)+
+         '</div>';
+
+      if(p.ficha){
+        var f=p.ficha;
+        h+='<div class="csdi-bloco-t">Ficha de cadastro</div><div class="csdi-campos">'+
+           campo('CPF', f.cpf, true)+campo('Estado civil', f.civil)+campo('Nacionalidade', f.nacio)+
+           campo('Profissão', f.prof)+campo('E-mail', f.email)+campo('Celular', f.cel, true)+
+           '</div>';
+        h+='<div class="csdi-bloco-t">Endereço</div><div class="csdi-campos">'+
+           campo('CEP', f.cep, true)+campo('Rua/Avenida', f.rua)+campo('Número', f.num)+
+           campo('Complemento', f.compl)+campo('Bairro', f.bairro)+
+           campo('Cidade / UF', f.cidade+'/'+f.uf)+campo('País', f.pais)+
+           '</div>';
+      }
+      if(p.portal){
+        h+='<div class="csdi-bloco-t">Acesso ao portal do grupo</div><div class="csdi-campos">'+
+           campo('Login', p.portal.login)+
+           '<div><div class="csdi-campo-l">Senha</div><div class="csdi-campo-v">'+
+             '<span class="csdi-senha"><span data-csdi-senha-v="'+i+'">••••••••</span>'+
+             '<button type="button" class="csdi-senha-bt" data-csdi-senha="'+i+'" data-csdi-senha-txt="'+esc(p.portal.senha)+'">mostrar</button></span>'+
+           '</div></div>'+
+           '</div>';
+      }
+      h+='</div>';
+    });
+    h+='</div>';
+    return h;
+  }
+
   /* ---------------------------------------------------------- DOC 2 — GUIA */
   var ROTEIRO=[
     {d:'03/12',s:'Quinta',t:'Chegada — Os primeiros passos na Cidade Santa',x:'Chegada em Israel e traslado para Jerusalém. Após check-in, primeiro contato com a atmosfera da Cidade Santa. No início da noite, visita a um bairro tradicional e experiência no tradicional Shuk de Jerusalém. Primeira noite mais leve para ambientação.',e:'Primeiro encontro com Jerusalém — sua cultura, seus sabores e sua atmosfera única.'},
@@ -31802,6 +31972,7 @@ body.dark .csdi-chip-top{border-color:rgba(18,176,255,.28);color:#5FC2FF}
     if(csdiAberto==='apresentacao') w.innerHTML=telaApresentacao();
     else if(csdiAberto==='guia')    w.innerHTML=telaGuia();
     else if(csdiAberto==='voos')    w.innerHTML=telaVoos();
+    else if(csdiAberto==='passaportes') w.innerHTML=telaPassaportes();
     else                            w.innerHTML=telaCards();
   };
 
@@ -31812,6 +31983,34 @@ body.dark .csdi-chip-top{border-color:rgba(18,176,255,.28);color:#5FC2FF}
 
     var ab=e.target.closest('[data-csdi-abrir]');
     if(ab){ csdiAberto=ab.getAttribute('data-csdi-abrir'); csdiAccAberta={}; window.renderCsdi(); try{ w.scrollIntoView({block:'start'}); }catch(x){} return; }
+
+    /* (·368) o Visualizar dos Passaportes abre a pasta do Drive numa aba nova.
+       É a única saída do Hub nesta tela, e não por escolha: o Drive manda o
+       navegador NÃO exibir suas páginas dentro de outra, então um quadro
+       embutido aqui ficaria em branco. noopener é obrigatório: sem ele a aba
+       aberta recebe uma referência à janela do Hub e pode mexer nela. */
+    var lk=e.target.closest('[data-csdi-link]');
+    if(lk){
+      e.preventDefault();
+      var dd=DOCS[lk.getAttribute('data-csdi-link')];
+      if(dd && dd.link) window.open(dd.link,'_blank','noopener,noreferrer');
+      return;
+    }
+
+    /* Senha do portal: fica mascarada porque esta tela abre para qualquer
+       pessoa com acesso a Grupos, e senha à mostra numa tela compartilhada é
+       senha vazada. O valor só entra na tela quando alguém pede. */
+    var sn=e.target.closest('[data-csdi-senha]');
+    if(sn){
+      e.preventDefault();
+      var idx=sn.getAttribute('data-csdi-senha'),
+          alvo=document.querySelector('[data-csdi-senha-v="'+idx+'"]');
+      if(!alvo) return;
+      var oculta=(alvo.textContent||'').indexOf('•')>-1;
+      alvo.textContent = oculta ? (sn.getAttribute('data-csdi-senha-txt')||'') : '••••••••';
+      sn.textContent   = oculta ? 'ocultar' : 'mostrar';
+      return;
+    }
 
     var pdf=e.target.closest('[data-csdi-pdf]');
     if(pdf){ e.preventDefault(); csdiAbrirPdf(pdf.getAttribute('data-csdi-pdf')); return; }
