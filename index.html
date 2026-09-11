@@ -4311,7 +4311,30 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 374; // (·374) GESTAO E CONTROLE: AS 6 ABAS DO XLSX NA TELA, EDITAVEIS.
+var UV_BUILD_NUM = 375; // (·375) GESTAO E CONTROLE: O RESUMO VOLTOU, E AGORA E CALCULADO DA
+// PLANILHA VIVA. O ·374 tinha removido as secoes de resumo ao trocar a tela pela planilha
+// editavel; o Nando pediu AS DUAS COISAS. Estao de volta — KPIs, resultado por inscrito,
+// fluxo de caixa e os dois simuladores — e a planilha inteira segue logo abaixo.
+// A DIFERENCA QUE FAZ ISSO SER CERTO: no ·373 os numeros do resumo eram constantes
+// escritas no arquivo. Se eu simplesmente devolvesse aquilo, a primeira edicao na planilha
+// deixaria o topo da tela mentindo — e numero errado em tela de financeiro e pior do que
+// numero nenhum. Agora o resumo LE a planilha, pela funcao window.cgDados('csdiGestao')
+// que o motor passou a expor: a mesma fonte que a tabela usa. Editou embaixo, muda em cima.
+// COMO ELE ACHA OS NUMEROS, e por que assim:
+// - inscritos: nome/pago/custo direto das colunas A/B/C da aba.
+// - fluxo: linha com DATA na coluna A e numero na B e um movimento; o que vem ANTES da
+//   linha "Total" e entrada, o que vem depois e saida. E a forma da propria planilha, e
+//   continua valendo se alguem acrescentar lancamentos seguindo o mesmo padrao.
+// - simuladores: busca pelo ROTULO na coluna F ("CUSTO DA OPERACAO TOTAL", "IMPOSTO",
+//   "COMISSAO ULTRAVEL"...), nao pela posicao da linha. Inserir uma linha no meio do
+//   simulador nao quebra a conta.
+// NADA DISSO DERRUBA A TELA: cada bloco so aparece se encontrar o que precisa. Mexer na
+// planilha, no pior caso, esconde um pedaco do resumo — nunca quebra a pagina.
+// Os alertas tambem viraram calculo, nao texto fixo: a margem negativa so aparece se a
+// soma DER negativa, o aviso de pagamento abaixo do preco e gerado para QUEM estiver
+// abaixo (hoje a Rosane), e o total de alteracao de voo soma os lancamentos cuja descricao
+// menciona voo. Se o Nando corrigir um valor, o alerta some sozinho.
+// ANTERIOR: (·374) GESTAO E CONTROLE: AS 6 ABAS DO XLSX NA TELA, EDITAVEIS.
 // Pedido do Nando: inserir cada aba do arquivo na pagina principal do card e permitir que
 // TODOS os dados sejam editaveis.
 // NAO ESCREVI UMA SEGUNDA PLANILHA. Generalizei a do Controle Geral (·363) para dois
@@ -31572,7 +31595,8 @@ body.dark .csdi-pax-flag.ok{color:#A9DB3A} body.dark .csdi-pax-flag.falta{color:
 .csdi-anexo-s{display:block;font-size:10.5px;font-weight:700;color:var(--texto-fraco);letter-spacing:.3px;text-transform:uppercase;margin-top:1px}
 /* (·373) Gestão e Controle */
 /* (·374) a planilha ocupa a seção inteira do card, sem a moldura dupla */
-.csdi-sec-gc{padding:14px}
+.csdi-sec-gc{padding:14px 16px 16px}
+.gc-vivo{margin-top:11px;font-size:11.5px;color:var(--texto-fraco);border-top:1px dashed var(--borda);padding-top:9px}
 .csdi-nada-gc{padding:26px;text-align:center;color:var(--texto-fraco);font-size:12.5px}
 .csdi-kpis-gc{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:11px}
 .gc-kpi{background:var(--fundo);border:1px solid var(--borda);border-left:4px solid var(--kc,var(--cor));border-radius:11px;padding:11px 13px}
@@ -32267,21 +32291,210 @@ body.dark .gc-pos{color:#A9DB3A} body.dark .gc-neg{color:#FF8B8B}
         '<td class="gc-v '+(sinal<0?'gc-neg':'gc-pos')+'">'+(sinal<0?'− ':'')+'R$ '+gcMoeda(l.valor)+'</td></tr>';
     }).join('');
   }
+  /* ------------------------------------------- DOC 6 — GESTÃO E CONTROLE ----
+     (·375) O card tem AS DUAS COISAS: o resumo em cima e a planilha inteira
+     embaixo. E o resumo é CALCULADO A PARTIR DA PLANILHA VIVA, não de números
+     que eu teria escrito aqui — se fosse cópia, ele mentiria na primeira
+     edição, e número errado em tela de financeiro é pior do que número nenhum.
+     Cada bloco só aparece se encontrar o que precisa: mexer na planilha nunca
+     derruba a tela, no máximo esconde um pedaço do resumo. */
+  function gcN(txt){
+    if(txt==null) return null;
+    var t=String(txt).replace(/[R$\s]/g,'').replace(/\./g,'').replace(',','.');
+    if(!t || !/^-?\d+(\.\d+)?$/.test(t)) return null;
+    var n=parseFloat(t); return isNaN(n)?null:n;
+  }
+  function gcM(n){
+    try{ return n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+    catch(e){ return (Math.round(n*100)/100).toFixed(2); }
+  }
+  function gcEhData(t){ return /^\d{2}\/\d{2}\/\d{4}$/.test(String(t||'').trim()); }
+  /* Procura pelo RÓTULO, não pela posição: se alguém inserir uma linha no meio
+     do simulador, a conta continua achando o valor certo. */
+  function gcPorRotulo(linhas, colRot, rotulo){
+    var alvo=String(rotulo).toLowerCase();
+    for(var i=0;i<linhas.length;i++){
+      var v=linhas[i].v||{};
+      if(String(v[colRot]||'').trim().toLowerCase()===alvo) return linhas[i];
+    }
+    return null;
+  }
+  function gcResumo(){
+    var d=null;
+    try{ d=(typeof window.cgDados==='function')? window.cgDados('csdiGestao') : null; }catch(e){ d=null; }
+    if(!d) return null;
+    var R={};
+
+    /* ---- inscritos: nome | pago | custo ---- */
+    var ins=d['inscritos']||[];
+    R.inscritos=ins.map(function(L){
+      var v=L.v||{};
+      return { nome:(v.c1||'').trim(), pago:gcN(v.c2), custo:gcN(v.c3) };
+    }).filter(function(x){ return x.nome && x.pago!=null; });
+
+    /* ---- fluxo: linha com DATA na coluna A e número na B é um movimento.
+       O que vem antes da linha "Total" é entrada; o que vem depois, saída.
+       É a forma da planilha, e continua valendo se alguém acrescentar
+       lançamentos seguindo o mesmo padrão. ---- */
+    var fx=d['FLUXO CAIXA']||[];
+    var corte=fx.length;
+    for(var k=0;k<fx.length;k++){
+      if(String((fx[k].v||{}).c1||'').trim().toLowerCase()==='total'){ corte=k; break; }
+    }
+    R.entradas=[]; R.saidas=[];
+    fx.forEach(function(L,idx){
+      var v=L.v||{}, val=gcN(v.c2);
+      if(!gcEhData(v.c1) || val==null) return;
+      var mov={data:String(v.c1).trim(), valor:val, forma:(v.c3||'').trim(), desc:(v.c4||'').trim(), obs:(v.c6||'').trim()};
+      if(idx<corte) R.entradas.push(mov); else R.saidas.push(mov);
+    });
+
+    /* ---- simuladores ---- */
+    R.sims=[];
+    [['CARAVANA 10 PAX',10],['CARAVANA 20 PAX',20]].forEach(function(par){
+      var L=d[par[0]]; if(!L || !L.length) return;
+      function porRot(r, col){ var x=gcPorRotulo(L,'c6',r); return x? gcN((x.v||{})[col||'c9']) : null; }
+      function pct(r){ var x=gcPorRotulo(L,'c6',r); return x? gcN((x.v||{}).c7) : null; }
+      var ultimoI=null;
+      L.forEach(function(x){ var n=gcN((x.v||{}).c9); if(n!=null) ultimoI=n; });
+      var sim={
+        pax:par[1],
+        custoOper: porRot('CUSTO OPERAÇÃO','c8'),
+        imposto:   pct('IMPOSTO'),      valImposto:  porRot('IMPOSTO','c8'),
+        comissao:  pct('COMISSÃO ULTRAVEL'), valComissao: porRot('COMISSÃO ULTRAVEL','c8'),
+        trader:    pct('TRADER / CAPTADOR'), valTrader:   porRot('TRADER / CAPTADOR','c8'),
+        total:     porRot('CUSTO DA OPERAÇÃO TOTAL','c8'),
+        individual:porRot('VALOR DE VENDA INDIVIDUAL','c9'),
+        final:     ultimoI
+      };
+      sim.extras=L.map(function(x){
+        var v=x.v||{}, nome=(v.c10||'').trim(), val=gcN(v.c9);
+        return (nome && val!=null) ? {n:nome, v:val} : null;
+      }).filter(Boolean);
+      if(sim.total!=null) R.sims.push(sim);
+    });
+    return R;
+  }
+
   function telaGestao(){
     var d=DOCS.gestao, h=barra('gestao');
-    /* (·374) A PÁGINA PRINCIPAL DO CARD É A PLANILHA. Pedido do Nando: as seis
-       abas do arquivo, com todos os dados editáveis. Quem monta é o motor do
-       Controle Geral (·363/·374) — abas, busca, edição célula a célula, nova
-       linha, nova coluna, barra de rolagem em cima e embaixo, e a união
-       multi-PC. Aqui não há uma segunda implementação: só um segundo contexto.
-       O layout preservado é o DO ARQUIVO — colunas A, B, C… e o número da
-       linha como está na planilha —, porque as abas de simulação não são
-       tabelas de colunas nomeadas, e é pela posição que a pessoa reconhece a
-       tela que ela usa todo dia. */
+    var R=gcResumo();
+
+    if(R){
+      var entra=R.entradas.reduce(function(a,l){ return a+l.valor; },0);
+      var sai  =R.saidas.reduce(function(a,l){ return a+l.valor; },0);
+
+      /* ---- KPIs ---- */
+      h+='<div class="csdi-sec" '+corStyle(d)+'><div class="csdi-sec-t"><i>💰</i>Posição do grupo</div>'+
+         '<div class="csdi-kpis-gc">'+
+         '<div class="gc-kpi" style="--kc:#94C11E"><div class="gc-kpi-l">Recebido</div><div class="gc-kpi-v">R$ '+gcM(entra)+'</div><div class="gc-kpi-o">'+R.entradas.length+' pagamento(s)</div></div>'+
+         '<div class="gc-kpi" style="--kc:#E5141A"><div class="gc-kpi-l">Saídas</div><div class="gc-kpi-v">R$ '+gcM(sai)+'</div><div class="gc-kpi-o">'+R.saidas.length+' lançamento(s)</div></div>'+
+         '<div class="gc-kpi" style="--kc:#005DAA"><div class="gc-kpi-l">Resultado</div><div class="gc-kpi-v">R$ '+gcM(entra-sai)+'</div><div class="gc-kpi-o">recebido − saídas</div></div>'+
+         '<div class="gc-kpi" style="--kc:#D4407A"><div class="gc-kpi-l">Inscritos</div><div class="gc-kpi-v">'+R.inscritos.length+'</div><div class="gc-kpi-o">'+(R.sims.length?'o simulador pressupõe '+R.sims[0].pax:'na aba inscritos')+'</div></div>'+
+         '</div>'+
+         '<div class="gc-vivo">🔄 Tudo nesta tela é calculado a partir da planilha abaixo — editou lá, muda aqui.</div></div>';
+
+      /* ---- resultado por inscrito ---- */
+      if(R.inscritos.length){
+        var somaPago=0, somaCusto=0;
+        R.inscritos.forEach(function(i){ somaPago+=i.pago; somaCusto+=(i.custo||0); });
+        var somaMargem=somaPago-somaCusto;
+        var custoRef=R.inscritos[0].custo;
+        h+='<div class="csdi-sec" '+corStyle(d)+'><div class="csdi-sec-t"><i>🧾</i>Resultado por inscrito</div>'+
+           (custoRef!=null?'<div class="csdi-ico-d" style="font-size:12.5px;margin-bottom:10px">Custo por passageiro de <b>R$ '+gcM(custoRef)+'</b>'+(R.sims.length?' — o número que o simulador de <b>'+R.sims[0].pax+' passageiros</b> devolve.':'.')+'</div>':'')+
+           '<div class="gc-tab-wrap"><table class="gc-tab"><thead><tr><th>Passageiro</th><th class="gc-v">Pago</th><th class="gc-v">Custo</th><th class="gc-v">Margem</th></tr></thead><tbody>'+
+           R.inscritos.map(function(i){
+             var m=i.pago-(i.custo||0);
+             return '<tr><td>'+esc(i.nome)+'</td><td class="gc-v">R$ '+gcM(i.pago)+'</td>'+
+               '<td class="gc-v gc-fraco">'+(i.custo!=null?'R$ '+gcM(i.custo):'—')+'</td>'+
+               '<td class="gc-v '+(m<0?'gc-neg':'gc-pos')+'">'+(m<0?'− R$ '+gcM(-m):'R$ '+gcM(m))+'</td></tr>';
+           }).join('')+
+           '</tbody><tfoot><tr><td>Total</td><td class="gc-v">R$ '+gcM(somaPago)+'</td><td class="gc-v">R$ '+gcM(somaCusto)+'</td>'+
+           '<td class="gc-v '+(somaMargem<0?'gc-neg':'gc-pos')+'">'+(somaMargem<0?'− R$ '+gcM(-somaMargem):'R$ '+gcM(somaMargem))+'</td></tr></tfoot></table></div>';
+
+        if(somaMargem<0 && R.sims.length && R.inscritos.length<R.sims[0].pax){
+          h+='<div class="csdi-alert bad">📉 <b>Somadas, as margens dão − R$ '+gcM(-somaMargem)+'.</b> '+
+             'A conta fica negativa porque o custo por pessoa é o rateio calculado <b>para '+R.sims[0].pax+' passageiros</b>, e o grupo tem <b>'+R.inscritos.length+'</b>. '+
+             'Com menos gente, o custo fixo da operação não se dilui.</div>';
+        } else if(somaMargem<0){
+          h+='<div class="csdi-alert bad">📉 <b>Somadas, as margens dão − R$ '+gcM(-somaMargem)+'.</b> O grupo está pagando menos do que custa.</div>';
+        }
+
+        var PRECO=29950;
+        var abaixo=R.inscritos.filter(function(i){ return i.pago < PRECO-0.005; });
+        abaixo.forEach(function(i){
+          h+='<div class="csdi-alert warn">💸 <b>'+esc(i.nome)+' pagou R$ '+gcM(i.pago)+'</b>, enquanto o valor da imersão é <b>R$ '+gcM(PRECO)+'</b>. '+
+             'A diferença é de <b>R$ '+gcM(PRECO-i.pago)+'</b>. Pode ser condição negociada ou parcela em aberto — vale conferir antes de fechar o resultado do grupo.</div>';
+        });
+        h+='</div>';
+      }
+
+      /* ---- fluxo de caixa ---- */
+      if(R.entradas.length || R.saidas.length){
+        function linhasFx(arr, neg){
+          return arr.map(function(l){
+            return '<tr><td class="gc-dt">'+esc(l.data)+'</td>'+
+              '<td>'+esc(l.desc)+(l.obs?'<span class="gc-obs">'+esc(l.obs)+'</span>':'')+'</td>'+
+              '<td class="gc-forma">'+esc(l.forma)+'</td>'+
+              '<td class="gc-v '+(neg?'gc-neg':'gc-pos')+'">'+(neg?'− ':'')+'R$ '+gcM(l.valor)+'</td></tr>';
+          }).join('');
+        }
+        h+='<div class="csdi-sec" '+corStyle(d)+'><div class="csdi-sec-t"><i>📒</i>Fluxo de caixa</div>';
+        if(R.entradas.length){
+          h+='<div class="gc-sub">Entradas</div><div class="gc-tab-wrap"><table class="gc-tab">'+
+             '<thead><tr><th>Data</th><th>Descrição</th><th>Forma</th><th class="gc-v">Valor</th></tr></thead>'+
+             '<tbody>'+linhasFx(R.entradas,false)+'</tbody>'+
+             '<tfoot><tr><td colspan="3">Total recebido</td><td class="gc-v gc-pos">R$ '+gcM(entra)+'</td></tr></tfoot></table></div>';
+        }
+        if(R.saidas.length){
+          h+='<div class="gc-sub">Saídas</div><div class="gc-tab-wrap"><table class="gc-tab">'+
+             '<thead><tr><th>Data</th><th>Descrição</th><th>Forma</th><th class="gc-v">Valor</th></tr></thead>'+
+             '<tbody>'+linhasFx(R.saidas,true)+'</tbody>'+
+             '<tfoot><tr><td colspan="3">Total de saídas</td><td class="gc-v gc-neg">− R$ '+gcM(sai)+'</td></tr>'+
+             '<tr><td colspan="3"><b>Resultado</b></td><td class="gc-v"><b>R$ '+gcM(entra-sai)+'</b></td></tr></tfoot></table></div>';
+          var voos=R.saidas.filter(function(l){ return /voo/i.test(l.desc); });
+          if(voos.length){
+            var tv=voos.reduce(function(a,l){ return a+l.valor; },0);
+            h+='<div class="csdi-alert info">✈️ <b>R$ '+gcM(tv)+' saíram em alteração de voo</b>, em '+voos.length+' lançamento(s).</div>';
+          }
+        }
+        h+='</div>';
+      }
+
+      /* ---- simuladores ---- */
+      if(R.sims.length){
+        h+='<div class="csdi-sec" '+corStyle(d)+'><div class="csdi-sec-t"><i>🧮</i>Simulador de precificação</div><div class="gc-sims">';
+        R.sims.forEach(function(m,idx){
+          h+='<div class="gc-sim'+(idx===0?' gc-sim-on':'')+'">'+
+            '<div class="gc-sim-cab">'+m.pax+' passageiros'+(idx===0?'<span class="gc-sim-tag">cenário usado hoje</span>':'')+'</div>'+
+            '<table class="gc-tab gc-tab-sim"><tbody>'+
+            (m.custoOper!=null?'<tr><td>Custo da operação</td><td class="gc-v">R$ '+gcM(m.custoOper)+'</td></tr>':'')+
+            (m.valImposto!=null?'<tr><td>Imposto'+(m.imposto!=null?' ('+(m.imposto*100).toFixed(0)+'%)':'')+'</td><td class="gc-v">R$ '+gcM(m.valImposto)+'</td></tr>':'')+
+            (m.valComissao!=null?'<tr><td>Comissão Ultravel'+(m.comissao!=null?' ('+(m.comissao*100).toFixed(0)+'%)':'')+'</td><td class="gc-v">R$ '+gcM(m.valComissao)+'</td></tr>':'')+
+            (m.valTrader!=null?'<tr><td>Trader / captador'+(m.trader!=null?' ('+(m.trader*100).toFixed(0)+'%)':'')+'</td><td class="gc-v">R$ '+gcM(m.valTrader)+'</td></tr>':'')+
+            (m.total!=null?'<tr class="gc-tr-tot"><td>Custo total da operação</td><td class="gc-v">R$ '+gcM(m.total)+'</td></tr>':'')+
+            (m.individual!=null?'<tr><td>Valor de venda individual</td><td class="gc-v">R$ '+gcM(m.individual)+'</td></tr>':'')+
+            m.extras.map(function(e){ return '<tr><td class="gc-fraco">+ '+esc(e.n)+'</td><td class="gc-v gc-fraco">R$ '+gcM(e.v)+'</td></tr>'; }).join('')+
+            (m.final!=null?'<tr class="gc-tr-final"><td>Preço por pessoa</td><td class="gc-v">R$ '+gcM(m.final)+'</td></tr>':'')+
+            '</tbody></table></div>';
+        });
+        h+='</div>';
+        if(R.sims.length===2 && R.sims[0].final!=null && R.sims[1].final!=null){
+          h+='<div class="csdi-alert info">📐 <b>A diferença entre os cenários é o rateio.</b> De '+R.sims[0].pax+' para '+R.sims[1].pax+' pessoas, o preço por pessoa cai de <b>R$ '+gcM(R.sims[0].final)+'</b> para <b>R$ '+gcM(R.sims[1].final)+'</b> — <b>R$ '+gcM(R.sims[0].final-R.sims[1].final)+'</b> a menos, porque o custo fixo se divide por mais gente.</div>';
+        }
+        h+='</div>';
+      }
+    }
+
+    /* ---- a planilha inteira, editável ---- */
     var grade='';
     try{ grade = (typeof window.cgSecaoHtml==='function') ? (window.cgSecaoHtml('csdiGestao')||'') : ''; }catch(e){ grade=''; }
-    if(!grade) return h+'<div class="csdi-sec" '+corStyle(d)+'><div class="csdi-nada-gc">Não foi possível montar a planilha nesta sessão.</div></div>';
-    h+='<div class="csdi-sec csdi-sec-gc" '+corStyle(d)+'>'+grade+'</div>';
+    if(grade){
+      h+='<div class="csdi-sec csdi-sec-gc" '+corStyle(d)+'>'+
+         '<div class="csdi-sec-t"><i>📋</i>Planilha completa — todas as abas, editável</div>'+grade+'</div>';
+    } else if(!R){
+      h+='<div class="csdi-sec" '+corStyle(d)+'><div class="csdi-nada-gc">Não foi possível montar a planilha nesta sessão.</div></div>';
+    }
     return h;
   }
 
@@ -32801,6 +33014,30 @@ body.dark .cg-badge.ok{color:#A9DB3A} body.dark .cg-badge.mau{color:#FF8B8B} bod
     var n=0; cgAbasLista().forEach(function(a){ n+=cgLinhasDe(a).length; }); return n;
   }
   window.cgTotalLinhas=cgTotalLinhas;
+
+  /* (·375) LEITURA DA PLANILHA POR QUEM ESTÁ FORA DO MÓDULO.
+     O resumo do card Gestão e Controle precisa dos números que a pessoa pode
+     estar editando agora. Em vez de o outro módulo guardar uma cópia dos
+     valores — que mentiria na primeira edição —, ele LÊ daqui, do mesmo lugar
+     onde a tabela lê. Devolve uma estrutura simples (aba → linhas → células),
+     já sem as linhas apagadas e na ordem da planilha. */
+  window.cgDados=function(qualCtx){
+    var antes=cgCtx;
+    cgCtx = (qualCtx && CG_CTX[qualCtx]) ? qualCtx : 'controleGeral';
+    try{
+      if(!cgPodeCtx()) return null;
+      cgSemear();
+      var s=cgStore(), out={};
+      cgAbasLista().forEach(function(aid){
+        out[s.abas[aid].nome]=cgLinhasDe(aid).map(function(lid){
+          var L=s.linhas[lid];
+          return { nr:L.nr||0, v:(L.v||{}) };
+        });
+      });
+      return out;
+    }catch(e){ return null; }
+    finally{ cgCtx=antes; }
+  };
 
   function cgCorpoHtml(){
     var s=cgStore(), aid=cgT().aba, aba=s.abas[aid]; if(!aba) return '';
