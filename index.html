@@ -4311,7 +4311,35 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 372; // (·372) IMERSAO CSDI: QUINTO CARD "VISTOS" (ETA-IL). Pedido do
+var UV_BUILD_NUM = 373; // (·373) IMERSAO CSDI: SEXTO CARD "GESTAO E CONTROLE", RESTRITO.
+// Pedido do Nando: card novo com o selo "Acesso Restrito" pequeno e discreto sob o titulo,
+// visivel so para a DIRETORIA mais Ruth Alves e Mayara Marcelli, no mesmo padrao dos outros
+// cards, e posicionado comecando uma linha nova, alinhado com o primeiro card de cima.
+// QUEM VE: Fernando Pires, Diego Oliveira, Ana Maria, Hynae Teston (a diretoria, conforme
+// combinado com o Nando), mais Ruth Alves e Mayara Marcelli. LISTA DE NOMES, nao o perfil
+// admin — admin e cargo e pode ser dado a outra pessoa amanha; diretoria e um conjunto de
+// pessoas. Mesma decisao e mesma funcao de comparacao do Controle Geral (·363).
+// A TRAVA VALE EM DOIS PONTOS, e isso importa: a capa nao monta o card, e o ROTEAMENTO da
+// tela tambem confere. So esconder o card deixaria o financeiro do grupo desenhavel por
+// qualquer outro caminho que setasse a tela.
+// POSICAO: grid-column:1 no card. Sem isso ele cairia no buraco que sobrou da linha de
+// cima — buraco que muda de lugar conforme a largura da janela, entao "alinhado" so
+// aconteceria por sorte em algumas telas.
+// OS NUMEROS FORAM CONFERIDOS, nao transcritos. Recalculei: total recebido (74.082,90),
+// soma das saidas (11.860,74), resultado (62.222,16) e a margem de cada inscrito — todos
+// batem com a planilha.
+// TRES COISAS QUE A CONFERENCIA MOSTROU, e que a tela destaca:
+// (1) Somadas, as tres margens dao MENOS R$ 3.202,80. A conta fica negativa porque o custo
+// de R$ 25.761,90 por pessoa e o rateio calculado PARA 10 PASSAGEIROS, e o grupo tem 3 —
+// com menos gente o custo fixo nao se dilui.
+// (2) Rosane pagou R$ 17.535,00 e a imersao custa R$ 29.950,00: diferenca de R$ 12.415,00.
+// Pode ser condicao negociada ou parcela em aberto — a tela diz "vale conferir", nao
+// afirma divida, porque a planilha nao registra o preco acordado com ela.
+// (3) R$ 6.860,74 sairam so em ALTERACAO DE VOO, em quatro lancamentos de 22/08 (um da
+// Rosane, um da Luciane e DOIS do Rafael) — o segundo maior gasto do grupo.
+// Nenhuma funcao nova: o card declara campos no mesmo mapa DOCS (selo, novaLinha,
+// restrito, link) e o Visualizar usa o mesmo caminho de link do ·368.
+// ANTERIOR: (·372) IMERSAO CSDI: QUINTO CARD "VISTOS" (ETA-IL). Pedido do
 // Nando: repetir para as aprovacoes de entrada em Israel exatamente o que o card
 // Passaportes ja faz, com todas as funcoes. Entao: card proprio na capa, fichas
 // MINIMIZADAS que abrem ao clicar, documento anexado em cada uma abrindo DENTRO do Hub
@@ -31360,6 +31388,12 @@ body.dark .csdi-chip-top{border-color:rgba(18,176,255,.28);color:#5FC2FF}
 .csdi-card-d{font-size:12.5px;color:var(--texto-suave);line-height:1.55;flex:1}
 .csdi-tags{display:flex;flex-wrap:wrap;gap:6px}
 .csdi-tag{font-size:11px;font-weight:700;padding:4px 9px;border-radius:999px;background:var(--corBg);color:var(--cor);border:1px solid var(--corBd)}
+/* (·373) selo discreto sob o título do card, centralizado */
+.csdi-card-selo{display:block;text-align:center;font-size:10.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--texto-fraco);margin:-4px 0 2px;opacity:.85}
+/* começa uma linha nova, encostado na esquerda, alinhado com o primeiro card —
+   sem isso ele cairia no buraco que sobrou da linha de cima, que muda de
+   posição conforme a largura da janela */
+.csdi-card-linha-nova{grid-column:1}
 .csdi-card-cta{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;color:var(--cor);margin-top:2px}
 .csdi-card:hover .csdi-card-cta span{transform:translateX(3px)}
 .csdi-card-cta span{transition:transform .16s;display:inline-block}
@@ -31497,6 +31531,37 @@ body.dark .csdi-pax-flag.ok{color:#A9DB3A} body.dark .csdi-pax-flag.falta{color:
 .csdi-anexo-ic{font-size:17px;line-height:1}
 .csdi-anexo-t{display:block;line-height:1.3}
 .csdi-anexo-s{display:block;font-size:10.5px;font-weight:700;color:var(--texto-fraco);letter-spacing:.3px;text-transform:uppercase;margin-top:1px}
+/* (·373) Gestão e Controle */
+.csdi-kpis-gc{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:11px}
+.gc-kpi{background:var(--fundo);border:1px solid var(--borda);border-left:4px solid var(--kc,var(--cor));border-radius:11px;padding:11px 13px}
+.gc-kpi-l{font-size:10.5px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--texto-fraco)}
+.gc-kpi-v{font-size:19px;font-weight:800;color:var(--texto);margin-top:3px;letter-spacing:-.3px;font-variant-numeric:tabular-nums}
+.gc-kpi-o{font-size:11px;color:var(--texto-fraco);margin-top:2px}
+.gc-tab-wrap{overflow-x:auto;border:1px solid var(--borda);border-radius:10px;margin-bottom:6px}
+table.gc-tab{width:100%;border-collapse:separate;border-spacing:0;font-size:12.5px;min-width:480px}
+.gc-tab th{background:var(--fundo);color:var(--texto-suave);font-size:10.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;text-align:left;padding:8px 11px;border-bottom:1px solid var(--borda-forte);white-space:nowrap}
+.gc-tab td{padding:8px 11px;border-bottom:1px solid var(--borda);color:var(--texto)}
+.gc-tab tbody tr:last-child td{border-bottom:0}
+.gc-tab tfoot td{background:var(--fundo);border-top:1px solid var(--borda-forte);font-weight:800;padding:9px 11px}
+.gc-tab th.gc-v,.gc-tab td.gc-v{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:700}
+.gc-dt{white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--texto-suave)}
+.gc-forma{color:var(--texto-suave);font-size:12px;white-space:nowrap}
+.gc-fraco{color:var(--texto-fraco);font-weight:600!important}
+.gc-pos{color:#5f8508} .gc-neg{color:#D2262B}
+body.dark .gc-pos{color:#A9DB3A} body.dark .gc-neg{color:#FF8B8B}
+.gc-obs{display:block;font-size:11px;color:var(--texto-fraco);font-style:italic;margin-top:2px}
+.gc-sub{font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--cor);margin:14px 0 7px}
+.gc-sub:first-of-type{margin-top:0}
+.gc-sims{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+.gc-sim{border:1px solid var(--borda);border-radius:12px;overflow:hidden;background:var(--fundo)}
+.gc-sim-on{border-color:var(--corBd);box-shadow:0 0 0 1px var(--corBd)}
+.gc-sim-cab{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:10px 13px;background:var(--card);border-bottom:1px solid var(--borda);font-size:13.5px;font-weight:800;color:var(--texto)}
+.gc-sim-tag{font-size:10px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;padding:3px 9px;border-radius:999px;background:var(--cor);color:#fff}
+.gc-tab-sim{min-width:0;font-size:12px}
+.gc-tab-sim td{padding:6px 13px}
+.gc-tr-tot td{border-top:1px solid var(--borda-forte);font-weight:800}
+.gc-tr-final td{background:var(--corBg);font-weight:800;font-size:13px;border-top:1px solid var(--corBd)}
+.gc-sim-usd{padding:9px 13px;font-size:11.5px;color:var(--texto-suave);border-top:1px solid var(--borda);line-height:1.55}
 .csdi-senha{display:inline-flex;align-items:center;gap:7px}
 .csdi-senha-bt{border:1px solid var(--borda-forte);background:var(--card);color:var(--texto-suave);border-radius:7px;font-size:11px;font-weight:700;padding:2px 8px;cursor:pointer}
 .csdi-senha-bt:hover{border-color:var(--cor);color:var(--cor)}
@@ -31592,8 +31657,55 @@ body.dark .csdi-pax-flag.ok{color:#A9DB3A} body.dark .csdi-pax-flag.falta{color:
       tags:['3 aprovados','ETA-IL','Entrada em Israel'],
       badge:'AUTORIZAÇÕES',
       link:'https://drive.google.com/drive/u/1/folders/1liGFDregvMCfETBkUx_Fdd8cx79NgTfA'
+    },
+    gestao:{
+      nome:'Gestão e Controle',
+      curto:'Gestão',
+      emoji:'📊',
+      cor:'#D4407A', corBg:'rgba(212,64,122,.10)', corBd:'rgba(212,64,122,.30)',
+      selo:'Acesso Restrito',
+      desc:'Fluxo de caixa do grupo, resultado por inscrito e os simuladores de precificação da caravana.',
+      tags:['Fluxo de caixa','Resultado','Precificação'],
+      badge:'RESTRITO',
+      novaLinha:true,
+      restrito:true,
+      link:'https://docs.google.com/spreadsheets/d/1-vxzEJMgPzdesj6bJfgODhGD0xRzhF0G/edit?pli=1&gid=42110299#gid=42110299'
     }
   };
+
+  /* ---------------- (·373) QUEM VÊ O CARD GESTÃO E CONTROLE ----------------
+     A DIRETORIA (Fernando Pires, Diego Oliveira, Ana Maria e Hynaê Teston) mais
+     Ruth Alves e Mayara Marcelli. Lista de NOMES, não o perfil admin: admin é um
+     cargo e pode ser dado a outra pessoa amanhã; diretoria é um conjunto de
+     pessoas. É a mesma decisão — e a mesma função de comparação — do Controle
+     Geral (·363). Quem não está na lista não recebe o card na capa NEM consegue
+     abrir a tela por outro caminho. */
+  var CSDI_GESTAO_LIBERADOS=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston','Ruth Alves','Mayara Marcelli'];
+  function csdiNorm(x){ return (x||'').toString().trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' '); }
+  /* Igualdade normalizada primeiro; primeiro nome só decide se for ÚNICO na
+     lista — na dúvida, NÃO libera. Mesma cautela do ·215/·220/·363. */
+  function csdiMesmaPessoa(a,b){
+    var x=csdiNorm(a), y=csdiNorm(b); if(!x||!y) return false;
+    if(x===y) return true;
+    var px=x.split(' ')[0], py=y.split(' ')[0];
+    if(px!==py) return false;
+    var n=0; CSDI_GESTAO_LIBERADOS.forEach(function(o){ if(csdiNorm(o).split(' ')[0]===px) n++; });
+    return n===1;
+  }
+  function csdiPodeGestao(){
+    var meu=''; try{ meu=(typeof window.uvAuthNome==='function'?window.uvAuthNome():'')||''; }catch(e){}
+    if(!meu) return false;
+    for(var i=0;i<CSDI_GESTAO_LIBERADOS.length;i++){ if(csdiMesmaPessoa(CSDI_GESTAO_LIBERADOS[i], meu)) return true; }
+    return false;
+  }
+  window.csdiPodeGestao=csdiPodeGestao;
+  /* Uma função só decide quais cards existem para esta pessoa — a capa e o
+     roteamento da tela consultam a MESMA lista, então não há porta dos fundos. */
+  function csdiCardsVisiveis(){
+    return ['apresentacao','guia','voos','passaportes','vistos','gestao'].filter(function(k){
+      return !DOCS[k].restrito || csdiPodeGestao();
+    });
+  }
   function corStyle(d){ return 'style="--cor:'+d.cor+';--corBg:'+d.corBg+';--corBd:'+d.corBd+'"'; }
 
   /* ---------------------------------------------------------------- CAPA */
@@ -31610,12 +31722,13 @@ body.dark .csdi-pax-flag.ok{color:#A9DB3A} body.dark .csdi-pax-flag.falta{color:
     h+='<div class="csdi-sub">Dra. Jane Krüger · 03 a 13 de dezembro de 2026</div>';
     h+='</div><span class="csdi-chip-top">📁 3 documentos do grupo</span></div>';
     h+='<div class="csdi-grid">';
-    ['apresentacao','guia','voos','passaportes','vistos'].forEach(function(k){
+    csdiCardsVisiveis().forEach(function(k){
       var d=DOCS[k];
-      h+='<div class="csdi-card" data-csdi-abrir="'+k+'" '+corStyle(d)+'>';
+      h+='<div class="csdi-card'+(d.novaLinha?' csdi-card-linha-nova':'')+'" data-csdi-abrir="'+k+'" '+corStyle(d)+'>';
       h+='<div class="csdi-card-top"></div><div class="csdi-card-body">';
       h+='<div class="csdi-card-ic">'+d.emoji+'</div>';
       h+='<h2 class="csdi-card-t">'+esc(d.nome)+'</h2>';
+      if(d.selo) h+='<span class="csdi-card-selo">'+esc(d.selo)+'</span>';
       h+='<div class="csdi-card-d">'+esc(d.desc)+'</div>';
       h+='<div class="csdi-tags">'+d.tags.map(function(t){ return '<span class="csdi-tag">'+esc(t)+'</span>'; }).join('')+'</div>';
       h+='<div class="csdi-card-cta">Abrir documento <span>→</span></div>';
@@ -32065,6 +32178,128 @@ body.dark .csdi-pax-flag.ok{color:#A9DB3A} body.dark .csdi-pax-flag.falta{color:
     return h;
   }
 
+  /* ------------------------------------------- DOC 6 — GESTÃO E CONTROLE ----
+     Números lidos da planilha "Gestão e Controle.xlsx". CONFERIDOS, não
+     transcritos: recalculei o total recebido, a soma das saídas, o resultado e
+     a margem de cada inscrito — todos batem com o que a planilha traz. */
+  var GC_FLUXO_ENTRA=[
+    {data:'03/07/2026', valor:5990,    forma:'Pix Santander', desc:'Luciane Tonin Mecca'},
+    {data:'29/07/2026', valor:23960,   forma:'Pix Santander', desc:'Luciane Tonin Mecca'},
+    {data:'31/07/2026', valor:26597.90,forma:'Stone líquido', desc:'Rafael Nunez Steffen'},
+    {data:'03/08/2026', valor:17535,   forma:'Pix Santander', desc:'Rosane Baldasso Barth'}
+  ];
+  var GC_FLUXO_SAI=[
+    {data:'03/08/2026', valor:5000,   forma:'Pix Santander',     desc:'Due Comunicação', obs:'descontar resultado Jane'},
+    {data:'22/08/2026', valor:1146.87,forma:'Faturado Confiança',desc:'Alteração de voo AHZTOY — Rosane Baldasso Barth'},
+    {data:'22/08/2026', valor:1911.83,forma:'Faturado Confiança',desc:'Alteração de voo JJOXPB — Luciane Tonin Mecca'},
+    {data:'22/08/2026', valor:1586.10,forma:'Faturado Confiança',desc:'Alteração de voo GICJOS — Rafael Nunez Steffen'},
+    {data:'22/08/2026', valor:2215.94,forma:'Faturado Confiança',desc:'Alteração de voo DQ3WHT — Rafael Nunez Steffen'}
+  ];
+  var GC_CUSTO_PAX=25761.90;
+  var GC_INSCRITOS=[
+    {nome:'Luciane Tonin Mecca',   pago:29950},
+    {nome:'Rosane Baldasso Barth', pago:17535},
+    {nome:'Rafael Nunez Steffen',  pago:26597.90}
+  ];
+  var GC_SIM=[
+    {pax:10, custoOper:176112.69, horas:4, custoHora:2980.365455, imposto:0.05, valImposto:9269.088947,
+     comissao:0.20, valComissao:47090.5361, trader:0.15, valTrader:8310.094606,
+     total:243762.7751, individual:24376.27751, extras:[{n:'Gorjetas',v:700},{n:'Seguro viagem',v:485},{n:'Brinde',v:200}],
+     final:25761.90, usdUnit:3030, usdTotal:30300, cotacao:5.26, remessa:0.105, brlTotal:176112.69},
+    {pax:20, custoOper:236560.61, horas:4, custoHora:2980.365455, imposto:0.05, valImposto:12450.55842,
+     comissao:0.20, valComissao:62997.88347, trader:0.15, valTrader:11117.27355,
+     total:326106.6909, individual:16305.33454, extras:[{n:'Gorjetas',v:700},{n:'Seguro viagem',v:485},{n:'Brinde',v:200}],
+     final:17690.33454, usdUnit:2035, usdTotal:40700, cotacao:5.26, remessa:0.105, brlTotal:236560.61}
+  ];
+  var GC_CORP={fixo:158920.10, marketing:4000, sistema:1000, total:163920.10, horas:220, custoHora:745.0913636, base:'Jan/26'};
+
+  function gcMoeda(n){
+    try{ return n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+    catch(e){ return (Math.round(n*100)/100).toFixed(2); }
+  }
+  function gcLinhas(arr, sinal){
+    return arr.map(function(l){
+      return '<tr><td class="gc-dt">'+esc(l.data)+'</td>'+
+        '<td>'+esc(l.desc)+(l.obs?'<span class="gc-obs">'+esc(l.obs)+'</span>':'')+'</td>'+
+        '<td class="gc-forma">'+esc(l.forma)+'</td>'+
+        '<td class="gc-v '+(sinal<0?'gc-neg':'gc-pos')+'">'+(sinal<0?'− ':'')+'R$ '+gcMoeda(l.valor)+'</td></tr>';
+    }).join('');
+  }
+  function telaGestao(){
+    var d=DOCS.gestao, h=barra('gestao');
+    var entra=GC_FLUXO_ENTRA.reduce(function(a,l){ return a+l.valor; },0);
+    var sai  =GC_FLUXO_SAI.reduce(function(a,l){ return a+l.valor; },0);
+    var result=entra-sai;
+
+    h+='<div class="csdi-sec" '+corStyle(d)+'><div class="csdi-sec-t"><i>💰</i>Posição do grupo</div><div class="csdi-kpis-gc">'+
+       '<div class="gc-kpi" style="--kc:#94C11E"><div class="gc-kpi-l">Recebido</div><div class="gc-kpi-v">R$ '+gcMoeda(entra)+'</div><div class="gc-kpi-o">'+GC_FLUXO_ENTRA.length+' pagamentos</div></div>'+
+       '<div class="gc-kpi" style="--kc:#E5141A"><div class="gc-kpi-l">Saídas</div><div class="gc-kpi-v">R$ '+gcMoeda(sai)+'</div><div class="gc-kpi-o">'+GC_FLUXO_SAI.length+' lançamentos</div></div>'+
+       '<div class="gc-kpi" style="--kc:#005DAA"><div class="gc-kpi-l">Resultado</div><div class="gc-kpi-v">R$ '+gcMoeda(result)+'</div><div class="gc-kpi-o">recebido − saídas</div></div>'+
+       '<div class="gc-kpi" style="--kc:#D4407A"><div class="gc-kpi-l">Inscritos</div><div class="gc-kpi-v">'+GC_INSCRITOS.length+'</div><div class="gc-kpi-o">o simulador pressupõe 10</div></div>'+
+       '</div></div>';
+
+    /* ---- inscritos: pago x custo ---- */
+    var somaMargem=GC_INSCRITOS.reduce(function(a,i){ return a+(i.pago-GC_CUSTO_PAX); },0);
+    h+='<div class="csdi-sec" '+corStyle(d)+'><div class="csdi-sec-t"><i>🧾</i>Resultado por inscrito</div>'+
+       '<div class="csdi-ico-d" style="font-size:12.5px;margin-bottom:10px">Custo por passageiro de <b>R$ '+gcMoeda(GC_CUSTO_PAX)+'</b> — o número que o simulador de <b>10 passageiros</b> devolve.</div>'+
+       '<div class="gc-tab-wrap"><table class="gc-tab"><thead><tr><th>Passageiro</th><th class="gc-v">Pago</th><th class="gc-v">Custo</th><th class="gc-v">Margem</th></tr></thead><tbody>'+
+       GC_INSCRITOS.map(function(i){
+         var m=i.pago-GC_CUSTO_PAX;
+         return '<tr><td>'+esc(i.nome)+'</td><td class="gc-v">R$ '+gcMoeda(i.pago)+'</td>'+
+           '<td class="gc-v gc-fraco">R$ '+gcMoeda(GC_CUSTO_PAX)+'</td>'+
+           '<td class="gc-v '+(m<0?'gc-neg':'gc-pos')+'">'+(m<0?'− R$ '+gcMoeda(-m):'R$ '+gcMoeda(m))+'</td></tr>';
+       }).join('')+
+       '</tbody><tfoot><tr><td>Total</td><td class="gc-v">R$ '+gcMoeda(GC_INSCRITOS.reduce(function(a,i){return a+i.pago;},0))+'</td>'+
+       '<td class="gc-v">R$ '+gcMoeda(GC_CUSTO_PAX*GC_INSCRITOS.length)+'</td>'+
+       '<td class="gc-v '+(somaMargem<0?'gc-neg':'gc-pos')+'">'+(somaMargem<0?'− R$ '+gcMoeda(-somaMargem):'R$ '+gcMoeda(somaMargem))+'</td></tr></tfoot></table></div>';
+
+    h+='<div class="csdi-alert bad">📉 <b>Somadas, as três margens dão R$ '+gcMoeda(somaMargem)+'.</b> '+
+       'A conta fica negativa porque o custo de R$ '+gcMoeda(GC_CUSTO_PAX)+' por pessoa é o rateio calculado <b>para 10 passageiros</b>, e o grupo tem <b>3</b>. '+
+       'Com menos gente, o custo fixo da operação não se dilui — é o simulador de 10 pax aplicado a um grupo de 3.</div>';
+
+    h+='<div class="csdi-alert warn">💸 <b>Rosane Baldasso Barth pagou R$ '+gcMoeda(17535)+'</b>, enquanto o valor da imersão é <b>R$ 29.950,00</b>. '+
+       'A diferença é de <b>R$ '+gcMoeda(29950-17535)+'</b>. Pode ser condição negociada ou parcela em aberto — vale conferir antes de fechar o resultado do grupo.</div></div>';
+
+    /* ---- fluxo de caixa ---- */
+    h+='<div class="csdi-sec" '+corStyle(d)+'><div class="csdi-sec-t"><i>📒</i>Fluxo de caixa</div>'+
+       '<div class="gc-sub">Entradas</div>'+
+       '<div class="gc-tab-wrap"><table class="gc-tab"><thead><tr><th>Data</th><th>Descrição</th><th>Forma</th><th class="gc-v">Valor</th></tr></thead>'+
+       '<tbody>'+gcLinhas(GC_FLUXO_ENTRA,1)+'</tbody>'+
+       '<tfoot><tr><td colspan="3">Total recebido</td><td class="gc-v gc-pos">R$ '+gcMoeda(entra)+'</td></tr></tfoot></table></div>'+
+       '<div class="gc-sub">Saídas</div>'+
+       '<div class="gc-tab-wrap"><table class="gc-tab"><thead><tr><th>Data</th><th>Descrição</th><th>Forma</th><th class="gc-v">Valor</th></tr></thead>'+
+       '<tbody>'+gcLinhas(GC_FLUXO_SAI,-1)+'</tbody>'+
+       '<tfoot><tr><td colspan="3">Total de saídas</td><td class="gc-v gc-neg">− R$ '+gcMoeda(sai)+'</td></tr>'+
+       '<tr><td colspan="3"><b>Resultado</b></td><td class="gc-v"><b>R$ '+gcMoeda(result)+'</b></td></tr></tfoot></table></div>'+
+       '<div class="csdi-alert info">✈️ <b>R$ '+gcMoeda(1146.87+1911.83+1586.10+2215.94)+' saíram só em alteração de voo</b>, em quatro lançamentos do dia 22/08 (um da Rosane, um da Luciane e <b>dois do Rafael</b>). É o segundo maior gasto do grupo, atrás apenas dos R$ 5.000,00 da Due Comunicação.</div></div>';
+
+    /* ---- simuladores ---- */
+    h+='<div class="csdi-sec" '+corStyle(d)+'><div class="csdi-sec-t"><i>🧮</i>Simulador de precificação</div>'+
+       '<div class="csdi-ico-d" style="font-size:12.5px;margin-bottom:12px">Como o preço por pessoa foi montado, nos dois cenários da planilha. '+
+       'A base da empresa é a mesma nos dois: custo mensal de <b>R$ '+gcMoeda(GC_CORP.total)+'</b> (fixo '+GC_CORP.base+' R$ '+gcMoeda(GC_CORP.fixo)+' + marketing R$ '+gcMoeda(GC_CORP.marketing)+' + sistema R$ '+gcMoeda(GC_CORP.sistema)+') sobre '+GC_CORP.horas+' horas, dando <b>R$ '+gcMoeda(GC_CORP.custoHora)+'/hora</b>.</div>';
+    h+='<div class="gc-sims">';
+    GC_SIM.forEach(function(m){
+      h+='<div class="gc-sim'+(m.pax===10?' gc-sim-on':'')+'">'+
+        '<div class="gc-sim-cab">'+m.pax+' passageiros'+(m.pax===10?'<span class="gc-sim-tag">cenário usado hoje</span>':'')+'</div>'+
+        '<table class="gc-tab gc-tab-sim"><tbody>'+
+        '<tr><td>Custo da operação</td><td class="gc-v">R$ '+gcMoeda(m.custoOper)+'</td></tr>'+
+        '<tr><td>Horas do projeto ('+m.horas+'h × R$ '+gcMoeda(GC_CORP.custoHora)+')</td><td class="gc-v">R$ '+gcMoeda(m.custoHora)+'</td></tr>'+
+        '<tr><td>Imposto ('+(m.imposto*100)+'%)</td><td class="gc-v">R$ '+gcMoeda(m.valImposto)+'</td></tr>'+
+        '<tr><td>Comissão Ultravel ('+(m.comissao*100)+'%)</td><td class="gc-v">R$ '+gcMoeda(m.valComissao)+'</td></tr>'+
+        '<tr><td>Trader / captador ('+(m.trader*100)+'%)</td><td class="gc-v">R$ '+gcMoeda(m.valTrader)+'</td></tr>'+
+        '<tr class="gc-tr-tot"><td>Custo total da operação</td><td class="gc-v">R$ '+gcMoeda(m.total)+'</td></tr>'+
+        '<tr><td>Valor de venda individual</td><td class="gc-v">R$ '+gcMoeda(m.individual)+'</td></tr>'+
+        m.extras.map(function(e){ return '<tr><td class="gc-fraco">+ '+esc(e.n)+'</td><td class="gc-v gc-fraco">R$ '+gcMoeda(e.v)+'</td></tr>'; }).join('')+
+        '<tr class="gc-tr-final"><td>Preço por pessoa</td><td class="gc-v">R$ '+gcMoeda(m.final)+'</td></tr>'+
+        '</tbody></table>'+
+        '<div class="gc-sim-usd">Operação em USD: <b>'+m.pax+' × US$ '+gcMoeda(m.usdUnit)+' = US$ '+gcMoeda(m.usdTotal)+'</b> · câmbio '+gcMoeda(m.cotacao)+' · remessa '+(m.remessa*100).toFixed(1).replace('.',',')+'% → <b>R$ '+gcMoeda(m.brlTotal)+'</b></div>'+
+        '</div>';
+    });
+    h+='</div>';
+    h+='<div class="csdi-alert info">📐 <b>A diferença entre os dois cenários é o rateio.</b> Dobrando de 10 para 20 pessoas, o preço por pessoa cai de <b>R$ '+gcMoeda(GC_SIM[0].final)+'</b> para <b>R$ '+gcMoeda(GC_SIM[1].final)+'</b> — uma queda de <b>R$ '+gcMoeda(GC_SIM[0].final-GC_SIM[1].final)+'</b>, porque a hotelaria por pessoa cai de US$ '+gcMoeda(GC_SIM[0].usdUnit)+' para US$ '+gcMoeda(GC_SIM[1].usdUnit)+' e o custo fixo se divide por mais gente.</div></div>';
+    return h;
+  }
+
   /* ---------------------------------------------------------- DOC 2 — GUIA */
   var ROTEIRO=[
     {d:'03/12',s:'Quinta',t:'Chegada — Os primeiros passos na Cidade Santa',x:'Chegada em Israel e traslado para Jerusalém. Após check-in, primeiro contato com a atmosfera da Cidade Santa. No início da noite, visita a um bairro tradicional e experiência no tradicional Shuk de Jerusalém. Primeira noite mais leve para ambientação.',e:'Primeiro encontro com Jerusalém — sua cultura, seus sabores e sua atmosfera única.'},
@@ -32215,6 +32450,10 @@ body.dark .csdi-pax-flag.ok{color:#A9DB3A} body.dark .csdi-pax-flag.falta{color:
     else if(csdiAberto==='voos')    w.innerHTML=telaVoos();
     else if(csdiAberto==='passaportes') w.innerHTML=telaPassaportes();
     else if(csdiAberto==='vistos')      w.innerHTML=telaVistos();
+    /* a trava vale AQUI também, e não só na capa: se a tela fosse aberta por
+       qualquer outro caminho, sem esta linha ela desenharia o financeiro do
+       grupo para quem não pode ver */
+    else if(csdiAberto==='gestao')      w.innerHTML = csdiPodeGestao()? telaGestao() : (csdiAberto='', telaCards());
     else                            w.innerHTML=telaCards();
   };
 
