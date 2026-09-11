@@ -4311,7 +4311,22 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 375; // (·375) GESTAO E CONTROLE: O RESUMO VOLTOU, E AGORA E CALCULADO DA
+var UV_BUILD_NUM = 376; // (·376) PLANILHA: O CABECALHO DA COLUNA TAMBEM E EDITAVEL. Pedido do
+// Nando, circulado no print: renomear A, B, C… para o que aquela coluna significa.
+// UM EDITOR, DOIS ALVOS. Nao escrevi um segundo editor: o que ja existia foi generalizado
+// para gravar em dois lugares — na celula (linha.v[coluna]) ou no nome da coluna
+// (aba.cols[i].n) — enquanto abrir, Enter, Esc, sair-do-campo e o "um input vivo por vez"
+// continuam sendo o MESMO codigo. Um editor proprio para o cabecalho significaria duplicar
+// essas quatro regras e ve-las divergirem na primeira correcao.
+// NOME VAZIO VOLTA AO ANTERIOR: coluna sem titulo deixa a tabela ilegivel e apagar sem
+// querer e facil demais. Renomear carimba aba.ts, entao a uniao multi-PC trata o nome pelo
+// mesmo criterio de sempre (o carimbo mais novo vence) — Fernando e Ruth renomeando a
+// mesma coluna nao se apagam, o ultimo prevalece.
+// VALE PARA AS DUAS PLANILHAS, porque o motor e um so desde o ·374: o Controle Geral
+// ganhou a mesma capacidade de graca.
+// O title do cabecalho avisa "clique para renomear" — texto que vira campo ao ser clicado
+// nao se anuncia sozinho, e a dica do rodape passou a citar a coluna tambem.
+// ANTERIOR: (·375) GESTAO E CONTROLE: O RESUMO VOLTOU, E AGORA E CALCULADO DA
 // PLANILHA VIVA. O ·374 tinha removido as secoes de resumo ao trocar a tela pela planilha
 // editavel; o Nando pediu AS DUAS COISAS. Estao de volta — KPIs, resultado por inscrito,
 // fluxo de caixa e os dois simuladores — e a planilha inteira segue logo abaixo.
@@ -32796,6 +32811,9 @@ body.dark .gc-pos{color:#A9DB3A} body.dark .gc-neg{color:#FF8B8B}
 .cg-scroll-topo+.cg-tab-box{border-radius:0 0 12px 12px}
 .cg-tab-box{border:1px solid var(--borda);border-radius:12px;overflow:auto;background:var(--card);max-height:64vh;position:relative}
 table.cg-tab{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%;font-size:12.5px}
+.cg-th-edit{cursor:text}
+.cg-th-edit:hover{color:var(--azul);background:var(--azul-claro)}
+.cg-tab th .cg-inp{text-transform:none;letter-spacing:normal;font-size:12px}
 .cg-tab th{position:sticky;top:0;z-index:3;background:var(--fundo);color:var(--texto-suave);font-size:11px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;text-align:left;padding:9px 11px;border-bottom:1px solid var(--borda-forte);white-space:nowrap}
 .cg-tab td{padding:7px 11px;border-bottom:1px solid var(--borda);color:var(--texto);vertical-align:top;max-width:340px;cursor:text}
 .cg-tab tr:hover td{background:var(--fundo)}
@@ -33084,7 +33102,13 @@ body.dark .cg-badge.ok{color:#A9DB3A} body.dark .cg-badge.mau{color:#FF8B8B} bod
     var P=cgC().wrap;
     h+='<div class="cg-scroll-topo" id="'+P+'ScrollTopo" hidden><div id="'+P+'ScrollTopoIn"></div></div>';
     h+='<div class="cg-tab-box" id="'+P+'TabBox"><table class="cg-tab"><thead><tr><th class="cg-nl">#</th>';
-    cols.forEach(function(c,i){ h+='<th'+(i===0?' class="cg-fix"':'')+'>'+cgEsc(c.n)+'</th>'; });
+    /* (·376) o cabeçalho também é editável: mesmo clique, mesmo editor. O
+       title explica, porque um texto que vira campo ao ser clicado não se
+       anuncia sozinho. */
+    cols.forEach(function(c,i){
+      h+='<th'+(i===0?' class="cg-fix cg-th-edit"':' class="cg-th-edit"')+' data-cg-col="'+cgEsc(c.id)+'"'+
+         ' title="Clique para renomear esta coluna">'+cgEsc(c.n)+'</th>';
+    });
     h+='<th></th></tr></thead><tbody>';
     if(!vis.length){
       h+='<tr><td colspan="'+(cols.length+2)+'"><div class="cg-nada">'+(q?'Nada encontrado para “'+cgEsc(cgT().busca)+'”.':'Aba vazia — use “＋ Nova linha”.')+'</div></td></tr>';
@@ -33120,7 +33144,7 @@ body.dark .cg-badge.ok{color:#A9DB3A} body.dark .cg-badge.mau{color:#FF8B8B} bod
     h+='<div class="cg-acoes">'
       +'<button type="button" class="cg-bt" id="cgNovaLinha">＋ Nova linha</button>'
       +'<button type="button" class="cg-bt" id="cgNovaCol">＋ Nova coluna</button>'
-      +'<span class="cg-dica">Clique em qualquer célula para editar · Enter salva · Esc cancela</span></div>';
+      +'<span class="cg-dica">Clique em qualquer célula <b>ou no nome da coluna</b> para editar · Enter salva · Esc cancela</span></div>';
     return h;
   }
 
@@ -33167,22 +33191,54 @@ body.dark .cg-badge.ok{color:#A9DB3A} body.dark .cg-badge.mau{color:#FF8B8B} bod
   window.cgRender=cgRender;
 
   /* ---------- edição de célula ---------- */
+  /* (·376) UM editor para os dois alvos: a CÉLULA e o CABEÇALHO da coluna.
+     O que muda entre eles é só onde o valor é gravado — abrir, teclar, salvar,
+     cancelar e fechar ao sair são o mesmo código. Escrever um segundo editor
+     para renomear coluna seria duplicar Enter/Esc/blur e o "um input por vez". */
   var cgEditando=null;
   function cgFecharEditor(salvar){
     if(!cgEditando) return;
     var e=cgEditando; cgEditando=null;
-    var inp=e.td.querySelector('.cg-inp');
+    var inp=e.el.querySelector('.cg-inp');
     var novo=inp?inp.value:null;
     if(salvar && novo!=null && novo!==e.antes){
-      var s=cgStore(), L=s.linhas[e.lid];
-      if(L){
-        if(!L.v || typeof L.v!=='object') L.v={};
-        if(novo==='') delete L.v[e.cid]; else L.v[e.cid]=novo;
-        L.ts=cgAgora();
-        cgSalvar();
+      var s=cgStore();
+      if(e.tipo==='col'){
+        var aba=s.abas[e.aid];
+        if(aba && Array.isArray(aba.cols)){
+          for(var i=0;i<aba.cols.length;i++){
+            if(aba.cols[i].id===e.cid){
+              /* nome vazio volta ao rótulo anterior: coluna sem título deixa a
+                 tabela ilegível, e apagar sem querer é fácil demais */
+              aba.cols[i].n = novo.trim() || e.antes;
+              break;
+            }
+          }
+          aba.ts=cgAgora();
+          cgSalvar();
+        }
+      } else {
+        var L=s.linhas[e.lid];
+        if(L){
+          if(!L.v || typeof L.v!=='object') L.v={};
+          if(novo==='') delete L.v[e.cid]; else L.v[e.cid]=novo;
+          L.ts=cgAgora();
+          cgSalvar();
+        }
       }
     }
     cgRender();
+  }
+  function cgMontarEditor(el, antes){
+    el.innerHTML='<input class="cg-inp" type="text">';
+    var inp=el.querySelector('.cg-inp');
+    inp.value=antes;
+    inp.focus(); try{ inp.setSelectionRange(antes.length,antes.length); }catch(x){}
+    inp.addEventListener('keydown', function(ev){
+      if(ev.key==='Enter'){ ev.preventDefault(); cgFecharEditor(true); }
+      else if(ev.key==='Escape'){ ev.preventDefault(); cgFecharEditor(false); }
+    });
+    inp.addEventListener('blur', function(){ setTimeout(function(){ cgFecharEditor(true); },0); });
   }
   function cgAbrirEditor(td){
     if(cgEditando) cgFecharEditor(true);
@@ -33191,16 +33247,17 @@ body.dark .cg-badge.ok{color:#A9DB3A} body.dark .cg-badge.mau{color:#FF8B8B} bod
     if(!lid || !cid) return;
     var s=cgStore(), L=s.linhas[lid]; if(!L) return;
     var antes=(L.v&&L.v[cid])||'';
-    cgEditando={td:td, lid:lid, cid:cid, antes:antes};
-    td.innerHTML='<input class="cg-inp" type="text">';
-    var inp=td.querySelector('.cg-inp');
-    inp.value=antes;
-    inp.focus(); try{ inp.setSelectionRange(antes.length,antes.length); }catch(x){}
-    inp.addEventListener('keydown', function(ev){
-      if(ev.key==='Enter'){ ev.preventDefault(); cgFecharEditor(true); }
-      else if(ev.key==='Escape'){ ev.preventDefault(); cgFecharEditor(false); }
-    });
-    inp.addEventListener('blur', function(){ setTimeout(function(){ cgFecharEditor(true); },0); });
+    cgEditando={tipo:'cel', el:td, lid:lid, cid:cid, antes:antes};
+    cgMontarEditor(td, antes);
+  }
+  function cgAbrirEditorColuna(th){
+    if(cgEditando) cgFecharEditor(true);
+    var cid=th.getAttribute('data-cg-col'); if(!cid) return;
+    var s=cgStore(), aid=cgT().aba, aba=s.abas[aid]; if(!aba || !Array.isArray(aba.cols)) return;
+    var antes='';
+    for(var i=0;i<aba.cols.length;i++){ if(aba.cols[i].id===cid){ antes=aba.cols[i].n||''; break; } }
+    cgEditando={tipo:'col', el:th, aid:aid, cid:cid, antes:antes};
+    cgMontarEditor(th, antes);
   }
 
   /* ---------- ouvinte único, delegado ---------- */
@@ -33252,6 +33309,9 @@ body.dark .cg-badge.ok{color:#A9DB3A} body.dark .cg-badge.mau{color:#FF8B8B} bod
       aba.ts=cgAgora(); cgSalvar(); cgRender();
       return;
     }
+
+    var th=e.target.closest('th[data-cg-col]');
+    if(th && !e.target.closest('.cg-inp')){ cgAbrirEditorColuna(th); return; }
 
     var td=e.target.closest('td[data-cg-cel]');
     if(td && !e.target.closest('.cg-inp')){ cgAbrirEditor(td); return; }
