@@ -4320,7 +4320,26 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 378; // (·378) BACKUP: O BOTAO FICAVA PRESO EM "GERANDO…". Relato do Nando
+var UV_BUILD_NUM = 379; // (·379) BACKUP POR E-MAIL: O BREVO RECUSAVA O ANEXO .GZ. Relato do
+// Nando com print: "Unsupported file format: gz". O Brevo tem uma lista FECHADA de
+// extensoes aceitas, e gzip nao esta nela — zip esta. Nao adianta insistir no formato:
+// e regra do provedor, nao erro nosso de envio.
+// TROQUEI POR ZIP DE VERDADE, montado a mao no Worker (que nao tem biblioteca de zip):
+// tres blocos com tamanhos e deslocamentos fixos — cabecalho local, diretorio central e
+// fim do diretorio — com o conteudo em deflate-raw, que e o que o zip espera. O CRC32 nao
+// e enfeite: sem ele o descompactador acusa arquivo corrompido, e o Nando so descobriria
+// isso no dia em que precisasse do backup.
+// COMO EU SEI QUE O ZIP ABRE: o teste gera um arquivo com o codigo REAL do Worker, grava
+// em disco e manda o PYTHON abrir — uma ferramenta que nao sabe nada deste codigo. Ele
+// confere o CRC, le o nome interno, desserializa o JSON e compara o conteudo, incluindo
+// acentuacao. O `unzip` do sistema tambem valida. Escrever o cabecalho "parecendo certo" e
+// facil; provar que abre em outro lugar e o que conta num arquivo de backup.
+// GANHO DE TABELA: .zip abre com dois cliques em qualquer computador. O .gz obrigava o
+// Nando a saber o que e gzip para recuperar os proprios dados — exatamente o tipo de
+// atrito que nao se quer no pior dia possivel.
+// O R2 CONTINUA COM .GZ: la nao existe restricao de extensao, e o gzip e menor. Quem muda
+// e so o anexo que sai por e-mail.
+// ANTERIOR: (·378) BACKUP: O BOTAO FICAVA PRESO EM "GERANDO…". Relato do Nando
 // com print. O backup EM SI funcionou (a copia de 14/09 esta la, com 306 vouchers e 53
 // estruturas) — o que quebrou foi a tela. DOIS defeitos meus, e os dois sao meus mesmo:
 // (1) LEITURA SEQUENCIAL DO KV. Eu lia as 306 chaves v: uma a uma, e depois as 306 vid:
