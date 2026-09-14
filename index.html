@@ -4320,7 +4320,38 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 379; // (·379) BACKUP POR E-MAIL: O BREVO RECUSAVA O ANEXO .GZ. Relato do
+var UV_BUILD_NUM = 381; // (·381) O CAMINHO QUE EU INDIQUEI PARA O REMETENTE ESTAVA ERRADO.
+// O Nando disse que nao entendeu a instrucao — e nao entendeu porque ela estava errada. Eu
+// escrevi "Ocupacao ▸ 📧 Alertas", e nao existe tela chamada Ocupacao com esse botao: o
+// campo do remetente vive no CONTROL DESK, dentro do card "🚦 Ocupacao dos Atendentes",
+// no botao 📧 Alertas (visivel so para admin), campo "Remetente (e-mail verificado no
+// provedor)". Conferi no proprio arquivo em vez de repetir o que eu tinha escrito de
+// cabeca — foi assim que o erro apareceu.
+// CORRIGIDO NOS DOIS LUGARES, e isso e o que importa: nao so na conversa, mas na mensagem
+// de ERRO do Worker e na nota da tela. Uma instrucao errada dentro do sistema e pior do
+// que na conversa: ela fica la, e a proxima pessoa a ver aquele erro vai procurar no lugar
+// errado sem ninguem por perto para corrigir.
+// So texto — nenhuma logica mudou em relacao ao ·380.
+// ANTERIOR: (·380) BACKUP POR E-MAIL: A TELA DIZIA "ENVIADO" E NADA CHEGAVA.
+// Relato do Nando: sem erro nenhum, confirmacao de envio na tela, caixa de entrada vazia.
+// A CAUSA FOI MINHA, e e do pior tipo: eu INVENTEI o remetente. Escrevi
+// "nao-responda@ultravel.com.br" direto no codigo. O Brevo ACEITOU a chamada — devolveu
+// 200, sem erro — e nao entregou nada, porque so entrega a partir de um remetente
+// VERIFICADO na conta, e aquele endereco nunca foi verificado. Falha silenciosa: a tela
+// dizia "enviado" com toda a confianca e a caixa do Nando ficava vazia.
+// O HUB JA TINHA UM REMETENTE QUE FUNCIONA. Os alertas de ocupacao mandam e-mail ha
+// varias builds usando cfg.ocpEmailCfg.remetente — o endereco que o Nando cadastrou em
+// Ocupacao ▸ 📧 Alertas e verificou no Brevo. Eu devia ter reaproveitado desde o ·377:
+// inventar um remetente novo exigiria verificar outro endereco para ganhar exatamente
+// nada. Agora o backup usa o MESMO, lido da configuracao.
+// E SE NAO HOUVER REMETENTE, A FUNCAO RECUSA NA CARA DURA, com a mensagem dizendo onde
+// cadastrar — em vez de fingir sucesso. Era isso que faltava: o erro real nao tinha como
+// aparecer porque nunca houve erro do lado do Brevo.
+// "ENVIADO" NAO E "CHEGOU". A tela passou a mostrar DE QUEM saiu, PARA QUEM foi e o
+// PROTOCOLO devolvido pelo Brevo, e a dizer onde conferir se nao aparecer: lixo eletronico
+// primeiro, painel do Brevo (Transactional ▸ Logs) depois — que e onde se ve se foi
+// entregue, recusado ou bloqueado. Sem o protocolo, "confirmar o envio" era so confiar.
+// ANTERIOR: (·379) BACKUP POR E-MAIL: O BREVO RECUSAVA O ANEXO .GZ. Relato do
 // Nando com print: "Unsupported file format: gz". O Brevo tem uma lista FECHADA de
 // extensoes aceitas, e gzip nao esta nela — zip esta. Nao adianta insistir no formato:
 // e regra do provedor, nao erro nosso de envio.
@@ -33481,7 +33512,7 @@ table.bk-tab{width:100%;border-collapse:separate;border-spacing:0;font-size:12.5
    pede e se mostra. A trava de verdade está lá: qualquer /api/backup* exige
    perfil admin, então esconder o menu é conveniência, não segurança. */
 (function(){
-  var bkEstado=null, bkOcupado=false, bkDetalhe=null, bkErro=null;
+  var bkEstado=null, bkOcupado=false, bkDetalhe=null, bkErro=null, bkAviso=null;
 
   function bkSouAdmin(){
     try{ return (typeof window.uvAuthPerfil==='function') && window.uvAuthPerfil()==='admin'; }catch(e){ return false; }
@@ -33563,6 +33594,7 @@ table.bk-tab{width:100%;border-collapse:separate;border-spacing:0;font-size:12.5
          quem acabou de ver um botão travar precisa poder reler o que houve. */
       h+='<div class="bk-alert bad">⚠️ '+esc(bkErro)+'</div>';
     }
+    if(bkAviso){ h+='<div class="bk-alert ok">✉️ '+bkAviso+'</div>'; }
     if(!hojeOk && u){
       h+='<div class="bk-alert warn">⏳ A cópia de hoje ainda não foi gerada. O automático roda sozinho ao longo do dia — se quiser não esperar, use “Gerar cópia agora”.</div>';
     }
@@ -33578,6 +33610,7 @@ table.bk-tab{width:100%;border-collapse:separate;border-spacing:0;font-size:12.5
        '<input type="email" class="bk-inp" id="bkEmail" placeholder="seu-email@exemplo.com" value="'+esc(E.emailDestino||'')+'">'+
        '<button type="button" class="bk-bt" data-bk="salvar-email">Salvar</button>'+
        '<button type="button" class="bk-bt" data-bk="testar-email">Salvar e enviar um agora</button></div>'+
+       '<div class="bk-alert info">📮 O envio sai do <b>mesmo remetente dos alertas</b>. Ele fica no <b>Control Desk</b> → card <b>🚦 Ocupação dos Atendentes</b> → botão <b>📧 Alertas</b>, no campo <i>“Remetente (e-mail verificado no provedor)”</i>. O Brevo só entrega a partir de um endereço verificado na conta dele — se esse campo estiver vazio, nada sai.</div>'+
        '<div class="bk-alert info">🔐 O arquivo enviado por e-mail <b>não leva senhas</b> — só os dados e a lista de usuários (nome, login e perfil). A cópia completa, com as senhas, fica guardada no servidor.</div>'+
        '</div>';
 
@@ -33633,7 +33666,7 @@ table.bk-tab{width:100%;border-collapse:separate;border-spacing:0;font-size:12.5
     var b=e.target.closest('[data-bk]');
     if(b){
       var a=b.getAttribute('data-bk');
-      if(a==='recarregar'){ bkEstado=null; bkErro=null; window.renderBackup(); return; }
+      if(a==='recarregar'){ bkEstado=null; bkErro=null; bkAviso=null; window.renderBackup(); return; }
       if(a==='fechar-detalhe'){ bkDetalhe=null; bkRender(); return; }
       if(a==='agora'){
         if(bkOcupado) return;
@@ -33669,8 +33702,21 @@ table.bk-tab{width:100%;border-collapse:separate;border-spacing:0;font-size:12.5
         try{
           var rr=await api('/api/backup/email',{method:'POST',body:JSON.stringify({email:em.trim(),testar:a==='testar-email'})});
           if(a==='testar-email'){
-            if(rr.envio && rr.envio.ok) toast('E-mail enviado para '+em,'ok');
-            else toast('Não enviou: '+((rr.envio&&rr.envio.erro)||'sem provedor configurado'),'erro');
+            var en=rr.envio||{};
+            if(en.ok){
+              /* (·380) "enviado" não é "chegou". O Brevo aceita a chamada e
+                 pode não entregar — foi exatamente o que aconteceu. Então a
+                 tela mostra DE QUEM saiu, PARA QUEM foi e o número do envio,
+                 e diz onde conferir se não aparecer na caixa. */
+              bkErro=null;
+              bkAviso='O Brevo aceitou o envio de <b>'+esc(en.remetente||'?')+'</b> para <b>'+esc(en.destino||em)+'</b>'+
+                      (en.messageId?(' — protocolo <b>'+esc(en.messageId)+'</b>'):'')+'. '+
+                      'Se não aparecer na caixa de entrada em alguns minutos, olhe o <b>lixo eletrônico</b> e, depois, o painel do Brevo (Transactional ▸ Logs) — é lá que aparece se foi entregue, recusado ou bloqueado.';
+              toast('Envio aceito pelo Brevo','ok');
+            } else {
+              bkErro='Não enviou: '+((en.erro)||'sem provedor configurado');
+              toast('Não enviou — veja o aviso na tela','erro');
+            }
           } else toast(em?('Endereço salvo: '+em):'Envio por e-mail desligado','ok');
         }catch(err){ toast('Falhou: '+((err&&err.message)||'erro'),'erro'); }
         bkEstado=null; window.renderBackup(); return;
