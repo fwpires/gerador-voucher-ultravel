@@ -261,6 +261,23 @@ body.dark .hub-sidebar .nav-add{color:var(--verde)}
 .dash-head{display:flex;align-items:baseline;gap:12px;margin-bottom:18px;flex-wrap:wrap}
 .dash-title{font-size:22px;font-weight:800;margin:0;color:var(--texto)}
 .dash-sub{color:var(--texto-fraco);font-size:13px}
+/* ===== (·385) WELCOME DAY — faixa de condução da semana, no topo do Control Desk =====
+   Fica ENTRE o cabeçalho e os cards, e não é um card: é uma faixa fina, para
+   informar sem competir com a Ocupação (que é o assunto principal da tela).
+   O dia de HOJE é destacado pelo próprio navegador (wdMarcarHoje), porque a
+   pergunta real de quem olha isso é "hoje é quem?", não "como é a semana". */
+.wd-wrap{margin:-6px 0 18px}
+.wd-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:9px}
+.wd-titulo{font-size:15px;font-weight:800;color:var(--texto);letter-spacing:.2px}
+.wd-cond{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--texto-fraco)}
+.wd-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.wd-dia{background:var(--card);border:1px solid var(--borda);border-radius:12px;padding:10px 12px;box-shadow:var(--sombra);border-top:3px solid var(--azul);min-width:0}
+.wd-dia .wd-d{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--texto-fraco)}
+.wd-dia .wd-n{font-size:15px;font-weight:800;color:var(--texto);margin-top:3px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wd-dia.wd-hoje{border-color:var(--verde);border-top-color:var(--verde);background:var(--verde-suave,rgba(34,197,94,.10))}
+.wd-dia.wd-hoje .wd-d::after{content:' · hoje';color:var(--verde);font-weight:800}
+@media(max-width:1100px){.wd-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.wd-grid{grid-template-columns:1fr}}
 .dash-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:18px}
 .dash-kpi{background:var(--card);border:1px solid var(--borda);border-radius:14px;padding:14px 16px;box-shadow:var(--sombra);border-left:4px solid var(--azul)}
 .dash-kpi .k-label{font-size:11.5px;color:var(--texto-fraco);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
@@ -1545,7 +1562,14 @@ body:not(.dark) .ocp-plib-btn:hover{background:#fdf0c4;color:#8a6d1a;border-colo
 .ocp-acoes{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:auto;padding-top:2px}
 .ocp-acoes .ocp-hist-btn,
 .ocp-acoes .ocp-lib-btn,
+.ocp-acoes .ocp-wd-selo,
 .ocp-acoes .ocp-plib-btn{position:static;right:auto;bottom:auto;flex:0 0 auto;margin:0}
+/* (·386) SELO WD — quem conduz o Welcome Day de HOJE. Mesmo molde 26×26 dos
+   outros quadradinhos, em rosa. É um <span>, não um <button>: não faz nada ao
+   clicar, e botão que não responde ensina o usuário a desconfiar dos que
+   respondem. Só existe no card de uma pessoa por dia — e de ninguém no fim
+   de semana, porque quem desenha é wdEhCondutorHoje(). */
+.ocp-wd-selo{width:26px;height:26px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid rgba(236,72,153,.55);background:rgba(236,72,153,.18);color:#f9a8d4;font-size:10.5px;font-weight:800;letter-spacing:.5px;line-height:1;cursor:default;user-select:none;box-shadow:0 0 8px rgba(236,72,153,.35)}
 /* o Stand By ocupa a largura toda e quebra linha à vontade, sem invadir o rodapé */
 .ocp-sb{width:100%;box-sizing:border-box}
 .ocp-sb-list{row-gap:8px}
@@ -3664,6 +3688,15 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
           <h1 class="dash-title"><span class="ic-chat ic-chat-lg"><svg viewBox="0 0 24 24"><path d="M12 6.6c-3.3 0-6 2-6 4.6 0 1.4.8 2.7 2 3.6-.1.7-.5 1.5-1 2.1-.2.3 0 .6.3.5 1-.2 2-.6 2.8-1.1.6.2 1.2.3 1.9.3 3.3 0 6-2 6-4.6S15.3 6.6 12 6.6z" fill="#fff"/><circle cx="9.6" cy="11.3" r=".95" fill="#7a3fd0"/><circle cx="12" cy="11.3" r=".95" fill="#e0518b"/><circle cx="14.4" cy="11.3" r=".95" fill="#2f6bff"/></svg></span> Control Desk</h1>
           <span class="dash-sub">Ocupação dos atendentes e ausências programadas em tempo real</span>
         </div>
+        <!-- (·385) Welcome Day — condução da semana -->
+        <div class="wd-wrap" id="wdWrap">
+          <div class="wd-head">
+            <span class="wd-titulo">Welcome Day</span>
+            <span class="wd-cond">Condução</span>
+          </div>
+          <!-- (·386) desenhada por WD_ESCALA — a escala vive num lugar só -->
+          <div class="wd-grid" id="wdGrid"></div>
+        </div>
         <div class="dash-cards-cd">
         <div class="cd-aniv-wrap" id="cdAnivWrap"></div>
         <div class="dash-card ocp-card">
@@ -4320,7 +4353,45 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 384; // (·384) INSIGHTS: DE ESCONDIDO PARA PROTEGIDO. O Nando pediu certeza
+var UV_BUILD_NUM = 386; // (·386) SELO WD NO CARD DE QUEM CONDUZ O WELCOME DAY. O Nando
+// marcou com X o rodape do card do atendente e pediu um quadradinho ROSA com as letras WD,
+// no mesmo estilo dos outros tres, aparecendo SO no card de quem conduz a reuniao do dia.
+// Segunda Diego Oliveira, terca Ana Maria, quarta Hynae Teston, quinta Diego Oliveira,
+// sexta Fernando Pires — agora com os nomes COMPLETOS, que sao os do cadastro e os unicos
+// que casam com o card.
+// ⚠️ A DECISAO ESTRUTURAL DESTE BUILD: a escala passou a existir num lugar SO. Ela agora
+// mora em WD_ESCALA, e tanto a faixa do topo quanto o selo do card saem dali. No ·385 a
+// faixa era HTML escrito a mao; manter isso e somar o selo criaria a MESMA escala em dois
+// lugares — e o Hub ja pagou caro por fato duplicado mais de uma vez. Trocar a escala hoje
+// e mexer numa linha; os dois lugares acompanham sozinhos.
+// A faixa continua mostrando o nome CURTO ("Nando") e o card casa pelo COMPLETO ("Fernando
+// Pires"): sao dois campos do mesmo registro, nao duas verdades. A comparacao e normalizada
+// (acento, caixa e espaco), porque o nome do card vem do cadastro.
+// O SELO E UM <span>, NAO UM <button>. Ele informa, nao faz nada ao clicar — e botao que
+// nao responde ensina o usuario a desconfiar dos que respondem.
+// NO SABADO E NO DOMINGO NINGUEM RECEBE O SELO. Acender o Diego no sabado seria afirmar que
+// ele conduz uma reuniao que nao existe naquele dia.
+// O render do card le a funcao por typeof: o modulo do Welcome Day vive em OUTRO bloco
+// <script> (a licao do ·352 — var de um IIFE nao enxerga o outro, so window atravessa). Se
+// ainda nao tiver carregado, o card sai sem o selo e o proximo render o coloca; um adorno
+// nunca pode derrubar a grade inteira. Só front.
+// ANTERIOR: (·385) WELCOME DAY NO TOPO DO CONTROL DESK. Pedido do Nando:
+// um subtitulo "Welcome Day" logo abaixo do titulo Control Desk e, abaixo dele, os cinco
+// dias uteis com quem faz a CONDUCAO de cada um: Segunda Diego, Terca Ana, Quarta Hynae,
+// Quinta Diego, Sexta Nando. Os nomes ficaram EXATAMENTE como ele escreveu (primeiro nome,
+// e "Nando", nao "Fernando Pires") — e a escala de condução dele, nao minha; "melhorar"
+// para o nome completo do cadastro seria eu decidindo no lugar dele.
+// ONDE FICA E POR QUE: entre o cabecalho e os cards, como FAIXA e nao como card. O assunto
+// principal da tela continua sendo a Ocupacao dos Atendentes; um card cheio ali empurraria
+// a grade para baixo e disputaria atencao com ela. Faixa fina informa sem competir.
+// O DIA DE HOJE VEM DESTACADO (borda verde + "· hoje"), porque a pergunta de quem bate o
+// olho nisso e "hoje e quem?", nao "como e a semana inteira". No SABADO e no DOMINGO
+// ninguem fica destacado: acender a segunda-feira no sabado seria informacao errada.
+// O modulo e minusculo e isolado de proposito — so acende uma borda. Se um dia a faixa
+// sair da tela, ele some junto sem deixar rastro em nenhum outro modulo. Reconfere a cada
+// 10 minutos porque o Hub fica aberto o dia inteiro e as vezes atravessa a meia-noite.
+// Layout responde a tela estreita: 5 colunas ➔ 2 ➔ 1. Só front.
+// ANTERIOR: (·384) INSIGHTS: DE ESCONDIDO PARA PROTEGIDO. O Nando pediu certeza
 // absoluta de que so a diretoria ve a pasta Insights. Fui conferir no codigo e a resposta
 // honesta era NAO — por dois motivos, e o segundo e grave.
 // (1) A LIBERACAO DELE VINHA DO CARGO, nao do nome. tiPodeVer() abria para qualquer perfil
@@ -14484,6 +14555,12 @@ function excluirNotaUI(id){
                }catch(e){ return ''; }
              })()+
              '<div class="ocp-acoes">'+
+             /* (·386) selo WD do condutor do Welcome Day de hoje. typeof porque o
+                módulo do Welcome Day vive em outro bloco <script>: se ainda não
+                carregou, o card sai sem o selo e o próximo render o coloca —
+                nunca quebra a grade inteira por causa de um adorno. */
+             ((typeof window.wdEhCondutorHoje==='function' && window.wdEhCondutorHoje(a))
+               ? '<span class="ocp-wd-selo" title="Welcome Day — '+ocpEsc(a)+' conduz a reunião de hoje">WD</span>' : '')+
              '<button type="button" class="ocp-hist-btn" data-ocp-hist-at="'+ocpEsc(a)+'" title="Histórico de atendimentos de '+ocpEsc(a)+'" aria-label="Histórico de atendimentos">'+
                '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l3 2"/></svg>'+
              '</button>'+
@@ -33938,6 +34015,62 @@ table.bk-tab{width:100%;border-collapse:separate;border-spacing:0;font-size:12.5
       return;
     }
   });
+})();
+</script>
+
+<script>
+/* ═══ (·385/·386) WELCOME DAY — a escala da semana ═══
+   ⚠️ ESTA É A ÚNICA FONTE DA VERDADE DA ESCALA. A faixa do topo e o selo WD que
+   aparece no card do condutor saem os DOIS daqui. Se a escala mudar, muda-se
+   UMA linha e os dois lugares acompanham — foi exatamente por duplicar fato em
+   dois lugares que o Hub já pagou caro antes.
+   `curto` é como o Nando escreveu na faixa; `nome` é como a pessoa está
+   cadastrada no Control Desk (é ele que casa com o card). São campos separados
+   porque "Nando" e "Fernando Pires" são a mesma pessoa com dois nomes de uso. */
+var WD_ESCALA=[
+  {d:1, dia:'Segunda', curto:'Diego', nome:'Diego Oliveira'},
+  {d:2, dia:'Terça',   curto:'Ana',   nome:'Ana Maria'},
+  {d:3, dia:'Quarta',  curto:'Hynaê', nome:'Hynaê Teston'},
+  {d:4, dia:'Quinta',  curto:'Diego', nome:'Diego Oliveira'},
+  {d:5, dia:'Sexta',   curto:'Nando', nome:'Fernando Pires'}
+];
+(function(){
+  function esc(x){ return (x==null?'':String(x)).replace(/[&<>"]/g,function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function norm(x){ return (x||'').toString().trim().toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' '); }
+
+  /* Quem conduz HOJE — '' no sábado e no domingo. Devolver a segunda-feira num
+     sábado seria acender o selo no card de alguém que não conduz nada hoje. */
+  function wdCondutorHoje(){
+    var d=new Date().getDay();
+    for(var i=0;i<WD_ESCALA.length;i++){ if(WD_ESCALA[i].d===d) return WD_ESCALA[i].nome; }
+    return '';
+  }
+  /* É este atendente que conduz hoje? Comparação normalizada porque o nome vem
+     do cadastro (acento, caixa e espaço variam). Nome vazio nunca casa. */
+  function wdEhCondutorHoje(nome){
+    var alvo=norm(wdCondutorHoje()); if(!alvo) return false;
+    var meu=norm(nome); if(!meu) return false;
+    return meu===alvo;
+  }
+  window.wdCondutorHoje=wdCondutorHoje;
+  window.wdEhCondutorHoje=wdEhCondutorHoje;
+
+  function wdDesenhar(){
+    var g=document.getElementById('wdGrid'); if(!g) return;
+    var hoje=new Date().getDay();
+    g.innerHTML=WD_ESCALA.map(function(e){
+      return '<div class="wd-dia'+(e.d===hoje?' wd-hoje':'')+'" data-wd="'+e.d+'"'+
+             ' title="'+esc(e.dia)+' — condução: '+esc(e.nome)+'">'+
+             '<div class="wd-d">'+esc(e.dia)+'</div>'+
+             '<div class="wd-n">'+esc(e.curto)+'</div></div>';
+    }).join('');
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', wdDesenhar);
+  else wdDesenhar();
+  /* o Hub fica aberto o dia inteiro e às vezes atravessa a meia-noite */
+  setInterval(wdDesenhar, 10*60*1000);
 })();
 </script>
 
