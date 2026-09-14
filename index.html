@@ -4320,7 +4320,31 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 377; // (·377) BACKUP E RESTAURACAO — COPIA VERSIONADA DE TUDO QUE O HUB
+var UV_BUILD_NUM = 378; // (·378) BACKUP: O BOTAO FICAVA PRESO EM "GERANDO…". Relato do Nando
+// com print. O backup EM SI funcionou (a copia de 14/09 esta la, com 306 vouchers e 53
+// estruturas) — o que quebrou foi a tela. DOIS defeitos meus, e os dois sao meus mesmo:
+// (1) LEITURA SEQUENCIAL DO KV. Eu lia as 306 chaves v: uma a uma, e depois as 306 vid:
+// do mesmo jeito. Cada KV.get tem latencia de rede propria; 600+ idas e voltas
+// ENFILEIRADAS passavam facilmente de 15 segundos e podiam nem completar dentro do que a
+// requisicao aguenta. No cron isso nao incomodava — ninguem espera o cron — e foi
+// exatamente por isso que passou despercebido: o caminho automatico funcionava.
+// Agora le em LOTES PARALELOS de 50. O tamanho do lote e um meio-termo deliberado: grande
+// o bastante para o tempo cair de dezenas de segundos para poucos, pequeno o bastante para
+// nao estourar o limite de subrequisicoes simultaneas do Worker — que derrubaria a
+// requisicao inteira em vez de so atrasa-la. A restauracao grava do mesmo jeito, pela
+// mesma razao: devolver 306 vouchers um a um demoraria mais do que a requisicao aguenta.
+// (2) DESTRAVAR NO CAMINHO FELIZ. O `bkOcupado=false` estava DEPOIS do await. Se a
+// resposta nao voltasse — e nao voltou —, o botao ficava preso em "Gerando…" para sempre,
+// sem erro e sem saida a nao ser recarregar a pagina. Estado de tela nao pode depender de
+// a rede se comportar: agora e `finally`, que roda vindo resposta, vindo erro ou vindo
+// nada. Junto veio um PRAZO de 90s com AbortController — sem ele, "esperando" e "morreu"
+// sao indistinguiveis para quem esta olhando.
+// E O AVISO DIZ A VERDADE: quando o prazo estoura, a mensagem explica que o backup NAO foi
+// cancelado no servidor, so a espera aqui — porque e isso mesmo que acontece, e mandar a
+// pessoa "tentar de novo" sem avisar isso geraria copias duplicadas e desconfianca.
+// O erro agora fica NA TELA, nao so num toast que some em 3 segundos: quem acabou de ver
+// um botao travar precisa poder reler o que houve.
+// ANTERIOR: (·377) BACKUP E RESTAURACAO — COPIA VERSIONADA DE TUDO QUE O HUB
 // GUARDA. Pedido do Nando: garantia de que nada se perca, com copia na nuvem e forma de
 // recuperar. Ele citou as pastas (Vouchers Salvos, Acoes Comerciais, Prospeccao,
 // Fornecedores Online/Offline, Clientes, Cartoes, Cias Aereas e tudo dentro de Grupos).
@@ -33438,7 +33462,7 @@ table.bk-tab{width:100%;border-collapse:separate;border-spacing:0;font-size:12.5
    pede e se mostra. A trava de verdade está lá: qualquer /api/backup* exige
    perfil admin, então esconder o menu é conveniência, não segurança. */
 (function(){
-  var bkEstado=null, bkOcupado=false, bkDetalhe=null;
+  var bkEstado=null, bkOcupado=false, bkDetalhe=null, bkErro=null;
 
   function bkSouAdmin(){
     try{ return (typeof window.uvAuthPerfil==='function') && window.uvAuthPerfil()==='admin'; }catch(e){ return false; }
@@ -33515,6 +33539,11 @@ table.bk-tab{width:100%;border-collapse:separate;border-spacing:0;font-size:12.5
     if(E.erro && (!u || E.erro.ts>u.ts)){
       h+='<div class="bk-alert bad">⚠️ <b>A última tentativa automática falhou</b> ('+bkDataBr(new Date(E.erro.ts).toISOString())+'): '+esc(E.erro.erro)+'</div>';
     }
+    if(bkErro){
+      /* (·378) o erro fica NA TELA, não só num toast que some em 3 segundos —
+         quem acabou de ver um botão travar precisa poder reler o que houve. */
+      h+='<div class="bk-alert bad">⚠️ '+esc(bkErro)+'</div>';
+    }
     if(!hojeOk && u){
       h+='<div class="bk-alert warn">⏳ A cópia de hoje ainda não foi gerada. O automático roda sozinho ao longo do dia — se quiser não esperar, use “Gerar cópia agora”.</div>';
     }
@@ -33585,16 +33614,36 @@ table.bk-tab{width:100%;border-collapse:separate;border-spacing:0;font-size:12.5
     var b=e.target.closest('[data-bk]');
     if(b){
       var a=b.getAttribute('data-bk');
-      if(a==='recarregar'){ bkEstado=null; window.renderBackup(); return; }
+      if(a==='recarregar'){ bkEstado=null; bkErro=null; window.renderBackup(); return; }
       if(a==='fechar-detalhe'){ bkDetalhe=null; bkRender(); return; }
       if(a==='agora'){
         if(bkOcupado) return;
-        bkOcupado=true; bkRender();
+        /* (·378) DESTRAVAR É OBRIGAÇÃO DO `finally`, NÃO DO CAMINHO FELIZ.
+           Na primeira escrita o `bkOcupado=false` ficava depois do await: se a
+           requisição não voltasse — e ela não voltou —, o botão ficava preso em
+           "Gerando…" para sempre, sem erro e sem saída a não ser recarregar a
+           página. Estado de tela não pode depender de a rede se comportar.
+           Junto veio um PRAZO: sem AbortController, "esperando" e "morreu" são
+           indistinguíveis para quem está olhando. */
+        bkOcupado=true; bkErro=null; bkRender();
+        var ctrl=(typeof AbortController!=='undefined') ? new AbortController() : null;
+        var estourou=false;
+        var relogio=setTimeout(function(){ estourou=true; if(ctrl) ctrl.abort(); }, 90000);
         try{
-          var r=await api('/api/backup/agora',{method:'POST'});
+          var r=await api('/api/backup/agora',{method:'POST',signal:ctrl?ctrl.signal:undefined});
           toast('Cópia de '+bkDataBr(r.feito.dia)+' gerada — '+bkTam(r.feito.bytes),'ok');
-        }catch(err){ toast('Não consegui gerar a cópia: '+((err&&err.message)||'erro'),'erro'); }
-        bkOcupado=false; bkEstado=null; window.renderBackup(); return;
+        }catch(err){
+          bkErro = estourou
+            ? 'A geração passou de 90 segundos e foi interrompida aqui. Isso NÃO cancela o backup no servidor — clique em Atualizar daqui a pouco para ver se a cópia apareceu.'
+            : ('Não consegui gerar a cópia: '+((err&&err.message)||'erro'));
+          toast(estourou?'Demorou demais — veja o aviso na tela':'Falhou ao gerar a cópia','erro');
+        }finally{
+          clearTimeout(relogio);
+          bkOcupado=false;
+          bkEstado=null;
+          window.renderBackup();
+        }
+        return;
       }
       if(a==='salvar-email' || a==='testar-email'){
         var em=(document.getElementById('bkEmail')||{}).value||'';
