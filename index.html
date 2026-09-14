@@ -4320,7 +4320,41 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 383; // (·383) COMO TER CERTEZA DE QUE O QUE VIER DEPOIS TAMBEM ENTRA NO
+var UV_BUILD_NUM = 384; // (·384) INSIGHTS: DE ESCONDIDO PARA PROTEGIDO. O Nando pediu certeza
+// absoluta de que so a diretoria ve a pasta Insights. Fui conferir no codigo e a resposta
+// honesta era NAO — por dois motivos, e o segundo e grave.
+// (1) A LIBERACAO DELE VINHA DO CARGO, nao do nome. tiPodeVer() abria para qualquer perfil
+// "admin". Cargo e coisa que se concede; diretoria e um conjunto de pessoas. Se outra
+// pessoa virasse admin, passaria a ver o Insights sem ninguem perceber. Fernando entrou na
+// lista pelo NOME e a porta do cargo foi fechada. Mesma decisao ja tomada no Controle Geral
+// (·363) e na Gestao e Controle (·373) — o Insights e mais antigo e tinha ficado para tras.
+// (2) O SERVIDOR NAO PROTEGIA NADA. /api/config devolvia a configuracao INTEIRA para
+// qualquer pessoa autenticada: os feedbacks do Insights chegavam ao navegador dos 12
+// atendentes, e bastava abrir o console para ler tudo. Esconder o menu nao e proteger o
+// dado. Agora o Worker REMOVE timeInsights da resposta para quem nao esta na lista.
+// ⚠️ A ARMADILHA DESTE BUILD, e ela apagaria TUDO do Insights se eu tivesse parado ali: o
+// Hub salva mandando a configuracao INTEIRA de volta. No instante em que o GET deixa de
+// entregar timeInsights a quem nao pode ver, o navegador dessa pessoa passa a nao ter o
+// campo — e o PRIMEIRO salvamento dela gravaria a config SEM ele, apagando os feedbacks
+// para todo mundo. Filtrar a saida sem blindar a entrada seria trocar um problema de
+// privacidade por uma perda de dados. Entao o POST /api/config so aceita timeInsights de
+// quem tem permissao; de qualquer outra origem, preserva o que ja esta no KV — campo
+// ausente ou adulterado, tanto faz.
+// (3) O BACKUP TAMBEM PASSOU A SER POR NOME. Quem baixa um backup le TUDO, inclusive o
+// Insights — de nada adiantaria fechar uma porta e deixar a outra aberta por cargo.
+// (4) O ATALHO DE PRIMEIRO NOME FICOU ESTRITO. O Hub aceita "Diego" como "Diego Oliveira"
+// quando o primeiro nome e unico — regra util para parear atendente com card, mas PERIGOSA
+// numa fronteira de seguranca: por ela, uma sessao chamada "Ana Paula" casaria com "Ana
+// Maria" e veria o Insights. Agora o atalho so vale quando a sessao NAO tem sobrenome
+// nenhum (cadastro antigo tipo "Diego"). Tendo sobrenome, ele precisa BATER. O teste roda a
+// funcao real do Worker contra "Ana Paula" e "Fernanda Pires" e exige que as duas fiquem de
+// fora. O index ganhou tiLiberadoNome() so para isso — nao usa mais tiMesmaPessoa aqui,
+// justamente porque aquela e (de proposito) mais permissiva.
+// A LISTA EXISTE EM DOIS LUGARES (index e worker) porque o servidor nao le o index. E um
+// risco real de divergirem, entao o teste COMPARA as duas e falha se alguem mexer numa e
+// esquecer da outra. A do worker e a que vale: a do index so evita desenhar uma tela que o
+// servidor negaria em seguida.
+// ANTERIOR: (·383) COMO TER CERTEZA DE QUE O QUE VIER DEPOIS TAMBEM ENTRA NO
 // BACKUP. Pergunta do Nando, depois do furo do ·382: ele nao quer uma promessa minha, quer
 // garantia de que TUDO que for criado daqui pra frente — nesta e em outras pastas de grupo
 // — seja gravado e copiado. Promessa nao serve; virei isso em CONFERENCIA AUTOMATICA.
@@ -11748,7 +11782,8 @@ init();
     /* (·377) Backup e Restauração no menu — mesma regra do 👤 Usuários. */
     var navBk=document.getElementById('navBackup');
     if(navBk){
-      if(perfil==='admin') navBk.classList.remove('uv-auth-hidden');
+      var podeBk=false; try{ podeBk=(typeof window.bkSouAdmin==='function') && window.bkSouAdmin(); }catch(e){}
+      if(podeBk) navBk.classList.remove('uv-auth-hidden');
       else navBk.classList.add('uv-auth-hidden');
     }
     /* (·216) 📧 Alertas — visível SÓ para admin, mesma regra do 👤 Usuários. A senha
@@ -26418,7 +26453,15 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
      Mesma cautela conta≠nome que Ações Comerciais aplica em "sou marcado":
      igualdade normalizada primeiro; o primeiro nome só vale quando for único
      no catálogo dos 12 (é o caso de Diego, Ana e Hynaê). */
-  var TI_LIBERADOS=['Diego Oliveira','Ana Maria','Hynaê Teston'];
+  /* (·384) A DIRETORIA POR NOME — o perfil "admin" saiu da conta.
+     Antes, tiPodeVer() liberava por tiSouAdmin(): quem tivesse cargo de admin
+     via o Insights, fosse quem fosse. Cargo é coisa que se concede; diretoria é
+     um conjunto de pessoas. Fernando entrou na lista pelo NOME, e a porta do
+     cargo foi fechada.
+     ⚠️ Esta lista tem uma cópia no worker.js (TI_LIBERADOS_SRV), porque o
+     servidor não lê este arquivo — e é lá que mora a proteção de verdade. O
+     teste compara as duas e falha se alguém mexer numa e esquecer da outra. */
+  var TI_LIBERADOS=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston'];
   function tiMesmaPessoa(a,b){
     var x=tiNorm(a), y=tiNorm(b);
     if(!x || !y) return false;
@@ -26428,11 +26471,26 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     var n=0; for(var i=0;i<TI_ATENDENTES.length;i++){ if(tiNorm(TI_ATENDENTES[i]).split(' ')[0]===px) n++; }
     return n===1;                                   // primeiro nome ambíguo não decide nada
   }
-  function tiPodeVer(){
-    if(tiSouAdmin()) return true;
-    var meu=tiNome(); if(!meu) return false;
-    for(var i=0;i<TI_LIBERADOS.length;i++){ if(tiMesmaPessoa(TI_LIBERADOS[i], meu)) return true; }
+  /* (·384) Regra ESTRITA — espelha tiPodeVerSrv() do worker.js.
+     Não usa tiMesmaPessoa: aquela é para parear atendente com card e pode
+     casar "Ana Paula" com "Ana Maria". Aqui é fronteira de segurança:
+     o atalho de primeiro nome só vale quando a sessão não tem sobrenome. */
+  function tiLiberadoNome(nome){
+    var meu=tiNorm(nome); if(!meu) return false;
+    for(var i=0;i<TI_LIBERADOS.length;i++){
+      var alvo=tiNorm(TI_LIBERADOS[i]);
+      if(alvo===meu) return true;
+      var p1=alvo.split(' ')[0];
+      if(meu.indexOf(' ')===-1 && p1===meu){
+        var n=0; for(var j=0;j<TI_LIBERADOS.length;j++){ if(tiNorm(TI_LIBERADOS[j]).split(' ')[0]===p1) n++; }
+        if(n===1) return true;
+      }
+    }
     return false;
+  }
+  function tiPodeVer(){
+    /* (·384) sem atalho por cargo: quem vê é quem está na lista de nomes */
+    return tiLiberadoNome(tiNome());
   }
   window.tiPodeVer=tiPodeVer;
 
@@ -33567,7 +33625,13 @@ table.bk-tab{width:100%;border-collapse:separate;border-spacing:0;font-size:12.5
   var bkEstado=null, bkOcupado=false, bkDetalhe=null, bkErro=null, bkAviso=null;
 
   function bkSouAdmin(){
-    try{ return (typeof window.uvAuthPerfil==='function') && window.uvAuthPerfil()==='admin'; }catch(e){ return false; }
+    /* (·384) por NOME, alinhado com o Worker — que é quem de fato recusa. Aqui
+       é só para não desenhar uma tela que o servidor vai negar em seguida. */
+    try{
+      var n=(typeof window.uvAuthNome==='function'?window.uvAuthNome():'')||'';
+      var norm=function(x){ return (x||'').toString().trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' '); };
+      return norm(n)===norm('Fernando Pires');
+    }catch(e){ return false; }
   }
   window.bkSouAdmin=bkSouAdmin;
   function esc(v){ return (v==null?'':String(v)).replace(/[&<>"]/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
