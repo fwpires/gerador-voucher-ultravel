@@ -4320,7 +4320,50 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 381; // (·381) O CAMINHO QUE EU INDIQUEI PARA O REMETENTE ESTAVA ERRADO.
+var UV_BUILD_NUM = 383; // (·383) COMO TER CERTEZA DE QUE O QUE VIER DEPOIS TAMBEM ENTRA NO
+// BACKUP. Pergunta do Nando, depois do furo do ·382: ele nao quer uma promessa minha, quer
+// garantia de que TUDO que for criado daqui pra frente — nesta e em outras pastas de grupo
+// — seja gravado e copiado. Promessa nao serve; virei isso em CONFERENCIA AUTOMATICA.
+// 1) CONFERENCIA DE COBERTURA, na propria tela de Backup. Toda vez que ela abre, compara o
+// que o Hub tem VIVO agora (as chaves de appConfig) com o que esta DENTRO da ultima copia,
+// e aponta com nome e sobrenome o que ficou de fora. Um modulo futuro que esqueca de
+// salvar aparece ali sozinho — sem depender de ninguem lembrar de mim, deste build ou
+// desta conversa. E a diferenca entre "confie" e "confira".
+// A mensagem distingue os dois casos possiveis, porque eles pedem acoes diferentes:
+// estrutura criada DEPOIS da ultima copia (normal — gera uma copia e resolve) e estrutura
+// que continua faltando MESMO depois de gerar (defeito de codigo, precisa corrigir).
+// Tambem lista o inverso — o que esta na copia e nao esta em uso nesta sessao — e explica
+// que isso e normal, para a lista nao assustar sem motivo.
+// 2) ALARME DE ENCOLHIMENTO, prometido no ·377 e so entregue agora. Se a copia de hoje tem
+// 20% menos vouchers, estruturas, usuarios ou anexos que a de ontem, o Worker registra o
+// alerta e a tela mostra em vermelho. O alarme NUNCA bloqueia o backup: gravar uma copia
+// menor e infinitamente melhor do que nao gravar nenhuma — a de ontem continua guardada e
+// e ela que salva. Ele so levanta a mao, para a descoberta acontecer no dia seguinte em vez
+// de daqui a tres meses. Os 20% sao deliberadamente frouxos: exclusao normal de um dia de
+// trabalho nao chega perto disso, e alarme que toca a toa deixa de ser lido.
+// 3) A GARANTIA DE FUNDO, que ja existia e e o que faz o resto funcionar: a copia leva a
+// chave "config" INTEIRA, nao uma lista de pastas. Pasta nova dentro de Grupos entra
+// sozinha, sem ninguem precisar acrescentar nada em lugar nenhum. As duas travas acima
+// existem para o caso em que o dado NAO chega ao config — que foi exatamente o furo do
+// ·382 e o unico jeito real de algo escapar.
+// ANTERIOR: (·382) A PLANILHA SO ENTRAVA NO BACKUP DEPOIS DA PRIMEIRA EDICAO.
+// O Nando perguntou se as informacoes dentro do card Gestao e Controle tambem estao na
+// copia de seguranca. Fui conferir no codigo em vez de responder "sim" — e achei um furo.
+// O QUE ESTAVA ERRADO: cgSemear() montava as 6 abas e as 128 linhas em MEMORIA e nao
+// chamava o salvamento. Quem levava aquilo para a nuvem era a primeira EDICAO de celula,
+// porque e ela que chama cgSalvar(). Ou seja: planilha aberta e nunca editada NAO estava
+// em appConfig, logo NAO estava na copia de seguranca.
+// POR QUE ISSO IMPORTA, mesmo o conteudo original vivendo no index.html: uma EXCLUSAO de
+// linha feita antes da primeira gravacao viraria PERMANENTE. A exclusao e soft (del=1) e
+// nao ressuscita pela semente — de proposito, e a regra certa —, mas sem nenhuma copia
+// anterior gravada nao haveria a que voltar. O furo era pequeno e a consequencia nao.
+// CORRECAO: cgSemear() ja devolvia true somente na PRIMEIRA vez na vida daquele contexto.
+// Entao basta gravar quando ele devolve true — uma gravacao, uma unica vez, e a planilha
+// passa a existir na nuvem (e no backup da noite) desde a primeira abertura, sem esperar
+// que alguem digite alguma coisa.
+// Vale para as DUAS planilhas, Controle Geral e Gestao e Controle, porque o motor e o
+// mesmo desde o ·374.
+// ANTERIOR: (·381) O CAMINHO QUE EU INDIQUEI PARA O REMETENTE ESTAVA ERRADO.
 // O Nando disse que nao entendeu a instrucao — e nao entendeu porque ela estava errada. Eu
 // escrevi "Ocupacao ▸ 📧 Alertas", e nao existe tela chamada Ocupacao com esse botao: o
 // campo do remetente vive no CONTROL DESK, dentro do card "🚦 Ocupacao dos Atendentes",
@@ -33151,7 +33194,16 @@ body.dark .cg-badge.ok{color:#A9DB3A} body.dark .cg-badge.mau{color:#FF8B8B} bod
   function cgSecaoHtml(qualCtx){
     cgCtx = (qualCtx && CG_CTX[qualCtx]) ? qualCtx : 'controleGeral';
     if(!cgPodeCtx()) return '';
-    cgSemear();
+    /* (·382) SEMEAR E GRAVAR, não só semear.
+       Até aqui a semente era montada em MEMÓRIA e só chegava à nuvem quando
+       alguém editava alguma célula — porque era a edição que chamava o
+       salvamento. Consequência: uma planilha aberta e nunca editada NÃO estava
+       na cópia de segurança. Na prática o conteúdo original sobrevive no
+       próprio index.html, mas uma EXCLUSÃO de linha feita antes da primeira
+       gravação viraria permanente sem nenhuma cópia anterior para comparar.
+       cgSemear() devolve true só na primeira vez na vida — então gravar aqui
+       custa uma gravação, uma vez, e fecha o buraco. */
+    if(cgSemear()){ try{ cgSalvar(); }catch(e){} }
     var abas=cgAbasLista();
     if(!abas.length) return '<div class="cg-nada">Nada carregado ainda.</div>';
     if(abas.indexOf(cgT().aba)<0) cgT().aba=abas[0];
@@ -33161,7 +33213,7 @@ body.dark .cg-badge.ok{color:#A9DB3A} body.dark .cg-badge.mau{color:#FF8B8B} bod
 
   function cgTotalLinhas(qualCtx){
     cgCtx = (qualCtx && CG_CTX[qualCtx]) ? qualCtx : 'controleGeral';
-    cgSemear();
+    if(cgSemear()){ try{ cgSalvar(); }catch(e){} }   // (·382) mesma razão
     var n=0; cgAbasLista().forEach(function(a){ n+=cgLinhasDe(a).length; }); return n;
   }
   window.cgTotalLinhas=cgTotalLinhas;
@@ -33595,6 +33647,15 @@ table.bk-tab{width:100%;border-collapse:separate;border-spacing:0;font-size:12.5
       h+='<div class="bk-alert bad">⚠️ '+esc(bkErro)+'</div>';
     }
     if(bkAviso){ h+='<div class="bk-alert ok">✉️ '+bkAviso+'</div>'; }
+    if(E.alerta && E.alerta.quedas && E.alerta.quedas.length){
+      /* (·383) encolhimento: o backup FOI feito — nunca se bloqueia uma cópia —,
+         mas a queda brusca aparece aqui em vermelho, porque é o sinal de que
+         alguém apagou em massa ou um módulo parou de salvar. */
+      h+='<div class="bk-alert bad">📉 <b>A cópia de '+bkDataBr(E.alerta.dia)+' ficou bem menor que a de '+bkDataBr(E.alerta.comparadoCom)+':</b><br>'+
+         E.alerta.quedas.map(function(q){ return '• '+esc(q); }).join('<br>')+
+         '<br><br>A cópia foi gravada normalmente e a anterior continua guardada — se isso não era esperado, dá para restaurar o dia anterior. '+
+         '<button type="button" class="bk-mini" data-bk="alerta-lido" style="margin-top:8px">Entendi, pode tirar o aviso</button></div>';
+    }
     if(!hojeOk && u){
       h+='<div class="bk-alert warn">⏳ A cópia de hoje ainda não foi gerada. O automático roda sozinho ao longo do dia — se quiser não esperar, use “Gerar cópia agora”.</div>';
     }
@@ -33613,6 +33674,45 @@ table.bk-tab{width:100%;border-collapse:separate;border-spacing:0;font-size:12.5
        '<div class="bk-alert info">📮 O envio sai do <b>mesmo remetente dos alertas</b>. Ele fica no <b>Control Desk</b> → card <b>🚦 Ocupação dos Atendentes</b> → botão <b>📧 Alertas</b>, no campo <i>“Remetente (e-mail verificado no provedor)”</i>. O Brevo só entrega a partir de um endereço verificado na conta dele — se esse campo estiver vazio, nada sai.</div>'+
        '<div class="bk-alert info">🔐 O arquivo enviado por e-mail <b>não leva senhas</b> — só os dados e a lista de usuários (nome, login e perfil). A cópia completa, com as senhas, fica guardada no servidor.</div>'+
        '</div>';
+
+    /* ---- (·383) CONFERÊNCIA DE COBERTURA ----
+       A pergunta do Nando foi "como eu tenho CERTEZA de que tudo que for criado
+       daqui pra frente entra no backup?". A resposta honesta não é uma promessa
+       minha: é o sistema comparando, toda vez que esta tela abre, o que o Hub
+       tem vivo agora com o que está dentro da última cópia — e apontando com
+       nome e sobrenome o que ficou de fora. Assim, um módulo futuro que esqueça
+       de salvar aparece aqui sozinho, sem depender de ninguém lembrar de mim,
+       deste build ou desta conversa. */
+    var vivas=[], fora=[], soNoBackup=[];
+    try{
+      vivas=Object.keys(appConfig||{}).filter(function(k){
+        /* campos de controle do próprio Hub, não dados: não fazem falta */
+        return ['hubBuild','estoqueVisivel'].indexOf(k)<0;
+      }).sort();
+      var noBk=E.chavesNoBackup||[];
+      if(noBk.length){
+        fora=vivas.filter(function(k){ return noBk.indexOf(k)<0; });
+        soNoBackup=noBk.filter(function(k){ return vivas.indexOf(k)<0 && ['hubBuild','estoqueVisivel'].indexOf(k)<0; });
+      }
+    }catch(e){}
+
+    h+='<div class="bk-sec"><div class="bk-sec-t">🔎 Conferência de cobertura</div>'+
+       '<div class="bk-sub" style="margin:0 0 11px">Comparação entre o que o Hub tem <b>agora, nesta tela</b>, e o que está dentro da última cópia de segurança.</div>';
+    if(!(E.chavesNoBackup||[]).length){
+      h+='<div class="bk-alert warn">Ainda não consegui ler o conteúdo da última cópia para comparar. Gere uma cópia e volte aqui.</div>';
+    } else if(!fora.length){
+      h+='<div class="bk-alert ok">✅ <b>Tudo coberto.</b> As <b>'+vivas.length+'</b> estruturas que o Hub usa hoje estão dentro da cópia de '+bkDataBr(E.ultimo&&E.ultimo.dia)+'. Isso inclui as pastas de Grupos e tudo o que for criado nelas: a cópia leva a configuração <b>inteira</b>, não uma lista de pastas — então pasta nova entra sozinha.</div>';
+    } else {
+      h+='<div class="bk-alert bad">⚠️ <b>'+fora.length+' estrutura(s) do Hub ainda não estão na última cópia:</b>'+
+         '<div class="bk-lista-chaves">'+fora.map(function(k){ return '<span class="bk-chave">'+esc(k)+'</span>'; }).join('')+'</div>'+
+         'Quase sempre isso quer dizer que a estrutura foi criada <b>depois</b> da última cópia — clique em <b>Gerar cópia agora</b> e confira de novo. '+
+         'Se continuar aparecendo depois de gerar, é sinal de que aquele módulo não está gravando na nuvem, e aí é defeito que precisa ser corrigido no código.</div>';
+    }
+    if(soNoBackup.length){
+      h+='<div class="bk-alert info">🗃️ '+soNoBackup.length+' estrutura(s) existem na cópia e não estão em uso agora ('+
+         soNoBackup.slice(0,6).map(esc).join(', ')+(soNoBackup.length>6?'…':'')+'). Isso é normal: são dados de módulos que este navegador ainda não abriu nesta sessão.</div>';
+    }
+    h+='</div>';
 
     /* ---- lista ---- */
     h+='<div class="bk-sec"><div class="bk-sec-t">🗂️ Cópias disponíveis</div>';
@@ -33668,6 +33768,10 @@ table.bk-tab{width:100%;border-collapse:separate;border-spacing:0;font-size:12.5
       var a=b.getAttribute('data-bk');
       if(a==='recarregar'){ bkEstado=null; bkErro=null; bkAviso=null; window.renderBackup(); return; }
       if(a==='fechar-detalhe'){ bkDetalhe=null; bkRender(); return; }
+      if(a==='alerta-lido'){
+        try{ await api('/api/backup/alerta-lido',{method:'POST'}); }catch(err){}
+        bkEstado=null; window.renderBackup(); return;
+      }
       if(a==='agora'){
         if(bkOcupado) return;
         /* (·378) DESTRAVAR É OBRIGAÇÃO DO `finally`, NÃO DO CAMINHO FELIZ.
