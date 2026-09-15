@@ -271,7 +271,7 @@ body.dark .hub-sidebar .nav-add{color:var(--verde)}
 .wd-wrap{margin:-6px 0 18px}
 .wd-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:9px}
 .wd-titulo{font-size:15px;font-weight:800;color:var(--texto);letter-spacing:.2px}
-.wd-cond{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--texto-fraco)}
+.wd-cond{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--texto-fraco)}
 .wd-semana{font-size:11px;color:var(--texto-fraco);margin-left:auto}
 .wd-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;align-items:start}
 .wd-dia{background:var(--card);border:1px solid var(--borda);border-radius:12px;padding:10px 12px;box-shadow:var(--sombra);border-top:3px solid var(--azul);min-width:0;display:flex;flex-direction:column;gap:2px}
@@ -4373,7 +4373,12 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 390; // (·390) NOME MENOR NOS CARDS DO WELCOME DAY. Pedido do Nando:
+var UV_BUILD_NUM = 391; // (·391) "INICIO AS 09:00" MENOR. Pedido do Nando. De 11,5px para
+// 10px. Ele e um dado fixo que quase nunca muda — perto do titulo "Welcome Day" ele so
+// precisa estar disponivel para quem procurar, nao chamar atencao toda vez.
+// Nao mexi na caixa alta nem no espacamento das letras: e o que mantem o rotulo legivel
+// em 10px. Só front.
+// ANTERIOR: (·390) NOME MENOR NOS CARDS DO WELCOME DAY. Pedido do Nando:
 // diminuir a fonte de Diego, Ana, Hynae e Nando dentro dos cards da faixa. De 15px para
 // 13px, e o peso de 800 para 700 junto — fonte menor com o mesmo peso fica compacta e
 // pesada ao mesmo tempo, o que le pior do que o tamanho original.
