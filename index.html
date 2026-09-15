@@ -2337,6 +2337,16 @@ body.dark .pg-btn.ativo{background:var(--azul);border-color:var(--azul);color:#f
 .sv-data-inp:focus{border-color:var(--azul)}
 body.dark .sv-data-inp{background:#16212E;border-color:#243447;color:#E8EEF4;color-scheme:dark}
 body.dark .sv-data-lbl{color:#8CA0BC}
+/* (·395) divisor entre os dois grupos de data: hospedagem × cadastro. São
+   perguntas diferentes, e quatro campos de data enfileirados sem nada no meio
+   convidam a preencher o par errado. */
+.sv-data-div{width:1px;align-self:stretch;min-height:22px;background:var(--borda);margin:0 4px}
+body.dark .sv-data-div{background:#243447}
+/* o campo de data com valor preenchido fica visivelmente ativo — sem isso, num
+   filtro de quatro campos, dá para esquecer um preenchido e não entender por
+   que a lista está curta */
+.sv-data-inp.sv-ativo{border-color:var(--azul);box-shadow:0 0 0 2px rgba(0,93,170,.14)}
+body.dark .sv-data-inp.sv-ativo{border-color:#12B0FF;box-shadow:0 0 0 2px rgba(18,176,255,.18)}
 .ordem-select{font-family:'Inter',sans-serif;font-size:13px;font-weight:600;padding:10px 12px;border-radius:var(--raio-sm);border:1px solid var(--borda);background:#fff;color:var(--texto);cursor:pointer;outline:none}
 .ordem-select:focus{border-color:var(--azul)}
 body.dark .ordem-select{background:#16212E;border-color:#243447;color:#E8EEF4}
@@ -3693,7 +3703,16 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <input type="date" id="svFiltroCheckin" class="sv-data-inp">
     <label class="sv-data-lbl" for="svFiltroCheckout">Check-out</label>
     <input type="date" id="svFiltroCheckout" class="sv-data-inp">
-    <button class="btn btn-ghost btn-sm" id="btnLimparDatasSv" title="Limpar filtro de datas">✕ Limpar</button>
+    <!-- (·395) período de CADASTRO — quando o voucher entrou no sistema. É outra
+         pergunta que o check-in: "o que a equipe cadastrou em setembro" não tem
+         relação com quando o hóspede entra no hotel. Por isso campos próprios,
+         separados por um divisor, e não um reaproveitamento dos de cima. -->
+    <span class="sv-data-div" aria-hidden="true"></span>
+    <label class="sv-data-lbl" for="svFiltroCadIni">🗂️ Cadastro de</label>
+    <input type="date" id="svFiltroCadIni" class="sv-data-inp" title="Cadastrados a partir deste dia (inclusive)">
+    <label class="sv-data-lbl" for="svFiltroCadFim">até</label>
+    <input type="date" id="svFiltroCadFim" class="sv-data-inp" title="Cadastrados até este dia (inclusive)">
+    <button class="btn btn-ghost btn-sm" id="btnLimparDatasSv" title="Limpar todos os filtros de data">✕ Limpar</button>
     <button class="btn btn-ghost btn-sm" id="btnGerarPdfVouchers" title="Gera um PDF com os vouchers que estão sendo exibidos agora (respeitando busca e filtro de datas)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h9l5 5v15H6z" stroke-linejoin="round"/><path d="M15 2v5h5" stroke-linejoin="round"/><path d="M9 13h6M9 17h4" stroke-linecap="round"/></svg>
       Gerar PDF
@@ -4385,7 +4404,33 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 394; // (·394) O BOTAO "ACESSAR REUNIAO" FICOU ROXO. O Nando mandou o
+var UV_BUILD_NUM = 395; // (·395) FILTRO POR PERIODO DE CADASTRO NOS VOUCHERS SALVOS.
+// Pedido do Nando: poder filtrar as vendas salvas pelo periodo em que foram CADASTRADAS no
+// sistema. Dois campos novos na mesma linha dos de hospedagem — "Cadastro de / ate".
+// E INTERVALO, e nao data exata, e essa diferenca e de proposito. O filtro de Check-in que
+// ja existia procura um DIA ESPECIFICO ("quem entra no dia 20"); aqui a pergunta e de
+// FAIXA ("o que a equipe cadastrou em setembro"). Preencher so um lado funciona: "de"
+// sozinho e "daqui pra frente", "ate" sozinho e "ate esse dia".
+// ⚠️ A CONVERSAO DE FUSO E O PONTO DELICADO DESTE BUILD, e e invisivel se nao for
+// procurada: `criadoEm` e gravado em UTC (toISOString). Em Florianopolis (UTC-3), um
+// voucher cadastrado as 21h de segunda vira MEIA-NOITE DE TERCA em UTC. Comparar o pedaco
+// de texto da ISO — que e o caminho obvio e o mais curto — jogaria esse voucher para o dia
+// seguinte, e ele sumiria de um filtro que deveria encontra-lo. Todo voucher cadastrado
+// depois das 21h cairia no dia errado, sem nenhum erro na tela. Por isso passa por Date e
+// volta a AAAA-MM-DD em horario LOCAL, a mesma regra ja usada nas vendas do dia.
+// VOUCHER SEM DATA DE CADASTRO FICA DE FORA do filtro por periodo: afirmar "foi cadastrado
+// nesta faixa" sem saber quando foi seria inventar. Sem filtro de periodo, ele aparece
+// normalmente como sempre apareceu.
+// DETALHES QUE EVITAM ERRO DE USO: um divisor separa os dois grupos (hospedagem × cadastro)
+// porque quatro campos de data enfileirados convidam a preencher o par errado; e o campo
+// PREENCHIDO acende a borda, senao da para esquecer um filtro ativo e nao entender por que
+// a lista esta curta.
+// O "Limpar" agora zera os QUATRO campos, e os quatro passam pelo MESMO caminho (um laco,
+// nao quatro linhas iguais — linha copiada e onde se esquece de plugar a quinta).
+// O PDF ja saia com a lista da tela; agora o CABECALHO dele tambem diz o periodo de
+// cadastro. Relatorio filtrado que nao diz por qual filtro passou vira um numero solto que
+// ninguem consegue conferir depois. Só front.
+// ANTERIOR: (·394) O BOTAO "ACESSAR REUNIAO" FICOU ROXO. O Nando mandou o
 // print do botao "Usuarios" do Control Desk como referencia de cor.
 // Copiei os VALORES do botao que ele mostrou, em vez de escolher um roxo parecido de olho:
 // mesmo fundo, mesma borda, mesmo texto, mesmo hover, mesmo raio de canto — e trouxe junto
@@ -10675,14 +10720,46 @@ function renderSavedFiltro(list){
   // depender da busca de texto (que casa qualquer campo, inclusive datas de outros serviços).
   const fCi=($('#svFiltroCheckin')&&$('#svFiltroCheckin').value)||'';
   const fCo=($('#svFiltroCheckout')&&$('#svFiltroCheckout').value)||'';
-  const temFiltroData=!!(fCi||fCo);
+  const temFiltroHosp=!!(fCi||fCo);
   const bateFiltroDatas=v=>{
-    if(!temFiltroData) return true;
+    if(!temFiltroHosp) return true;
     return (v.services||[]).some(s=> s && s.type==='hotel' && s.data &&
       (!fCi || s.data.checkin===fCi) && (!fCo || s.data.checkout===fCo));
   };
+  /* (·395) FILTRO POR PERÍODO DE CADASTRO — quando o voucher entrou no sistema.
+     É INTERVALO, não data exata: o filtro de hospedagem acima procura um dia
+     específico ("quem entra no dia 20"), enquanto aqui a pergunta é de faixa
+     ("o que a equipe cadastrou em setembro"). Preencher só um lado funciona:
+     "de" sozinho é "daqui pra frente", "até" sozinho é "até esse dia".
+     ⚠️ A CONVERSÃO DE FUSO É O PONTO DELICADO. `criadoEm` é ISO em UTC
+     (toISOString()). Em Florianópolis (UTC-3), um voucher cadastrado às 21h de
+     uma segunda vira meia-noite de terça em UTC — comparar o pedaço de texto da
+     ISO jogaria esse voucher para o dia seguinte e ele sumiria de um filtro que
+     deveria encontrá-lo. Por isso passa por Date e volta a AAAA-MM-DD em
+     horário LOCAL, a mesma regra já usada nas vendas do dia. */
+  const fCadI=($('#svFiltroCadIni')&&$('#svFiltroCadIni').value)||'';
+  const fCadF=($('#svFiltroCadFim')&&$('#svFiltroCadFim').value)||'';
+  const temFiltroCad=!!(fCadI||fCadF);
+  const diaLocalDe=iso=>{
+    if(!iso) return '';
+    const d=new Date(iso);
+    if(isNaN(d.getTime())) return '';
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  };
+  const bateFiltroCadastro=v=>{
+    if(!temFiltroCad) return true;
+    const dia=diaLocalDe(v.criadoEm);
+    /* voucher antigo sem data de cadastro NÃO entra num filtro por período:
+       dizer "foi cadastrado nesta faixa" sem saber quando foi seria inventar. */
+    if(!dia) return false;
+    if(fCadI && dia<fCadI) return false;
+    if(fCadF && dia>fCadF) return false;
+    return true;
+  };
+  const temFiltroData=temFiltroHosp||temFiltroCad;
   const filt=ordenarVouchers(list.filter(v=>{
     if(!bateFiltroDatas(v)) return false;
+    if(!bateFiltroCadastro(v)) return false;
     if(!termos.length) return true;
     const campos=[v.num, v.cliente, v.vendedor, v.evento, v.contato];
     // inclui os PASSAGEIROS na busca (antes só procurava titular/hóspedes)
@@ -11133,10 +11210,20 @@ function gerarPdfVouchers(){
 
   const q=($('#searchInput').value||'').trim();
   const ci=$('#svFiltroCheckin').value||'', co=$('#svFiltroCheckout').value||'';
+  /* (·395) o período de cadastro também vai para o cabeçalho do PDF: um relatório
+     filtrado que não diz por qual filtro passou vira um número solto que ninguém
+     consegue conferir depois. */
+  const cadI=($('#svFiltroCadIni')&&$('#svFiltroCadIni').value)||'';
+  const cadF=($('#svFiltroCadFim')&&$('#svFiltroCadFim').value)||'';
+  let cadTxt='';
+  if(cadI && cadF) cadTxt='Cadastro: '+fmtDate(cadI)+' a '+fmtDate(cadF);
+  else if(cadI)    cadTxt='Cadastro: a partir de '+fmtDate(cadI);
+  else if(cadF)    cadTxt='Cadastro: até '+fmtDate(cadF);
   const filtrosTxt=[
     q?('Busca: "'+q+'"'):'',
     ci?('Check-in: '+fmtDate(ci)):'',
-    co?('Check-out: '+fmtDate(co)):''
+    co?('Check-out: '+fmtDate(co)):'',
+    cadTxt
   ].filter(Boolean).join(' · ') || 'Todos os vouchers';
 
   // resume os serviços de um voucher numa linha curta pra tabela — hotel ganha
@@ -11241,9 +11328,21 @@ $('#ordemSelect').onchange=()=>{ paginaAtual=1; localStorage.setItem('uv_ordem',
 (function(){ const o=localStorage.getItem('uv_ordem'); if(o) $('#ordemSelect').value=o; })();
 // (·252) filtro de Check-in/Check-out — não precisa de debounce (é um <input type=date>,
 // não digitação livre): cada mudança já é uma escolha completa do usuário.
-$('#svFiltroCheckin').onchange=()=>{ paginaAtual=1; renderSavedFiltro(savedCache); };
-$('#svFiltroCheckout').onchange=()=>{ paginaAtual=1; renderSavedFiltro(savedCache); };
-$('#btnLimparDatasSv').onclick=()=>{ $('#svFiltroCheckin').value=''; $('#svFiltroCheckout').value=''; paginaAtual=1; renderSavedFiltro(savedCache); };
+/* (·395) os QUATRO campos de data passam pelo mesmo caminho — um laço em vez de
+   quatro linhas iguais, porque linha copiada é onde se esquece de plugar a
+   quinta. `svMarcarDatas` acende a borda dos campos preenchidos. */
+const SV_CAMPOS_DATA=['#svFiltroCheckin','#svFiltroCheckout','#svFiltroCadIni','#svFiltroCadFim'];
+function svMarcarDatas(){
+  SV_CAMPOS_DATA.forEach(sel=>{ const el=$(sel); if(el) el.classList.toggle('sv-ativo', !!el.value); });
+}
+SV_CAMPOS_DATA.forEach(sel=>{
+  const el=$(sel); if(!el) return;
+  el.onchange=()=>{ paginaAtual=1; svMarcarDatas(); renderSavedFiltro(savedCache); };
+});
+$('#btnLimparDatasSv').onclick=()=>{
+  SV_CAMPOS_DATA.forEach(sel=>{ const el=$(sel); if(el) el.value=''; });
+  paginaAtual=1; svMarcarDatas(); renderSavedFiltro(savedCache);
+};
 $('#btnGerarPdfVouchers').onclick=gerarPdfVouchers;
 $('#internalHead').onclick=()=>$('#internalBox').classList.toggle('open');
 // cliente espelha o 1º passageiro; digitar manualmente no cliente desativa o espelhamento
