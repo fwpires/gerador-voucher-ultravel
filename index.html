@@ -274,10 +274,14 @@ body.dark .hub-sidebar .nav-add{color:var(--verde)}
 .wd-cond{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--texto-fraco)}
 .wd-semana{font-size:11px;color:var(--texto-fraco);margin-left:auto}
 /* (·393) botão de entrar na reunião — ao lado do horário, que é o lugar onde a
-   pessoa já está olhando quando se pergunta "como eu entro?". Verde de ação,
-   não azul de link: é um botão que FAZ, não um endereço para copiar. */
-.wd-meet{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:999px;border:1px solid var(--verde);background:rgba(148,193,30,.14);color:var(--verde);font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.3px;cursor:pointer;transition:background .15s,color .15s,box-shadow .15s}
-.wd-meet:hover{background:var(--verde);color:#fff;box-shadow:0 0 10px rgba(148,193,30,.45)}
+   pessoa já está olhando quando se pergunta "como eu entro?".
+   (·394) ROXO, os MESMOS valores do botão "Usuários" do Control Desk — o Nando
+   mandou o print dele como referência. Reaproveitar a cor de um botão que já
+   existe (em vez de inventar um roxo parecido) é o que faz os dois parecerem o
+   mesmo sistema, inclusive no modo claro, que tem paleta própria. */
+.wd-meet{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:8px;border:1px solid rgba(168,85,247,.5);background:rgba(168,85,247,.14);color:#d8b4fe;font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.3px;cursor:pointer;white-space:nowrap;transition:all .14s}
+.wd-meet:hover{background:rgba(168,85,247,.28);color:#ecd5ff}
+body:not(.dark) .wd-meet{background:#f3e8ff;border-color:#d0a8f5;color:#7e22ce}
 .wd-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;align-items:start}
 .wd-dia{background:var(--card);border:1px solid var(--borda);border-radius:12px;padding:10px 12px;box-shadow:var(--sombra);border-top:3px solid var(--azul);min-width:0;display:flex;flex-direction:column;gap:2px}
 .wd-dia .wd-d{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--texto-fraco)}
@@ -4381,7 +4385,13 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 393; // (·393) BOTAO "ACESSAR REUNIAO" NO WELCOME DAY. Pedido do Nando:
+var UV_BUILD_NUM = 394; // (·394) O BOTAO "ACESSAR REUNIAO" FICOU ROXO. O Nando mandou o
+// print do botao "Usuarios" do Control Desk como referencia de cor.
+// Copiei os VALORES do botao que ele mostrou, em vez de escolher um roxo parecido de olho:
+// mesmo fundo, mesma borda, mesmo texto, mesmo hover, mesmo raio de canto — e trouxe junto
+// a regra do MODO CLARO, que o botao "Usuarios" tem e eu teria esquecido se so olhasse o
+// print (que e do tema escuro). Cor aproximada faria os dois botoes brigarem na mesma tela.
+// ANTERIOR: (·393) BOTAO "ACESSAR REUNIAO" NO WELCOME DAY. Pedido do Nando:
 // ao lado de "Inicio as 09:00", um botao que abre a sala do Meet direto no navegador, com
 // o LINK OCULTO.
 // COMO O LINK FICA REALMENTE OCULTO: o botao e um <button>, nao um <a href>. Sem href ele
