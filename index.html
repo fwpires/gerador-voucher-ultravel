@@ -4373,7 +4373,26 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 391; // (·391) "INICIO AS 09:00" MENOR. Pedido do Nando. De 11,5px para
+var UV_BUILD_NUM = 392; // (·392) OS CARDS DAS PASTAS SE REORGANIZAM SOZINHOS. O Nando
+// abriu a Imersao CSDI no Mac de 13 polegadas e mandou o print: os cards nao preenchem os
+// espacos vazios e a posicao fica travada. Ele esta certo, e a causa era MINHA.
+// A CAUSA: `.csdi-card-linha-nova{grid-column:1}`. No ·373 ele pediu o Gestao e Controle
+// "no canto esquerdo, alinhado", e eu resolvi prendendo o card na coluna 1. Funcionou na
+// largura em que eu testei — e so nela. Numa tela onde cabem 3 colunas, o Gestao ficava
+// preso na coluna 1 da linha DE BAIXO em vez de ocupar a vaga livre da linha de cima. Era
+// exatamente o buraco que ele marcou com a seta.
+// ⚠️ A LICAO: posicao fixa e grade que se adapta a tela NAO CONVIVEM. Toda vez que se
+// prende um item a uma coluna, escolhe-se uma largura de tela e abandona-se as outras. O
+// pedido de hoje ("dinamico e automatico") e o mais forte dos dois, entao a regra saiu.
+// SAIU TUDO, nao so a regra: a classe deixou de ser marcada no HTML e o campo `novaLinha`
+// saiu do mapa DOCS. Classe que nao estiliza e campo que ninguem le sao o tipo de entulho
+// que engana quem for mexer nisso daqui a seis meses.
+// APROVEITEI PARA FECHAR UM SEGUNDO BURACO, que ninguem tinha visto ainda: a grade usava
+// `minmax(280px,1fr)`. Numa janela mais estreita que 280px (celular em pe, janela
+// espremida), isso cria uma coluna MAIOR que a tela e a pagina inteira rola de lado.
+// Virou `minmax(min(280px,100%),1fr)`: em tela larga nada muda, em tela estreita a coluna
+// encolhe junto. Só front.
+// ANTERIOR: (·391) "INICIO AS 09:00" MENOR. Pedido do Nando. De 11,5px para
 // 10px. Ele e um dado fixo que quase nunca muda — perto do titulo "Welcome Day" ele so
 // precisa estar disponivel para quem procurar, nao chamar atencao toda vez.
 // Nao mexi na caixa alta nem no espacamento das letras: e o que mantem o rotulo legivel
@@ -31864,7 +31883,12 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
 .csdi-chip-top{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;padding:5px 11px;border-radius:999px;background:var(--azul-claro);color:var(--azul);border:1px solid rgba(0,93,170,.18)}
 body.dark .csdi-chip-top{border-color:rgba(18,176,255,.28);color:#5FC2FF}
 
-.csdi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+/* (·392) A GRADE SE ORGANIZA SOZINHA, SEM POSIÇÃO FIXA DE NENHUM CARD.
+   `auto-fit` já decidia quantas colunas cabem; o que travava era um card com
+   coluna fixa (ver a nota da linha-nova, abaixo). O `min(280px,100%)` é a
+   proteção para tela muito estreita: com `minmax(280px,1fr)` puro, uma janela
+   de 250px ganharia uma coluna de 280px e a página inteira rolaria de lado. */
+.csdi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr));gap:16px;align-items:stretch}
 .csdi-card{position:relative;background:var(--card);border:1px solid var(--borda);border-radius:16px;padding:0;overflow:hidden;box-shadow:var(--sombra);cursor:pointer;transition:transform .16s,box-shadow .16s,border-color .16s;display:flex;flex-direction:column}
 .csdi-card:hover{transform:translateY(-3px);box-shadow:0 14px 34px rgba(16,40,70,.14);border-color:var(--cor)}
 .csdi-card-top{height:6px;background:var(--cor)}
@@ -31876,10 +31900,14 @@ body.dark .csdi-chip-top{border-color:rgba(18,176,255,.28);color:#5FC2FF}
 .csdi-tag{font-size:11px;font-weight:700;padding:4px 9px;border-radius:999px;background:var(--corBg);color:var(--cor);border:1px solid var(--corBd)}
 /* (·373) selo discreto sob o título do card, centralizado */
 .csdi-card-selo{display:block;text-align:center;font-size:10.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--texto-fraco);margin:-4px 0 2px;opacity:.85}
-/* começa uma linha nova, encostado na esquerda, alinhado com o primeiro card —
-   sem isso ele cairia no buraco que sobrou da linha de cima, que muda de
-   posição conforme a largura da janela */
-.csdi-card-linha-nova{grid-column:1}
+/* (·392) AQUI FICAVA A REGRA QUE PRENDIA O GESTÃO E CONTROLE NA PRIMEIRA
+   COLUNA. No ·373 ela atendeu ao pedido de alinhá-lo à esquerda; o efeito
+   colateral apareceu no Mac de 13" do Nando: preso na coluna fixa, ele deixava
+   um buraco na linha de cima em vez de ocupar o espaço livre. Posição fixa e
+   grade que se adapta à tela não convivem — e é a segunda que ele quer.
+   Saiu tudo: a regra, a classe no HTML e o campo `novaLinha` do mapa DOCS.
+   Classe que não estiliza e campo que ninguém lê são o tipo de entulho que
+   engana quem for mexer nisso daqui a seis meses. */
 .csdi-card-cta{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;color:var(--cor);margin-top:2px}
 .csdi-card:hover .csdi-card-cta span{transform:translateX(3px)}
 .csdi-card-cta span{transition:transform .16s;display:inline-block}
@@ -32157,7 +32185,6 @@ body.dark .gc-pos{color:#A9DB3A} body.dark .gc-neg{color:#FF8B8B}
       desc:'Fluxo de caixa do grupo, resultado por inscrito e os simuladores de precificação da caravana.',
       tags:['Fluxo de caixa','Resultado','Precificação'],
       badge:'RESTRITO',
-      novaLinha:true,
       restrito:true,
       link:'https://docs.google.com/spreadsheets/d/1-vxzEJMgPzdesj6bJfgODhGD0xRzhF0G/edit?pli=1&gid=42110299#gid=42110299'
     }
@@ -32214,7 +32241,7 @@ body.dark .gc-pos{color:#A9DB3A} body.dark .gc-neg{color:#FF8B8B}
     h+='<div class="csdi-grid">';
     csdiCardsVisiveis().forEach(function(k){
       var d=DOCS[k];
-      h+='<div class="csdi-card'+(d.novaLinha?' csdi-card-linha-nova':'')+'" data-csdi-abrir="'+k+'" '+corStyle(d)+'>';
+      h+='<div class="csdi-card" data-csdi-abrir="'+k+'" '+corStyle(d)+'>';
       h+='<div class="csdi-card-top"></div><div class="csdi-card-body">';
       h+='<div class="csdi-card-ic">'+d.emoji+'</div>';
       h+='<h2 class="csdi-card-t">'+esc(d.nome)+'</h2>';
