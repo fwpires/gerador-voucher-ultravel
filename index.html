@@ -4405,7 +4405,76 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 397; // (·397) ABAS DA PLANILHA: CRIAR, RENOMEAR E EXCLUIR. Pedido do
+/* ═══ (·398) A DIRETORIA — UM LUGAR SÓ ═══
+   "Diretoria" já era usada em dois pontos (o acesso ao Insights, ·384, e a
+   trava do servidor) e agora entra num terceiro: quem pode editar cartão de
+   crédito. Três cópias da mesma lista é o defeito que esta base já pagou
+   várias vezes — então ela passa a viver AQUI e os outros apontam para cá.
+   Continua havendo uma cópia no worker.js (o servidor não lê o index) e o
+   teste compara as duas, falhando se alguém mexer numa e esquecer da outra. */
+var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston'];
+(function(){
+  function norm(x){ return (x||'').toString().trim().toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' '); }
+  /* Regra ESTRITA, a mesma do ·384: o atalho de primeiro nome só vale quando a
+     sessão NÃO tem sobrenome nenhum (cadastro antigo tipo "Diego"). Tendo
+     sobrenome, ele precisa BATER — senão "Ana Paula" entraria como "Ana Maria".
+     Isto é uma fronteira de segurança: na dúvida, NÃO libera. */
+  window.uvEhDiretoria=function(nome){
+    var meu=norm(nome); if(!meu) return false;
+    for(var i=0;i<UV_DIRETORIA.length;i++){
+      var alvo=norm(UV_DIRETORIA[i]);
+      if(alvo===meu) return true;
+      var p1=alvo.split(' ')[0];
+      if(meu.indexOf(' ')===-1 && p1===meu){
+        var n=0; for(var j=0;j<UV_DIRETORIA.length;j++){ if(norm(UV_DIRETORIA[j]).split(' ')[0]===p1) n++; }
+        if(n===1) return true;
+      }
+    }
+    return false;
+  };
+  /* quem está logado AGORA é da diretoria? */
+  window.uvSouDiretoria=function(){
+    try{ return window.uvEhDiretoria(typeof window.uvAuthNome==='function'?window.uvAuthNome():''); }
+    catch(e){ return false; }
+  };
+})();
+
+var UV_BUILD_NUM = 398; // (·398) EDITAR CARTAO DE CREDITO — SOMENTE A DIRETORIA. Pedido do
+// Nando: botao Editar em todos os cards de todos os cartoes, permitindo mudar todos os
+// dados, e a edicao liberada so para a diretoria.
+// ⚠️ O OBSTACULO REAL: OS 18 PRIMEIROS CARTOES NAO SAO DADO DO USUARIO. Eles sao um
+// LITERAL no codigo-fonte (CC_LISTA, ·205) — nao da para editar o que esta escrito no
+// arquivo. So os cartoes cadastrados pela tela (·250) sao registro de verdade. Entao os 18
+// ganharam uma CAMADA DE CORRECAO por cima: o original continua intacto e appConfig.ccEdits
+// guarda apenas o que foi mudado. Cartao cadastrado pela tela e editado no proprio lugar, e
+// UMA funcao (ccSalvarEdicao) decide qual dos dois caminhos seguir — duas regras de
+// gravacao seriam duas regras para divergir.
+// ⚠️ A CHAVE DA CAMADA E A IDENTIDADE ORIGINAL, e e isso que sustenta tudo. ccId() e
+// calculado de bandeira+final+validade+CVV, ou seja MUDA quando alguem corrige justamente
+// esses campos. Se a camada fosse guardada por ccId, a primeira correcao de CVV faria a
+// propria correcao deixar de ser encontrada e o cartao voltaria sozinho ao valor antigo.
+// A chave sai do literal, que nunca muda.
+// ⚠️ O SALDO MIGRA JUNTO. O saldo tambem e guardado por ccId. Corrigir numero, validade ou
+// CVV geraria ccId novo e o saldo informado ficaria ORFAO: a tela mostraria "sem saldo" e o
+// gestor tomaria decisao de compra com a informacao errada, sem nenhum erro aparecer.
+// Antes de gravar, guardo o ccId velho; depois, mudo o saldo de chave.
+// UM FORMULARIO SO para cadastrar e editar. Sao doze campos com a mesma validacao; um
+// segundo formulario "quase igual" viraria duas regras de obrigatoriedade que um dia
+// divergem — e a que erra e sempre a que ninguem lembrou de atualizar. Editar abre
+// PREENCHIDO: comecar com campos em branco convidaria a apagar sem querer o que nao se
+// pretendia mexer.
+// A DIRETORIA PASSOU A MORAR NUM LUGAR SO (UV_DIRETORIA). Ela ja era usada no acesso ao
+// Insights (·384); com os cartoes seria a terceira copia da mesma lista — o defeito que
+// esta base ja pagou varias vezes. Agora TI_LIBERADOS aponta para ela. Continua havendo uma
+// copia no worker.js porque o servidor nao le o index, e o teste compara as duas.
+// A conferencia e por NOME, nunca pelo perfil "admin": cargo se concede a outra pessoa
+// amanha. Quem nao e da diretoria nao ve o botao — e o clique confere DE NOVO antes de
+// abrir o formulario, porque esconder um botao nao e proteger uma acao. Se a fonte da lista
+// nao tiver carregado, a resposta e NAO: numa fronteira de permissao a falha tem de ser
+// para o lado fechado.
+// Uniao multi-PC plugada nos DOIS pontos de sempre. Só front.
+// ANTERIOR: (·397) ABAS DA PLANILHA: CRIAR, RENOMEAR E EXCLUIR. Pedido do
 // Nando, na planilha da Imersao CSDI: um botao "+" ao lado das abas que cria uma aba nova
 // com nome personalizavel, poder excluir, e as abas que ja existem tambem editaveis.
 // ONDE OS CONTROLES APARECEM: o "+" fica no fim da fila das abas, tracejado (promete
@@ -6212,6 +6281,9 @@ async function carregarConfig(){
         appConfig.klCards=window.klCardsMergeMaps(local.klCards, c.klCards);
       }
       /* (·250) CARTÕES CADASTRADOS PELO USUÁRIO — mesma proteção de união. */
+      if(typeof window.ccEditsMergeMaps==='function'){        // (·398) correções de cartão
+        appConfig.ccEdits=window.ccEditsMergeMaps(local.ccEdits, c.ccEdits);
+      }
       if(typeof window.ccExtrasMergeMaps==='function'){
         appConfig.ccExtras=window.ccExtrasMergeMaps(local.ccExtras, c.ccExtras);
       }
@@ -6765,6 +6837,12 @@ async function salvarConfig(){
     }
     if(typeof window.klCardsMergeMaps==='function'){
       appConfig.klCards=window.klCardsMergeMaps(appConfig.klCards, cloud.klCards);
+    }
+    /* (·398) o OUTRO ponto obrigatório: sem esta linha, o PC que editar um cartão
+       grava a config inteira por cima e apaga a correção que outra pessoa da
+       diretoria acabou de fazer noutro cartão. */
+    if(typeof window.ccEditsMergeMaps==='function'){
+      appConfig.ccEdits=window.ccEditsMergeMaps(appConfig.ccEdits, cloud.ccEdits);
     }
     if(typeof window.ccExtrasMergeMaps==='function'){         // (·250) Cartões cadastrados
       appConfig.ccExtras=window.ccExtrasMergeMaps(appConfig.ccExtras, cloud.ccExtras);
@@ -22233,6 +22311,13 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
   .cc-nacoes{display:flex;gap:10px;margin-top:6px}
   .cc-btn-cancelar{background:transparent;border:1px solid #243849;color:#8CA3B3;border-radius:10px;padding:11px 18px;font-size:.86rem;font-weight:700;cursor:pointer}
   .cc-btn-cancelar:hover{border-color:#33586b;color:#cfe8e0}
+  /* (·398) EDITAR — verde de ação, o mesmo tom do resto desta tela. Fica ACIMA
+     do Excluir e separado dele: são a ação frequente e a irreversível, e dois
+     botões colados no rodapé de um modal é como se clica no errado. */
+  .cc-meditar{margin-top:18px;padding-top:16px;border-top:1px solid #243849}
+  .cc-btn-editar{background:rgba(148,193,30,.12);border:1px solid rgba(148,193,30,.45);color:#b6e04a;border-radius:10px;padding:10px 16px;font-size:.84rem;font-weight:700;cursor:pointer;font-family:inherit;transition:background .15s,color .15s}
+  .cc-btn-editar:hover{background:rgba(148,193,30,.24);color:#d4f57c}
+  body:not(.dark) .cc-btn-editar{background:#f2f8e3;border-color:#c3dd86;color:#5a7a12}
   .cc-mexcluir{margin-top:18px;padding-top:16px;border-top:1px solid #243849}
   .cc-btn-excluir{background:rgba(255,82,82,.1);border:1px solid rgba(255,82,82,.4);color:#ff8a8a;border-radius:10px;padding:10px 16px;font-size:.84rem;font-weight:700;cursor:pointer}
   .cc-btn-excluir:hover{background:rgba(255,82,82,.18)}
@@ -22315,11 +22400,60 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
      merge por união+carimbo que protege os outros módulos. A lista que a tela
      de fato usa (ccListaTodos) é a JUNÇÃO das duas — em todo lugar que antes
      lia CC_LISTA direto. */
+  /* (·398) QUEM PODE EDITAR — a diretoria, e a lista mora num lugar só
+     (UV_DIRETORIA). O typeof existe porque este módulo vive em OUTRO bloco
+     <script>: se por qualquer motivo a fonte não tiver carregado, a resposta
+     é NÃO — numa fronteira de permissão, a falha tem de ser para o lado
+     fechado, nunca para o aberto. */
+  function ccPodeEditar(){
+    try{ return (typeof window.uvSouDiretoria==='function') && window.uvSouDiretoria()===true; }
+    catch(e){ return false; }
+  }
+  window.ccPodeEditar=ccPodeEditar;
+
   function ccExtrasStore(){
     if(!appConfig.ccExtras || typeof appConfig.ccExtras!=='object') appConfig.ccExtras={};
     return appConfig.ccExtras;
   }
   var CC_CAMPOS=['banco','band','num','val','cvv','tit','nasc','cpf','fech','venc','jIni','jFim','parc'];
+
+  /* ========================================================================
+     (·398) EDITAR QUALQUER CARTÃO — inclusive os 18 originais
+     ========================================================================
+     Os 18 primeiros cartões NÃO são dado do usuário: são um literal no
+     código-fonte (CC_LISTA, ·205). Não dá para editar o que está escrito no
+     arquivo. Então eles ganham uma CAMADA DE CORREÇÃO por cima: o original
+     continua intacto e appConfig.ccEdits guarda só o que foi mudado.
+     Cartão cadastrado pela tela (tem _extraId) não precisa de camada nenhuma —
+     é registro de verdade e é editado no próprio lugar. UMA função decide qual
+     dos dois caminhos seguir, para não haver duas regras de gravação.
+
+     ⚠️ A CHAVE DA CAMADA É A IDENTIDADE ORIGINAL, e isso é o que sustenta tudo.
+     ccId() é calculado a partir de bandeira+final+validade+CVV — ou seja, MUDA
+     quando alguém corrige justamente esses campos. Se a camada fosse guardada
+     por ccId, a primeira correção de CVV faria a própria correção deixar de ser
+     encontrada, e o cartão voltaria sozinho ao valor antigo. A chave sai do
+     literal, que nunca muda. */
+  function ccChaveBase(c){
+    if(!c) return '';
+    if(c._extraId) return 'x:'+c._extraId;
+    return 'b:'+(c._basePos!=null?c._basePos:'?')+'|'+(c.band||'')+'|'+(c.num?String(c.num).slice(-4):'S/N');
+  }
+  function ccEditsStore(){
+    if(!appConfig.ccEdits || typeof appConfig.ccEdits!=='object') appConfig.ccEdits={};
+    return appConfig.ccEdits;
+  }
+  /* união por chave, carimbo mais recente vence — mesmo padrão de ccExtras */
+  window.ccEditsMergeMaps=function(a,b){
+    a=a||{}; b=b||{}; var out={}, ks={};
+    Object.keys(a).forEach(function(k){ks[k]=1;}); Object.keys(b).forEach(function(k){ks[k]=1;});
+    Object.keys(ks).forEach(function(k){
+      var x=a[k], y=b[k];
+      out[k]=(x&&y)?(((x.ts||0)>=(y.ts||0))?x:y):(x||y);
+    });
+    return out;
+  };
+
   function ccListaTodos(){
     var store=ccExtrasStore(), extras=[];
     Object.keys(store).forEach(function(id){
@@ -22332,8 +22466,53 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
     // cada render — sem isso, dois cartões com o mesmo ts na borda de um
     // merge poderiam trocar de posição entre um PC e outro
     extras.sort(function(a,b){ return (store[a._extraId].ts||0)-(store[b._extraId].ts||0); });
-    return CC_LISTA.concat(extras);
+    /* (·398) os 18 do código saem daqui já com a camada de correção aplicada
+       por cima. `_basePos` é a posição no literal, usada só para montar a chave
+       estável — e nunca é editável. */
+    var eds=ccEditsStore();
+    var base=CC_LISTA.map(function(orig, pos){
+      var card={ _basePos:pos };
+      CC_CAMPOS.forEach(function(k){ card[k]=orig[k]; });
+      var ed=eds[ccChaveBase(card)];
+      if(ed){ CC_CAMPOS.forEach(function(k){ if(ed[k]!==undefined) card[k]=ed[k]; }); }
+      return card;
+    });
+    return base.concat(extras);
   }
+
+  /* GRAVAR UMA EDIÇÃO — um ponto só para os dois tipos de cartão.
+     ⚠️ MIGRA O SALDO JUNTO. O saldo é guardado por ccId (bandeira+final+
+     validade+CVV). Corrigir um desses campos gera ccId novo e o saldo
+     informado ficaria órfão — a tela mostraria "sem saldo" e o gestor tomaria
+     decisão de compra com a informação errada, sem nenhum erro aparecer.
+     Antes de gravar, guardamos o ccId velho; depois, mudamos o saldo de chave. */
+  function ccSalvarEdicao(cAntes, dados){
+    var idAntes=ccId(cAntes);
+    if(cAntes._extraId){
+      var st=ccExtrasStore(), reg=st[cAntes._extraId];
+      if(!reg) return false;
+      CC_CAMPOS.forEach(function(k){ reg[k]=dados[k]; });
+      reg.ts=Date.now();
+    } else {
+      var eds=ccEditsStore(), ch=ccChaveBase(cAntes), ed=eds[ch]||{};
+      CC_CAMPOS.forEach(function(k){ ed[k]=dados[k]; });
+      ed.ts=Date.now();
+      eds[ch]=ed;
+    }
+    /* o cartão DEPOIS da edição, para descobrir o ccId novo */
+    var cDepois={_extraId:cAntes._extraId, _basePos:cAntes._basePos};
+    CC_CAMPOS.forEach(function(k){ cDepois[k]=dados[k]; });
+    var idDepois=ccId(cDepois);
+    if(idAntes && idDepois && idAntes!==idDepois){
+      var m=ccSaldoMapa();
+      if(m && m[idAntes] && !m[idDepois]){ m[idDepois]=m[idAntes]; delete m[idAntes]; }
+    }
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+    try{ if(typeof logRemoto==='function') logRemoto('cartao_editado','Cartão editado: '+(dados.tit||'')+' — '+(dados.band||'')+' final '+(dados.num?String(dados.num).slice(-4):'S/N'),{area:'Cartões de Crédito'}); }catch(e){}
+    return true;
+  }
+  window.ccSalvarEdicao=ccSalvarEdicao;
+  window.ccChaveBase=ccChaveBase;
   function ccNovo(dados){
     var store=ccExtrasStore();
     var id='novo_'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
@@ -22744,6 +22923,13 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
            deles pela interface exigiria uma regra de "soft delete de item de
            semente" que ninguém pediu; se um dia for preciso, é um passo
            deliberado à parte, não um efeito colateral deste botão. */
+        /* (·398) EDITAR — só para a diretoria. A conferência é por NOME, nunca
+           pelo perfil "admin": cargo é coisa que se concede a outra pessoa
+           amanhã, e aqui o pedido foi explicitamente "somente a diretoria".
+           Quem não é da diretoria não vê o botão — e, mesmo que apareça por
+           algum caminho, o clique confere de novo antes de abrir o formulário
+           (esconder um botão não é proteger uma ação). */
+        (ccPodeEditar() ? '<div class="cc-meditar"><button type="button" class="cc-btn-editar" id="ccBtnEditar">✎ Editar dados deste cartão</button></div>' : '')+
         (c._extraId ? '<div class="cc-mexcluir"><button type="button" class="cc-btn-excluir" id="ccBtnExcluir">🗑 Excluir este cartão cadastrado</button></div>' : '')+
       '</div>';
     ov.classList.add('on');
@@ -22775,6 +22961,15 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
       inp.addEventListener('keydown', function(ev){ if(ev.key==='Enter'){ ev.preventDefault(); inp.blur(); } });
     }
 
+    var btnEditar=document.getElementById('ccBtnEditar');
+    if(btnEditar){
+      btnEditar.onclick=function(){
+        if(!ccPodeEditar()){ try{ if(typeof toast==='function') toast('Somente a diretoria pode editar cartões','erro'); }catch(x){} return; }
+        ccSaldoFlush();                 /* sobe o saldo pendente antes de trocar de tela */
+        ccAbrirNovo(c);
+      };
+    }
+
     var btnExcluir=document.getElementById('ccBtnExcluir');
     if(btnExcluir){
       btnExcluir.onclick=function(){
@@ -22788,9 +22983,15 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
     document.getElementById('ccX').onclick=function(){ ccSaldoFlush(); ov.classList.remove('on');
       if(typeof window.renderCartoes==='function') window.renderCartoes(); };
   }
-  /* ---- (·250) formulário de cadastro de cartão novo ---- */
-  function ccAbrirNovo(){
+  /* ---- (·250) formulário de cadastro / (·398) e de edição ----
+     UM formulário para os dois. São doze campos com a mesma validação: um
+     segundo formulário "quase igual" para editar viraria duas regras de
+     obrigatoriedade que um dia divergem — e a que erra é sempre a que ninguém
+     lembrou de atualizar. Passando um cartão, ele abre preenchido e grava por
+     cima; sem cartão, cadastra um novo. */
+  function ccAbrirNovo(cEdit){
     var ov=document.getElementById('ccOv'), md=document.getElementById('ccModal');
+    var editando=!!cEdit;
     function campo(id, rot, ph, tipo, largo){
       return '<div class="cc-nfld'+(largo?' full':'')+'">'+
         '<label for="'+id+'">'+rot+'</label>'+
@@ -22798,9 +22999,11 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
       '</div>';
     }
     md.innerHTML=
-      '<div class="cl-mhead"><h2>➕ Cadastrar novo cartão</h2><button type="button" class="cl-x" id="ccNovoX">&times;</button></div>'+
+      '<div class="cl-mhead"><h2>'+(editando?'✎ Editar cartão':'➕ Cadastrar novo cartão')+'</h2><button type="button" class="cl-x" id="ccNovoX">&times;</button></div>'+
       '<div class="cl-mbody">'+
-        '<div class="cc-mnota">Preencha os dados do cartão. Campos com <b>*</b> são obrigatórios — os dias de fechamento/vencimento e a janela de melhores dias são o que faz este cartão aparecer nas recomendações do dia certo.</div>'+
+        '<div class="cc-mnota">'+(editando
+          ? 'Altere o que precisar e salve. A mudança vale para <b>todos os computadores</b>.'
+          : 'Preencha os dados do cartão. Campos com <b>*</b> são obrigatórios — os dias de fechamento/vencimento e a janela de melhores dias são o que faz este cartão aparecer nas recomendações do dia certo.')+'</div>'+
         '<div class="cc-nform" id="ccNovoForm">'+
           '<div class="cc-nfld"><label for="ccNBand">Bandeira *</label>'+
             '<select id="ccNBand"><option value="VISA">Visa</option><option value="MASTERCARD">Mastercard</option></select></div>'+
@@ -22818,10 +23021,21 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
           '<div class="cc-nfld full cc-nparc"><label><input type="checkbox" id="ccNParc" checked> Este cartão aceita parcelamento</label></div>'+
         '</div>'+
         '<div class="cc-nerro" id="ccNovoErro"></div>'+
-        '<div class="cc-nacoes"><button type="button" class="cc-btn-novo" id="ccNovoSalvar">✓ Salvar cartão</button>'+
+        '<div class="cc-nacoes"><button type="button" class="cc-btn-novo" id="ccNovoSalvar">'+(editando?'✓ Salvar alterações':'✓ Salvar cartão')+'</button>'+
         '<button type="button" class="cc-btn-cancelar" id="ccNovoCancelar">Cancelar</button></div>'+
       '</div>';
     ov.classList.add('on');
+    /* (·398) abre PREENCHIDO com o que já existe — editar começando de campos
+       em branco convidaria a apagar sem querer o que não se pretendia mexer. */
+    if(editando){
+      var pv=function(id,v){ var el=document.getElementById(id); if(el) el.value=(v==null?'':v); };
+      pv('ccNBand', cEdit.band||'VISA');
+      pv('ccNBanco', cEdit.banco); pv('ccNNum', cEdit.num); pv('ccNVal', cEdit.val);
+      pv('ccNCvv', cEdit.cvv); pv('ccNTit', cEdit.tit); pv('ccNNasc', cEdit.nasc);
+      pv('ccNCpf', cEdit.cpf); pv('ccNFech', cEdit.fech); pv('ccNVenc', cEdit.venc);
+      pv('ccNJIni', cEdit.jIni); pv('ccNJFim', cEdit.jFim);
+      var pc=document.getElementById('ccNParc'); if(pc) pc.checked=!!cEdit.parc;
+    }
     document.getElementById('ccNTit').focus();
 
     function fechar(){ ov.classList.remove('on'); }
@@ -22859,7 +23073,8 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
         fech:fech, venc:venc, jIni:jIni, jFim:jFim,
         parc:!!document.getElementById('ccNParc').checked
       };
-      ccNovo(dados);
+      if(editando) ccSalvarEdicao(cEdit, dados);
+      else ccNovo(dados);
       fechar();
       if(typeof window.renderCartoes==='function') window.renderCartoes();
     };
@@ -26823,7 +27038,9 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
      ⚠️ Esta lista tem uma cópia no worker.js (TI_LIBERADOS_SRV), porque o
      servidor não lê este arquivo — e é lá que mora a proteção de verdade. O
      teste compara as duas e falha se alguém mexer numa e esquecer da outra. */
-  var TI_LIBERADOS=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston'];
+  /* (·398) aponta para a fonte única (UV_DIRETORIA) em vez de repetir os nomes:
+     duas listas iguais é uma esperando para divergir da outra. */
+  var TI_LIBERADOS=(typeof UV_DIRETORIA!=='undefined')?UV_DIRETORIA:['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston'];
   function tiMesmaPessoa(a,b){
     var x=tiNorm(a), y=tiNorm(b);
     if(!x || !y) return false;
