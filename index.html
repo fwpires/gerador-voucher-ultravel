@@ -273,6 +273,11 @@ body.dark .hub-sidebar .nav-add{color:var(--verde)}
 .wd-titulo{font-size:15px;font-weight:800;color:var(--texto);letter-spacing:.2px}
 .wd-cond{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--texto-fraco)}
 .wd-semana{font-size:11px;color:var(--texto-fraco);margin-left:auto}
+/* (·393) botão de entrar na reunião — ao lado do horário, que é o lugar onde a
+   pessoa já está olhando quando se pergunta "como eu entro?". Verde de ação,
+   não azul de link: é um botão que FAZ, não um endereço para copiar. */
+.wd-meet{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:999px;border:1px solid var(--verde);background:rgba(148,193,30,.14);color:var(--verde);font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.3px;cursor:pointer;transition:background .15s,color .15s,box-shadow .15s}
+.wd-meet:hover{background:var(--verde);color:#fff;box-shadow:0 0 10px rgba(148,193,30,.45)}
 .wd-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;align-items:start}
 .wd-dia{background:var(--card);border:1px solid var(--borda);border-radius:12px;padding:10px 12px;box-shadow:var(--sombra);border-top:3px solid var(--azul);min-width:0;display:flex;flex-direction:column;gap:2px}
 .wd-dia .wd-d{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--texto-fraco)}
@@ -3713,6 +3718,9 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
           <div class="wd-head">
             <span class="wd-titulo">Welcome Day</span>
             <span class="wd-cond">Início às 09:00</span>
+            <!-- (·393) o endereço da sala NÃO fica no HTML: sem href, sem title.
+                 Quem clica entra; quem inspeciona a tela não leva o link. -->
+            <button type="button" class="wd-meet" id="wdMeet" title="Abrir a sala do Welcome Day">📹 Acessar Reunião</button>
             <span class="wd-semana" id="wdSemana"></span>
           </div>
           <div class="wd-grid" id="wdGrid"></div>
@@ -4373,7 +4381,21 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 392; // (·392) OS CARDS DAS PASTAS SE REORGANIZAM SOZINHOS. O Nando
+var UV_BUILD_NUM = 393; // (·393) BOTAO "ACESSAR REUNIAO" NO WELCOME DAY. Pedido do Nando:
+// ao lado de "Inicio as 09:00", um botao que abre a sala do Meet direto no navegador, com
+// o LINK OCULTO.
+// COMO O LINK FICA REALMENTE OCULTO: o botao e um <button>, nao um <a href>. Sem href ele
+// nao aparece na barra de status ao passar o mouse, nao tem "copiar endereco do link" no
+// botao direito e nao vai junto num Ctrl+C da tela. O endereco mora numa constante no
+// codigo. Isso esconde da INTERFACE — quem abrir o codigo-fonte da pagina ainda acha, e
+// nao ha como evitar isso numa pagina que roda no navegador; se um dia a sala precisar ser
+// realmente secreta, o caminho e o Worker devolver o endereco so para quem tem sessao.
+// `noopener,noreferrer` na janela nova nao e detalhe: sem isso a aba aberta ganha uma
+// referencia de volta (window.opener) para o Hub e pode mexer nesta pagina.
+// Verde de acao e nao azul de link, porque e um botao que FAZ, nao um endereco para
+// copiar. Fica colado no horario de proposito: e onde a pessoa ja esta olhando quando se
+// pergunta "como eu entro?". Só front.
+// ANTERIOR: (·392) OS CARDS DAS PASTAS SE REORGANIZAM SOZINHOS. O Nando
 // abriu a Imersao CSDI no Mac de 13 polegadas e mandou o print: os cards nao preenchem os
 // espacos vazios e a posicao fica travada. Ele esta certo, e a causa era MINHA.
 // A CAUSA: `.csdi-card-linha-nova{grid-column:1}`. No ·373 ele pediu o Gestao e Controle
@@ -34299,9 +34321,23 @@ var WD_ESCALA=[
     try{ if(typeof toast==='function') toast((txt||'').trim()?'Pauta salva':'Pauta removida','ok'); }catch(e){}
   }
 
+  /* (·393) A SALA DA REUNIÃO. O endereço mora AQUI, no código, e não num href
+     na tela: o Nando pediu o link oculto. Sem `href`, o botão não pode ser
+     copiado com o botão direito, não aparece na barra de status ao passar o
+     mouse e não vaza num "copiar endereço do link".
+     `noopener,noreferrer` é obrigatório em qualquer janela nova: sem ele a aba
+     aberta ganha uma referência de volta (window.opener) para o Hub e pode
+     mexer nesta página. */
+  var WD_SALA='https://meet.google.com/prv-dgvh-kbc?authuser=1';
+  function abrirSala(){
+    try{ window.open(WD_SALA,'_blank','noopener,noreferrer'); }
+    catch(e){ try{ if(typeof toast==='function') toast('Não consegui abrir a sala — verifique o bloqueador de pop-ups','erro'); }catch(e2){} }
+  }
+
   document.addEventListener('click', function(ev){
     var w=ev.target.closest && ev.target.closest('#wdWrap'); if(!w) return;
     var b;
+    if(ev.target.closest('#wdMeet')){ abrirSala(); return; }
     if((b=ev.target.closest('[data-wd-abrir]'))){ abrirEditor(b.getAttribute('data-wd-abrir')); return; }
     if((b=ev.target.closest('[data-wd-cancel]'))){ editando=null; wdDesenhar(); return; }
     if((b=ev.target.closest('[data-wd-ok]'))){
