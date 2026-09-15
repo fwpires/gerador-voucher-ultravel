@@ -4405,7 +4405,33 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 396; // (·396) O BOTAO "ACESSAR REUNIAO" FICOU AZUL E PERDEU A CAMERA.
+var UV_BUILD_NUM = 397; // (·397) ABAS DA PLANILHA: CRIAR, RENOMEAR E EXCLUIR. Pedido do
+// Nando, na planilha da Imersao CSDI: um botao "+" ao lado das abas que cria uma aba nova
+// com nome personalizavel, poder excluir, e as abas que ja existem tambem editaveis.
+// ONDE OS CONTROLES APARECEM: o "+" fica no fim da fila das abas, tracejado (promete
+// CRIAR, nao selecionar). O ✎ e o ✕ aparecem SO NA ABA ATIVA — com 6 abas na barra, dois
+// icones em cada uma viram ruido e ainda convidam a excluir a aba errada num clique de
+// mira ruim. Na aba ativa, a pessoa ja esta onde vai agir.
+// ⚠️ A PILULA DEIXOU DE SER <button> e virou <div role="button">: um <button> NAO PODE
+// conter outros <button> — e HTML invalido e o navegador desmonta o encaixe, o que quebra
+// os dois icones de dentro. A troca cobrou o teclado de volta, entao Enter/Espaco sobre a
+// aba foram devolvidos na mao; tabindex sem isso seria promessa de foco que nao faz nada.
+// RENOMEAR USA O MESMO EDITOR da celula e do cabecalho de coluna (·376). Um editor proprio
+// so para a aba duplicaria Enter, Esc, blur e a regra de "um input por vez". Nome vazio
+// volta ao anterior: aba sem nome e uma pilula em branco que ninguem sabe o que e.
+// ABA NOVA NASCE UTILIZAVEL: tres colunas (A, B, C) e uma linha em branco com o editor ja
+// aberto. Aba de verdade vazia abriria uma tabela SEM NENHUMA COLUNA — e sem coluna nao ha
+// onde clicar para comecar a digitar.
+// EXCLUSAO E SOFT (del=1), como toda exclusao aqui. E isso que faz a uniao entre PCs
+// RESPEITAR a exclusao em vez de ressuscitar a aba vinda do outro lado, e que impede a
+// semente de recria-la no proximo carregamento. As LINHAS da aba nao sao apagadas: somem da
+// tela junto com ela e continuam integras numa eventual restauracao de backup.
+// DUAS TRAVAS CONTRA ESTRAGO: a ultima aba nao mostra o ✕ (excluir a unica deixaria a tela
+// vazia e sem caminho de volta pela interface), e a confirmacao diz quantas linhas vao
+// sumir junto e avisa que vale para TODOS os computadores.
+// Tudo isso vale para as DUAS planilhas (Controle Geral e Gestao e Controle), porque o
+// motor e o mesmo desde o ·374. Só front.
+// ANTERIOR: (·396) O BOTAO "ACESSAR REUNIAO" FICOU AZUL E PERDEU A CAMERA.
 // O Nando mandou o print do botao "Relatorio" do Control Desk como nova referencia de cor
 // (no ·394 tinha sido o roxo do "Usuarios") e pediu para tirar o simbolo de camera,
 // deixando so a frase.
@@ -33367,6 +33393,19 @@ body.dark .gc-pos{color:#A9DB3A} body.dark .gc-neg{color:#FF8B8B}
 .cg-aba.on{background:var(--azul);border-color:var(--azul);color:#fff}
 .cg-aba-q{font-size:11px;font-weight:800;padding:1px 7px;border-radius:999px;background:var(--fundo);color:var(--texto-suave)}
 .cg-aba.on .cg-aba-q{background:rgba(255,255,255,.22);color:#fff}
+/* (·397) RENOMEAR E EXCLUIR aparecem SÓ na aba ativa. Numa barra com 6 abas,
+   mostrar dois ícones em cada uma vira ruído — e ainda convida a excluir a aba
+   errada com um clique de mira ruim. Na ativa, a pessoa já está onde vai agir. */
+.cg-aba-ac{display:none;align-items:center;gap:3px;margin-left:2px}
+.cg-aba.on .cg-aba-ac{display:inline-flex}
+.cg-aba-ic{border:none;background:rgba(255,255,255,.16);color:#fff;font-family:inherit;font-size:10px;line-height:1;width:18px;height:18px;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;opacity:.85;transition:background .14s,opacity .14s}
+.cg-aba-ic:hover{background:rgba(255,255,255,.34);opacity:1}
+.cg-aba-ic.x:hover{background:var(--vermelho);opacity:1}
+/* o "+" é uma aba a mais na fila, mas tracejado: promete criar, não selecionar */
+.cg-aba-nova{border:1px dashed var(--borda-forte);background:none;color:var(--texto-suave);font-size:12.5px;font-weight:700;padding:7px 13px;border-radius:999px;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
+.cg-aba-nova:hover{border-color:var(--azul);color:var(--azul);border-style:solid}
+/* o input de renomear a aba mora DENTRO da pílula, então precisa caber nela */
+.cg-aba .cg-inp{width:150px;min-width:80px;font-size:12.5px;font-weight:700;padding:2px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.5);background:rgba(255,255,255,.14);color:#fff;font-family:inherit;outline:none}
 .cg-busca{flex:0 0 auto;position:relative}
 .cg-busca input{width:230px;padding:8px 12px 8px 32px;border-radius:9px;border:1px solid var(--borda);background:var(--card);color:var(--texto);font-size:12.5px;font-family:inherit}
 .cg-busca input:focus{outline:none;border-color:var(--azul)}
@@ -33669,10 +33708,24 @@ body.dark .cg-badge.ok{color:#A9DB3A} body.dark .cg-badge.mau{color:#FF8B8B} bod
 
     var h='';
     h+='<div class="cg-topo"><div class="cg-abas">';
-    cgAbasLista().forEach(function(a){
-      h+='<button type="button" class="cg-aba'+(a===aid?' on':'')+'" data-cg-aba="'+cgEsc(a)+'">'
-        +cgEsc(s.abas[a].nome||a)+'<span class="cg-aba-q">'+cgLinhasDe(a).length+'</span></button>';
+    var _abas=cgAbasLista();
+    _abas.forEach(function(a){
+      var ativa=(a===aid);
+      /* (·397) a pílula virou <div role="button">: um <button> não pode conter
+         outros <button> (HTML inválido, e o navegador desmonta o encaixe), e a
+         aba ativa precisa carregar o ✎ e o ✕ dentro dela. */
+      h+='<div class="cg-aba'+(ativa?' on':'')+'" role="button" tabindex="0" data-cg-aba="'+cgEsc(a)+'">'
+        +'<span data-cg-aba-nome="'+cgEsc(a)+'">'+cgEsc(s.abas[a].nome||a)+'</span>'
+        +'<span class="cg-aba-q">'+cgLinhasDe(a).length+'</span>'
+        +'<span class="cg-aba-ac">'
+          +'<button type="button" class="cg-aba-ic" data-cg-aba-ren="'+cgEsc(a)+'" title="Renomear esta aba">✎</button>'
+          /* a última aba não mostra o ✕: excluir a única deixaria a tela vazia
+             e sem nenhum caminho de volta pela interface */
+          +(_abas.length>1?'<button type="button" class="cg-aba-ic x" data-cg-aba-del="'+cgEsc(a)+'" title="Excluir esta aba">✕</button>':'')
+        +'</span>'
+      +'</div>';
     });
+    h+='<button type="button" class="cg-aba-nova" data-cg-aba-nova="1" title="Criar uma nova aba">+ Nova aba</button>';
     h+='</div><div class="cg-busca"><input type="text" id="'+cgC().wrap+'Busca" data-cg-busca="1" placeholder="Buscar nesta aba…" value="'+cgEsc(cgT().busca)+'"></div></div>';
 
     h+='<div class="cg-kpis">';
@@ -33790,7 +33843,13 @@ body.dark .cg-badge.ok{color:#A9DB3A} body.dark .cg-badge.mau{color:#FF8B8B} bod
     var novo=inp?inp.value:null;
     if(salvar && novo!=null && novo!==e.antes){
       var s=cgStore();
-      if(e.tipo==='col'){
+      if(e.tipo==='aba'){
+        /* (·397) renomear aba: MESMO editor da célula e do cabeçalho. Nome
+           vazio volta ao anterior — aba sem nome é uma pílula em branco que
+           ninguém sabe o que é, e apagar sem querer é fácil demais. */
+        var ab2=s.abas[e.aid];
+        if(ab2){ ab2.nome = (novo.trim() || e.antes); ab2.ts=cgAgora(); cgSalvar(); }
+      } else if(e.tipo==='col'){
         var aba=s.abas[e.aid];
         if(aba && Array.isArray(aba.cols)){
           for(var i=0;i<aba.cols.length;i++){
@@ -33847,6 +33906,22 @@ body.dark .cg-badge.ok{color:#A9DB3A} body.dark .cg-badge.mau{color:#FF8B8B} bod
     cgMontarEditor(th, antes);
   }
 
+  /* (·397) renomear a aba pelo MESMO editor — o input entra no lugar do nome,
+     dentro da própria pílula. Escrever um editor só para isso duplicaria
+     Enter/Esc/blur e a regra de "um input por vez". */
+  function cgAbrirEditorAba(aid){
+    if(cgEditando) cgFecharEditor(true);
+    var s=cgStore(), aba=s.abas[aid]; if(!aba) return;
+    var el=document.querySelector('#'+cgC().wrap+' [data-cg-aba-nome="'+aid+'"]');
+    if(!el) return;
+    /* garante que a aba renomeada é a que está aberta: renomear uma aba
+       enquanto se olha outra deixaria a tela mentindo sobre o que mudou */
+    if(cgT().aba!==aid){ cgT().aba=aid; cgRender(); el=document.querySelector('#'+cgC().wrap+' [data-cg-aba-nome="'+aid+'"]'); if(!el) return; }
+    var antes=aba.nome||aid;
+    cgEditando={tipo:'aba', el:el, aid:aid, antes:antes};
+    cgMontarEditor(el, antes);
+  }
+
   /* ---------- ouvinte único, delegado ---------- */
   document.addEventListener('click', function(e){
     /* (·374) o contexto é decidido pelo CONTAINER que recebeu o clique — não
@@ -33857,8 +33932,66 @@ body.dark .cg-badge.ok{color:#A9DB3A} body.dark .cg-badge.mau{color:#FF8B8B} bod
     cgCtx=w.getAttribute('data-cg-ctx');
     if(!CG_CTX[cgCtx]) { cgCtx='controleGeral'; return; }
 
+    /* (·397) NOVA ABA. Nasce utilizável: três colunas e uma linha em branco já
+       com o editor aberto. Aba vazia de verdade abriria uma tabela sem nenhuma
+       coluna — e sem coluna não há onde clicar para começar a digitar. */
+    if(e.target.closest('[data-cg-aba-nova]')){
+      var nomeAba=window.prompt('Nome da nova aba:','');
+      if(nomeAba==null) return;
+      nomeAba=String(nomeAba).trim(); if(!nomeAba) return;
+      var sN=cgStore(), maxOrd=0;
+      Object.keys(sN.abas).forEach(function(k){ maxOrd=Math.max(maxOrd, sN.abas[k].ordem||0); });
+      var suf=cgAgora().toString(36)+Math.random().toString(36).slice(2,6);
+      var aidN='cga'+suf;
+      sN.abas[aidN]={ nome:nomeAba, ordem:maxOrd+1, ts:cgAgora(),
+        cols:[{id:'cx'+suf+'a',n:'A',t:'texto'},{id:'cx'+suf+'b',n:'B',t:'texto'},{id:'cx'+suf+'c',n:'C',t:'texto'}] };
+      var lidN='cgn'+suf;
+      sN.linhas[lidN]={ a:aidN, o:1, v:{}, ts:cgAgora() };
+      cgSalvar();
+      cgT().aba=aidN; cgT().busca=''; cgRender();
+      var cel=document.querySelector('#'+cgC().wrap+' tr[data-cg-l="'+lidN+'"] td[data-cg-cel]');
+      if(cel) cgAbrirEditor(cel);
+      try{ if(typeof toast==='function') toast('Aba "'+nomeAba+'" criada','ok'); }catch(x){}
+      return;
+    }
+
+    /* RENOMEAR: só na aba ativa (é onde o ✎ aparece) */
+    var ren=e.target.closest('[data-cg-aba-ren]');
+    if(ren){
+      e.stopPropagation();
+      cgAbrirEditorAba(ren.getAttribute('data-cg-aba-ren'));
+      return;
+    }
+
+    /* EXCLUIR aba — SOFT, como toda exclusão aqui: a aba fica no armazenamento
+       com del=1. É isso que faz a união entre PCs respeitar a exclusão em vez de
+       ressuscitar a aba vinda do outro lado, e que impede a semente de recriá-la.
+       As LINHAS dela não são apagadas: somem da tela junto com a aba, e
+       continuam íntegras numa eventual restauração de backup. */
+    var abd=e.target.closest('[data-cg-aba-del]');
+    if(abd){
+      e.stopPropagation();
+      var aidD=abd.getAttribute('data-cg-aba-del');
+      var sD=cgStore(), abaD=sD.abas[aidD]; if(!abaD) return;
+      var listaD=cgAbasLista();
+      if(listaD.length<=1){
+        try{ if(typeof toast==='function') toast('Esta é a única aba — não dá para excluir','erro'); }catch(x){}
+        return;
+      }
+      var qtd=cgLinhasDe(aidD).length;
+      if(!window.confirm('Excluir a aba "'+(abaD.nome||aidD)+'"'+(qtd?(' e as '+qtd+' linhas dela'):'')+'?\n\nIsso vale para todos os computadores.')) return;
+      abaD.del=1; abaD.ts=cgAgora(); cgSalvar();
+      /* cai para a primeira aba que sobrou, senão a tela ficaria apontando para
+         uma aba que não existe mais */
+      var restam=cgAbasLista();
+      cgT().aba = restam.length ? restam[0] : '';
+      cgT().busca=''; cgRender();
+      try{ if(typeof toast==='function') toast('Aba excluída','ok'); }catch(x){}
+      return;
+    }
+
     var ab=e.target.closest('[data-cg-aba]');
-    if(ab){ cgT().aba=ab.getAttribute('data-cg-aba'); cgT().busca=''; cgRender(); return; }
+    if(ab && !e.target.closest('.cg-inp')){ cgT().aba=ab.getAttribute('data-cg-aba'); cgT().busca=''; cgRender(); return; }
 
     var del=e.target.closest('[data-cg-del]');
     if(del){
@@ -33902,6 +34035,16 @@ body.dark .cg-badge.ok{color:#A9DB3A} body.dark .cg-badge.mau{color:#FF8B8B} bod
 
     var td=e.target.closest('td[data-cg-cel]');
     if(td && !e.target.closest('.cg-inp')){ cgAbrirEditor(td); return; }
+  });
+
+  /* (·397) a pílula deixou de ser <button> (ver o porquê no render), então o
+     teclado precisa ser devolvido na mão: tabindex sem isto seria uma promessa
+     de foco que não faz nada ao apertar Enter. */
+  document.addEventListener('keydown', function(e){
+    if(e.key!=='Enter' && e.key!==' ') return;
+    var ab=e.target && e.target.closest && e.target.closest('.cg-aba[data-cg-aba]');
+    if(!ab || e.target.closest('.cg-inp') || e.target.closest('.cg-aba-ic')) return;
+    e.preventDefault(); ab.click();
   });
 
   document.addEventListener('input', function(e){
