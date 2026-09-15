@@ -261,23 +261,40 @@ body.dark .hub-sidebar .nav-add{color:var(--verde)}
 .dash-head{display:flex;align-items:baseline;gap:12px;margin-bottom:18px;flex-wrap:wrap}
 .dash-title{font-size:22px;font-weight:800;margin:0;color:var(--texto)}
 .dash-sub{color:var(--texto-fraco);font-size:13px}
-/* ===== (·385) WELCOME DAY — faixa de condução da semana, no topo do Control Desk =====
-   Fica ENTRE o cabeçalho e os cards, e não é um card: é uma faixa fina, para
-   informar sem competir com a Ocupação (que é o assunto principal da tela).
-   O dia de HOJE é destacado pelo próprio navegador (wdMarcarHoje), porque a
-   pergunta real de quem olha isso é "hoje é quem?", não "como é a semana". */
+/* ===== (·388) WELCOME DAY — faixa da semana, no topo do Control Desk =====
+   Voltou a pedido do Nando (saiu no ·387, voltou aqui) — e voltou barata porque
+   a escala nunca foi duplicada: bastou redesenhar a partir de WD_ESCALA.
+   Faixa, não card: o assunto principal da tela continua sendo a Ocupação.
+   Cada dia mostra a DATA, porque a pauta é gravada por data e não por dia da
+   semana — ver "SEGUNDA" sem data ao lado seria a única forma de alguém achar
+   que está escrevendo a pauta de outra segunda. */
 .wd-wrap{margin:-6px 0 18px}
 .wd-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:9px}
 .wd-titulo{font-size:15px;font-weight:800;color:var(--texto);letter-spacing:.2px}
 .wd-cond{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--texto-fraco)}
-.wd-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
-.wd-dia{background:var(--card);border:1px solid var(--borda);border-radius:12px;padding:10px 12px;box-shadow:var(--sombra);border-top:3px solid var(--azul);min-width:0}
+.wd-semana{font-size:11px;color:var(--texto-fraco);margin-left:auto}
+.wd-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;align-items:start}
+.wd-dia{background:var(--card);border:1px solid var(--borda);border-radius:12px;padding:10px 12px;box-shadow:var(--sombra);border-top:3px solid var(--azul);min-width:0;display:flex;flex-direction:column;gap:2px}
 .wd-dia .wd-d{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--texto-fraco)}
-.wd-dia .wd-n{font-size:15px;font-weight:800;color:var(--texto);margin-top:3px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.wd-dia.wd-hoje{border-color:var(--verde);border-top-color:var(--verde);background:var(--verde-suave,rgba(34,197,94,.10))}
-.wd-dia.wd-hoje .wd-d::after{content:' · hoje';color:var(--verde);font-weight:800}
+.wd-dia .wd-n{font-size:15px;font-weight:800;color:var(--texto);line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wd-dia.wd-hoje{border-color:var(--verde);border-top-color:var(--verde);background:var(--verde-suave,rgba(148,193,30,.10))}
+.wd-dia.wd-hoje .wd-d{color:var(--verde)}
+/* a pauta escrita — some quando está vazia, sem deixar espaço fantasma */
+.wd-pauta{font-size:12.5px;line-height:1.35;color:var(--texto-suave,var(--texto));margin-top:4px;white-space:pre-wrap;overflow-wrap:anywhere}
+/* o botão é de propósito discreto: ele convida, não compete com o nome */
+.wd-add{align-self:flex-start;margin-top:5px;padding:2px 0;border:none;background:none;color:var(--texto-fraco);font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;opacity:.75;transition:color .15s,opacity .15s}
+.wd-add:hover{color:var(--azul);opacity:1;text-decoration:underline}
+.wd-dia.wd-hoje .wd-add:hover{color:var(--verde)}
+.wd-edit{display:flex;flex-direction:column;gap:6px;margin-top:5px}
+.wd-ta{width:100%;box-sizing:border-box;min-height:58px;resize:vertical;padding:7px 8px;border-radius:8px;border:1px solid var(--borda-forte);background:var(--card);color:var(--texto);font-family:inherit;font-size:12.5px;line-height:1.35}
+.wd-ta:focus{outline:none;border-color:var(--azul)}
+.wd-edit-btns{display:flex;gap:6px;flex-wrap:wrap}
+.wd-b{padding:4px 9px;border-radius:7px;border:1px solid var(--borda-forte);background:var(--card);color:var(--texto);font-family:inherit;font-size:11px;font-weight:700;cursor:pointer}
+.wd-b.ok{background:var(--verde);border-color:var(--verde);color:#fff}
+.wd-b.lim{margin-left:auto;color:var(--texto-fraco);border-color:transparent;background:none}
+.wd-b.lim:hover{color:#ff5252}
 @media(max-width:1100px){.wd-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:560px){.wd-grid{grid-template-columns:1fr}}
+@media(max-width:560px){.wd-grid{grid-template-columns:1fr}.wd-semana{margin-left:0;width:100%}}
 .dash-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:18px}
 .dash-kpi{background:var(--card);border:1px solid var(--borda);border-radius:14px;padding:14px 16px;box-shadow:var(--sombra);border-left:4px solid var(--azul)}
 .dash-kpi .k-label{font-size:11.5px;color:var(--texto-fraco);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
@@ -3688,13 +3705,13 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
           <h1 class="dash-title"><span class="ic-chat ic-chat-lg"><svg viewBox="0 0 24 24"><path d="M12 6.6c-3.3 0-6 2-6 4.6 0 1.4.8 2.7 2 3.6-.1.7-.5 1.5-1 2.1-.2.3 0 .6.3.5 1-.2 2-.6 2.8-1.1.6.2 1.2.3 1.9.3 3.3 0 6-2 6-4.6S15.3 6.6 12 6.6z" fill="#fff"/><circle cx="9.6" cy="11.3" r=".95" fill="#7a3fd0"/><circle cx="12" cy="11.3" r=".95" fill="#e0518b"/><circle cx="14.4" cy="11.3" r=".95" fill="#2f6bff"/></svg></span> Control Desk</h1>
           <span class="dash-sub">Ocupação dos atendentes e ausências programadas em tempo real</span>
         </div>
-        <!-- (·385) Welcome Day — condução da semana -->
+        <!-- (·388) Welcome Day — desenhada por WD_ESCALA + appConfig.wdPautas -->
         <div class="wd-wrap" id="wdWrap">
           <div class="wd-head">
             <span class="wd-titulo">Welcome Day</span>
-            <span class="wd-cond">Condução</span>
+            <span class="wd-cond">Início às 09:00</span>
+            <span class="wd-semana" id="wdSemana"></span>
           </div>
-          <!-- (·386) desenhada por WD_ESCALA — a escala vive num lugar só -->
           <div class="wd-grid" id="wdGrid"></div>
         </div>
         <div class="dash-cards-cd">
@@ -4353,7 +4370,55 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 386; // (·386) SELO WD NO CARD DE QUEM CONDUZ O WELCOME DAY. O Nando
+var UV_BUILD_NUM = 388; // (·388) A FAIXA DO WELCOME DAY VOLTOU, COM HORARIO E PAUTA POR
+// DIA. O Nando mudou de ideia e pediu a faixa de volta como estava, com tres mudancas:
+// (1) "Condução" virou "Início às 09:00", (2) cada dia ganhou um botao pequeno e discreto
+// "+ adicionar pauta" e (3) clicar nele abre onde escrever o tema da reuniao daquele dia.
+// A VOLTA CUSTOU UMA TELA, NAO UMA REDIGITACAO. Quando removi a faixa no ·387 deixei
+// WD_ESCALA inteira de proposito, inclusive o campo `curto` que so ela usava. Foi essa
+// decisao que fez "mudei de ideia" custar minutos em vez de refazer a escala de cabeca —
+// e correr o risco de digitar um nome errado no caminho.
+// ⚠️ A PAUTA E GRAVADA POR DATA, NAO POR DIA DA SEMANA. Essa e a decisao que mais importa
+// aqui. Guardando por "segunda", a pauta da segunda passada reapareceria hoje como se
+// fosse a de hoje: dado velho apresentado como atual, que e pior que dado nenhum —
+// ninguem desconfia de uma tela que parece preenchida. Por isso cada dia agora mostra a
+// DATA ao lado do nome, e a faixa diz em cima de que semana esta falando.
+// NO SABADO E NO DOMINGO A FAIXA ROLA PARA A SEMANA SEGUINTE: a semana que acabou nao tem
+// mais reuniao para pautar, e e no fim de semana que se prepara a proxima. Rolar em
+// silencio seria deixar alguem escrever a pauta da semana errada — dai o rotulo
+// "semana de X a Y" sempre visivel.
+// A PAUTA VIVE EM appConfig.wdPautas, entao entra no salvamento, na sincronia entre PCs e
+// no backup diario de graca — o que nao chega ao appConfig nao existe para o backup, que
+// foi exatamente o furo do ·382. Uniao multi-PC plugada nos DOIS pontos de sempre
+// (carregarConfig e salvarConfig); sem o segundo, quem escreve a pauta de quarta apagaria
+// a de quinta que outra pessoa acabou de escrever, porque o salvamento manda a config
+// inteira.
+// ⚠️ NAO COPIEI O `del` PERMANENTE DO CONTROLE GERAL. La "apagado nunca ressuscita" esta
+// certo (linha excluida); aqui seria defeito: quem limpa a pauta de um dia precisa poder
+// escrever outra no mesmo dia. Limpar grava texto vazio com carimbo novo, nao uma lapide.
+// O redesenho fica TRAVADO enquanto alguem digita — a faixa se redesenha sozinha de tempos
+// em tempos e ao voltar para a tela, e sem essa trava o texto sumiria no meio da frase.
+// Enter salva, Shift+Enter quebra linha, Esc desiste: um tema de reuniao e uma frase, e
+// cacar o botao a cada frase cansa.
+// A chave da data e montada com getFullYear/Month/Date (horario LOCAL) e nunca com
+// toISOString(), que em Florianopolis (UTC-3) jogaria a reuniao da manha para a vespera —
+// a mesma armadilha ja documentada no calculo das vendas do dia. Só front.
+// ANTERIOR: (·387) A FAIXA DO WELCOME DAY SAIU DO TOPO DO CONTROL DESK.
+// Pedido do Nando, com "por enquanto": tirar a escala que aparecia logo abaixo do titulo.
+// O SELO WD NO CARD CONTINUA — ele nao pediu para tirar o selo, e e ele que responde a
+// pergunta do dia a dia ("hoje e quem?"). A faixa era a versao expandida da MESMA
+// informacao; com o selo funcionando, ela virou repeticao ocupando o topo da tela.
+// O QUE SAIU DE VERDADE: o HTML da faixa, o CSS dela e a funcao que a desenhava, mais o
+// timer de 10 em 10 minutos que so existia para ela. Deixar CSS orfao e regra que ninguem
+// tem coragem de apagar seis meses depois, entao foi tudo junto.
+// O QUE FICOU: WD_ESCALA inteira, com o campo `curto` ("Nando") que SO a faixa usava. Ele
+// nao atrapalha nada e e o que torna a volta barata: como a escala nunca foi duplicada
+// (decisao do ·386), devolver a faixa e escrever a tela de novo — os nomes ja estao la,
+// certos, num lugar so. "Por enquanto" pede exatamente isso: sair da tela sem perder o
+// caminho de volta.
+// Quem reconfere a virada do dia agora e o proprio render do card, que ja roda sozinho —
+// nenhum timer novo ficou para tras. Só front.
+// ANTERIOR: (·386) SELO WD NO CARD DE QUEM CONDUZ O WELCOME DAY. O Nando
 // marcou com X o rodape do card do atendente e pediu um quadradinho ROSA com as letras WD,
 // no mesmo estilo dos outros tres, aparecendo SO no card de quem conduz a reuniao do dia.
 // Segunda Diego Oliveira, terca Ana Maria, quarta Hynae Teston, quinta Diego Oliveira,
@@ -5984,6 +6049,9 @@ async function carregarConfig(){
         // (·374) a planilha da Imersão CSDI usa o MESMO motor e a MESMA união
         appConfig.csdiGestao   =window.cgMergeMaps(local.csdiGestao,    c.csdiGestao);
       }
+      if(typeof window.wdMergePautas==='function'){        // (·388) pautas do Welcome Day
+        appConfig.wdPautas=window.wdMergePautas(local.wdPautas, c.wdPautas);
+      }
       if(typeof window.klBoardsMergeMaps==='function'){     // (·271) Kanban Comercial
         appConfig.klBoards=window.klBoardsMergeMaps(local.klBoards, c.klBoards);
       }
@@ -6365,6 +6433,12 @@ async function salvarConfig(){
     if(typeof window.cgMergeMaps==='function'){
       appConfig.controleGeral=window.cgMergeMaps(cloud.controleGeral, appConfig.controleGeral);
       appConfig.csdiGestao   =window.cgMergeMaps(cloud.csdiGestao,    appConfig.csdiGestao);   // (·374)
+    }
+    /* (·388) pautas do Welcome Day — o OUTRO ponto obrigatório. Sem esta linha,
+       o PC que escreveu a pauta de quarta apagaria a de quinta que outra pessoa
+       acabou de escrever, porque o salvamento manda a config inteira. */
+    if(typeof window.wdMergePautas==='function'){
+      appConfig.wdPautas=window.wdMergePautas(cloud.wdPautas, appConfig.wdPautas);
     }
     // PROTEÇÃO DO PAINEL DE OCUPAÇÃO (anti-perda de cliente entre PCs):
     // Antes de gravar, mesclamos o ocupacaoAtendentes local com o da nuvem via merge
@@ -12737,6 +12811,10 @@ function excluirNotaUI(id){
   // dashboard). Usa as mesmas funções globais — nada da lógica mudou, só o local.
   window.renderControlDesk=function(){
     try{ if(typeof renderOcupacao==='function') renderOcupacao(); }catch(e){}
+    /* (·388) a faixa do Welcome Day: é aqui que ela reaparece já com as pautas
+       da nuvem — no primeiro desenho (fim do <body>) o appConfig ainda pode
+       estar vazio. */
+    try{ if(typeof window.wdDesenhar==='function') window.wdDesenhar(); }catch(e){}
     try{ if(typeof window.renderCdNotifs==='function') window.renderCdNotifs(); }catch(e){}
     try{ if(typeof window.renderCdAniversario==='function') window.renderCdAniversario(); }catch(e){}
     try{ if(typeof window.renderAusProg==='function') window.renderAusProg(); }catch(e){}
@@ -34019,14 +34097,14 @@ table.bk-tab{width:100%;border-collapse:separate;border-spacing:0;font-size:12.5
 </script>
 
 <script>
-/* ═══ (·385/·386) WELCOME DAY — a escala da semana ═══
-   ⚠️ ESTA É A ÚNICA FONTE DA VERDADE DA ESCALA. A faixa do topo e o selo WD que
-   aparece no card do condutor saem os DOIS daqui. Se a escala mudar, muda-se
-   UMA linha e os dois lugares acompanham — foi exatamente por duplicar fato em
-   dois lugares que o Hub já pagou caro antes.
-   `curto` é como o Nando escreveu na faixa; `nome` é como a pessoa está
-   cadastrada no Control Desk (é ele que casa com o card). São campos separados
-   porque "Nando" e "Fernando Pires" são a mesma pessoa com dois nomes de uso. */
+/* ═══ (·385…·388) WELCOME DAY — a escala da semana e a pauta de cada dia ═══
+   ⚠️ WD_ESCALA É A ÚNICA FONTE DA VERDADE DA ESCALA. Dela saem a faixa do topo
+   e o selo WD no card do condutor. Ela sobreviveu inteira à remoção da faixa
+   (·387) e é por isso que trazê-la de volta (·388) custou uma tela, não uma
+   redigitação de nomes.
+   `curto` é o nome de uso na faixa; `nome` é como a pessoa está cadastrada no
+   Control Desk — é ele que casa com o card. São campos separados porque
+   "Nando" e "Fernando Pires" são a mesma pessoa com dois nomes de uso. */
 var WD_ESCALA=[
   {d:1, dia:'Segunda', curto:'Diego', nome:'Diego Oliveira'},
   {d:2, dia:'Terça',   curto:'Ana',   nome:'Ana Maria'},
@@ -34038,17 +34116,41 @@ var WD_ESCALA=[
   function esc(x){ return (x==null?'':String(x)).replace(/[&<>"]/g,function(c){
     return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
   function norm(x){ return (x||'').toString().trim().toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' '); }
+    .normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,' '); }
+  function quem(){ try{ return (typeof window.uvAuthNome==='function'?window.uvAuthNome():'')||''; }catch(e){ return ''; } }
 
-  /* Quem conduz HOJE — '' no sábado e no domingo. Devolver a segunda-feira num
-     sábado seria acender o selo no card de alguém que não conduz nada hoje. */
+  /* ---------- datas ----------
+     Chave AAAA-MM-DD montada com getFullYear/Month/Date (HORÁRIO LOCAL). NUNCA
+     toISOString(): ele converte para UTC e, em Florianópolis (UTC-3), jogaria
+     toda reunião da manhã para a véspera. É a mesma armadilha já documentada
+     no cálculo das vendas do dia. */
+  function chave(dt){
+    return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+  }
+  function br(dt){ return String(dt.getDate()).padStart(2,'0')+'/'+String(dt.getMonth()+1).padStart(2,'0'); }
+  function hojeDt(){ var h=new Date(); h.setHours(0,0,0,0); return h; }
+
+  /* A semana MOSTRADA. Em dia útil é a semana corrente. No sábado e no domingo
+     ela ROLA para a semana seguinte: a semana que acabou não tem mais reunião
+     para pautar, e é no fim de semana que se prepara a próxima. Por isso a
+     faixa sempre diz, em cima, de que semana está falando — rolar em silêncio
+     seria deixar alguém escrever a pauta da semana errada. */
+  function semana(){
+    var h=hojeDt(), d=h.getDay();
+    var desloca = (d===0) ? 1 : (d===6 ? 2 : 1-d);
+    var seg=new Date(h); seg.setDate(h.getDate()+desloca);
+    return WD_ESCALA.map(function(e){
+      var dt=new Date(seg); dt.setDate(seg.getDate()+(e.d-1));
+      return { esc:e, dt:dt, k:chave(dt) };
+    });
+  }
+
+  /* ---------- quem conduz hoje (o selo WD no card) ---------- */
   function wdCondutorHoje(){
     var d=new Date().getDay();
     for(var i=0;i<WD_ESCALA.length;i++){ if(WD_ESCALA[i].d===d) return WD_ESCALA[i].nome; }
-    return '';
+    return '';   /* '' no sábado e no domingo — não há reunião para conduzir */
   }
-  /* É este atendente que conduz hoje? Comparação normalizada porque o nome vem
-     do cadastro (acento, caixa e espaço variam). Nome vazio nunca casa. */
   function wdEhCondutorHoje(nome){
     var alvo=norm(wdCondutorHoje()); if(!alvo) return false;
     var meu=norm(nome); if(!meu) return false;
@@ -34057,16 +34159,114 @@ var WD_ESCALA=[
   window.wdCondutorHoje=wdCondutorHoje;
   window.wdEhCondutorHoje=wdEhCondutorHoje;
 
+  /* ---------- a pauta: dado de verdade, gravado e copiado ----------
+     Mora em appConfig.wdPautas, então entra no salvamento, na sincronia entre
+     PCs e no backup diário — as três coisas de graça, porque está dentro da
+     config (foi exatamente o furo do ·382: o que não chega ao appConfig não
+     existe para o backup).
+     A CHAVE É A DATA, não o dia da semana. Guardar por "segunda" faria a pauta
+     da segunda passada reaparecer como se fosse a de hoje: dado velho
+     apresentado como atual, que é pior do que dado nenhum. */
+  function store(){
+    if(!appConfig.wdPautas || typeof appConfig.wdPautas!=='object') appConfig.wdPautas={};
+    return appConfig.wdPautas;
+  }
+  function ler(k){ var e=store()[k]; return (e && typeof e==='object' && e.txt) ? e : null; }
+  function gravar(k, txt){
+    store()[k]={ txt:(txt||'').trim(), ts:Date.now(), por:quem() };
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+  }
+
+  /* MERGE MULTI-PC — plugado nos DOIS pontos de sempre (carregarConfig e
+     salvarConfig). União por data; empate resolvido pelo carimbo mais novo.
+     ⚠️ NÃO copiei o `del` permanente do Controle Geral: lá "apagado nunca
+     ressuscita" está certo (linha excluída), aqui seria um defeito — quem
+     limpa a pauta de um dia precisa poder escrever outra no mesmo dia. Por
+     isso limpar grava texto vazio com carimbo novo, e não uma lápide. */
+  window.wdMergePautas=function(base, outro){
+    base =(base &&typeof base ==='object')?base :{};
+    outro=(outro&&typeof outro==='object')?outro:{};
+    var ks={}, out={};
+    Object.keys(base).forEach(function(k){ks[k]=1;});
+    Object.keys(outro).forEach(function(k){ks[k]=1;});
+    Object.keys(ks).forEach(function(k){
+      var x=base[k], y=outro[k];
+      if(!x){ out[k]=y; return; }
+      if(!y){ out[k]=x; return; }
+      out[k]=((y.ts||0)>(x.ts||0))?y:x;
+    });
+    return out;
+  };
+
+  /* ---------- desenho ---------- */
+  var editando=null;   /* data em edição — trava o redesenho para não apagar o que a pessoa digita */
+
   function wdDesenhar(){
     var g=document.getElementById('wdGrid'); if(!g) return;
-    var hoje=new Date().getDay();
-    g.innerHTML=WD_ESCALA.map(function(e){
-      return '<div class="wd-dia'+(e.d===hoje?' wd-hoje':'')+'" data-wd="'+e.d+'"'+
-             ' title="'+esc(e.dia)+' — condução: '+esc(e.nome)+'">'+
-             '<div class="wd-d">'+esc(e.dia)+'</div>'+
-             '<div class="wd-n">'+esc(e.curto)+'</div></div>';
+    if(editando) return;
+    var sem=semana(), hk=chave(hojeDt());
+    var cab=document.getElementById('wdSemana');
+    if(cab) cab.textContent='semana de '+br(sem[0].dt)+' a '+br(sem[4].dt);
+    g.innerHTML=sem.map(function(x){
+      var p=ler(x.k), ehHoje=(x.k===hk);
+      var tipo = p ? ('Pauta por '+(p.por||'alguém')) : '';
+      return '<div class="wd-dia'+(ehHoje?' wd-hoje':'')+'" data-wd="'+x.esc.d+'" data-wd-dt="'+x.k+'">'+
+        '<div class="wd-d">'+esc(x.esc.dia)+' · '+br(x.dt)+(ehHoje?' · hoje':'')+'</div>'+
+        '<div class="wd-n" title="Condução: '+esc(x.esc.nome)+'">'+esc(x.esc.curto)+'</div>'+
+        (p?('<div class="wd-pauta" title="'+esc(tipo)+'">'+esc(p.txt)+'</div>'):'')+
+        '<button type="button" class="wd-add" data-wd-abrir="'+x.k+'">'+
+          (p?'✎ editar pauta':'+ adicionar pauta')+'</button>'+
+      '</div>';
     }).join('');
   }
+
+  function abrirEditor(k){
+    var cx=document.querySelector('.wd-dia[data-wd-dt="'+k+'"]'); if(!cx) return;
+    var p=ler(k);
+    editando=k;
+    var antigo=cx.querySelector('.wd-pauta'); if(antigo) antigo.remove();
+    var bt=cx.querySelector('.wd-add'); if(bt) bt.remove();
+    var box=document.createElement('div');
+    box.className='wd-edit';
+    box.innerHTML='<textarea class="wd-ta" maxlength="300" placeholder="Tema da reunião deste dia…"></textarea>'+
+      '<div class="wd-edit-btns">'+
+        '<button type="button" class="wd-b ok" data-wd-ok="'+k+'">Salvar</button>'+
+        '<button type="button" class="wd-b" data-wd-cancel="1">Cancelar</button>'+
+        (p?'<button type="button" class="wd-b lim" data-wd-ok="'+k+'" data-wd-limpar="1">Limpar</button>':'')+
+      '</div>';
+    cx.appendChild(box);
+    var ta=box.querySelector('.wd-ta');
+    ta.value=p?p.txt:'';
+    ta.focus(); try{ ta.setSelectionRange(ta.value.length, ta.value.length); }catch(e){}
+    /* Enter salva, Shift+Enter quebra linha, Esc desiste — um tema de reunião é
+       uma frase, e obrigar a caçar o botão para cada frase cansa. */
+    ta.addEventListener('keydown', function(ev){
+      if(ev.key==='Enter' && !ev.shiftKey){ ev.preventDefault(); fechar(k, ta.value); }
+      else if(ev.key==='Escape'){ ev.preventDefault(); editando=null; wdDesenhar(); }
+    });
+  }
+  function fechar(k, txt){
+    editando=null;
+    gravar(k, txt);
+    wdDesenhar();
+    try{ if(typeof toast==='function') toast((txt||'').trim()?'Pauta salva':'Pauta removida','ok'); }catch(e){}
+  }
+
+  document.addEventListener('click', function(ev){
+    var w=ev.target.closest && ev.target.closest('#wdWrap'); if(!w) return;
+    var b;
+    if((b=ev.target.closest('[data-wd-abrir]'))){ abrirEditor(b.getAttribute('data-wd-abrir')); return; }
+    if((b=ev.target.closest('[data-wd-cancel]'))){ editando=null; wdDesenhar(); return; }
+    if((b=ev.target.closest('[data-wd-ok]'))){
+      var k=b.getAttribute('data-wd-ok');
+      var cx=document.querySelector('.wd-dia[data-wd-dt="'+k+'"]');
+      var ta=cx?cx.querySelector('.wd-ta'):null;
+      fechar(k, b.hasAttribute('data-wd-limpar') ? '' : (ta?ta.value:''));
+      return;
+    }
+  });
+
+  window.wdDesenhar=wdDesenhar;
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', wdDesenhar);
   else wdDesenhar();
   /* o Hub fica aberto o dia inteiro e às vezes atravessa a meia-noite */
