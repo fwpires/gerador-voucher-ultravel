@@ -275,13 +275,14 @@ body.dark .hub-sidebar .nav-add{color:var(--verde)}
 .wd-semana{font-size:11px;color:var(--texto-fraco);margin-left:auto}
 /* (·393) botão de entrar na reunião — ao lado do horário, que é o lugar onde a
    pessoa já está olhando quando se pergunta "como eu entro?".
-   (·394) ROXO, os MESMOS valores do botão "Usuários" do Control Desk — o Nando
-   mandou o print dele como referência. Reaproveitar a cor de um botão que já
-   existe (em vez de inventar um roxo parecido) é o que faz os dois parecerem o
-   mesmo sistema, inclusive no modo claro, que tem paleta própria. */
-.wd-meet{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:8px;border:1px solid rgba(168,85,247,.5);background:rgba(168,85,247,.14);color:#d8b4fe;font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.3px;cursor:pointer;white-space:nowrap;transition:all .14s}
-.wd-meet:hover{background:rgba(168,85,247,.28);color:#ecd5ff}
-body:not(.dark) .wd-meet{background:#f3e8ff;border-color:#d0a8f5;color:#7e22ce}
+   (·396) AZUL, os MESMOS valores do botão "Relatório" do Control Desk — o Nando
+   mandou o print dele como referência (antes era o roxo do "Usuários", ·394).
+   Reaproveitar a cor de um botão que já existe, em vez de escolher um azul
+   parecido de olho, é o que faz os dois parecerem o mesmo sistema — e traz de
+   brinde a regra do modo claro, que tem paleta própria e não aparece no print. */
+.wd-meet{display:inline-flex;align-items:center;padding:4px 11px;border-radius:8px;border:1px solid rgba(90,160,255,.5);background:rgba(90,160,255,.16);color:#8ec2ff;font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.3px;cursor:pointer;white-space:nowrap;transition:all .14s}
+.wd-meet:hover{background:rgba(90,160,255,.3);color:#cfe4ff}
+body:not(.dark) .wd-meet{background:#e6f0ff;border-color:#a9c9f0;color:#1f5fa8}
 .wd-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;align-items:start}
 .wd-dia{background:var(--card);border:1px solid var(--borda);border-radius:12px;padding:10px 12px;box-shadow:var(--sombra);border-top:3px solid var(--azul);min-width:0;display:flex;flex-direction:column;gap:2px}
 .wd-dia .wd-d{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--texto-fraco)}
@@ -3743,7 +3744,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
             <span class="wd-cond">Início às 09:00</span>
             <!-- (·393) o endereço da sala NÃO fica no HTML: sem href, sem title.
                  Quem clica entra; quem inspeciona a tela não leva o link. -->
-            <button type="button" class="wd-meet" id="wdMeet" title="Abrir a sala do Welcome Day">📹 Acessar Reunião</button>
+            <button type="button" class="wd-meet" id="wdMeet" title="Abrir a sala do Welcome Day">Acessar Reunião</button>
             <span class="wd-semana" id="wdSemana"></span>
           </div>
           <div class="wd-grid" id="wdGrid"></div>
@@ -4404,7 +4405,17 @@ async function loadSaved(){
 // detector de versão usa) e o rótulo é DERIVADO dele, então bumpar um só número
 // atualiza os dois para sempre.
 // ⚠ BUMP OBRIGATÓRIO: UV_BUILD_NUM sobe JUNTO com o marcador "build:" do topo!
-var UV_BUILD_NUM = 395; // (·395) FILTRO POR PERIODO DE CADASTRO NOS VOUCHERS SALVOS.
+var UV_BUILD_NUM = 396; // (·396) O BOTAO "ACESSAR REUNIAO" FICOU AZUL E PERDEU A CAMERA.
+// O Nando mandou o print do botao "Relatorio" do Control Desk como nova referencia de cor
+// (no ·394 tinha sido o roxo do "Usuarios") e pediu para tirar o simbolo de camera,
+// deixando so a frase.
+// Mesma regra do ·394, so que com outro botao de origem: copiei os VALORES do "Relatorio"
+// — fundo, borda, texto, hover — em vez de escolher um azul parecido de olho, e trouxe
+// junto a regra do MODO CLARO, que nao aparece no print (ele e do tema escuro).
+// Tirei tambem o `gap:5px` do CSS junto com o emoji: espaco entre itens sem um segundo
+// item e a sobra que ninguem percebe e que fica empurrando o texto de leve para sempre.
+// Só front.
+// ANTERIOR: (·395) FILTRO POR PERIODO DE CADASTRO NOS VOUCHERS SALVOS.
 // Pedido do Nando: poder filtrar as vendas salvas pelo periodo em que foram CADASTRADAS no
 // sistema. Dois campos novos na mesma linha dos de hospedagem — "Cadastro de / ate".
 // E INTERVALO, e nao data exata, e essa diferenca e de proposito. O filtro de Check-in que
