@@ -1175,6 +1175,29 @@ body.dark .ct-folder-edit{background:rgba(255,255,255,.04)}
 .cr-sit.st-ativo{color:#1a9c50}
 .cr-sit.st-prosp{color:#0a7bd0}
 .cr-sit.st-contato{color:#d98a1a}
+/* (·400) SELETOR DE SITUAÇÃO + data do último contato.
+   O <select> é desenhado como TEXTO COLORIDO, não como caixa de formulário:
+   a coluna já era lida como um rótulo de status ("ATIVO" em verde), e trocar
+   isso por uma caixa cinza faria a tela inteira parecer um formulário em vez
+   de um painel. A setinha só aparece no hover, para o afford de "dá para
+   trocar" existir sem poluir 35 linhas. */
+.cr-situ-cel{display:flex;flex-direction:column;gap:4px;min-width:0}
+.cr-situ-sel{width:100%;box-sizing:border-box;background:transparent;border:1px solid transparent;border-radius:8px;
+  font-family:inherit;font-size:13px;font-weight:800;padding:6px 8px;outline:none;cursor:pointer;
+  color:var(--texto);appearance:none;-webkit-appearance:none;text-align:center;transition:all .15s}
+.cr-situ-sel:hover{background:var(--azul-claro);border-color:var(--borda)}
+.cr-situ-sel:focus{background:var(--azul-claro);border-color:var(--azul)}
+.cr-situ-sel.st-ativo{color:#1a9c50}
+.cr-situ-sel.st-inativo{color:#c0392b}
+.cr-situ-sel.st-prosp{color:#0a7bd0}
+.cr-situ-sel.st-contato{color:#d98a1a}
+.cr-situ-sel option{color:var(--texto);background:var(--card);font-weight:700}
+.cr-situ-data{width:100%;box-sizing:border-box;border:1px solid var(--borda);border-radius:7px;background:transparent;
+  color:#d98a1a;font-family:inherit;font-size:12px;font-weight:800;padding:4px 8px;outline:none;text-align:center;
+  font-variant-numeric:tabular-nums;letter-spacing:.4px}
+.cr-situ-data:focus{border-color:#d98a1a}
+.cr-situ-data::placeholder{color:var(--texto-fraco);font-weight:600;letter-spacing:0}
+.cr-sit.st-inativo{color:#c0392b}
 body.dark .cr-row{background:rgba(255,255,255,.04)}
 body.dark .cr-inp{color:#E8EEF4}
 body.dark .cr-inp:hover,body.dark .cr-inp:focus{background:rgba(255,255,255,.08)}
@@ -1182,6 +1205,15 @@ body.dark .cr-busca{background:rgba(255,255,255,.06);color:#E8EEF4}
 body.dark .cr-sit.st-ativo{color:#3ddb85}
 body.dark .cr-sit.st-prosp{color:#4db6ff}
 body.dark .cr-sit.st-contato{color:#ffb15a}
+body.dark .cr-sit.st-inativo{color:#ff6b6b}
+body.dark .cr-situ-sel{color:#E8EEF4}
+body.dark .cr-situ-sel:hover,body.dark .cr-situ-sel:focus{background:rgba(255,255,255,.08)}
+body.dark .cr-situ-sel.st-ativo{color:#3ddb85}
+body.dark .cr-situ-sel.st-inativo{color:#ff6b6b}
+body.dark .cr-situ-sel.st-prosp{color:#4db6ff}
+body.dark .cr-situ-sel.st-contato{color:#ffb15a}
+body.dark .cr-situ-sel option{background:#16212E;color:#E8EEF4}
+body.dark .cr-situ-data{color:#ffb15a;border-color:#243447}
 @media(max-width:720px){.cr-row,.cr-row-head{grid-template-columns:1fr 1fr;gap:7px}.cr-row-head{display:none}}
 /* ===== MATRIZ COMERCIAL ===== */
 .mx-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px}
@@ -4471,7 +4503,32 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 399; // (·399) O DIEGO NAO CONSEGUIA EDITAR CARTAO — DEFEITO MEU NO ·398.
+var UV_BUILD_NUM = 400; // (·400) SITUACAO DA CABECA DE REDE VIROU LISTA FECHADA. Pedido do
+// Nando: trocar a escrita livre por um seletor com ATIVO (verde), INATIVO (vermelho),
+// PROSPECCAO (azul) e ULTIMO CONTATO (laranja); e, ao escolher ULTIMO CONTATO, poder digitar
+// a data aceitando SOMENTE numeros.
+// ⚠️ A ARMADILHA QUE QUASE PASSOU: "INATIVO" CONTEM "ATIVO". A funcao que pinta a cor
+// testava ATIVO primeiro — regra escrita quando INATIVO nao existia. Mantida a ordem, todo
+// cliente inativo sairia VERDE, dizendo na tela exatamente o contrario do que e. INATIVO
+// passou a ser testado ANTES.
+// CONTINUA GRAVADO NO MESMO CAMPO `situacao`, como texto, no formato que a propria semente
+// ja usava ("ULTIMO CONTATO - 19/08/2025"). Isso nao e preguica: e o que faz tudo continuar
+// valendo sem migracao — a busca por texto, a semente, a uniao entre PCs, o backup e os 35
+// registros que ja existem. Campo novo obrigaria a converter tudo e a manter dois formatos
+// vivos ao mesmo tempo.
+// ⚠️ VALOR ANTIGO FORA DAS QUATRO OPCOES NAO E DESCARTADO. Enquanto o campo era livre
+// alguem pode ter escrito outra coisa; trocar por "ATIVO" na calada seria INVENTAR UM FATO
+// sobre um cliente. Ele aparece como opcao extra marcada "(antigo)", selecionada, para a
+// pessoa escolher conscientemente.
+// A DATA ACEITA SO DIGITOS e as barras sao postas pelo codigo (dd/mm/aaaa). Assim nao existe
+// estado invalido de digitacao: nao da para escrever "1//2" nem "12/34/56/78", entao nunca e
+// preciso recusar o que a pessoa digitou. Mesmo principio da mascara monetaria dos cartoes.
+// Os DOIS campos gravam no MESMO `situacao`: trocar o seletor preserva a data ja digitada e
+// digitar a data preserva o status — sem isso, mexer num apagaria o outro. E o foco volta
+// para a data depois do redesenho, senao digitar o segundo digito seria impossivel.
+// O seletor e desenhado como TEXTO COLORIDO, nao como caixa de formulario: a coluna ja era
+// lida como um rotulo de status, e uma caixa cinza faria a tela virar formulario. Só front.
+// ANTERIOR: (·399) O DIEGO NAO CONSEGUIA EDITAR CARTAO — DEFEITO MEU NO ·398.
 // Ele testou no PC dele, na versao certa, e o botao nao aparecia. A causa: a regra que
 // escrevi exigia o nome IDENTICO ao da lista. Basta a conta dele estar cadastrada como
 // "Diego de Oliveira" (que e como ele aparece ate na titularidade dos cartoes) para nao
@@ -21467,6 +21524,31 @@ function excluirNotaUI(id){
     try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
     try{ if(typeof logRemoto==='function') logRemoto('cabeca_rede','Cliente '+(appConfig.cabecaRede[id].cliente||'(sem nome)')+' editado em Cabeça de Rede',{campo:Object.keys(obj).join(','), id:id}); }catch(e){}
   }
+  /* (·400) A DATA GRAVA A CADA TECLA, o salvamento é que espera.
+     ⚠️ Achei isto testando no navegador: a versão anterior só gravava no
+     `change`, que no campo de texto só dispara ao SAIR dele. Quem digitasse a
+     data e trocasse o status em seguida — ou fechasse a tela — perdia a data,
+     que continuava na tela mas nunca tinha chegado ao appConfig. É o mesmo
+     erro que o saldo do cartão já tinha resolvido no ·206, e a solução é a
+     mesma: o valor entra no appConfig NA HORA (síncrono) e só a subida para a
+     nuvem é adiada, senão cada dígito mandaria a configuração inteira. */
+  var crDataTimer=null;
+  function crSetDataAgora(id, dataTxt){
+    if(!appConfig.cabecaRede || typeof appConfig.cabecaRede!=='object') appConfig.cabecaRede={};
+    var atual=crBase()[id]||{cliente:'',situacao:'',contato:'',rede:''};
+    var p=crSituParse(atual.situacao);
+    appConfig.cabecaRede[id]={ cliente:atual.cliente||'', situacao:crSituMontar(p.status, dataTxt),
+                               contato:atual.contato||'', rede:atual.rede||'', ts:Date.now(), del:0 };
+    if(crDataTimer) clearTimeout(crDataTimer);
+    crDataTimer=setTimeout(crDataFlush, 700);
+  }
+  function crDataFlush(){
+    if(crDataTimer){ clearTimeout(crDataTimer); crDataTimer=null; }
+    try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+  }
+  /* fechar a aba no meio da digitação não pode levar a data junto */
+  window.addEventListener('beforeunload', function(){ if(crDataTimer) crDataFlush(); });
+
   function crAdd(){
     if(!appConfig.cabecaRede || typeof appConfig.cabecaRede!=='object') appConfig.cabecaRede={};
     var id='crx'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
@@ -21491,7 +21573,82 @@ function excluirNotaUI(id){
   };
 
   var crFiltro='', crBuscaTxt='', crFocarNovo=null;
-  function crSituClasse(s){ var t=(s||'').toUpperCase(); if(t.indexOf('ATIVO')>=0) return 'st-ativo'; if(t.indexOf('PROSPEC')>=0) return 'st-prosp'; if(t.indexOf('CONTATO')>=0) return 'st-contato'; return ''; }
+  /* ========================================================================
+     (·400) SITUAÇÃO VIROU LISTA FECHADA — quatro opções, nada de texto livre.
+     ========================================================================
+     CONTINUA GRAVADA NO MESMO CAMPO `situacao`, como texto, no formato que já
+     existia na semente ("ULTIMO CONTATO - 19/08/2025"). Isso não é preguiça: é
+     o que faz TODO o resto continuar valendo sem migração nenhuma — a busca por
+     texto, a semente, o merge entre PCs, o backup e os dados que as pessoas já
+     digitaram. Um campo novo obrigaria a converter 35 registros e a manter dois
+     formatos vivos ao mesmo tempo. */
+  var CR_SITUACOES=['ATIVO','INATIVO','PROSPECÇÃO','ULTIMO CONTATO'];
+  /* ⚠️ A ORDEM DESTES TESTES IMPORTA: "INATIVO" CONTÉM "ATIVO". Testando ATIVO
+     primeiro — como estava antes de existir INATIVO — um cliente inativo sairia
+     VERDE, dizendo o contrário do que é. */
+  function crSituClasse(s){
+    var t=(s||'').toUpperCase();
+    if(t.indexOf('INATIVO')>=0) return 'st-inativo';
+    if(t.indexOf('ATIVO')>=0) return 'st-ativo';
+    if(t.indexOf('PROSPEC')>=0) return 'st-prosp';
+    if(t.indexOf('CONTATO')>=0) return 'st-contato';
+    return '';
+  }
+  /* separa o texto gravado em {status, data} — a data só existe no ÚLTIMO CONTATO */
+  function crSituParse(s){
+    var t=(s||'').toString().trim();
+    if(!t) return {status:'', data:''};
+    var T=t.toUpperCase();
+    if(T.indexOf('CONTATO')>=0){
+      var m=t.match(/(\d{2}\/\d{2}\/\d{4})/);
+      return {status:'ULTIMO CONTATO', data:m?m[1]:''};
+    }
+    if(T.indexOf('INATIVO')>=0)  return {status:'INATIVO',  data:''};
+    if(T.indexOf('PROSPEC')>=0)  return {status:'PROSPECÇÃO', data:''};
+    if(T.indexOf('ATIVO')>=0)    return {status:'ATIVO',    data:''};
+    /* ⚠️ VALOR QUE NÃO É NENHUM DOS QUATRO NÃO É DESCARTADO. Alguém pode ter
+       digitado outra coisa enquanto o campo era livre, e trocar por "ATIVO" na
+       calada seria inventar um fato sobre um cliente. Ele volta como está e a
+       tela o mostra como opção extra, para a pessoa escolher conscientemente. */
+    return {status:t, data:'', fora:true};
+  }
+  function crSituMontar(status, data){
+    if(status!=='ULTIMO CONTATO') return status||'';
+    var d=(data||'').trim();
+    return d ? ('ULTIMO CONTATO - '+d) : 'ULTIMO CONTATO';
+  }
+  /* MÁSCARA DD/MM/AAAA — só dígitos entram e as barras são postas pelo código.
+     Assim NÃO EXISTE estado inválido de digitação: não dá para gravar "1//2" nem
+     "12/34/56/78", então nunca é preciso recusar o que a pessoa escreveu. Mesmo
+     princípio da máscara monetária dos cartões (·206). */
+  function crMascaraData(txt){
+    var d=String(txt==null?'':txt).replace(/\D/g,'').slice(0,8);
+    if(d.length<=2) return d;
+    if(d.length<=4) return d.slice(0,2)+'/'+d.slice(2);
+    return d.slice(0,2)+'/'+d.slice(2,4)+'/'+d.slice(4);
+  }
+
+  /* (·400) a célula da situação: seletor + (só no ÚLTIMO CONTATO) a data */
+  function crSituHtml(e){
+    var p=crSituParse(e.situacao);
+    var cls=crSituClasse(e.situacao);
+    var h='<div class="cr-situ-cel">';
+    h+='<select class="cr-situ-sel '+cls+'" data-cr-id="'+e.id+'" data-cr-campo="situacao" title="Situação do cliente">';
+    h+='<option value=""'+(p.status?'':' selected')+'>—</option>';
+    CR_SITUACOES.forEach(function(o){
+      h+='<option value="'+crEsc(o)+'"'+(p.status===o?' selected':'')+'>'+crEsc(o)+'</option>';
+    });
+    /* o valor antigo que não é nenhum dos quatro fica visível e selecionado,
+       em vez de sumir da tela como se nunca tivesse existido */
+    if(p.fora) h+='<option value="'+crEsc(p.status)+'" selected>'+crEsc(p.status)+' (antigo)</option>';
+    h+='</select>';
+    if(p.status==='ULTIMO CONTATO'){
+      h+='<input class="cr-situ-data" value="'+crEsc(p.data)+'" data-cr-id="'+e.id+'" data-cr-campo="situacaoData"'+
+         ' inputmode="numeric" maxlength="10" placeholder="dd/mm/aaaa" title="Data do último contato — digite só números">';
+    }
+    h+='</div>';
+    return h;
+  }
 
   window.renderCabecaRede=function(){
     var wrap=document.getElementById('cabecaWrap'); if(!wrap) return;
@@ -21518,7 +21675,7 @@ function excluirNotaUI(id){
       var selOpts='<option value="">—</option>'+opts.map(function(o){ return '<option value="'+crEsc(o)+'"'+(((e.rede||'').toUpperCase()===o)?' selected':'')+'>'+crEsc(o)+'</option>'; }).join('');
       return '<div class="cr-row" style="border-left-color:'+cor+'">'+
         '<input class="cr-inp cr-cli" value="'+crEsc(e.cliente)+'" data-cr-id="'+e.id+'" data-cr-campo="cliente" placeholder="Nome do cliente">'+
-        '<input class="cr-inp cr-sit '+crSituClasse(e.situacao)+'" value="'+crEsc(e.situacao)+'" data-cr-id="'+e.id+'" data-cr-campo="situacao" placeholder="Situação">'+
+        crSituHtml(e)+
         '<input class="cr-inp" value="'+crEsc(e.contato)+'" data-cr-id="'+e.id+'" data-cr-campo="contato" placeholder="Forma de contato">'+
         '<select class="cr-sel" data-cr-id="'+e.id+'" data-cr-campo="rede" style="background:'+cor+'">'+selOpts+'</select>'+
         '<button type="button" class="cr-del" data-cr-del="'+e.id+'" title="Excluir">🗑</button>'+
@@ -21551,8 +21708,27 @@ function excluirNotaUI(id){
     var t=e.target;
     if(t && t.getAttribute && t.getAttribute('data-cr-id')){
       var id=t.getAttribute('data-cr-id'), campo=t.getAttribute('data-cr-campo'), val=t.value;
+      /* (·400) os dois campos da situação gravam no MESMO `situacao`: trocar o
+         seletor preserva a data já digitada, e digitar a data preserva o status.
+         Sem isso, mexer num apagaria o outro. */
+      if(campo==='situacao' || campo==='situacaoData'){
+        /* a data já foi gravada tecla a tecla; aqui só confirmamos e subimos */
+        crDataFlush();
+        var atual=crSituParse((crBase()[id]||{}).situacao);
+        var status=(campo==='situacao') ? val : atual.status;
+        var data  =(campo==='situacaoData') ? crMascaraData(val) : atual.data;
+        crSetObj(id, {situacao: crSituMontar(status, data)});
+        renderCabecaRede();
+        /* ao ESCOLHER Último Contato, o campo da data nasce agora — levar o
+           cursor até ele poupa um clique e deixa claro o que fazer em seguida */
+        if(campo==='situacao' && val==='ULTIMO CONTATO'){
+          var dv=document.querySelector('[data-cr-id="'+id+'"][data-cr-campo="situacaoData"]');
+          if(dv){ try{ dv.focus(); dv.setSelectionRange(dv.value.length, dv.value.length); }catch(x){} }
+        }
+        return;
+      }
       var obj={}; obj[campo]=val; crSetObj(id, obj);
-      if(campo==='rede' || campo==='situacao') renderCabecaRede();   // atualiza cor/badge
+      if(campo==='rede') renderCabecaRede();   // atualiza cor/badge
     }
   });
   document.addEventListener('click', function(e){
@@ -21565,6 +21741,20 @@ function excluirNotaUI(id){
   });
   document.addEventListener('input', function(e){
     if(e.target && e.target.id==='crBusca'){ crBuscaTxt=e.target.value; renderCabecaRede(); }
+    /* (·400) a data aceita SÓ NÚMEROS, como pedido. A máscara roda a cada tecla
+       e as barras são postas pelo código — letra e símbolo simplesmente não
+       entram, em vez de entrarem e serem recusados depois. */
+    var t=e.target;
+    if(t && t.getAttribute && t.getAttribute('data-cr-campo')==='situacaoData'){
+      var fmt=crMascaraData(t.value);
+      if(t.value!==fmt){
+        t.value=fmt;
+        try{ t.setSelectionRange(fmt.length, fmt.length); }catch(x){}
+      }
+      /* grava JÁ (ver crSetDataAgora) — sem redesenhar, senão o campo perderia
+         o foco no meio da digitação */
+      crSetDataAgora(t.getAttribute('data-cr-id'), fmt);
+    }
   });
 })();
 </script>
