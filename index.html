@@ -1392,7 +1392,10 @@ body.dark .mx-cal-btn{color:#2ee0b8}
    borda vazaria e preencheria a caixa inteira. E o border-image (o caminho "óbvio"
    para borda em gradiente) não serve, porque não respeita border-radius e deixaria
    os cantos quadrados. */
-.cd-notifs{ display:flex; flex-direction:column; gap:10px; margin:4px 0 10px; }
+/* (·403) fora do card de Ocupação, o bloco ganha a mesma respiração dos
+   outros da tela — dentro do card ele herdava o padding e colava no título. */
+.cd-notifs{ display:flex; flex-direction:column; gap:10px; margin:0 0 14px; }
+.cd-notifs:empty{ display:none; margin:0; }
 .cd-notifs:empty{ display:none; }
 .cd-notif{
   display:flex; flex-direction:column; gap:0;
@@ -3781,11 +3784,16 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
           </div>
           <div class="wd-grid" id="wdGrid"></div>
         </div>
+        <!-- (·403) NOTIFICAÇÕES: saíram de dentro do card de Ocupação e vieram
+             para cá, logo abaixo do Welcome Day. Aviso que exige ação imediata
+             não pode morar dentro do quadro de OUTRO assunto: ali ele parecia
+             pertencer à Ocupação e disputava espaço com a grade de atendentes.
+             Aqui é o primeiro bloco depois do topo — o lugar onde se olha. -->
+        <div class="cd-notifs" id="cdNotifs"></div>
         <div class="dash-cards-cd">
         <div class="cd-aniv-wrap" id="cdAnivWrap"></div>
         <div class="dash-card ocp-card">
           <div class="dash-card-t">🚦 Ocupação dos Atendentes<span class="ocp-hint">verde = livre &nbsp;·&nbsp; vermelho = ocupado</span><button type="button" class="ocp-mailcfg-btn uv-auth-hidden" id="ocpMailCfgBtn" title="Alertas por e-mail — configurar destinatários (somente administrador)">📧 Alertas</button><button type="button" class="ocp-relat-btn" id="ocpRelatBtn" title="Relatório de vendas — todos os atendimentos, TMA e gráficos, com filtros">📊 Relatório</button><button type="button" class="ocp-users-btn uv-auth-hidden" id="ocpUsersBtn" title="Gestão de usuários — criar contas, ver sessões, revogar acesso (somente admin)">👤 Usuários</button><button type="button" class="ocp-log-btn uv-auth-hidden" id="ocpLogBtn" title="Registro de atividades — quem fez o quê, onde e quando (somente admin)">📋 Log</button></div>
-          <div class="cd-notifs" id="cdNotifs"></div>
           <div class="ocp-vez-bar" id="ocpVezBar"></div>
           <div class="ocp-grid" id="ocpGrid"></div>
         </div>
@@ -4503,7 +4511,19 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 402; // (·402) ABRIR A LUPA NAO ESVAZIA MAIS A TELA. O Nando abriu a busca
+var UV_BUILD_NUM = 403; // (·403) AS NOTIFICACOES SAIRAM DE DENTRO DO QUADRO DE OCUPACAO.
+// Pedido do Nando: em vez de aparecerem dentro do card "Ocupacao dos Atendentes", ficam logo
+// abaixo dos quadros do Welcome Day.
+// Faz sentido alem do arranjo: um aviso que diz "ACAO IMEDIATA NECESSARIA" nao pode morar
+// dentro do quadro de OUTRO assunto. La ele parecia pertencer a Ocupacao — como se fosse
+// mais uma informacao sobre os atendentes — e ainda empurrava a grade para baixo, disputando
+// espaco com o que o card existe para mostrar. Agora e o primeiro bloco depois do topo, que
+// e onde o olho passa.
+// Mudou SO O LUGAR no HTML: a mesma div, o mesmo id, o mesmo render (renderCdNotifs). Nada
+// de logica nova, nada de segunda copia — mover e mover.
+// Ganhou `:empty{display:none}`: fora do card, um contêiner vazio deixaria uma folga
+// fantasma entre o Welcome Day e a Ocupacao nos dias sem nenhum aviso. Só front.
+// ANTERIOR: (·402) ABRIR A LUPA NAO ESVAZIA MAIS A TELA. O Nando abriu a busca
 // do ·401 e mandou o print: os cards sumiam e ficava so o campo com um aviso de "digite uma
 // palavra". Ele esta certo — desaparecer o conteudo e um preco alto por um campo de texto, e
 // a pessoa ainda nao tinha pedido nada.
