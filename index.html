@@ -4709,7 +4709,37 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 407; // (·407) O MURAL GANHOU MOLDURA DE QUADRO. O Nando gostou do mural do
+var UV_BUILD_NUM = 409; // (·409) SO O AUTOR EDITA O PROPRIO RECADO — NEM A DIRETORIA. Ajuste
+// do Nando em cima do ·408: apagar continua so com a diretoria, mas EDITAR passou a ser so
+// de quem escreveu.
+// A SEPARACAO FAZ SENTIDO E VALE REGISTRAR: editar e mexer NA VOZ de alguem — o recado
+// continua assinado por quem escreveu, mas diria outra coisa. Apagar e retirar do mural,
+// sem falsificar nada. Por isso a diretoria tira, mas nao reescreve.
+// ⚠️ A COMPARACAO DE NOME E TOLERANTE, e nao uma igualdade crua. O autor foi gravado a
+// partir do cadastro NO MOMENTO da publicacao; se a pessoa corrigir o proprio nome em
+// Usuarios depois disso (de "Diego" para "Diego de Oliveira"), a igualdade literal a
+// trancaria para fora do PROPRIO recado — exatamente o defeito do ·399, com outra roupa.
+// Mesma regra de la: o primeiro nome tem de ser o primeiro, e todos os nomes de um lado
+// presentes no outro, em qualquer das duas direcoes.
+// RECADO SEM AUTOR GRAVADO NAO E DE NINGUEM, e portanto ninguem edita — some o lapis. Isso
+// vale para qualquer registro antigo que porventura nao tenha autor.
+// TRES TRAVAS, e nao uma: o lapis some, o clique confere, e o SALVAMENTO confere de novo.
+// Esconder o botao nao e proteger a acao (licao do ·399), e entre abrir o editor e gravar
+// existe um caminho inteiro onde alguem poderia entrar por fora. Só front.
+// ANTERIOR: (·408) SO A DIRETORIA APAGA RECADOS DO MURAL. Mudanca de ideia do
+// Nando: no ·406 ele tinha escolhido "todos publicam e todos apagam"; agora o apagar fica
+// so com a diretoria. PUBLICAR E EDITAR CONTINUAM ABERTOS a todos — ele mudou so o apagar,
+// e mural onde so a diretoria escreve seria outra coisa (um quadro de comunicados).
+// USA A FONTE UNICA (UV_DIRETORIA, do ·398/·399) em vez de criar uma quarta lista de nomes
+// no sistema. Trocar quem e da diretoria continua sendo mexer em UMA linha.
+// O ✕ desaparece para quem nao pode, E o clique confere DE NOVO antes de apagar: esconder
+// um botao nao e proteger uma acao. Foi exatamente a licao do ·399, quando a permissao dos
+// cartoes falhava em silencio e nem o Diego nem o Nando tinham como saber por que.
+// Se a fonte da lista nao tiver carregado, a resposta e NAO — numa fronteira de permissao a
+// falha tem de ser para o lado fechado, nunca para o aberto.
+// O aviso que diz DE QUEM e o recado continua na confirmacao: agora quem apaga e sempre da
+// diretoria, e apagar o recado de outra pessoa passou a ser a regra, nao a excecao. Só front.
+// ANTERIOR: (·407) O MURAL GANHOU MOLDURA DE QUADRO. O Nando gostou do mural do
 // ·406 e pediu a moldura "em alta definicao", imitando o quadro da foto.
 // ⚠️ A MOLDURA E FEITA DE GRADIENTES, NAO DE IMAGEM — e e justamente isso que garante o
 // "alta definicao". Foto de moldura fica BORRADA na tela Retina do Mac dele (ou pesa
@@ -21831,6 +21861,53 @@ var MR_CORES=[
   function mrEsc(s){ return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){
     return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
   function mrNome(){ try{ return (typeof window.uvAuthNome==='function'?window.uvAuthNome():'')||''; }catch(e){ return ''; } }
+  /* (·408) QUEM PODE APAGAR: só a diretoria. Publicar e editar continuam
+     abertos a todos — o Nando mudou só o apagar.
+     Usa a fonte única do Hub (UV_DIRETORIA, ·398/·399) em vez de uma quarta
+     lista de nomes. O typeof existe porque ela vive em outro bloco <script>:
+     se não tiver carregado, a resposta é NÃO — numa fronteira de permissão a
+     falha tem de ser para o lado fechado. */
+  function mrPodeApagar(){
+    try{ return (typeof window.uvSouDiretoria==='function') && window.uvSouDiretoria()===true; }
+    catch(e){ return false; }
+  }
+  window.mrPodeApagar=mrPodeApagar;
+
+  /* (·409) QUEM PODE EDITAR: só quem escreveu o recado — nem a diretoria.
+     A separação é deliberada e o Nando foi explícito: editar é mexer NA VOZ de
+     alguém (o recado continua assinado por quem escreveu, mas diria outra
+     coisa), enquanto apagar é retirar do mural sem falsificar nada. Por isso a
+     diretoria tira, mas não reescreve.
+
+     ⚠️ A COMPARAÇÃO DE NOME É TOLERANTE, e não uma igualdade crua. O autor foi
+     gravado a partir do cadastro no momento em que o recado foi publicado; se
+     alguém corrigir o próprio nome em Usuários depois disso (de "Diego" para
+     "Diego de Oliveira", por exemplo), a igualdade literal trancaria a pessoa
+     para fora do PRÓPRIO recado — o mesmo defeito do ·399, agora com outra
+     roupa. Mesma regra de lá: primeiro nome tem de ser o primeiro, e todos os
+     nomes de um lado presentes no outro (em qualquer das duas direções). */
+  var MR_PART={de:1,da:1,do:1,das:1,dos:1,e:1,di:1,del:1,della:1,van:1,von:1};
+  function mrTokens(x){
+    return (x||'').toString().trim().toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/[^a-z0-9\s]/g,' ')
+      .split(/\s+/).filter(function(t){ return t && !MR_PART[t]; });
+  }
+  function mrMesmaPessoa(a,b){
+    var A=mrTokens(a), B=mrTokens(b);
+    if(!A.length || !B.length) return false;
+    if(A[0]!==B[0]) return false;               /* o primeiro nome é o primeiro */
+    var tA={}; A.forEach(function(t){ tA[t]=1; });
+    var tB={}; B.forEach(function(t){ tB[t]=1; });
+    return A.every(function(t){ return tB[t]; }) || B.every(function(t){ return tA[t]; });
+  }
+  /* recado sem autor gravado não é de ninguém — e portanto ninguém edita */
+  function mrPodeEditar(r){
+    if(!r || !r.autor) return false;
+    return mrMesmaPessoa(r.autor, mrNome());
+  }
+  window.mrPodeEditar=mrPodeEditar;
+  window.mrMesmaPessoa=mrMesmaPessoa;
   function mrAgora(){ return Date.now(); }
 
   function mrStore(){
@@ -21946,8 +22023,9 @@ var MR_CORES=[
           +'<span class="mr-post-quem"><span class="mr-post-nome">'+mrEsc(r.autor||'—')+'</span>'
             +'<span class="mr-post-data">'+mrEsc(mrData(r.ts))+'</span></span>'
           +(u?'<span class="mr-post-acoes">'
-              +'<button type="button" class="mr-mini" data-mr-editar="'+mrEsc(r.id)+'" title="Editar recado">✎</button>'
-              +'<button type="button" class="mr-mini x" data-mr-apagar="'+mrEsc(r.id)+'" title="Tirar do mural">✕</button>'
+              /* (·409) o ✎ só para quem ESCREVEU; (·408) o ✕ só para a diretoria */
+              +(mrPodeEditar(r)?'<button type="button" class="mr-mini" data-mr-editar="'+mrEsc(r.id)+'" title="Editar o seu recado">✎</button>':'')
+              +(mrPodeApagar()?'<button type="button" class="mr-mini x" data-mr-apagar="'+mrEsc(r.id)+'" title="Tirar do mural (diretoria)">✕</button>':'')
             +'</span>':'')
         +'</footer>'
       +'</article>';
@@ -22000,10 +22078,25 @@ var MR_CORES=[
     }
 
     var ed=e.target.closest('[data-mr-editar]');
-    if(ed){ mrEditando=ed.getAttribute('data-mr-editar'); mrForm=false; mrRender(); return; }
+    if(ed){
+      var idE=ed.getAttribute('data-mr-editar');
+      /* (·409) confere DE NOVO: esconder o lápis não é proteger a edição */
+      if(!mrPodeEditar(mrStore()[idE])){
+        try{ if(typeof toast==='function') toast('Só quem escreveu o recado pode editá-lo','erro'); }catch(x){}
+        return;
+      }
+      mrEditando=idE; mrForm=false; mrRender(); return;
+    }
 
     var ap=e.target.closest('[data-mr-apagar]');
     if(ap){
+      /* (·408) confere DE NOVO no clique: esconder um botão não é proteger uma
+         ação — foi a lição do ·399, quando a permissão de cartão falhava em
+         silêncio e ninguém sabia dizer por quê. */
+      if(!mrPodeApagar()){
+        try{ if(typeof toast==='function') toast('Somente a diretoria pode apagar recados','erro'); }catch(x){}
+        return;
+      }
       var id=ap.getAttribute('data-mr-apagar');
       var S=mrStore(), r=S[id]; if(!r) return;
       /* a confirmação diz DE QUEM é o recado: como qualquer um pode apagar o de
@@ -22027,7 +22120,14 @@ var MR_CORES=[
         try{ if(typeof toast==='function') toast('Escreva ao menos um título ou um texto','erro'); }catch(x){}
         return;
       }
-      if(alvo) mrEditar(alvo, {tit:tit, txt:txt, cor:corF});
+      if(alvo){
+        /* trava final: nem pelo caminho do salvamento se edita recado alheio */
+        if(!mrPodeEditar(mrStore()[alvo])){
+          try{ if(typeof toast==='function') toast('Só quem escreveu o recado pode editá-lo','erro'); }catch(x){}
+          mrForm=false; mrEditando=''; mrRender(); return;
+        }
+        mrEditar(alvo, {tit:tit, txt:txt, cor:corF});
+      }
       else     mrCriar({tit:tit, txt:txt, cor:corF});
       mrForm=false; mrEditando=''; mrRender();
       try{ if(typeof toast==='function') toast(alvo?'Recado atualizado':'Recado fixado no mural','ok'); }catch(x){}
