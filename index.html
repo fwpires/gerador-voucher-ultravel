@@ -4503,7 +4503,37 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 400; // (·400) SITUACAO DA CABECA DE REDE VIROU LISTA FECHADA. Pedido do
+var UV_BUILD_NUM = 401; // (·401) BUSCA EM TODAS AS CONVERSAS DE ACOES COMERCIAIS. Pedido do
+// Nando: uma lupinha ao lado do titulo que procura palavras ou frases em TODOS os cards de
+// conversa e, ao clicar no resultado, leva DIRETAMENTE para dentro da mensagem.
+// PROCURA EM TRES LUGARES: titulo do topico, texto de cada mensagem e nome de quem
+// escreveu. Cada resultado e uma MENSAGEM, nao um topico — achar "o topico tem isso em
+// algum lugar" deixaria o trabalho de garimpar para a pessoa, que e justamente o que ela
+// queria evitar.
+// ⚠️ A DOBRA DE ACENTOS PRESERVA O TAMANHO DA STRING. Fui conferir em vez de repetir a
+// regra de bolso: para texto PRECOMPOSTO (o "ção" normal), o caminho curto — normalize NFD
+// + tirar os acentos — ja preserva o tamanho, entao ali tanto faz. A diferenca aparece em
+// texto DECOMPOSTO, onde o acento e um caractere separado: ai o caminho curto ENCURTA a
+// string, a posicao achada deixa de corresponder a do texto original, e o destaque sai
+// DESLOCADO, marcando a letra errada. Essa forma decomposta e a que o macOS produz em
+// varios caminhos — e os dois socios trabalham em Mac, ou seja, o caso raro na teoria e
+// justamente o provavel aqui. Dobrando caractere a caractere, indice de um e indice do
+// outro em qualquer das duas formas. O teste cobre exatamente esse caso.
+// O TRECHO MOSTRADO E ONDE O TERMO APARECE, nao os primeiros 110 caracteres. Numa mensagem
+// longa o achado costuma estar no meio, e um trecho que nao contem o que a pessoa procurou
+// nao prova nada.
+// O DESTAQUE ESCAPA PEDACO A PEDACO, nunca o HTML ja montado: escapar depois transformaria
+// a marcacao em texto visivel, e escapar antes deixaria o texto de quem escreveu virar
+// marcacao. Texto de mensagem e escrito por doze pessoas — e conteudo, nunca codigo.
+// PARA "LEVAR ATE A MENSAGEM", cada mensagem ganhou ancora (data-ac-mid). Sem ela, clicar
+// abriria o topico e deixaria a pessoa procurando na rolagem. O scroll roda num quadro
+// SEGUINTE ao desenho, porque antes disso o navegador ainda nao calculou as posicoes e a
+// rolagem iria para o lugar errado. O destaque amarelo some sozinho em 2,6s: serve para o
+// olho achar a linha, nao para ficar marcando.
+// A LUPA FECHADA E SO UM ICONE: barra de busca fixa numa tela quase sempre usada sem ela
+// seria custo permanente por ganho eventual. Fechar limpa o termo — busca ativa escondida
+// faria a lista parecer que perdeu topicos. Só front.
+// ANTERIOR: (·400) SITUACAO DA CABECA DE REDE VIROU LISTA FECHADA. Pedido do
 // Nando: trocar a escrita livre por um seletor com ATIVO (verde), INATIVO (vermelho),
 // PROSPECCAO (azul) e ULTIMO CONTATO (laranja); e, ao escolher ULTIMO CONTATO, poder digitar
 // a data aceitando SOMENTE numeros.
@@ -25123,6 +25153,37 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
 #scr-acoes .ac-msgs{display:flex;flex-direction:column;gap:9px;margin-bottom:14px}
 #scr-acoes .ac-msg{background:rgba(255,255,255,.035);border:1px solid #243849;border-radius:11px;padding:11px 13px}
 #scr-acoes .ac-msg.meu{border-color:rgba(46,199,165,.35);background:rgba(46,199,165,.06)}
+/* ===== (·401) BUSCA EM TODAS AS CONVERSAS ===== */
+#scr-acoes .ac-lupa{margin-left:10px;border:1px solid #243849;background:transparent;color:#7d93a5;font-size:.9rem;
+  width:30px;height:30px;border-radius:9px;cursor:pointer;vertical-align:middle;transition:all .15s;padding:0}
+#scr-acoes .ac-lupa:hover{border-color:#2ec7a5;color:#2ec7a5}
+#scr-acoes .ac-lupa.on{background:rgba(46,199,165,.16);border-color:#2ec7a5;color:#5fe0c0}
+#scr-acoes .ac-busca-barra{display:flex;gap:8px;align-items:center;margin:0 0 14px}
+#scr-acoes .ac-busca-inp{flex:1;min-width:0;background:rgba(255,255,255,.05);border:1px solid #243849;border-radius:11px;
+  color:#E6EEF3;font-family:inherit;font-size:.92rem;padding:11px 14px;outline:none}
+#scr-acoes .ac-busca-inp:focus{border-color:#2ec7a5}
+#scr-acoes .ac-busca-x{border:1px solid #243849;background:transparent;color:#7d93a5;border-radius:9px;
+  width:34px;height:34px;font-size:.8rem;cursor:pointer;flex:0 0 auto}
+#scr-acoes .ac-busca-x:hover{border-color:#ff7676;color:#ff7676}
+#scr-acoes .ac-busca-cont{color:#7d93a5;font-size:.78rem;font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin-bottom:9px}
+#scr-acoes .ac-busca-vazio{color:#7d93a5;font-size:.88rem;padding:26px 4px;line-height:1.6}
+#scr-acoes .ac-busca-lista{display:flex;flex-direction:column;gap:9px}
+#scr-acoes .ac-hit{display:block;width:100%;text-align:left;background:rgba(255,255,255,.035);border:1px solid #243849;
+  border-radius:12px;padding:12px 14px;cursor:pointer;font-family:inherit;transition:all .15s}
+#scr-acoes .ac-hit:hover{border-color:#2ec7a5;background:rgba(46,199,165,.07);transform:translateY(-1px)}
+#scr-acoes .ac-hit-tit{color:#E6EEF3;font-size:.92rem;font-weight:800;line-height:1.35}
+#scr-acoes .ac-hit-meta{color:#7d93a5;font-size:.76rem;margin-top:3px}
+#scr-acoes .ac-hit-txt{color:#cfe0f0;font-size:.85rem;line-height:1.5;margin-top:6px;word-break:break-word}
+#scr-acoes mark.ac-hl{background:rgba(255,214,0,.30);color:inherit;border-radius:3px;padding:0 2px;font-weight:800}
+/* a mensagem para onde a busca levou — pisca e apaga: serve para o olho achar
+   a linha, não para ficar marcando o card para sempre */
+#scr-acoes .ac-msg.ac-msg-alvo{border-color:#FFD600;box-shadow:0 0 0 2px rgba(255,214,0,.25);
+  background:rgba(255,214,0,.07);transition:all .4s}
+body:not(.dark) #scr-acoes .ac-busca-inp{background:#fff;color:#15252F;border-color:#dfe7ec}
+body:not(.dark) #scr-acoes .ac-hit{background:#fff;border-color:#e4ebf0}
+body:not(.dark) #scr-acoes .ac-hit-tit{color:#15252F}
+body:not(.dark) #scr-acoes .ac-hit-txt{color:#2b3d4a}
+body:not(.dark) #scr-acoes mark.ac-hl{background:rgba(240,165,0,.35)}
 #scr-acoes .ac-msg-topo{color:#E6EEF3;font-size:.85rem}
 #scr-acoes .ac-msg-data{color:#7d93a5;font-size:.73rem;font-weight:400}
 #scr-acoes .ac-msg-txt{color:#cfe0f0;font-size:.88rem;line-height:1.5;margin-top:5px;white-space:pre-wrap;word-break:break-word}
@@ -25927,6 +25988,20 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     // (·350) badge do menu recalculado a cada render da própria tela — é o que faz o
     // número cair na hora em que a pessoa abre o card, sem esperar o próximo ciclo.
     try{ acAtualizarBadgeMenu(); }catch(e){}
+    /* (·401) LEVAR ATÉ A MENSAGEM. Roda depois do innerHTML, num quadro
+       seguinte, porque o navegador ainda não calculou as posições — pedir o
+       scroll antes disso rolaria para o lugar errado. O destaque some sozinho:
+       ele serve para o olho achar a linha, não para ficar marcando. */
+    if(acIrParaMsg){
+      var alvoId=acIrParaMsg; acIrParaMsg='';
+      requestAnimationFrame(function(){
+        var el=wrap.querySelector('[data-ac-mid="'+alvoId+'"]');
+        if(!el) return;
+        try{ el.scrollIntoView({block:'center', behavior:'smooth'}); }catch(e){ try{ el.scrollIntoView(); }catch(e2){} }
+        el.classList.add('ac-msg-alvo');
+        setTimeout(function(){ try{ el.classList.remove('ac-msg-alvo'); }catch(e){} }, 2600);
+      });
+    }
   };
 
   /* (·289) Voltar para a aba com o tópico aberto também conta como visualização:
@@ -25937,6 +26012,141 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     if(document.hidden) return;
     try{ if(acTelaVisivel() && acAberto) window.renderAcoes(); }catch(e){}
   });
+
+  /* (·401) digitação na busca — sem debounce de propósito: o livro de bordo tem
+     dezenas de tópicos, não milhares, e a varredura é sobre dados já em memória.
+     Medi antes de decidir; se um dia crescer, é aqui que entra o atraso. */
+  document.addEventListener('input', function(e){
+    if(!e.target || e.target.id!=='acBuscaInp') return;
+    acBuscaTxt=e.target.value;
+    window.renderAcoes();
+    var bi=document.getElementById('acBuscaInp');
+    if(bi){ try{ bi.focus(); bi.setSelectionRange(bi.value.length, bi.value.length); }catch(er){} }
+  });
+  /* Esc fecha a busca; Enter não faz nada porque o resultado já é ao vivo */
+  document.addEventListener('keydown', function(e){
+    if(e.key!=='Escape') return;
+    if(!acBuscaAberta || acAberto) return;
+    var alvo=document.activeElement;
+    if(alvo && alvo.id==='acBuscaInp'){ e.preventDefault(); acBuscaAberta=false; acBuscaTxt=''; window.renderAcoes(); }
+  });
+
+  /* ========================================================================
+     (·401) BUSCA EM TODAS AS CONVERSAS
+     ========================================================================
+     Procura em TODO o livro de bordo: título do tópico, texto de cada mensagem
+     e nome de quem escreveu. Cada resultado é uma MENSAGEM (não um tópico), e
+     clicar nele abre o tópico e desce até ela — foi o que o Nando pediu: "ao
+     clicar em cima leva diretamente para dentro da mensagem". */
+  var acBuscaAberta=false, acBuscaTxt='', acIrParaMsg='';
+
+  /* DOBRA acentos SEM MUDAR O TAMANHO da string.
+     Para o "ção" precomposto de sempre, o caminho curto (normalize('NFD') +
+     tirar os acentos) também preserva o tamanho — ali tanto faz. A diferença
+     aparece em texto DECOMPOSTO, onde o acento é um caractere à parte: aí o
+     caminho curto ENCURTA a string, a posição achada deixa de corresponder à
+     do texto original e o destaque sai DESLOCADO, marcando a letra errada.
+     Essa forma decomposta é a que o macOS produz em vários caminhos — ou seja,
+     o caso raro na teoria é o provável aqui. Caractere a caractere, índice de
+     um é índice do outro nas duas formas. */
+  function acDobra(s){
+    s=(s==null?'':String(s));
+    var out='';
+    for(var i=0;i<s.length;i++){
+      var c=s[i].toLowerCase();
+      var d=c.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+      out += (d.length===1 ? d : c);   /* ç→c, ã→a; se encolher demais, mantém */
+    }
+    return out;
+  }
+  function acTermos(q){
+    return acDobra(q).trim().split(/\s+/).filter(Boolean);
+  }
+  /* destaca os termos preservando o texto original — escapa PEDAÇO A PEDAÇO,
+     nunca o HTML já montado, senão a marcação viraria texto (ou pior, o texto
+     do usuário viraria marcação) */
+  function acRealce(txt, termos){
+    txt=(txt==null?'':String(txt));
+    if(!termos.length) return acEsc(txt);
+    var dob=acDobra(txt), marcas=[];
+    termos.forEach(function(t){
+      var de=0, i;
+      while((i=dob.indexOf(t, de))>=0){ marcas.push([i, i+t.length]); de=i+t.length; }
+    });
+    if(!marcas.length) return acEsc(txt);
+    marcas.sort(function(a,b){ return a[0]-b[0]; });
+    /* junta trechos que se sobrepõem (termos que se cruzam no mesmo lugar) */
+    var un=[marcas[0]];
+    for(var k=1;k<marcas.length;k++){
+      var u=un[un.length-1];
+      if(marcas[k][0]<=u[1]) u[1]=Math.max(u[1], marcas[k][1]);
+      else un.push(marcas[k]);
+    }
+    var h='', pos=0;
+    un.forEach(function(m){
+      h += acEsc(txt.slice(pos, m[0])) + '<mark class="ac-hl">' + acEsc(txt.slice(m[0], m[1])) + '</mark>';
+      pos = m[1];
+    });
+    return h + acEsc(txt.slice(pos));
+  }
+  /* mostra a PARTE do texto onde o termo aparece, não os primeiros 110
+     caracteres: numa mensagem longa, o pedaço encontrado costuma estar no meio,
+     e um trecho que não contém o que a pessoa procurou não prova nada. */
+  function acTrecho(txt, termos, raio){
+    txt=(txt==null?'':String(txt)); raio=raio||90;
+    var dob=acDobra(txt), pos=-1;
+    for(var i=0;i<termos.length;i++){ var p=dob.indexOf(termos[i]); if(p>=0 && (pos<0 || p<pos)) pos=p; }
+    if(pos<0) return {txt:txt.slice(0,raio*2), antes:false, depois:txt.length>raio*2};
+    var ini=Math.max(0, pos-raio), fim=Math.min(txt.length, pos+raio*2);
+    return {txt:txt.slice(ini,fim), antes:ini>0, depois:fim<txt.length};
+  }
+
+  function acProcurar(q){
+    var termos=acTermos(q); if(!termos.length) return [];
+    var hits=[];
+    acCardsVivos().forEach(function(c){
+      var tituloBate = termos.every(function(t){ return acDobra(c.tit||'').indexOf(t)>=0; });
+      var msgs=acMsgsVivas(c);
+      msgs.forEach(function(m){
+        var alvo=acDobra((m.txt||'')+' '+(m.autor||''));
+        if(termos.every(function(t){ return alvo.indexOf(t)>=0; })){
+          hits.push({card:c, msg:m});
+        }
+      });
+      /* tópico cujo TÍTULO bate mas nenhuma mensagem bate não pode sumir do
+         resultado — a pessoa procurou o nome do cliente e ele existe ali */
+      if(tituloBate && !hits.some(function(h){ return h.card.id===c.id; })){
+        hits.push({card:c, msg:msgs.length?msgs[msgs.length-1]:null, soTitulo:true});
+      }
+    });
+    hits.sort(function(a,b){ return (b.msg?b.msg.ts:b.card.ts)-(a.msg?a.msg.ts:a.card.ts); });
+    return hits;
+  }
+
+  function acHtmlBusca(){
+    var termos=acTermos(acBuscaTxt);
+    if(!termos.length){
+      return '<div class="ac-busca-vazio">Digite uma palavra ou frase para procurar em <b>todos os tópicos</b> — título, mensagens e autor.</div>';
+    }
+    var hits=acProcurar(acBuscaTxt);
+    if(!hits.length){
+      return '<div class="ac-busca-vazio">Nada encontrado para <b>'+acEsc(acBuscaTxt.trim())+'</b>.</div>';
+    }
+    var h='<div class="ac-busca-cont">'+hits.length+' resultado'+(hits.length===1?'':'s')+'</div>';
+    h+='<div class="ac-busca-lista">';
+    hits.forEach(function(x){
+      var m=x.msg, tr=m?acTrecho(m.txt||'', termos):null;
+      h+='<button type="button" class="ac-hit" data-ac-hit-card="'+acEsc(x.card.id)+'"'+
+         (m?' data-ac-hit-msg="'+acEsc(m.id)+'"':'')+'>'
+        +'<div class="ac-hit-tit">'+acRealce(x.card.tit||'(sem título)', termos)+'</div>'
+        +(m?('<div class="ac-hit-meta">'+acEsc(m.autor||'—')+' · '+acData(m.ts)
+             +(x.soTitulo?' · <i>o título é que bate</i>':'')+'</div>'
+            +'<div class="ac-hit-txt">'+(tr.antes?'… ':'')+acRealce(tr.txt, termos)+(tr.depois?' …':'')+'</div>')
+           :'<div class="ac-hit-meta">tópico sem mensagens</div>')
+        +'</button>';
+    });
+    return h+'</div>';
+  }
 
   function acHtmlLista(){
     var cards=acCardsVivos(), u=acUsuario();
@@ -25966,13 +26176,26 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
         + '</button>';
     }).join('') : '<div class="ac-vazio">Nenhum tópico ainda. Clique em <b>＋ Novo tópico</b> para abrir o primeiro registro da timeline.</div>';
 
+    /* (·401) a lupa fica colada no título, onde o Nando marcou. Fechada, é só um
+       ícone; aberta, vira o campo — abrir espaço permanente para uma barra de
+       busca numa tela que quase sempre é usada sem ela seria custo fixo por
+       ganho eventual. */
+    var busca = '<button type="button" class="ac-lupa'+(acBuscaAberta?' on':'')+'" id="acLupa"'
+      +' title="Procurar palavra ou frase em todas as conversas" aria-label="Procurar nas conversas">🔍</button>';
+    var barra = acBuscaAberta
+      ? '<div class="ac-busca-barra">'
+        +'<input type="text" id="acBuscaInp" class="ac-busca-inp" placeholder="Procurar em todas as conversas…" value="'+acEsc(acBuscaTxt)+'" autocomplete="off">'
+        +(acBuscaTxt?'<button type="button" class="ac-busca-x" id="acBuscaLimpar" title="Limpar">✕</button>':'')
+        +'</div>'
+      : '';
+
     return '<div class="ac-head">'
-      +'<div><h2 class="ac-title">📣 Ações Comerciais</h2>'
+      +'<div><h2 class="ac-title">📣 Ações Comerciais'+busca+'</h2>'
       +'<div class="ac-sub">Livro de bordo comercial — '+cards.length+' tópico'+(cards.length===1?'':'s')+(u?'':' · <b style="color:#ff9a9a">faça login para publicar</b>')+'</div></div>'
       +(u?'<button type="button" class="ac-btn ac-btn-ok" id="acNovoBtn">＋ Novo tópico</button>':'')
       +'</div>'
-      +novo
-      +'<div class="ac-grid">'+lista+'</div>';
+      +barra
+      +(acBuscaAberta ? acHtmlBusca() : (novo+'<div class="ac-grid">'+lista+'</div>'));
   }
 
   function acHtmlThread(c){
@@ -26033,7 +26256,10 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
           +'<button type="button" class="ac-btn" data-ac-editcancel="1">Cancelar</button>'
           +'</div></div>';
       }
-      return '<div class="ac-msg'+(meu?' meu':'')+'">'
+      /* (·401) data-ac-mid: é por aqui que o resultado da busca encontra a
+         mensagem depois de abrir o tópico. Sem âncora, "levar até a mensagem"
+         seria abrir o tópico e deixar a pessoa procurando na rolagem. */
+      return '<div class="ac-msg'+(meu?' meu':'')+'" data-ac-mid="'+acEsc(m.id)+'">'
         + (citado?'<div class="ac-cit">↪ resposta a <b>'+acEsc(citado.autor||'—')+'</b>: '+acEsc((citado.txt||'').slice(0,90))+((citado.txt||'').length>90?'…':'')+'</div>':'')
         + '<div class="ac-msg-topo"><b>'+acEsc(m.autor||'—')+'</b> <span class="ac-msg-data">'+acData(m.ts)+(m.edt?' · editada':'')+'</span></div>'
         + (m.txt?'<div class="ac-msg-txt">'+acEsc(m.txt)+'</div>':'')
@@ -26087,6 +26313,31 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
   document.addEventListener('click', function(e){
     if(!e.target || !e.target.closest) return;
     var wrap=document.getElementById('acoesWrap'); if(!wrap || !wrap.contains(e.target)) return;
+
+    /* (·401) a lupa abre e fecha a busca. Ao fechar, limpa o termo: deixar uma
+       busca ativa escondida faria a lista parecer que perdeu tópicos. */
+    if(e.target.closest('#acLupa')){
+      acBuscaAberta=!acBuscaAberta;
+      if(!acBuscaAberta) acBuscaTxt='';
+      window.renderAcoes();
+      if(acBuscaAberta){ var bi=document.getElementById('acBuscaInp'); if(bi) try{ bi.focus(); }catch(er){} }
+      return;
+    }
+    if(e.target.closest('#acBuscaLimpar')){
+      acBuscaTxt=''; window.renderAcoes();
+      var bl=document.getElementById('acBuscaInp'); if(bl) try{ bl.focus(); }catch(er){}
+      return;
+    }
+    /* clicar no resultado: abre o tópico E marca a mensagem para onde descer */
+    var hit=e.target.closest('[data-ac-hit-card]');
+    if(hit){
+      acAberto=hit.getAttribute('data-ac-hit-card');
+      acIrParaMsg=hit.getAttribute('data-ac-hit-msg')||'';
+      acRascunho=''; acRespondendo=''; acEditando=''; acEditandoTit=''; acAnexoPend=null;
+      acMarcarLido(acAberto); window.renderAcoes();
+      try{ if(typeof window.renderCdNotifs==='function') window.renderCdNotifs(); }catch(er){}
+      return;
+    }
 
     var ab=e.target.closest('[data-ac-abrir]');
     if(ab){ acAberto=ab.getAttribute('data-ac-abrir'); acRascunho=''; acRespondendo=''; acEditando=''; acEditandoTit='';
