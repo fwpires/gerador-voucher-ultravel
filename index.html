@@ -1393,10 +1393,21 @@ body.dark .mx-cal-btn{color:#2ee0b8}
    para borda em gradiente) não serve, porque não respeita border-radius e deixaria
    os cantos quadrados. */
 /* (·403) fora do card de Ocupação, o bloco ganha a mesma respiração dos
-   outros da tela — dentro do card ele herdava o padding e colava no título. */
-.cd-notifs{ display:flex; flex-direction:column; gap:10px; margin:0 0 14px; }
-.cd-notifs:empty{ display:none; margin:0; }
-.cd-notifs:empty{ display:none; }
+   outros da tela — dentro do card ele herdava o padding e colava no título.
+   (·404) agora dentro do Painel de Alertas, a margem de baixo é do painel. */
+.cd-notifs{ display:flex; flex-direction:column; gap:10px; margin:0; }
+/* ===== (·404) PAINEL DE ALERTAS ===== */
+.cd-alertas{ background:var(--card); border:1px solid var(--borda); border-radius:16px;
+  padding:14px 16px 16px; margin:0 0 16px; box-shadow:var(--sombra);
+  border-left:4px solid var(--laranja-alerta,#F0A500); }
+.cd-alertas[hidden]{ display:none; }
+.cd-alertas-tit{ display:flex; align-items:center; gap:9px; margin:0 0 11px;
+  font-size:14px; font-weight:800; color:var(--texto); letter-spacing:-.2px; }
+.cd-alertas-n{ font-size:10.5px; font-weight:800; letter-spacing:.4px; text-transform:uppercase;
+  color:#F0A500; background:rgba(240,165,0,.14); border:1px solid rgba(240,165,0,.35);
+  border-radius:999px; padding:2px 9px; }
+/* (·404) `.cd-notifs:empty` saiu: quem some agora é o PAINEL inteiro, e regra
+   que nunca chega a valer é entulho que engana quem for mexer nisso depois. */
 .cd-notif{
   display:flex; flex-direction:column; gap:0;
   border:2px solid transparent;
@@ -3788,8 +3799,16 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
              para cá, logo abaixo do Welcome Day. Aviso que exige ação imediata
              não pode morar dentro do quadro de OUTRO assunto: ali ele parecia
              pertencer à Ocupação e disputava espaço com a grade de atendentes.
-             Aqui é o primeiro bloco depois do topo — o lugar onde se olha. -->
-        <div class="cd-notifs" id="cdNotifs"></div>
+             Aqui é o primeiro bloco depois do topo — o lugar onde se olha.
+             (·404) Agora dentro de um painel com título próprio: soltos, os
+             avisos pareciam sobras entre duas seções; com um título, viram uma
+             seção que se reconhece de longe. O painel INTEIRO some quando não
+             há nenhum alerta — título sobre o vazio é pior que nada, porque
+             anuncia um conteúdo que não existe. -->
+        <section class="cd-alertas" id="cdAlertas" hidden>
+          <h3 class="cd-alertas-tit">🔔 Painel de Alertas<span class="cd-alertas-n" id="cdAlertasN"></span></h3>
+          <div class="cd-notifs" id="cdNotifs"></div>
+        </section>
         <div class="dash-cards-cd">
         <div class="cd-aniv-wrap" id="cdAnivWrap"></div>
         <div class="dash-card ocp-card">
@@ -4511,7 +4530,19 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 403; // (·403) AS NOTIFICACOES SAIRAM DE DENTRO DO QUADRO DE OCUPACAO.
+var UV_BUILD_NUM = 404; // (·404) PAINEL DE ALERTAS — os avisos ganharam titulo e moldura.
+// Pedido do Nando: um titulo "Painel de Alertas" com todas as notificacoes dentro.
+// Soltos entre o Welcome Day e a Ocupacao (como ficaram no ·403), os avisos pareciam sobra
+// de uma secao ou comeco da outra. Com titulo e moldura propria eles viram uma SECAO, que
+// se reconhece de longe e nao se confunde com o vizinho.
+// ⚠️ O PAINEL INTEIRO SOME QUANDO NAO HA NENHUM ALERTA. Titulo sobre o vazio e pior que
+// nada: anuncia um conteudo que nao existe e ensina a ignorar o proprio titulo nos dias em
+// que ele estiver cheio. Antes quem sumia era so a caixa interna (`:empty`); agora quem
+// decide e o render, porque quem sabe se sobrou alguma coisa e quem acabou de preencher —
+// e porque `:has()` ainda nao e garantido em todo navegador que a equipe usa.
+// O titulo leva a CONTAGEM ("3 alertas"), que responde de longe a pergunta que a pessoa faz
+// ao bater o olho. Barra lateral laranja: a mesma cor que o Hub ja usa para atencao. Só front.
+// ANTERIOR: (·403) AS NOTIFICACOES SAIRAM DE DENTRO DO QUADRO DE OCUPACAO.
 // Pedido do Nando: em vez de aparecerem dentro do card "Ocupacao dos Atendentes", ficam logo
 // abaixo dos quadros do Welcome Day.
 // Faz sentido alem do arranjo: um aviso que diz "ACAO IMEDIATA NECESSARIA" nao pode morar
@@ -9839,6 +9870,19 @@ function renderCdNotifs(){
   // agendou + admin + Diego Oliveira (filtro já vem pronto de ciNotifHtml).
   var _ciHtml=''; try{ if(typeof window.ciNotifHtml==='function') _ciHtml=window.ciNotifHtml()||''; }catch(e){ _ciHtml=''; }
   box.innerHTML=html.join('')+_acHtml+_acConfirmHtml+_acRespHtml+_ciHtml+_acEspHtml;
+  /* (·404) o painel acompanha o conteúdo: aparece quando há aviso, some quando
+     não há. Decidido aqui (e não por CSS) porque quem sabe se sobrou alguma
+     coisa é quem acabou de preencher a caixa — e porque `:has()` ainda não é
+     garantido em todo navegador que a equipe usa. */
+  try{
+    var _pa=document.getElementById('cdAlertas');
+    if(_pa){
+      var _n=box.children.length;
+      _pa.hidden = (_n===0);
+      var _cnt=document.getElementById('cdAlertasN');
+      if(_cnt) _cnt.textContent = _n ? (_n===1?'1 alerta':_n+' alertas') : '';
+    }
+  }catch(e){}
   // Clique: o botão "Verificado" tem prioridade e NÃO abre/fecha a caixa (ele vive
   // dentro do corpo expandido). Fora dele, clicar no cabeçalho alterna aberto/fechado.
   box.onclick=(e)=>{
