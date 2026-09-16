@@ -4414,33 +4414,84 @@ async function loadSaved(){
    teste compara as duas, falhando se alguém mexer numa e esquecer da outra. */
 var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston'];
 (function(){
-  function norm(x){ return (x||'').toString().trim().toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' '); }
-  /* Regra ESTRITA, a mesma do ·384: o atalho de primeiro nome só vale quando a
-     sessão NÃO tem sobrenome nenhum (cadastro antigo tipo "Diego"). Tendo
-     sobrenome, ele precisa BATER — senão "Ana Paula" entraria como "Ana Maria".
-     Isto é uma fronteira de segurança: na dúvida, NÃO libera. */
-  window.uvEhDiretoria=function(nome){
-    var meu=norm(nome); if(!meu) return false;
+  /* Partículas portuguesas não identificam ninguém: "Diego de Oliveira" e
+     "Diego Oliveira" são a MESMA pessoa, e foi exatamente isso que barrou o
+     Diego no ·398. Elas saem antes da comparação. */
+  var PART={de:1,da:1,do:1,das:1,dos:1,e:1,di:1,del:1,della:1,van:1,von:1};
+  function tokens(x){
+    return (x||'').toString().trim().toLowerCase()
+      .normalize('NFD').replace(/[̀-ͯ]/g,'')
+      .replace(/[^a-z0-9\s]/g,' ')          /* ponto, hífen e afins viram espaço */
+      .split(/\s+/).filter(function(t){ return t && !PART[t]; });
+  }
+  /* (·399) REGRA POR CONJUNTO DE NOMES, no lugar da comparação literal.
+     A do ·398 exigia o nome IDÊNTICO e barrava variações que são a mesma
+     pessoa: "Diego de Oliveira", "Diego Oliveira Silva", "DIEGO OLIVEIRA".
+     Agora vale assim: TODOS os nomes do cadastro da diretoria precisam estar
+     presentes no nome da sessão. Isso aceita sobrenome a mais e partícula, e
+     continua barrando quem só compartilha um pedaço:
+       "Ana Paula"        → falta "maria"    → NÃO entra
+       "Fernanda Pires"   → falta "fernando" → NÃO entra
+       "Diego de Oliveira"→ tem diego+oliveira → entra
+     O atalho de primeiro nome sozinho ("Diego", cadastro antigo) continua
+     valendo só quando esse primeiro nome é ÚNICO na diretoria. */
+  function ehDiretoria(nome){
+    var meu=tokens(nome); if(!meu.length) return false;
+    var tem={}; meu.forEach(function(t){ tem[t]=1; });
     for(var i=0;i<UV_DIRETORIA.length;i++){
-      var alvo=norm(UV_DIRETORIA[i]);
-      if(alvo===meu) return true;
-      var p1=alvo.split(' ')[0];
-      if(meu.indexOf(' ')===-1 && p1===meu){
-        var n=0; for(var j=0;j<UV_DIRETORIA.length;j++){ if(norm(UV_DIRETORIA[j]).split(' ')[0]===p1) n++; }
+      var alvo=tokens(UV_DIRETORIA[i]); if(!alvo.length) continue;
+      /* ⚠️ O PRIMEIRO NOME TEM DE SER O PRIMEIRO. Sem esta linha, comparar
+         conjuntos ignora a ordem e "Maria Ana" entraria como "Ana Maria" — que
+         pode ser outra pessoa. Ninguém inverte o próprio primeiro nome no
+         cadastro, então exigir isso não barra variação legítima nenhuma. */
+      var todos = (meu[0]===alvo[0]);
+      for(var k=0;todos && k<alvo.length;k++){ if(!tem[alvo[k]]) todos=false; }
+      if(todos) return true;
+      /* só o primeiro nome, e só se ele for único na diretoria */
+      if(meu.length===1 && meu[0]===alvo[0]){
+        var n=0;
+        for(var j=0;j<UV_DIRETORIA.length;j++){ if(tokens(UV_DIRETORIA[j])[0]===alvo[0]) n++; }
         if(n===1) return true;
       }
     }
     return false;
-  };
+  }
+  window.uvEhDiretoria=ehDiretoria;
   /* quem está logado AGORA é da diretoria? */
   window.uvSouDiretoria=function(){
-    try{ return window.uvEhDiretoria(typeof window.uvAuthNome==='function'?window.uvAuthNome():''); }
+    try{ return ehDiretoria(typeof window.uvAuthNome==='function'?window.uvAuthNome():''); }
     catch(e){ return false; }
+  };
+  /* (·399) O NOME QUE O HUB ESTÁ VENDO — para diagnosticar sem adivinhação.
+     Quando alguém disser "não aparece o botão", basta comparar este valor com
+     a lista. Foi a falta disto que fez o ·398 sair com um palpite embutido. */
+  window.uvNomeDaSessao=function(){
+    try{ return (typeof window.uvAuthNome==='function'?window.uvAuthNome():'')||''; }
+    catch(e){ return ''; }
   };
 })();
 
-var UV_BUILD_NUM = 398; // (·398) EDITAR CARTAO DE CREDITO — SOMENTE A DIRETORIA. Pedido do
+var UV_BUILD_NUM = 399; // (·399) O DIEGO NAO CONSEGUIA EDITAR CARTAO — DEFEITO MEU NO ·398.
+// Ele testou no PC dele, na versao certa, e o botao nao aparecia. A causa: a regra que
+// escrevi exigia o nome IDENTICO ao da lista. Basta a conta dele estar cadastrada como
+// "Diego de Oliveira" (que e como ele aparece ate na titularidade dos cartoes) para nao
+// bater com "Diego Oliveira" — mesma pessoa, nomes diferentes por uma particula.
+// A REGRA AGORA E POR CONJUNTO DE NOMES: todos os nomes do cadastro da diretoria precisam
+// estar presentes no nome da sessao. Particulas (de, da, do, dos, e...) sao ignoradas, e
+// acento, caixa, pontuacao e espaco ja eram. Isso aceita as variacoes que sao a MESMA
+// pessoa — "Diego de Oliveira", "Diego Oliveira Silva", "DIEGO OLIVEIRA" — e continua
+// barrando quem so compartilha um pedaco: "Ana Paula" nao tem "maria" e "Fernanda Pires"
+// nao tem "fernando". A fronteira nao foi afrouxada; ela parou de confundir grafia com
+// identidade.
+// ⚠️ O SEGUNDO DEFEITO, E O MAIS CARO: O ·398 FALHAVA EM SILENCIO. O botao simplesmente
+// nao existia para quem nao passava na regra, e "nao aparece nada" e indistinguivel de
+// versao antiga, de pagina nao atualizada e de defeito. O Diego nao tinha como saber, o
+// Nando nao tinha como saber, e eu precisei de uma ida e volta para descobrir algo que a
+// propria tela poderia ter dito. Agora quem nao pode editar LE O MOTIVO e ve o nome que o
+// Hub tem para a conta dele. Nao vaza nada: e o nome dele mesmo, o mesmo que ja esta no
+// botao "Sair (…)". Toda permissao invisivel deveria dizer por que negou.
+// window.uvNomeDaSessao() existe para diagnosticar sem adivinhacao. Só front.
+// ANTERIOR: (·398) EDITAR CARTAO DE CREDITO — SOMENTE A DIRETORIA. Pedido do
 // Nando: botao Editar em todos os cards de todos os cartoes, permitindo mudar todos os
 // dados, e a edicao liberada so para a diretoria.
 // ⚠️ O OBSTACULO REAL: OS 18 PRIMEIROS CARTOES NAO SAO DADO DO USUARIO. Eles sao um
@@ -22315,6 +22366,8 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
      do Excluir e separado dele: são a ação frequente e a irreversível, e dois
      botões colados no rodapé de um modal é como se clica no errado. */
   .cc-meditar{margin-top:18px;padding-top:16px;border-top:1px solid #243849}
+  .cc-msemedit{font-size:.78rem;color:#7d93a5;line-height:1.5}
+  .cc-msemedit b{color:#a9c2d4}
   .cc-btn-editar{background:rgba(148,193,30,.12);border:1px solid rgba(148,193,30,.45);color:#b6e04a;border-radius:10px;padding:10px 16px;font-size:.84rem;font-weight:700;cursor:pointer;font-family:inherit;transition:background .15s,color .15s}
   .cc-btn-editar:hover{background:rgba(148,193,30,.24);color:#d4f57c}
   body:not(.dark) .cc-btn-editar{background:#f2f8e3;border-color:#c3dd86;color:#5a7a12}
@@ -22405,6 +22458,10 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
      <script>: se por qualquer motivo a fonte não tiver carregado, a resposta
      é NÃO — numa fronteira de permissão, a falha tem de ser para o lado
      fechado, nunca para o aberto. */
+  function ccNomeSessao(){
+    try{ return (typeof window.uvNomeDaSessao==='function' ? window.uvNomeDaSessao() : '')||'(desconhecida)'; }
+    catch(e){ return '(desconhecida)'; }
+  }
   function ccPodeEditar(){
     try{ return (typeof window.uvSouDiretoria==='function') && window.uvSouDiretoria()===true; }
     catch(e){ return false; }
@@ -22929,7 +22986,16 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
            Quem não é da diretoria não vê o botão — e, mesmo que apareça por
            algum caminho, o clique confere de novo antes de abrir o formulário
            (esconder um botão não é proteger uma ação). */
-        (ccPodeEditar() ? '<div class="cc-meditar"><button type="button" class="cc-btn-editar" id="ccBtnEditar">✎ Editar dados deste cartão</button></div>' : '')+
+        /* (·399) QUEM NÃO PODE VÊ O PORQUÊ, com o nome que o Hub enxerga.
+           No ·398 o botão simplesmente não existia para quem não passava na
+           regra — e "não aparece nada" é indistinguível de "versão antiga",
+           "não atualizei a página" e "defeito". Foi essa ausência de sinal que
+           custou uma ida e volta com o Diego. A linha não revela nada que a
+           pessoa já não saiba: é o nome dela mesma, o mesmo que está no botão
+           "Sair (…)" ali em cima. */
+        (ccPodeEditar()
+          ? '<div class="cc-meditar"><button type="button" class="cc-btn-editar" id="ccBtnEditar">✎ Editar dados deste cartão</button></div>'
+          : '<div class="cc-meditar cc-msemedit">🔒 Edição restrita à diretoria. Sua conta neste Hub é <b>'+ccEsc(ccNomeSessao())+'</b> — se estiver errado, corrija em Control Desk ▸ 👤 Usuários.</div>')+
         (c._extraId ? '<div class="cc-mexcluir"><button type="button" class="cc-btn-excluir" id="ccBtnExcluir">🗑 Excluir este cartão cadastrado</button></div>' : '')+
       '</div>';
     ov.classList.add('on');
@@ -27054,17 +27120,16 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
      Não usa tiMesmaPessoa: aquela é para parear atendente com card e pode
      casar "Ana Paula" com "Ana Maria". Aqui é fronteira de segurança:
      o atalho de primeiro nome só vale quando a sessão não tem sobrenome. */
+  /* (·399) PASSOU A USAR A REGRA ÚNICA DO HUB (uvEhDiretoria).
+     Aqui havia uma SEGUNDA cópia da mesma regra estrita do ·384 — a mesma que
+     barrou o Diego nos cartões. Ou seja: ele também não veria o Insights, pelo
+     mesmo motivo, e ninguém tinha percebido. Corrigir só os cartões seria
+     consertar a cópia e deixar o defeito vivo aqui. */
   function tiLiberadoNome(nome){
-    var meu=tiNorm(nome); if(!meu) return false;
-    for(var i=0;i<TI_LIBERADOS.length;i++){
-      var alvo=tiNorm(TI_LIBERADOS[i]);
-      if(alvo===meu) return true;
-      var p1=alvo.split(' ')[0];
-      if(meu.indexOf(' ')===-1 && p1===meu){
-        var n=0; for(var j=0;j<TI_LIBERADOS.length;j++){ if(tiNorm(TI_LIBERADOS[j]).split(' ')[0]===p1) n++; }
-        if(n===1) return true;
-      }
-    }
+    try{
+      if(typeof window.uvEhDiretoria==='function') return window.uvEhDiretoria(nome)===true;
+    }catch(e){}
+    /* sem a fonte única, NÃO libera: fronteira de permissão falha fechada */
     return false;
   }
   function tiPodeVer(){
