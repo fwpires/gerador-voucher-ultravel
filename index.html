@@ -1401,9 +1401,22 @@ body.dark .mx-cal-btn{color:#2ee0b8}
   padding:14px 16px 16px; margin:0 0 16px; box-shadow:var(--sombra);
   border-left:4px solid var(--laranja-alerta,#F0A500); }
 .cd-alertas[hidden]{ display:none; }
+/* (·405) o título usa os MESMOS valores do "Welcome Day" (.wd-titulo): 15px,
+   peso 800 e letter-spacing .2px. Copiei os valores em vez de escolher de olho
+   — dois títulos irmãos na mesma tela precisam ser iguais de verdade, não
+   parecidos, senão a diferença aparece sem ninguém saber dizer onde.
+   ⚠️ E O font-family PRECISA ESTAR AQUI. Medindo no navegador (e não lendo o
+   CSS) descobri que este título saía em Sora e o do Welcome Day em Inter: ele é
+   um <h3>, e existe regra de cabeçalho no Hub que troca a família. Igualar
+   tamanho, peso e espaçamento deixaria a diferença de pé — e seria daquelas que
+   a pessoa vê mas não consegue apontar. .wd-titulo é um <span>, e herda Inter
+   do corpo; aqui a herança é forçada de volta. */
 .cd-alertas-tit{ display:flex; align-items:center; gap:9px; margin:0 0 11px;
-  font-size:14px; font-weight:800; color:var(--texto); letter-spacing:-.2px; }
-.cd-alertas-n{ font-size:10.5px; font-weight:800; letter-spacing:.4px; text-transform:uppercase;
+  font-family:'Inter',sans-serif;
+  font-size:15px; font-weight:800; color:var(--texto); letter-spacing:.2px; }
+/* a contagem perdeu o negrito a pedido do Nando: ela informa, não compete com
+   o título — a cor e a moldura já bastam para ela ser notada */
+.cd-alertas-n{ font-family:'Inter',sans-serif; font-size:10.5px; font-weight:400; letter-spacing:.4px; text-transform:uppercase;
   color:#F0A500; background:rgba(240,165,0,.14); border:1px solid rgba(240,165,0,.35);
   border-radius:999px; padding:2px 9px; }
 /* (·404) `.cd-notifs:empty` saiu: quem some agora é o PAINEL inteiro, e regra
@@ -4530,7 +4543,20 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 404; // (·404) PAINEL DE ALERTAS — os avisos ganharam titulo e moldura.
+var UV_BUILD_NUM = 405; // (·405) O TITULO DO PAINEL DE ALERTAS IGUALOU AO DO WELCOME DAY, e
+// a contagem perdeu o negrito. Pedido do Nando.
+// Copiei os VALORES do .wd-titulo (15px, peso 800, letter-spacing .2px) em vez de escolher
+// de olho. Dois titulos irmaos na mesma tela precisam ser iguais DE VERDADE, nao parecidos:
+// 14px contra 15px e espacamento negativo contra positivo era pouco para alguem apontar o
+// que estava errado, e o suficiente para a tela parecer desalinhada sem motivo aparente.
+// ⚠️ E O ACHADO QUE SO A MEDICAO NO NAVEGADOR DEU: a FAMILIA era outra. Este titulo saia em
+// Sora e o do Welcome Day em Inter, porque ele e um <h3> e ha regra de cabecalho no Hub que
+// troca a familia — enquanto .wd-titulo e um <span> e herda Inter do corpo. Lendo o CSS das
+// duas regras eu teria dito "iguais", porque font-family nao aparecia em nenhuma das duas.
+// Era justamente essa a diferenca visivel. A familia agora e declarada nas duas.
+// A contagem ("1 ALERTA") saiu do peso 800 para o normal: ela informa, nao compete com o
+// titulo — a cor laranja e a moldura ja bastam para ser notada. Só front.
+// ANTERIOR: (·404) PAINEL DE ALERTAS — os avisos ganharam titulo e moldura.
 // Pedido do Nando: um titulo "Painel de Alertas" com todas as notificacoes dentro.
 // Soltos entre o Welcome Day e a Ocupacao (como ficaram no ·403), os avisos pareciam sobra
 // de uma secao ou comeco da outra. Com titulo e moldura propria eles viram uma SECAO, que
