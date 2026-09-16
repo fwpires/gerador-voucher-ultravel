@@ -4503,7 +4503,16 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 401; // (·401) BUSCA EM TODAS AS CONVERSAS DE ACOES COMERCIAIS. Pedido do
+var UV_BUILD_NUM = 402; // (·402) ABRIR A LUPA NAO ESVAZIA MAIS A TELA. O Nando abriu a busca
+// do ·401 e mandou o print: os cards sumiam e ficava so o campo com um aviso de "digite uma
+// palavra". Ele esta certo — desaparecer o conteudo e um preco alto por um campo de texto, e
+// a pessoa ainda nao tinha pedido nada.
+// AGORA A LISTA SO SAI DA TELA QUANDO HA TERMO DIGITADO: a barra abre POR CIMA dos cards,
+// que continuam ali; ao digitar, os resultados tomam o lugar da grade; ao apagar, a grade
+// volta sozinha. O aviso de "digite alguma coisa" foi removido — ele so existia para
+// preencher uma tela que agora nao fica mais vazia. A dica virou o proprio placeholder do
+// campo, que e onde ela ajuda de verdade: junto de onde se digita. Só front.
+// ANTERIOR: (·401) BUSCA EM TODAS AS CONVERSAS DE ACOES COMERCIAIS. Pedido do
 // Nando: uma lupinha ao lado do titulo que procura palavras ou frases em TODOS os cards de
 // conversa e, ao clicar no resultado, leva DIRETAMENTE para dentro da mensagem.
 // PROCURA EM TRES LUGARES: titulo do topico, texto de cada mensagem e nome de quem
@@ -26125,9 +26134,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
 
   function acHtmlBusca(){
     var termos=acTermos(acBuscaTxt);
-    if(!termos.length){
-      return '<div class="ac-busca-vazio">Digite uma palavra ou frase para procurar em <b>todos os tópicos</b> — título, mensagens e autor.</div>';
-    }
+    if(!termos.length) return '';   /* (·402) sem termo, quem aparece é a lista */
     var hits=acProcurar(acBuscaTxt);
     if(!hits.length){
       return '<div class="ac-busca-vazio">Nada encontrado para <b>'+acEsc(acBuscaTxt.trim())+'</b>.</div>';
@@ -26184,7 +26191,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       +' title="Procurar palavra ou frase em todas as conversas" aria-label="Procurar nas conversas">🔍</button>';
     var barra = acBuscaAberta
       ? '<div class="ac-busca-barra">'
-        +'<input type="text" id="acBuscaInp" class="ac-busca-inp" placeholder="Procurar em todas as conversas…" value="'+acEsc(acBuscaTxt)+'" autocomplete="off">'
+        +'<input type="text" id="acBuscaInp" class="ac-busca-inp" placeholder="Procurar em todos os tópicos — título, mensagens e autor…" value="'+acEsc(acBuscaTxt)+'" autocomplete="off">'
         +(acBuscaTxt?'<button type="button" class="ac-busca-x" id="acBuscaLimpar" title="Limpar">✕</button>':'')
         +'</div>'
       : '';
@@ -26195,7 +26202,12 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       +(u?'<button type="button" class="ac-btn ac-btn-ok" id="acNovoBtn">＋ Novo tópico</button>':'')
       +'</div>'
       +barra
-      +(acBuscaAberta ? acHtmlBusca() : (novo+'<div class="ac-grid">'+lista+'</div>'));
+      /* (·402) A LISTA SÓ SAI DA TELA QUANDO HÁ TERMO DIGITADO. No ·401 abrir a
+         lupa já trocava os cards por um aviso de "digite alguma coisa" — a tela
+         ficava vazia antes de a pessoa ter pedido nada, e desaparecer o
+         conteúdo é um preço alto por um campo de texto. Com termo, os
+         resultados tomam o lugar da grade; sem termo, nada muda embaixo. */
+      +(acTermos(acBuscaTxt).length ? acHtmlBusca() : (novo+'<div class="ac-grid">'+lista+'</div>'));
   }
 
   function acHtmlThread(c){
