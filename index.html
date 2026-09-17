@@ -4317,7 +4317,38 @@ async function api(path,opts={}){
   const _tok=(typeof uvAuthToken==='function') ? uvAuthToken() : (localStorage.getItem('uv_auth_token')||'');
   const _headers={'Content-Type':'application/json'};
   if(_tok) _headers['Authorization']='Bearer '+_tok;
-  const r=await fetch(base+path,{headers:_headers,...opts});
+  /* ⚠️ (·410) PRAZO EM TODA CHAMADA. `fetch` NÃO tem tempo limite: se o servidor
+     aceita a conexão e nunca responde (Wi-Fi que cai no meio, Worker acordando
+     devagar, rede da operadora engasgando), a promessa fica pendurada PARA
+     SEMPRE. Quem esperava por ela também fica — e foi exatamente assim que o
+     botão Salvar ficou permanentemente travado na tela do Nando: o `finally`
+     que o reabilita nunca chegou a rodar.
+     Sem prazo, "está demorando" e "morreu" são estados indistinguíveis, e a
+     tela escolhe o pior dos dois: esperar para sempre. É o MESMO defeito do
+     ·378 (o botão "Gerando…" do backup), que eu corrigi lá e não trouxe para
+     cá — dívida paga agora.
+     Quem já manda o próprio `signal` (o backup) continua mandando: não se
+     atropela o prazo de quem pensou no assunto. */
+  let _ctrl=null, _tid=null, _sinal=opts.signal;
+  if(!_sinal && typeof AbortController!=='undefined'){
+    _ctrl=new AbortController(); _sinal=_ctrl.signal;
+    /* a leitura por IA de um comprovante demora bem mais que uma gravação
+       comum — prazo por rota, não um número só para tudo */
+    const _prazo = (path.indexOf('/api/ai')===0) ? 120000
+                 : (path.indexOf('/api/backup')===0) ? 90000
+                 : 45000;
+    _tid=setTimeout(function(){ try{ _ctrl.abort(); }catch(e){} }, _prazo);
+  }
+  let r;
+  try{
+    r=await fetch(base+path,{headers:_headers,...opts,signal:_sinal});
+  }catch(e){
+    if(_tid) clearTimeout(_tid);
+    /* erro de rede e prazo estourado dizem coisas diferentes a quem lê */
+    if(e && (e.name==='AbortError' || e.code===20)) throw new Error('TIMEOUT: o servidor não respondeu a tempo');
+    throw e;
+  }
+  if(_tid) clearTimeout(_tid);
   if(r.status===401){
     // sessão revogada/expirada NO MEIO do uso: limpa e reabre o portão de login,
     // em vez de deixar o Hub tentando operar sem crer que está autenticado
@@ -4591,13 +4622,28 @@ async function salvar(){
   if(!v.vendedor){ toast('Selecione o atendente','err'); $('#fVendedor').focus(); return; }
   if(!v.services.length){ toast('Adicione ao menos um serviço','err'); return; }
   $('#btnSalvar').disabled=true;
+  /* ⚠️ (·410) REDE DE SEGURANÇA DO BOTÃO. O `finally` lá embaixo já reabilita —
+     mas só roda se o `await` terminar. Se QUALQUER coisa aqui dentro travar (e
+     o prazo do api() cobre a rede, não um defeito meu), o botão ficaria morto
+     até a pessoa recarregar a página, sem saber por quê. Este despertador
+     devolve o botão e DIZ o que houve. Ele é cancelado no caminho normal, então
+     em uso comum nunca aparece. */
+  let _sos=setTimeout(function(){
+    const b=$('#btnSalvar');
+    if(b && b.disabled){
+      b.disabled=false;
+      toast('O salvamento demorou demais e foi liberado — confira se o voucher aparece na lista antes de salvar de novo','err');
+      try{ logRemoto('erro','Botão Salvar liberado pelo prazo de segurança (·410)',{numTela:state.num}); }catch(e){}
+    }
+  }, 50000);
+  let _ok=false;
   try{
     const saved=await api('/api/vouchers',{method:'POST',body:JSON.stringify(v)});
     state.num=saved.num; state.editingId=saved.id;
     $('#voucherNum').textContent='#'+saved.num;
     setSalvo(true);
     toast('Voucher #'+saved.num+' salvo na nuvem','ok');
-    await loadSaved();
+    _ok=true;
   }catch(e){
     // registra o erro no log central (pra rastrear depois)
     logRemoto('erro', 'Falha ao salvar voucher na nuvem: '+(e&&e.message||e), { cliente:v.cliente, atendente:v.vendedor, numTela:state.num });
@@ -4609,7 +4655,13 @@ async function salvar(){
     setSalvo(true);
     toast('Salvo localmente (sem nuvem) — #'+v.num,'info');
     renderSaved(savedCache);
-  }finally{ $('#btnSalvar').disabled=false; }
+  }finally{ clearTimeout(_sos); $('#btnSalvar').disabled=false; }
+  /* ⚠️ A ATUALIZAÇÃO DA LISTA SAIU DE DENTRO DO try. Antes ela era esperada
+     ANTES de o botão voltar — então uma releitura lenta da nuvem deixava o
+     botão travado mesmo com o voucher JÁ GRAVADO. A pessoa via "não deixa
+     salvar" quando na verdade já tinha salvado. Agora o botão volta primeiro e
+     a lista se atualiza depois, no seu tempo. */
+  if(_ok){ loadSaved().catch(function(){}); }
 }
 
 /* ===== LOCAL CACHE ===== */
@@ -4709,7 +4761,27 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 409; // (·409) SO O AUTOR EDITA O PROPRIO RECADO — NEM A DIRETORIA. Ajuste
+var UV_BUILD_NUM = 410; // (·410) O BOTAO SALVAR PODIA TRAVAR PARA SEMPRE — E TRAVOU. O Nando
+// mandou o print com o voucher #00334 aberto e o cursor de bloqueado sobre o Salvar.
+// ⚠️ A CAUSA: `fetch` NAO TEM TEMPO LIMITE. Se o servidor aceita a conexao e nunca responde
+// (Wi-Fi que cai no meio, Worker acordando devagar, rede da operadora engasgando), a
+// promessa fica pendurada PARA SEMPRE — e o `finally` que reabilita o botao nunca chega a
+// rodar. O botao morre ate a pessoa recarregar a pagina, sem nenhuma mensagem.
+// E O PIOR: "esta demorando" e "morreu" viram estados INDISTINGUIVEIS, e a tela escolhe o
+// pior dos dois — esperar para sempre. Isso explica o "tem casos" da pergunta dele: nao
+// acontece sempre, so quando a resposta se perde no caminho.
+// ⚠️ E O MESMO DEFEITO DO ·378, o botao "Gerando..." do backup. La eu pus AbortController e
+// prazo; aqui nao trouxe. Divida paga: agora TODA chamada de api() tem prazo — 45s no geral,
+// 90s no backup e 120s na leitura por IA, que legitimamente demora mais. Quem ja manda o
+// proprio `signal` continua mandando; nao se atropela o prazo de quem pensou no assunto.
+// SEGUNDO DEFEITO, ACHADO LENDO O RESTO DA FUNCAO: `await loadSaved()` ficava DENTRO do try,
+// antes de o botao voltar. Uma releitura lenta da nuvem travava o botao mesmo com o voucher
+// JA GRAVADO — a pessoa via "nao deixa salvar" quando na verdade ja tinha salvado, e podia
+// salvar de novo. A lista agora atualiza DEPOIS, no proprio tempo.
+// TERCEIRA TRAVA, um despertador: se ainda assim o botao ficar desabilitado por 50s, ele se
+// reabilita sozinho e DIZ o que aconteceu, pedindo para conferir a lista antes de salvar de
+// novo. Botao morto sem explicacao foi o que trouxe o Nando ate aqui. Só front.
+// ANTERIOR: (·409) SO O AUTOR EDITA O PROPRIO RECADO — NEM A DIRETORIA. Ajuste
 // do Nando em cima do ·408: apagar continua so com a diretoria, mas EDITAR passou a ser so
 // de quem escreveu.
 // A SEPARACAO FAZ SENTIDO E VALE REGISTRAR: editar e mexer NA VOZ de alguem — o recado
