@@ -1537,6 +1537,47 @@ body.dark .mx-cal-btn{color:#2ee0b8}
   font-family:inherit; line-height:1; transition:all .14s; }
 .mr-mini:hover{ background:#fff; border-color:rgba(29,42,53,.45); color:#1d2a35; }
 .mr-mini.x:hover{ background:#ffdcdc; border-color:#e05252; color:#a01414; }
+
+/* ═══ (·411) REAGIR COM EMOJIS NO RECADO ═══════════════════════════════════
+   O estilo NÃO reaproveita as classes .ti-reac-chip/.ti-emoji-picker das
+   Ações Comerciais/Insights de propósito: aquelas regras são todas escritas
+   para fundo ESCURO e escopadas em #scr-timeinsights/#scr-acoes — coladas
+   num post-it de papel amarelo dariam texto claro sobre fundo claro. A
+   LISTA de emojis, essa sim, é a mesma (window.UV_EMOJIS_REACAO). */
+/* as chips ficam SEMPRE visíveis: uma reação que só aparece no hover é uma
+   reação que ninguém vê, e o ponto dela é justamente ser vista de longe */
+.mr-reacoes{ display:flex; flex-wrap:wrap; gap:4px; margin-top:2px; }
+.mr-chip{ display:inline-flex; align-items:center; gap:3px; font-family:inherit;
+  background:rgba(255,255,255,.62); border:1px solid rgba(29,42,53,.18);
+  border-radius:20px; padding:1px 7px; font-size:11.5px; line-height:1.5;
+  color:#2c3b47; margin:0; }
+button.mr-chip{ cursor:pointer; }
+button.mr-chip:hover{ background:#fff; border-color:rgba(29,42,53,.4); }
+.mr-chip.minha{ border-color:#d8a53a; background:rgba(253,240,184,.9); font-weight:700; }
+button.mr-chip.minha:hover{ border-color:#b9870f; background:#fbe9a8; }
+.mr-chip-n{ font-size:10.5px; font-weight:700; color:#5a6b7a; }
+/* o botão de reagir, ao contrário do ✎ e do ✕, NÃO é só-hover: ele é um
+   convite, não um comando perigoso — mas fica discreto até o ponteiro chegar */
+.mr-post-dir{ display:flex; align-items:center; gap:4px; flex:0 0 auto; }
+.mr-reagir{ border:1px solid rgba(29,42,53,.2); background:rgba(255,255,255,.5);
+  width:22px; height:22px; border-radius:6px; font-size:11px; cursor:pointer;
+  padding:0; font-family:inherit; line-height:1; opacity:.6; transition:all .14s; }
+.mr-post:hover .mr-reagir, .mr-post:focus-within .mr-reagir{ opacity:1; }
+.mr-reagir:hover{ background:#fff; border-color:rgba(29,42,53,.45); }
+.mr-reagir.on{ opacity:1; background:#fff; border-color:#d8a53a; }
+/* o seletor: painel de papel dentro do papel, com rolagem própria — o post-it
+   é estreito e 34 emojis não cabem sem quebrar o bilhete */
+.mr-picker{ display:flex; flex-wrap:wrap; gap:2px; margin-top:7px; padding:7px;
+  background:rgba(255,255,255,.72); border:1px solid rgba(29,42,53,.18);
+  border-radius:9px; max-height:210px; overflow-y:auto; }
+/* ⚠️ o teto de 210px foi MEDIDO, não chutado: com 132px o painel cortava uma
+   fileira de emojis pela metade, e meia carinha aparecendo é pior que rolagem.
+   210px acomoda as cinco fileiras inteiras num post-it de 230px de largura; se
+   a lista crescer a ponto de passar disso, a rolagem volta — mas só então. */
+.mr-emoji-op{ cursor:pointer; font-family:inherit; font-size:15px; line-height:1;
+  padding:4px 5px; background:transparent; border:1px solid transparent;
+  border-radius:7px; }
+.mr-emoji-op:hover{ background:#fff; border-color:rgba(29,42,53,.3); }
 /* as cinco cores de papel */
 .mr-post.c-amarelo{ background-color:#fdf0b8; }
 .mr-post.c-verde  { background-color:#d8e8c4; }
@@ -4761,7 +4802,24 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 410; // (·410) O BOTAO SALVAR PODIA TRAVAR PARA SEMPRE — E TRAVOU. O Nando
+var UV_BUILD_NUM = 411; // (·411) REAGIR COM EMOJIS NO MURAL DE RECADOS. Pedido do Nando: cada
+// nota fixada no mural ganhou um botão 😊 que abre o seletor de emojis, e as reações aparecem
+// como chips logo acima da assinatura. A LISTA de emojis é a MESMA das Ações Comerciais e do
+// Time Insights (window.UV_EMOJIS_REACAO, fonte única do ·322/·347) — acrescentar um emoji
+// continua sendo UMA edição em UM lugar. O CSS, esse sim, é novo: as classes .ti-reac-chip/
+// .ti-emoji-picker são escritas para fundo ESCURO e escopadas em #scr-acoes/#scr-timeinsights;
+// coladas num post-it de papel amarelo dariam texto claro sobre fundo claro.
+// REAGIR é liberado a todos os logados (inclusive no próprio recado); clicar no MESMO emoji
+// ou na própria chip tira a reação; o título da chip mostra QUEM reagiu. Editar continua só
+// do autor (·409) e apagar só da diretoria (·408) — nada disso mudou.
+// DOIS CUIDADOS QUE NÃO SÃO ÓBVIOS: (1) reagir carimba `mts`, NUNCA o `ts` do recado — `ts`
+// ordena o mural e imprime "hoje, 14:01" no pé, então um 👍 faria o bilhete pular para o topo
+// e mentir a hora em que foi escrito; a mescla passou a olhar o MAIOR dos dois (mrCarimbo).
+// (2) as reações se unem POR PESSOA (mrUnirReacoes), e não pelo recado inteiro: se o vencedor
+// por carimbo levasse o mapa junto, o 👍 da Ana sumiria assim que o Diego reagisse no PC dele.
+// Tirar uma reação grava '' em vez de apagar a chave — sem esse apagado suave a união
+// devolveria a reação retirada vinda do outro computador (mesma lição do `del:1`).
+// ANTERIOR: (·410) O BOTAO SALVAR PODIA TRAVAR PARA SEMPRE — E TRAVOU. O Nando
 // mandou o print com o voucher #00334 aberto e o cursor de bloqueado sobre o Salvar.
 // ⚠️ A CAUSA: `fetch` NAO TEM TEMPO LIMITE. Se o servidor aceita a conexao e nunca responde
 // (Wi-Fi que cai no meio, Worker acordando devagar, rede da operadora engasgando), a
@@ -21991,7 +22049,9 @@ var MR_CORES=[
     return Object.keys(S).filter(function(k){ return S[k] && !S[k].del; })
       .sort(function(a,b){ return (S[b].ts||0)-(S[a].ts||0); })   /* mais novo primeiro */
       .map(function(k){ var r=S[k]; return {id:k, tit:r.tit||'', txt:r.txt||'', cor:r.cor||'amarelo',
-                                            autor:r.autor||'', ts:r.ts||0}; });
+                                            autor:r.autor||'', ts:r.ts||0,
+                                            reac:(r.reac&&typeof r.reac==='object')?r.reac:{},
+                                            reacTs:(r.reacTs&&typeof r.reacTs==='object')?r.reacTs:{}}; });
   }
   function mrSalvar(){ try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){} }
 
@@ -22000,12 +22060,48 @@ var MR_CORES=[
      Plugado nos DOIS pontos de sempre — sem o do salvamento, quem publicasse um
      recado apagaria o que outra pessoa acabou de fixar, porque o salvamento
      manda a configuração inteira. */
+  /* (·411) CARIMBO DE MESCLAGEM separado do carimbo de exibição.
+     Reagir NÃO pode mexer no `ts` do recado: `ts` é o que ordena o mural
+     (mais novo primeiro) e o que imprime "hoje, 14:01" no pé do bilhete —
+     um 👍 faria o recado pular para o topo e mentir a hora em que foi
+     escrito. Por isso a reação carimba `mts` (como as Ações Comerciais já
+     fazem nas mensagens) e a mesclagem passa a olhar o MAIOR dos dois. */
+  function mrCarimbo(r){ return Math.max((r&&r.ts)||0, (r&&r.mts)||0); }
+
+  /* (·411) AS REAÇÕES SE UNEM POR PESSOA, e não pelo recado inteiro.
+     Se o vencedor por carimbo levasse o mapa `reac` junto, o 👍 que a Ana
+     acabou de dar no PC dela sumiria assim que o Diego reagisse no dele —
+     porque o recado inteiro do Diego venceria. Cada pessoa tem o próprio
+     carimbo em `reacTs`, então cada uma decide só a própria reação.
+     TIRAR uma reação grava '' (string vazia) em vez de apagar a chave: sem
+     esse "apagado suave" a união devolveria a reação retirada, vinda do
+     outro computador — a mesma lição do `del:1` dos recados. */
+  function mrUnirReacoes(x,y){
+    var rx=(x&&x.reac)||{}, ry=(y&&y.reac)||{};
+    var tx=(x&&x.reacTs)||{}, ty=(y&&y.reacTs)||{};
+    var reac={}, reacTs={}, us={};
+    Object.keys(rx).forEach(function(u){us[u]=1;}); Object.keys(ry).forEach(function(u){us[u]=1;});
+    Object.keys(us).forEach(function(u){
+      var temX=Object.prototype.hasOwnProperty.call(rx,u);
+      var temY=Object.prototype.hasOwnProperty.call(ry,u);
+      var vence = (!temY) ? 'x' : (!temX) ? 'y' : (((tx[u]||0)>=(ty[u]||0))?'x':'y');
+      reac[u]   = (vence==='x'?rx[u]:ry[u]) || '';
+      reacTs[u] = (vence==='x'?tx[u]:ty[u]) || 0;
+    });
+    return {reac:reac, reacTs:reacTs};
+  }
+
   window.mrMergeMaps=function(a,b){
     a=a||{}; b=b||{}; var out={}, ids={};
     Object.keys(a).forEach(function(k){ids[k]=1;}); Object.keys(b).forEach(function(k){ids[k]=1;});
     Object.keys(ids).forEach(function(id){
       var x=a[id], y=b[id];
-      out[id]=(x&&y)?(((x.ts||0)>=(y.ts||0))?x:y):(x||y);
+      if(!x || !y){ out[id]=x||y; return; }
+      var venc=(mrCarimbo(x)>=mrCarimbo(y))?x:y;
+      var copia={}; Object.keys(venc).forEach(function(k){ copia[k]=venc[k]; });
+      var R=mrUnirReacoes(x,y);
+      copia.reac=R.reac; copia.reacTs=R.reacTs;
+      out[id]=copia;
     });
     return out;
   };
@@ -22038,6 +22134,70 @@ var MR_CORES=[
     return true;
   }
 
+  /* ───────── (·411) REAGIR COM EMOJIS ───────── */
+  function mrUsuario(){ try{ return (typeof window.uvAuthUsuario==='function'?window.uvAuthUsuario():'')||''; }catch(e){ return ''; } }
+  /* a LISTA é a mesma do Insights/Ações Comerciais (fonte única, ·322/·347):
+     acrescentar um emoji continua sendo uma edição em um lugar só. O typeof
+     existe porque ela nasce num bloco <script> posterior a este; se por algum
+     motivo não estiver lá, cai num punhado seguro em vez de abrir painel vazio */
+  function mrEmojis(){
+    var L=window.UV_EMOJIS_REACAO;
+    return (L && L.length) ? L : ['👍','❤️','😂','🎉','🙏','😢','🔥','✅'];
+  }
+  function mrNomePorLogin(u){
+    if(!u) return '';
+    try{ if(typeof window.uvNomePorLogin==='function') return window.uvNomePorLogin(u)||u; }catch(e){}
+    return u;
+  }
+  function mrAplicarReacao(id, emoji){
+    var u=mrUsuario(); if(!u || !emoji) return false;
+    var S=mrStore(), r=S[id]; if(!r || r.del) return false;
+    if(!r.reac   || typeof r.reac!=='object')   r.reac={};
+    if(!r.reacTs || typeof r.reacTs!=='object') r.reacTs={};
+    var agora=mrAgora();
+    /* clicar no MESMO emoji tira a reação (o mesmo alternar das outras telas) */
+    if(r.reac[u]===emoji) r.reac[u]='';
+    else                  r.reac[u]=emoji;
+    r.reacTs[u]=agora;
+    r.mts=agora;              /* carimba a MESCLAGEM, nunca o `ts` de exibição */
+    mrSalvar();
+    return true;
+  }
+  /* agrupa por emoji preservando a ordem em que as pessoas reagiram */
+  function mrReacContagem(r){
+    var reac=(r&&r.reac)||{}, ts=(r&&r.reacTs)||{};
+    var ordem=[], porEmoji={};
+    Object.keys(reac).filter(function(u){ return reac[u]; })
+      .sort(function(a,b){ return (ts[a]||0)-(ts[b]||0); })
+      .forEach(function(u){
+        var em=reac[u];
+        if(!porEmoji[em]){ porEmoji[em]={emoji:em, quem:[]}; ordem.push(porEmoji[em]); }
+        porEmoji[em].quem.push(mrNomePorLogin(u));
+      });
+    return ordem;
+  }
+  function mrReacoesHtml(r){
+    var grupos=mrReacContagem(r); if(!grupos.length) return '';
+    var meu=mrUsuario(), minha=(r.reac&&meu)?r.reac[meu]:'';
+    return '<div class="mr-reacoes">'+grupos.map(function(g){
+      var eh=(minha===g.emoji);
+      var quem=g.quem.join(', ');
+      var n=(g.quem.length>1?'<span class="mr-chip-n">'+g.quem.length+'</span>':'');
+      /* a chip da MINHA reação é um botão que a remove; a dos outros é só um
+         rótulo — clicar na reação alheia não pode tirá-la */
+      if(eh) return '<button type="button" class="mr-chip minha" data-mr-reac-del="'+mrEsc(r.id)+'" '
+        +'data-mr-reac-emoji="'+mrEsc(g.emoji)+'" title="'+mrEsc(quem)+' · clique para remover a sua reação">'
+        +g.emoji+n+'</button>';
+      return '<span class="mr-chip" title="'+mrEsc(quem)+'">'+g.emoji+n+'</span>';
+    }).join('')+'</div>';
+  }
+  function mrPickerHtml(id){
+    return '<div class="mr-picker">'+mrEmojis().map(function(em){
+      return '<button type="button" class="mr-emoji-op" data-mr-reac-pick="'+mrEsc(em)+'" '
+        +'data-mr-reac-alvo="'+mrEsc(id)+'" title="Reagir com '+mrEsc(em)+'">'+em+'</button>';
+    }).join('')+'</div>';
+  }
+
   function mrData(ts){
     if(!ts) return '';
     try{
@@ -22055,6 +22215,7 @@ var MR_CORES=[
   var mrForm=false;          /* formulário de novo recado aberto? */
   var mrEditando='';         /* id em edição */
   var mrCorSel='amarelo';
+  var mrPicker='';           /* (·411) id do recado com o seletor de emoji aberto */
 
   function mrFormHtml(r){
     var editando=!!r;
@@ -22091,15 +22252,25 @@ var MR_CORES=[
         +'<span class="mr-pin" aria-hidden="true"></span>'
         +(r.tit?'<h4 class="mr-post-tit">'+mrEsc(r.tit)+'</h4>':'')
         +(r.txt?'<div class="mr-post-txt">'+mrEsc(r.txt)+'</div>':'')
+        /* (·411) as chips ficam ACIMA da assinatura: a reação pertence ao
+           recado, não a quem assinou — e assim não disputam espaço com os
+           botões num bilhete estreito */
+        +mrReacoesHtml(r)
         +'<footer class="mr-post-pe">'
           +'<span class="mr-post-quem"><span class="mr-post-nome">'+mrEsc(r.autor||'—')+'</span>'
             +'<span class="mr-post-data">'+mrEsc(mrData(r.ts))+'</span></span>'
-          +(u?'<span class="mr-post-acoes">'
+          +(u?'<span class="mr-post-dir">'
+              /* (·411) REAGIR: liberado para todo mundo que estiver logado —
+                 inclusive no próprio recado, como em qualquer mensageiro */
+              +'<button type="button" class="mr-reagir'+(mrPicker===r.id?' on':'')+'" data-mr-reagir="'+mrEsc(r.id)+'" title="Reagir com emoji">😊</button>'
+              +'<span class="mr-post-acoes">'
               /* (·409) o ✎ só para quem ESCREVEU; (·408) o ✕ só para a diretoria */
               +(mrPodeEditar(r)?'<button type="button" class="mr-mini" data-mr-editar="'+mrEsc(r.id)+'" title="Editar o seu recado">✎</button>':'')
               +(mrPodeApagar()?'<button type="button" class="mr-mini x" data-mr-apagar="'+mrEsc(r.id)+'" title="Tirar do mural (diretoria)">✕</button>':'')
+              +'</span>'
             +'</span>':'')
         +'</footer>'
+        +((u && mrPicker===r.id) ? mrPickerHtml(r.id) : '')
       +'</article>';
     }).join('') : '';
 
@@ -22133,8 +22304,33 @@ var MR_CORES=[
   /* ---------- ouvinte único, delegado ---------- */
   document.addEventListener('click', function(e){
     if(!e.target || !e.target.closest) return;
-    var dentro=e.target.closest('#cdMural'); if(!dentro) return;
+    var dentro=e.target.closest('#cdMural');
+    /* (·411) clique em QUALQUER outro lugar fecha o seletor de emoji aberto —
+       inclusive fora do mural. Um painel que só fecha no próprio botão fica
+       preso na tela quando a pessoa desiste e clica noutra coisa. */
+    if(mrPicker && !e.target.closest('.mr-picker') && !e.target.closest('[data-mr-reagir]')){
+      mrPicker=''; mrRender();
+    }
+    if(!dentro) return;
 
+    /* (·411) abrir/fechar o seletor de emoji do recado */
+    var rg=e.target.closest('[data-mr-reagir]');
+    if(rg){
+      var idR=rg.getAttribute('data-mr-reagir');
+      mrPicker=(mrPicker===idR)?'':idR;
+      mrRender(); return;
+    }
+    var pk=e.target.closest('[data-mr-reac-pick]');
+    if(pk){
+      mrAplicarReacao(pk.getAttribute('data-mr-reac-alvo'), pk.getAttribute('data-mr-reac-pick'));
+      mrPicker=''; mrRender(); return;
+    }
+    /* clicou na PRÓPRIA chip: tira a reação (mesmo alternar de mrAplicarReacao) */
+    var rd=e.target.closest('[data-mr-reac-del]');
+    if(rd){
+      mrAplicarReacao(rd.getAttribute('data-mr-reac-del'), rd.getAttribute('data-mr-reac-emoji'));
+      mrRender(); return;
+    }
     if(e.target.closest('#mrNovo')){ mrForm=true; mrEditando=''; mrCorSel='amarelo'; mrRender(); return; }
     if(e.target.closest('[data-mr-cancelar]')){ mrForm=false; mrEditando=''; mrRender(); return; }
 
