@@ -4698,6 +4698,7 @@ async function salvar(){
     // fallback local
     if(!v.num){ v.num=state.num||String((savedCache.reduce((m,x)=>Math.max(m,parseInt(x.num)||0),0))+1).padStart(5,'0'); }
     state.num=v.num; state.editingId=v.id;
+    v._pend=1;               /* (·413) marca: existe SÓ aqui, ainda não foi à nuvem */
     saveLocal(v);
     $('#voucherNum').textContent='#'+v.num;
     setSalvo(true);
@@ -4725,12 +4726,59 @@ function loadLocal(){ savedCache=JSON.parse(localStorage.getItem('uv_vouchers')|
 async function loadSaved(){
   try{
     const list=await api('/api/vouchers');
-    savedCache=list.sort((a,b)=>(b.criadoEm||'').localeCompare(a.criadoEm||''));
+    /* ⚠️ (·413) ESTA LINHA APAGAVA O "SALVO LOCALMENTE".
+       Quando a nuvem falha, salvar() grava o voucher no localStorage e avisa
+       "Salvo localmente (sem nuvem)". Só que a próxima leitura da lista que
+       desse certo SOBRESCREVIA o localStorage inteiro com o que veio da nuvem
+       — e o voucher que existia só ali era apagado, sem aviso nenhum. O
+       "salvo localmente" era, na prática, uma promessa que o próprio sistema
+       quebrava minutos depois.
+       Agora os PENDENTES (`_pend`) que a nuvem ainda não conhece sobrevivem à
+       mesclagem e são REENVIADOS. Sobrevive só quem está marcado: um voucher
+       comum que sumiu da nuvem foi APAGADO de propósito por alguém, e
+       ressuscitá-lo seria o defeito inverso. */
+    const nuvem=list.sort((a,b)=>(b.criadoEm||'').localeCompare(a.criadoEm||''));
+    const idsNuvem={}; nuvem.forEach(function(x){ if(x&&x.id) idsNuvem[x.id]=1; });
+    let locais=[]; try{ locais=JSON.parse(localStorage.getItem('uv_vouchers')||'[]'); }catch(e2){ locais=[]; }
+    const pendentes=locais.filter(function(x){ return x && x._pend && x.id && !idsNuvem[x.id]; });
+    savedCache=pendentes.concat(nuvem);
     localStorage.setItem('uv_vouchers',JSON.stringify(savedCache));
     renderSaved(savedCache);
+    if(pendentes.length) reenviarPendentes(pendentes);
   }catch(e){
     loadLocal(); renderSaved(savedCache);
   }
+}
+
+/* (·413) CAIXA DE SAÍDA. Voucher que ficou só no navegador tenta subir sozinho
+   na próxima vez que a lista carrega. Um por vez e sem travar nada: se falhar
+   de novo, continua marcado e tenta na próxima — nunca some. */
+var _reenviando=false;     /* ⚠️ trava de reentrância: sem ela, um reenvio que
+                              falha deixa o voucher marcado, loadSaved() chama
+                              reenviarPendentes() de novo e os dois ficam se
+                              chamando para sempre — laço infinito de rede. */
+async function reenviarPendentes(pendentes){
+  if(_reenviando) return; _reenviando=true;
+  let subiuAlgum=false;
+  try{
+  for(const p of pendentes){
+    try{
+      const copia=Object.assign({},p); delete copia._pend;   /* marca interna não vai ao servidor */
+      const salvo=await api('/api/vouchers',{method:'POST',body:JSON.stringify(copia)});
+      let arr=[]; try{ arr=JSON.parse(localStorage.getItem('uv_vouchers')||'[]'); }catch(e){ arr=[]; }
+      arr=arr.filter(function(x){ return x && x.id!==p.id; });
+      localStorage.setItem('uv_vouchers',JSON.stringify(arr));
+      savedCache=savedCache.filter(function(x){ return x && x.id!==p.id; });
+      try{ logRemoto('info','Voucher pendente reenviado à nuvem: #'+(salvo&&salvo.num),{cliente:p.cliente}); }catch(e){}
+      try{ toast('Voucher #'+(salvo&&salvo.num)+' ('+(p.cliente||'')+') subiu para a nuvem','ok'); }catch(e){}
+      subiuAlgum=true;
+    }catch(e){ /* segue marcado; tenta na próxima carga (e NÃO relemos a lista) */ }
+  }
+  }finally{ _reenviando=false; }
+  /* só relemos a lista se ALGO subiu — reler depois de uma falha reiniciaria
+     o ciclo sem nada ter mudado */
+  if(subiuAlgum){ try{ await loadSaved(); }catch(e){} }
+  else { try{ renderSaved(savedCache); }catch(e){} }
 }
 /* ===== PAINEL DE DISPONIBILIDADE (WeCann) ===== */
 // (·107) versão VISÍVEL do build — badge no canto inferior direito + console.
@@ -4809,7 +4857,28 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 412; // (·412) EMOJI PURO SOBRE O PAPEL, sem a moldurinha. Pedido do Nando
+var UV_BUILD_NUM = 413; // (·413) ⚠️ O VOUCHER IA PARA O LIMBO: A LISTA PARAVA NO MILÉSIMO.
+// O Nando cadastrou "Murilo Lombardo Lopes Pereira" e "Nayara De Mattos Olimpio", viu o aviso
+// de salvo e os vouchers nunca apareceram na lista, por mais que atualizasse.
+// CAUSA: em worker.js, o GET /api/vouchers lia o banco com KV.list({prefix:"v:"}) e IGNORAVA
+// list_complete/cursor. O KV devolve no MÁXIMO 1000 chaves por chamada. Como as chaves são
+// "v:00001", "v:00002"… e a ordem é alfabética (aqui numérica, pelo zero à esquerda), a página
+// devolvida era a dos números MAIS BAIXOS — os vouchers RECIÉM-CRIADOS eram exatamente os
+// cortados. Daí o "cadastrei, deu certo, e sumiu".
+// ⚠️ NADA SE PERDEU, e isso é verificável: o POST gravou certo, `maiorNumero` (mesmo arquivo)
+// JÁ seguia o cursor — por isso a NUMERAÇÃO nunca se confundiu — e o backup do ·378 também JÁ
+// paginava, com `bkTodasAsChaves`. Era só ESTA leitura que mentia.
+// A correção reusa os dois ajudantes que já existiam (bkTodasAsChaves + bkLerEmLotes, que lê
+// em lotes paralelos — 1200 chaves uma a uma estourariam o tempo da requisição), e um registro
+// corrompido deixou de derrubar a lista inteira. Os OUTROS list() sem cursor (sessões ativas e
+// "revogar todas as sessões") levaram a mesma correção: revogação pela metade é pior que nenhuma.
+// SEGUNDO DEFEITO, achado no mesmo caminho: "Salvo localmente (sem nuvem)" era uma promessa que
+// o próprio sistema quebrava — a leitura seguinte da lista SOBRESCREVIA o localStorage com o
+// que veio da nuvem e apagava o voucher que só existia ali. Agora o pendente é marcado (_pend),
+// sobrevive à mesclagem e é REENVIADO sozinho. Só o marcado sobrevive: um voucher comum que
+// sumiu da nuvem foi APAGADO de propósito, e ressuscitá-lo seria o defeito inverso.
+// ⚠️ ESTE BUILD MEXE NO WORKER — não basta publicar o Pages, tem de rodar `npx wrangler deploy`.
+// ANTERIOR: (·412) EMOJI PURO SOBRE O PAPEL, sem a moldurinha. Pedido do Nando
 // sobre o ·411: a reação vinha dentro de uma pílula (fundo claro + borda arredondada) e ele
 // pediu "somente o emoji puro em cima da nota". Saíram background, border, border-radius e
 // padding; sobrou o símbolo, como um carimbo no papel.
