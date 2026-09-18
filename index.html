@@ -3280,6 +3280,20 @@ body:not(.dark) .mt-lock-card select,body:not(.dark) .mt-lock-card input[type=pa
 .log-btn-sec:hover{background:#26396B;color:#fff}
 .log-filtros-top{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:12px 20px 0}
 .log-sel,.log-data{background:#1B2A55;border:1px solid #2C3B66;color:#E7EDF7;border-radius:8px;padding:6px 10px;font-size:12px;font-family:inherit}
+/* (·414) BUSCA POR TEXTO NO REGISTRO — linha própria e larga: numa
+   investigação ela é o filtro mais usado, e espremida entre dois seletores
+   passaria despercebida justamente na hora em que mais importa. */
+.log-busca-linha{display:flex;align-items:center;gap:10px;flex-basis:100%;margin-top:8px}
+.log-busca{flex:1;min-width:0;background:#141F42;border:1px solid #2C3B66;color:#E7EDF7;
+  border-radius:8px;padding:9px 12px;font-size:13px;font-family:inherit}
+.log-busca::placeholder{color:#6F82A8}
+.log-busca:focus{outline:none;border-color:#F5D06B;box-shadow:0 0 0 3px rgba(245,208,107,.14)}
+.log-busca-dica{font-size:11px;color:#6F82A8;white-space:nowrap}
+.log-mk{background:rgba(245,208,107,.30);color:#FFF1C9;border-radius:3px;padding:0 2px;font-weight:700}
+/* chip de tipo que zerou pela busca: fica apagado em vez de sumir, para a
+   lista de categorias não pular de lugar a cada tecla digitada */
+.log-fil.vazio{opacity:.4}
+@media(max-width:700px){ .log-busca-dica{display:none} }
 .log-contagem{padding:2px 20px 0;color:#8595AD;font-size:11.5px}
 .log-filtros{display:flex;gap:7px;flex-wrap:wrap;padding:12px 20px;border-bottom:1px solid #2C3B66}
 .log-fil{background:rgba(255,255,255,.05);border:1px solid #2C3B66;color:#9FB0CE;border-radius:20px;padding:5px 13px;font-size:11.5px;font-weight:700;cursor:pointer;transition:all .14s}
@@ -4857,7 +4871,30 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 413; // (·413) ⚠️ O VOUCHER IA PARA O LIMBO: A LISTA PARAVA NO MILÉSIMO.
+var UV_BUILD_NUM = 414; // (·414) BUSCA POR TEXTO NO REGISTRO DE ATIVIDADES + área "Vouchers
+// Salvos". Nasceu de uma necessidade real: achar o voucher do "Murilo" num log de 500 eventos.
+// Os filtros existentes só recortam por área/operador/período/tipo — nenhum respondia "onde
+// aparece ESTE nome", e o Nando foi procurar a área "Vouchers Salvos" e não achou, porque os
+// eventos de voucher nunca mandavam `area` e caíam todos em "Outros".
+// A BUSCA VARRE O EVENTO INTEIRO — mensagem, tipo, cliente, atendente, número, quem, área e os
+// campos de conflito. Procurar "00340" tem de achar tanto o "Nº: #00340" quanto o "realocado
+// para #00340": num log de auditoria, achar metade das ocorrências é pior que não achar
+// nenhuma, porque a pessoa conclui que o resto não existe. Várias palavras = E, não OU.
+// ⚠️ O NFC VEM ANTES DA DOBRA. O macOS escreve "ê" como "e" + acento solto e o Windows como
+// um caractere único; sem compor primeiro, buscar um nome digitado no Mac não acharia o mesmo
+// nome gravado no PC. Depois do NFC, a dobra roda LETRA A LETRA e preserva o tamanho — lição
+// do ·401: o realce trabalha com POSIÇÕES, e um caractere a menos desloca todas as marcações.
+// ⚠️ DUAS SABOTAGENS PASSARAM NA PRIMEIRA RODADA — furo meu, não do código. (1) Trocar a dobra
+// pela ingênua passava, porque depois do NFC o texto comum empata; só um ACENTO SOLTO separa as
+// duas, e esse caso entrou no teste. (2) Tirar o escape do realce passava, porque buscar "img"
+// parte a tag no meio; com um termo que NÃO toca a tag, a falta do escape vira execução de
+// verdade — esse caso também entrou. É a mesma lição do ·409: testar o pedaço isolado não
+// prova que o caminho real o usa.
+// Digitar NÃO redesenha os filtros (arrancaria o foco do campo): só a lista e as contagens.
+// A área "Vouchers Salvos" vale DAQUI PARA A FRENTE — os eventos antigos já estão gravados sem
+// ela; para achar algo anterior, a busca por texto é o caminho.
+// ⚠️ MEXE NO WORKER (a área) — precisa de `npx wrangler deploy`, além do Pages.
+// ANTERIOR: (·413) ⚠️ O VOUCHER IA PARA O LIMBO: A LISTA PARAVA NO MILÉSIMO.
 // O Nando cadastrou "Murilo Lombardo Lopes Pereira" e "Nayara De Mattos Olimpio", viu o aviso
 // de salvo e os vouchers nunca apareceram na lista, por mais que atualizasse.
 // CAUSA: em worker.js, o GET /api/vouchers lia o banco com KV.list({prefix:"v:"}) e IGNORAVA
@@ -12291,6 +12328,62 @@ async function abrirLog(){
 window.abrirLog=abrirLog;
 function fecharLog(){ const ov=$('#logOverlay'); if(ov) ov.classList.remove('aberto'); }
 
+/* (·414) BUSCA POR TEXTO NO REGISTRO. Pedido do Nando, e nasceu de uma
+   necessidade real: achar o voucher do "Murilo" num log de 500 eventos, com
+   filtros que só recortam por área/operador/período/tipo — nenhum deles
+   respondia "onde aparece ESTE nome". Procurar de olho numa lista rolante é
+   como o erro passa despercebido.
+   ⚠️ A BUSCA VARRE O EVENTO INTEIRO, não só a mensagem: cliente, atendente,
+   número, quem, área, tópico e os campos de conflito. Buscar "00340" tem de
+   achar tanto o "Nº: #00340" quanto o "realocado para #00340" — num log de
+   auditoria, achar metade das ocorrências é pior que não achar nenhuma,
+   porque a pessoa conclui que o resto não existe.
+   Acentuação e maiúscula são ignoradas: "hynaê" acha "Hynaê" e "HYNAE". */
+var logBusca='';
+/* ⚠️ DOBRA QUE PRESERVA O TAMANHO DA STRING — lição do ·401, paga uma vez.
+   `normalize('NFD')` sobre texto JÁ DECOMPOSTO (o que o macOS produz) encurta a
+   string ao remover os acentos. Como o realce trabalha com POSIÇÕES, um único
+   caractere a menos desloca todas as marcações seguintes e a palavra fica
+   destacada no lugar errado. Dobrando LETRA A LETRA e mantendo o caractere
+   original quando a conversão encolhe, o índice de cada posição continua válido.
+   É a mesma função que Ações Comerciais usa (acDobra) — mas o log vive noutro
+   bloco <script>, sem acesso àquele escopo. */
+/* ⚠️ O NFC VEM PRIMEIRO, e não é detalhe: o macOS escreve "ê" como "e" +
+   acento SOLTO (forma decomposta), e o Windows escreve como um caractere único.
+   Sem compor antes, procurar "Hynaê" digitado num Mac não acharia "Hynaê"
+   gravado no outro — mesmo nome, bytes diferentes. Depois do NFC os dois viram
+   a MESMA coisa, e a dobra letra a letra mantém o tamanho A PARTIR DAÍ.
+   Por isso o realce trabalha sobre o texto JÁ EM NFC (`logNfc`): as posições
+   valem para aquela string, e ela aparece na tela exatamente igual. */
+function logNfc(x){
+  x=(x==null?'':String(x));
+  try{ return x.normalize('NFC'); }catch(e){ return x; }
+}
+function logDobra(x){
+  x=logNfc(x);
+  var out='';
+  for(var i=0;i<x.length;i++){
+    var c=x[i].toLowerCase();
+    var d=c.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    out += (d.length===1 ? d : c);
+  }
+  return out;
+}
+function logTextoDoEvento(e){
+  const d=e.dados||{};
+  return logDobra([
+    e.msg, e.tipo, (LOG_ROTULOS[e.tipo]||''), e.origem,
+    d.quem, d.area, d.cliente, d.atendente, d.topico,
+    d.num, d.numColisao, d.numNovo, d.numAntigo, d.ocupante, d.numTela
+  ].filter(function(x){ return x!=null && x!==''; }).join(' \u00b7 '));
+}
+function logBate(e){
+  if(!logBusca) return true;
+  /* cada palavra precisa aparecer (E, não OU): "murilo 00340" acha o evento
+     que tem os dois, e não tudo que tem qualquer um dos dois */
+  const alvo=logTextoDoEvento(e);
+  return logBusca.split(/\s+/).filter(Boolean).every(function(t){ return alvo.indexOf(t)>=0; });
+}
 function logEventosFiltradosBase(){
   // aplica ÁREA + OPERADOR + PERÍODO (mas não o filtro fino de TIPO — esse é
   // calculado depois, para os contadores dos chips baterem com a base já filtrada
@@ -12304,6 +12397,7 @@ function logEventosFiltradosBase(){
       if(logDataDe && ymd < logDataDe) return false;
       if(logDataAte && ymd > logDataAte) return false;
     }
+    if(!logBate(e)) return false;        /* (·414) busca por texto */
     return true;
   });
 }
@@ -12318,13 +12412,30 @@ function renderLogFiltros(){
       '<select class="log-sel" id="logSelQuem">'+quems.map(q=>`<option value="${esc(q)}" ${logFiltroQuem===q?'selected':''}>${q==='todos'?'Todos os operadores':esc(q)}</option>`).join('')+'</select>'+
       '<input type="date" class="log-data" id="logDataDe" value="'+esc(logDataDe)+'" title="De">'+
       '<input type="date" class="log-data" id="logDataAte" value="'+esc(logDataAte)+'" title="Até">'+
-      '<button type="button" class="log-btn-sec" id="logLimparFiltro">Limpar filtros</button>';
+      '<button type="button" class="log-btn-sec" id="logLimparFiltro">Limpar filtros</button>'+
+      /* (·414) a busca fica em LINHA PRÓPRIA e larga: ela é o filtro mais usado
+         numa investigação ("cadê o Murilo?") e espremida entre dois seletores
+         passaria despercebida justamente na hora em que mais importa */
+      '<div class="log-busca-linha">'
+        +'<input type="search" class="log-busca" id="logBuscaInp" autocomplete="off" '
+          +'placeholder="Procurar em tudo: nome do cliente, atendente, número do voucher…" '
+          +'value="'+esc(logBusca)+'">'
+        +'<span class="log-busca-dica">várias palavras = todas precisam aparecer</span>'
+      +'</div>';
     const selA=$('#logSelArea'), selQ=$('#logSelQuem'), dDe=$('#logDataDe'), dAte=$('#logDataAte'), lim=$('#logLimparFiltro');
     if(selA) selA.onchange=()=>{ logFiltroArea=selA.value; renderLogFiltros(); renderLog(); };
     if(selQ) selQ.onchange=()=>{ logFiltroQuem=selQ.value; renderLogFiltros(); renderLog(); };
     if(dDe) dDe.onchange=()=>{ logDataDe=dDe.value; renderLog(); };
     if(dAte) dAte.onchange=()=>{ logDataAte=dAte.value; renderLog(); };
-    if(lim) lim.onclick=()=>{ logFiltroArea='todas'; logFiltroQuem='todos'; logDataDe=''; logDataAte=''; logFiltro='todos'; renderLogFiltros(); renderLog(); };
+    if(lim) lim.onclick=()=>{ logFiltroArea='todas'; logFiltroQuem='todos'; logDataDe=''; logDataAte=''; logFiltro='todos'; logBusca=''; renderLogFiltros(); renderLog(); };
+    const inpB=$('#logBuscaInp');
+    if(inpB){
+      /* ⚠️ redesenhar os FILTROS a cada tecla tiraria o foco do campo e a
+         pessoa perderia a digitação. Por isso o `input` redesenha SÓ a lista
+         (renderLog) e atualiza os números dos chips à parte. */
+      inpB.oninput=function(){ logBusca=logDobra(inpB.value.trim()); renderLog(); logAtualizarContagens(); };
+      inpB.onkeydown=function(ev){ if(ev.key==='Escape'){ ev.stopPropagation(); inpB.value=''; logBusca=''; renderLog(); logAtualizarContagens(); } };
+    }
   }
   // ---- linha de baixo: TIPO (categoria fina da ação), contada sobre a base já
   // filtrada por área/operador/período acima ----
@@ -12336,12 +12447,63 @@ function renderLogFiltros(){
   }).join('');
   wrap.querySelectorAll('.log-fil').forEach(b=> b.onclick=()=>{ logFiltro=b.dataset.fil; renderLogFiltros(); renderLog(); });
 }
+/* (·414) redesenha SÓ os chips de tipo. Existe porque renderLogFiltros()
+   reconstrói também o campo de busca — e chamar aquele a cada tecla arrancaria
+   o foco do campo no meio da digitação. */
+function logAtualizarContagens(){
+  const wrap=$('#logFiltros'); if(!wrap) return;
+  const base=logEventosFiltradosBase();
+  wrap.querySelectorAll('.log-fil').forEach(function(b){
+    const t=b.dataset.fil;
+    const n = t==='todos' ? base.length : base.filter(function(e){ return e.tipo===t; }).length;
+    b.textContent=(LOG_ROTULOS[t]||t).replace(/_/g,' ')+' ('+n+')';
+    b.classList.toggle('vazio', n===0);
+  });
+}
 function renderLog(){
   const lista=$('#logLista'); if(!lista) return;
   const base=logEventosFiltradosBase();
   const evs = logFiltro==='todos' ? base : base.filter(e=>e.tipo===logFiltro);
   const cont=$('#logContagem'); if(cont) cont.textContent = evs.length+' registro'+(evs.length===1?'':'s');
-  if(!evs.length){ lista.innerHTML='<div class="log-vazio">Nenhum registro para este filtro.</div>'; return; }
+  if(!evs.length){
+    lista.innerHTML='<div class="log-vazio">'+(logBusca
+      ? 'Nenhum registro contém <b>'+esc(logBusca)+'</b>.<br><span style="opacity:.75">O registro guarda os <b>500 eventos mais recentes</b> — se o que você procura for mais antigo que isso, ele já saiu da lista.</span>'
+      : 'Nenhum registro para este filtro.')+'</div>';
+    return;
+  }
+  /* (·414) REALCE. Sem ele, a busca devolve 40 linhas parecidas e a pessoa
+     ainda precisa achar a palavra de olho — que é exatamente o passo onde o
+     erro passa batido. O realce roda sobre o texto JÁ ESCAPADO, então nome de
+     cliente com "<" continua sendo texto e nunca vira marcação. */
+  const termos=logBusca?logBusca.split(/\s+/).filter(Boolean):[];
+  /* (·414) REALCE. Sem ele a busca devolve dezenas de linhas parecidas e a
+     pessoa ainda precisa achar a palavra de olho — que é justamente o passo
+     onde o registro procurado passa batido.
+     ⚠️ ESCAPA PEDAÇO A PEDAÇO, nunca o HTML já montado: assim um nome de
+     cliente com "<" continua sendo texto e nunca vira marcação. */
+  const realcar=function(txt){
+    txt=logNfc(txt);            /* mesma forma que a dobra enxerga (ver logNfc) */
+    if(!termos.length) return esc(txt);
+    const dob=logDobra(txt); let marcas=[];
+    termos.forEach(function(t){
+      let de=0, i;
+      while((i=dob.indexOf(t,de))>=0){ marcas.push([i,i+t.length]); de=i+t.length; }
+    });
+    if(!marcas.length) return esc(txt);
+    marcas.sort(function(a,b){ return a[0]-b[0]; });
+    const un=[marcas[0]];
+    for(let k=1;k<marcas.length;k++){
+      const u=un[un.length-1];
+      if(marcas[k][0]<=u[1]) u[1]=Math.max(u[1],marcas[k][1]);
+      else un.push(marcas[k]);
+    }
+    let h='', pos=0;
+    un.forEach(function(m){
+      h += esc(txt.slice(pos,m[0]))+'<mark class="log-mk">'+esc(txt.slice(m[0],m[1]))+'</mark>';
+      pos=m[1];
+    });
+    return h+esc(txt.slice(pos));
+  };
   lista.innerHTML=evs.map(e=>{
     const dt=new Date(e.ts);
     const ts=isNaN(dt)?e.ts:dt.toLocaleString('pt-BR');
@@ -12361,8 +12523,8 @@ function renderLog(){
     return `<div class="log-item">
       <span class="log-ts">${esc(ts)}</span>
       <div class="log-corpo">
-        <div class="log-msg"><span class="log-tag ${esc(e.tipo)}">${esc((LOG_ROTULOS[e.tipo]||e.tipo).replace(/_/g,' '))}</span>${esc(e.msg||'')}</div>
-        ${partes.length?`<div class="log-dados">${esc(partes.join(' · '))}</div>`:''}
+        <div class="log-msg"><span class="log-tag ${esc(e.tipo)}">${esc((LOG_ROTULOS[e.tipo]||e.tipo).replace(/_/g,' '))}</span>${realcar(e.msg||'')}</div>
+        ${partes.length?`<div class="log-dados">${realcar(partes.join(' · '))}</div>`:''}
       </div>
     </div>`;
   }).join('');
