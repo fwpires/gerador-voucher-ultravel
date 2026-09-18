@@ -3283,6 +3283,52 @@ body:not(.dark) .mt-lock-card select,body:not(.dark) .mt-lock-card input[type=pa
 /* (·414) BUSCA POR TEXTO NO REGISTRO — linha própria e larga: numa
    investigação ela é o filtro mais usado, e espremida entre dois seletores
    passaria despercebida justamente na hora em que mais importa. */
+/* (·415) PAINEL DE HISTÓRICO DE VERSÕES */
+.vh-ov{position:fixed;inset:0;background:rgba(6,12,24,.72);backdrop-filter:blur(3px);
+  z-index:9000;display:none;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto}
+.vh-ov.aberto{display:flex}
+.vh-caixa{width:min(720px,100%);background:#0F1A38;border:1px solid #2C3B66;border-radius:14px;
+  box-shadow:0 24px 60px rgba(0,0,0,.5);overflow:hidden}
+.vh-cab{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:16px 20px;border-bottom:1px solid #2C3B66}
+.vh-cab h3{margin:0;font-size:16px;color:#E7EDF7}
+.vh-corpo{padding:16px 20px 22px;max-height:66vh;overflow-y:auto}
+.vh-aviso{font-size:12px;color:#9FB0CE;line-height:1.55;margin-bottom:14px;
+  padding:10px 12px;background:rgba(159,176,206,.08);border-radius:9px}
+.vh-item{border:1px solid #2C3B66;border-radius:11px;padding:13px 15px;margin-bottom:10px;background:#141F42}
+.vh-item-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.vh-mot{font-size:10.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;
+  color:#9FB0CE;background:rgba(159,176,206,.12);border-radius:6px;padding:3px 8px}
+.vh-mot.alerta{color:#FFD9A0;background:rgba(245,166,35,.18)}
+.vh-quando{font-size:11.5px;color:#7F92B4;font-variant-numeric:tabular-nums}
+.vh-cli{font-size:14.5px;font-weight:800;color:#E7EDF7;margin-top:7px}
+.vh-meta{font-size:11.5px;color:#8FA2C2;margin-top:2px}
+.vh-bt{margin-top:10px;background:#1B2A55;border:1px solid #3B4E82;color:#CFE0F0;
+  border-radius:8px;padding:7px 13px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer}
+.vh-bt:hover{background:#25376B;border-color:#5570AE;color:#fff}
+body:not(.dark) .vh-caixa{background:#fff;border-color:#DFE7EC}
+body:not(.dark) .vh-cab{border-color:#DFE7EC} body:not(.dark) .vh-cab h3{color:#15252F}
+body:not(.dark) .vh-item{background:#F7FAFC;border-color:#DFE7EC}
+body:not(.dark) .vh-cli{color:#15252F}
+/* (·415) FAIXA DE EDIÇÃO — âmbar, porque é um ESTADO a notar, não um erro a
+   corrigir (vermelho) nem uma confirmação (verde). Fica logo abaixo do selo do
+   número, que é justamente o elemento ambíguo que ela desambigua. */
+.vc-editando{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  margin:0 18px 2px;padding:10px 14px;border-radius:10px;
+  background:rgba(245,208,107,.10);border:1px solid rgba(245,208,107,.45)}
+.vc-ed-ico{font-size:15px;line-height:1;color:#F5D06B;flex:0 0 auto}
+.vc-ed-txt{flex:1;min-width:0;font-size:12.5px;line-height:1.5;color:#E7DFC4}
+.vc-ed-txt b{color:#F5D06B;font-weight:800}
+.vc-ed-txt span{display:block;color:#C8BFA2;font-size:11.5px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vc-ed-bt{flex:0 0 auto;background:#F5D06B;border:0;color:#2A2109;border-radius:8px;
+  padding:7px 13px;font-size:12px;font-weight:800;font-family:inherit;cursor:pointer;
+  transition:filter .14s}
+.vc-ed-bt:hover{filter:brightness(1.08)}
+body:not(.dark) .vc-editando{background:#FFF7E0;border-color:#E3BE55}
+body:not(.dark) .vc-ed-txt{color:#5A4A16} body:not(.dark) .vc-ed-txt b{color:#8A6A0B}
+body:not(.dark) .vc-ed-txt span{color:#7A6A38}
+@media(max-width:620px){ .vc-ed-bt{width:100%} }
 .log-busca-linha{display:flex;align-items:center;gap:10px;flex-basis:100%;margin-top:8px}
 .log-busca{flex:1;min-width:0;background:#141F42;border:1px solid #2C3B66;color:#E7EDF7;
   border-radius:8px;padding:9px 12px;font-size:13px;font-family:inherit}
@@ -3840,6 +3886,21 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     <div class="card-head">
       <span class="num" id="voucherNum">#00001</span>
       <h3>Dados do voucher</h3>
+    </div>
+    <!-- (·415) FAIXA DE EDIÇÃO. Nasce escondida; só aparece quando a tela está
+         carregada com um voucher JÁ GRAVADO. Existe porque o selo do número é
+         AMBÍGUO: antes de salvar "#00340" quer dizer "será o próximo número",
+         depois de salvar quer dizer "você está editando este" — dois estados
+         opostos com a MESMA aparência. Quem acabou de salvar e começa a digitar
+         o próximo cliente não tem como perceber que continua dentro do anterior.
+         Foi assim que o voucher do Murilo virou o da Nayara em 18/09/2026. -->
+    <div class="vc-editando" id="vcEditando" hidden>
+      <span class="vc-ed-ico" aria-hidden="true">✎</span>
+      <div class="vc-ed-txt">
+        <b>Você está editando o voucher <span id="vcEdNum">#—</span></b>
+        <span id="vcEdCliente"></span>
+      </div>
+      <button type="button" class="vc-ed-bt" id="vcEdNovo">＋ Começar um voucher NOVO</button>
     </div>
     <div class="card-body">
       <div class="grid g3">
@@ -4622,6 +4683,7 @@ function setVendedor(valor){
 }
 function loadVoucher(v){
   state.num=v.num||''; state.editingId=v.id; state.criadoEm=v.criadoEm;
+  vcClienteGravado=(v.cliente||'');    /* (·415) referência da trava de sobregravação */
   $('#voucherNum').textContent='#'+(v.num||'—');
   $('#fData').value=v.data||'';
   $('#fCliente').value=v.cliente||'';
@@ -4649,9 +4711,87 @@ function setSalvo(b){
   state.salvo=!!b;
   const bi=document.getElementById('btnImprimir');
   if(bi){ bi.style.opacity=b?'1':'0.5'; bi.title=b?'Imprimir / Gerar PDF':'Salve o voucher antes de gerar o PDF'; }
+  vcAtualizarFaixa();
+}
+
+/* ╔══ (·415) TRAVA CONTRA SOBREGRAVAÇÃO DE VOUCHER ══════════════════════
+   CASO REAL (18/09/2026): o Nando cadastrou "Murilo Lombardo Lopes Pereira",
+   salvou, e sem clicar em "Novo" digitou "Nayara De Mattos Olimpio" e salvou de
+   novo. O segundo Salvar NÃO criou nada — editou o registro do Murilo, gravando
+   a Nayara por cima, no mesmo #00340. O log provou: existe "Voucher #00340
+   EDITADO — Nayara" e NÃO existe nenhum "#00340 criado". No mesmo dia a mesma
+   armadilha pegou a Maria Eduarda (o conflito das 15:16 com a Geisell) — lá o
+   servidor conseguiu barrar porque o id não batia; no caso do Nando batia, e do
+   ponto de vista do sistema era uma edição legítima.
+   NÃO É DESATENÇÃO: depois de salvar, NADA na tela muda. O selo do número fica
+   igual, os campos ficam preenchidos, e `state.editingId` — o único que sabe a
+   verdade — é invisível. Por isso a defesa é em duas camadas:
+     (1) a FAIXA, que torna o estado visível o tempo todo;
+     (2) a CONFIRMAÇÃO, que só fala quando o cliente vira OUTRA PESSOA.        */
+var vcClienteGravado='';   /* nome do cliente como está GRAVADO no voucher aberto */
+
+function vcAtualizarFaixa(){
+  const faixa=document.getElementById('vcEditando'); if(!faixa) return;
+  const editando=!!(state && state.editingId && state.salvo);
+  faixa.hidden=!editando;
+  if(!editando) return;
+  const n=document.getElementById('vcEdNum');
+  const c=document.getElementById('vcEdCliente');
+  if(n) n.textContent='#'+(state.num||'—');
+  if(c) c.textContent=vcClienteGravado ? ('Cliente gravado: '+vcClienteGravado)
+                                       : 'Salvar vai substituir os dados deste voucher.';
+}
+
+/* nomes reduzidos às palavras que identificam: sem acento, sem caixa, sem
+   pontuação e sem as partículas portuguesas (de/da/do/dos/e), que não
+   identificam ninguém — mesma regra já usada na diretoria (·399) */
+var VC_PART={de:1,da:1,do:1,das:1,dos:1,e:1,di:1,del:1,della:1,van:1,von:1,
+             sr:1,sra:1,dr:1,dra:1};
+function vcTokens(x){
+  return (x==null?'':String(x)).trim().toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9\s]/g,' ')
+    .split(/\s+/).filter(function(t){ return t && !VC_PART[t]; });
+}
+/* ⚠️ "MUDANÇA GRANDE" — escolha do Nando, e ela define o atrito do dia a dia.
+   Corrigir um acento, completar um sobrenome ou arrumar uma letra NÃO pode
+   interromper a equipe: isso é edição legítima e acontece o tempo todo.
+   Só é "outra pessoa" quando o PRIMEIRO NOME muda — ninguém corrige o próprio
+   primeiro nome para outro — ou quando os nomes não têm NENHUMA palavra em
+   comum. "Murilo Lombardo" → "Nayara De Mattos" dispara; "Nayara Olimpio" →
+   "Nayara De Mattos Olimpio" não. */
+function vcOutraPessoa(antes, depois){
+  const A=vcTokens(antes), B=vcTokens(depois);
+  if(!A.length || !B.length) return false;      /* sem base para comparar, não atrapalha */
+  if(A[0]!==B[0]) return true;                  /* primeiro nome diferente = outra pessoa */
+  const setA={}; A.forEach(function(t){ setA[t]=1; });
+  return !B.some(function(t){ return setA[t]; });   /* nenhuma palavra em comum */
+}
+
+/* pergunta ANTES de gravar por cima. Devolve:
+     'seguir'  → pode salvar como edição
+     'novo'    → a pessoa quer criar um voucher NOVO com o que está na tela
+     'parar'   → cancelou                                                    */
+function vcConferirTroca(v){
+  if(!state.editingId || !state.salvo) return 'seguir';   /* não é edição */
+  if(!vcOutraPessoa(vcClienteGravado, v.cliente)) return 'seguir';
+  const msg =
+    'ATENÇÃO — isto vai SUBSTITUIR um voucher existente.\n\n'+
+    'Voucher #'+(state.num||'?')+'\n'+
+    'Cliente gravado: '+(vcClienteGravado||'(sem nome)')+'\n'+
+    'Cliente na tela: '+(v.cliente||'(sem nome)')+'\n\n'+
+    'Salvar agora APAGA os dados de '+(vcClienteGravado||'(sem nome)')+'.\n\n'+
+    'OK = criar um voucher NOVO para '+(v.cliente||'este cliente')+' (recomendado)\n'+
+    'Cancelar = não salvar nada agora';
+  /* ⚠️ O CAMINHO SEGURO É O "OK". Num confirm() a pessoa aperta OK no automático
+     — então o OK precisa ser a ação que NÃO destrói nada. Substituir de
+     propósito continua possível, mas exige um passo deliberado (abrir o voucher
+     pela lista), que é como tem de ser. */
+  return window.confirm(msg) ? 'novo' : 'parar';
 }
 function novoVoucher(){
   state={num:'',services:[],editingId:null,criadoEm:null,salvo:false,clienteAuto:true};
+  vcClienteGravado='';                  /* (·415) voucher novo não tem nada gravado */
   $('#fData').value=new Date().toISOString().slice(0,10);
   ['fCliente','fContato','fObs','fMensagem','iFornecedor','iCusto','iVenda','iOver','iComissaoPct'].forEach(id=>$('#'+id).value='');
   setVendedor('');
@@ -4681,6 +4821,20 @@ async function salvar(){
   aplicarWecannPorParticipante();
   const v=collectVoucher();
   if(!v.cliente){ toast('Informe o nome do cliente','err'); $('#fCliente').focus(); return; }
+  /* ⚠️ (·415) A TRAVA VEM ANTES DE TUDO — depois do POST não há o que desfazer
+     do lado do navegador. Ela só fala quando o cliente virou OUTRA PESSOA
+     (ver vcOutraPessoa): correção de nome passa direto. */
+  const _decisao=vcConferirTroca(v);
+  if(_decisao==='parar'){ toast('Salvamento cancelado — nada foi alterado','info'); return; }
+  if(_decisao==='novo'){
+    /* vira CRIAÇÃO: sem id e sem número, o servidor gera um registro NOVO e o
+       voucher anterior fica intacto. O `criadoEm` herdado também é renovado —
+       senão o voucher novo nasceria com a data de cadastro do antigo, e sumiria
+       do filtro por período de cadastro (·395). */
+    state.editingId=null; state.num=''; state.criadoEm=null; vcClienteGravado='';
+    v.id='uv_'+Date.now(); v.num=''; v.criadoEm=new Date().toISOString();
+    try{ logRemoto('info','Sobregravação evitada: voucher novo criado em vez de substituir',{area:'Vouchers Salvos',cliente:v.cliente}); }catch(e){}
+  }
   if(!v.vendedor){ toast('Selecione o atendente','err'); $('#fVendedor').focus(); return; }
   if(!v.services.length){ toast('Adicione ao menos um serviço','err'); return; }
   $('#btnSalvar').disabled=true;
@@ -4702,6 +4856,7 @@ async function salvar(){
   try{
     const saved=await api('/api/vouchers',{method:'POST',body:JSON.stringify(v)});
     state.num=saved.num; state.editingId=saved.id;
+    vcClienteGravado=(saved.cliente||v.cliente||'');   /* (·415) agora É o gravado */
     $('#voucherNum').textContent='#'+saved.num;
     setSalvo(true);
     toast('Voucher #'+saved.num+' salvo na nuvem','ok');
@@ -4712,6 +4867,7 @@ async function salvar(){
     // fallback local
     if(!v.num){ v.num=state.num||String((savedCache.reduce((m,x)=>Math.max(m,parseInt(x.num)||0),0))+1).padStart(5,'0'); }
     state.num=v.num; state.editingId=v.id;
+    vcClienteGravado=(v.cliente||'');                  /* (·415) idem no salvamento local */
     v._pend=1;               /* (·413) marca: existe SÓ aqui, ainda não foi à nuvem */
     saveLocal(v);
     $('#voucherNum').textContent='#'+v.num;
@@ -4871,7 +5027,43 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 414; // (·414) BUSCA POR TEXTO NO REGISTRO DE ATIVIDADES + área "Vouchers
+var UV_BUILD_NUM = 415; // (·415) TRAVA CONTRA SOBREGRAVAÇÃO DE VOUCHER + HISTÓRICO DE VERSÕES.
+// CASO REAL, 18/09/2026: o Nando cadastrou "Murilo Lombardo Lopes Pereira", salvou, e sem
+// clicar em "Novo" digitou "Nayara De Mattos Olimpio" e salvou de novo. O segundo Salvar NÃO
+// criou nada — EDITOU o registro do Murilo, gravando a Nayara por cima no mesmo #00340. O log
+// (achado com a busca do ·414) provou: existe "Voucher #00340 EDITADO — Nayara" e NÃO existe
+// nenhum "#00340 criado". No mesmo dia a MESMA armadilha pegou a Maria Eduarda (o conflito das
+// 15:16 com a Geisell) — lá o servidor barrou porque o id não batia; no caso do Nando batia.
+// ⚠️ A CAUSA NÃO É DESATENÇÃO, É UM ESTADO INVISÍVEL. O selo do número é AMBÍGUO: antes de
+// salvar "#00340" quer dizer "será o próximo número"; depois de salvar quer dizer "você está
+// editando este". Dois estados OPOSTOS com aparência IDÊNTICA, e `state.editingId` — o único
+// que sabe a verdade — não aparece em lugar nenhum. Daí três camadas:
+// (1) FAIXA âmbar permanente: "Você está editando o voucher #00340 — Cliente gravado: Murilo",
+//     com botão "Começar um voucher NOVO" que solta o vínculo SEM apagar o que já foi digitado
+//     (zerar os campos faria a pessoa digitar tudo de novo — e aí ela não clicaria).
+// (2) CONFIRMAÇÃO ao salvar, só quando o cliente virou OUTRA PESSOA (escolha do Nando: "só
+//     mudança grande"). Regra: primeiro nome diferente, OU nenhuma palavra em comum. Corrigir
+//     acento, completar sobrenome, trocar caixa e acrescentar partícula passam DIRETO — isso é
+//     edição legítima e interromper a equipe nela faria todo mundo ignorar o aviso.
+//     ⚠️ O "OK" DO CONFIRM É O CAMINHO SEGURO (cria voucher NOVO), porque num confirm() a
+//     pessoa aperta OK no automático. Sobrescrever de propósito continua possível, mas exige
+//     abrir o voucher pela lista — um passo deliberado.
+// (3) HISTÓRICO NO SERVIDOR (worker.js): toda edição e toda exclusão guardam a versão
+//     ANTERIOR em vh:<num> (teto de 12). Botão ↺ em cada voucher salvo abre o painel e
+//     restaura. Restaurar TAMBÉM guarda a versão atual — desfazer que não se desfaz é só
+//     outra forma de perder dado. Gravar o histórico NUNCA pode derrubar o salvamento: try
+//     próprio, porque perder o histórico é ruim e perder o voucher recém-digitado é pior.
+//     Troca de cliente vira o evento "voucher_substituido" no log, para a auditoria achar.
+//     ISSO EXISTE PORQUE A ÚNICA REDE ERA O BACKUP DIÁRIO — e o Murilo nasceu e foi
+//     substituído DENTRO do mesmo intervalo de 24h, então nenhum backup o continha.
+// ⚠️ UMA SABOTAGEM PASSOU NA PRIMEIRA RODADA: desligar a captura do histórico não quebrava
+// nada, porque as checagens liam o CÓDIGO-FONTE e a ordem das linhas seguia igual. Reescrevi
+// esse trecho como TESTE DE COMPORTAMENTO — o ramo de edição do worker roda contra um KV
+// falso com o Murilo dentro, e o que se verifica é o EFEITO: `vh:00340` passa a conter o
+// voucher INTEIRO do Murilo. Mesma lição do ·409 e do ·414.
+// ⚠️ MEXE NO WORKER — precisa de `npx wrangler deploy`, além do Pages.
+// O histórico só vale DAQUI PARA A FRENTE; o painel diz isso quando não há versões.
+// ANTERIOR: (·414) BUSCA POR TEXTO NO REGISTRO DE ATIVIDADES + área "Vouchers
 // Salvos". Nasceu de uma necessidade real: achar o voucher do "Murilo" num log de 500 eventos.
 // Os filtros existentes só recortam por área/operador/período/tipo — nenhum respondia "onde
 // aparece ESTE nome", e o Nando foi procurar a área "Vouchers Salvos" e não achou, porque os
@@ -11689,6 +11881,7 @@ function renderSavedFiltro(list){
       <div class="vi-actions">
         <button class="icon-btn" title="Editar" data-edit="${esc(v.id)}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         <button class="icon-btn" title="Imprimir" data-print="${esc(v.id)}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button class="icon-btn" title="Histórico de versões — ver e restaurar como este voucher estava antes" data-hist="${esc(v.num||'')}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8m0-5v5h5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         <button class="icon-btn del" title="Excluir" data-del="${esc(v.id)}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 13a1 1 0 001 1h10a1 1 0 001-1l1-13M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       </div>
     </div>`;
@@ -11696,6 +11889,7 @@ function renderSavedFiltro(list){
   $$('#savedList [data-edit]').forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); const v=savedCache.find(x=>x.id===b.dataset.edit); if(v)loadVoucher(v); });
   $$('#savedList [data-print]').forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); const v=savedCache.find(x=>x.id===b.dataset.print); if(v)imprimir(v); });
   $$('#savedList [data-preview]').forEach(c=>c.onclick=()=>{ const v=savedCache.find(x=>x.id===c.dataset.preview); if(v)previewVoucher(v); });
+  $$('#savedList [data-hist]').forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); vhAbrir(b.dataset.hist); });
   $$('#savedList [data-del]').forEach(b=>b.onclick=(e)=>{
     e.stopPropagation();
     const v=savedCache.find(x=>x.id===b.dataset.del); if(!v)return;
@@ -12299,7 +12493,7 @@ async function init(){
 }
 /* ===== Registro de Atividades (log) ===== */
 let logCache=[]; let logFiltro='todos';
-const LOG_ROTULOS={ todos:'Todos', voucher_criado:'Criados', voucher_editado:'Editados', voucher_excluido:'Excluídos', conflito:'Conflitos', erro:'Erros',
+const LOG_ROTULOS={ todos:'Todos', voucher_criado:'Criados', voucher_editado:'Editados', voucher_excluido:'Excluídos', voucher_substituido:'⚠️ Cliente substituído', voucher_restaurado:'Restaurados', conflito:'Conflitos', erro:'Erros',
   login:'Login', logout:'Logout', ocp_sentinela:'Status Ocupação', ocp_atendimento_fechado:'Atendimento encerrado',
   ausencia_programada:'Ausência Programada', escala_plantao:'Escala', cabeca_rede:'Cabeça de Rede',
   matriz_operacional:'Matriz Operacional', cliente_corp:'Cliente', cartao_saldo:'Cartão — saldo',
@@ -12529,12 +12723,99 @@ function renderLog(){
     </div>`;
   }).join('');
 }
+/* (·415) o botão da faixa faz o que a pessoa realmente queria: começar do zero
+   SEM perder o que já digitou por engano dentro do voucher alheio. Por isso ele
+   preserva os campos e só solta o vínculo com o registro gravado — zerar tudo
+   faria a pessoa digitar de novo, e aí ela não clicaria. */
+document.addEventListener('click',function(e){
+  if(!e.target || !e.target.closest) return;
+  if(!e.target.closest('#vcEdNovo')) return;
+  state.editingId=null; state.num=''; state.criadoEm=null; state.salvo=false;
+  vcClienteGravado='';
+  try{ setSalvo(false); }catch(x){}
+  try{ refreshNext(); }catch(x){}
+  try{ toast('Agora é um voucher NOVO — o anterior ficou intacto','ok'); }catch(x){}
+  try{ vcAtualizarFaixa(); }catch(x){}
+});
+
+/* ╔══ (·415) HISTÓRICO DE VERSÕES DE UM VOUCHER ═════════════════════
+   A tela que transforma "perdi o voucher" em "desfaz aí". O servidor guarda a
+   versão anterior a cada edição e a cada exclusão (·415, worker.js). */
+async function vhAbrir(num){
+  if(!num){ toast('Este voucher ainda não tem número','info'); return; }
+  let ov=document.getElementById('vhOverlay');
+  if(!ov){
+    ov=document.createElement('div'); ov.id='vhOverlay'; ov.className='vh-ov';
+    ov.innerHTML='<div class="vh-caixa"><div class="vh-cab"><h3>↺ Histórico do voucher <span id="vhNum"></span></h3>'
+      +'<button type="button" class="log-btn-sec" id="vhFechar">Fechar (Esc)</button></div>'
+      +'<div class="vh-corpo" id="vhCorpo"></div></div>';
+    document.body.appendChild(ov);
+    ov.addEventListener('click',function(e){
+      if(e.target===ov || (e.target.closest && e.target.closest('#vhFechar'))) ov.classList.remove('aberto');
+    });
+  }
+  document.getElementById('vhNum').textContent='#'+num;
+  document.getElementById('vhCorpo').innerHTML='<div class="log-vazio">Buscando as versões anteriores…</div>';
+  ov.classList.add('aberto');
+  let d;
+  try{ d=await api('/api/vouchers/'+encodeURIComponent(num)+'/historico'); }
+  catch(e){
+    document.getElementById('vhCorpo').innerHTML='<div class="log-vazio">Não foi possível ler o histórico (sem conexão com a nuvem).</div>';
+    return;
+  }
+  vhDesenhar(num, (d&&d.versoes)||[]);
+}
+var VH_MOTIVOS={edicao:'Editado',edicao_trocou_cliente:'⚠️ Cliente substituído',
+                exclusao:'Excluído',antes_de_restaurar:'Antes de uma restauração'};
+function vhDesenhar(num, versoes){
+  const c=document.getElementById('vhCorpo'); if(!c) return;
+  if(!versoes.length){
+    /* ⚠️ O AVISO DE QUE O HISTÓRICO SÓ VALE DAQUI PARA A FRENTE É OBRIGATÓRIO.
+       Sem ele, uma lista vazia diz "este voucher nunca foi editado" — que é
+       exatamente a conclusão errada para tudo que aconteceu ANTES do ·415. */
+    c.innerHTML='<div class="log-vazio">Nenhuma versão anterior guardada para este voucher.'
+      +'<br><span style="opacity:.75">O histórico começou a ser gravado na versão ·415 do Hub — edições anteriores a ela não têm versão guardada.</span></div>';
+    return;
+  }
+  c.innerHTML='<div class="vh-aviso">Cada linha é como o voucher estava <b>antes</b> daquela alteração. Restaurar também guarda a versão atual — dá para voltar atrás de novo.</div>'
+    +versoes.map(function(x){
+      const dt=new Date(x.em); const q=isNaN(dt)?esc(x.em||''):dt.toLocaleString('pt-BR');
+      const v=x.voucher||{};
+      const servs=(v.services||[]).length;
+      return '<div class="vh-item">'
+        +'<div class="vh-item-top"><span class="vh-mot'+(x.motivo==='edicao_trocou_cliente'?' alerta':'')+'">'
+          +esc(VH_MOTIVOS[x.motivo]||x.motivo||'Editado')+'</span><span class="vh-quando">'+esc(q)+'</span></div>'
+        +'<div class="vh-cli">'+esc(x.cliente||'(sem cliente)')+'</div>'
+        +'<div class="vh-meta">'+esc(x.atendente||'—')+' · '+servs+' serviço'+(servs===1?'':'s')
+          +(v.evento?(' · '+esc(v.evento)):'')+'</div>'
+        +'<button type="button" class="vh-bt" data-vh-restaurar="'+x.i+'">Restaurar esta versão</button>'
+      +'</div>';
+    }).join('');
+  c.querySelectorAll('[data-vh-restaurar]').forEach(function(b){
+    b.onclick=function(){
+      const i=parseInt(b.getAttribute('data-vh-restaurar'),10);
+      const alvo=versoes[i]||{};
+      UI.confirm('Restaurar versão',
+        'O voucher #'+num+' vai voltar a ser <b>'+esc(alvo.cliente||'(sem cliente)')+'</b>, como estava em '+esc(new Date(alvo.em).toLocaleString('pt-BR'))+'.<br><br>O conteúdo atual será guardado no histórico, então dá para voltar atrás.',
+        async function(){
+          try{
+            await api('/api/vouchers/'+encodeURIComponent(num)+'/restaurar',{method:'POST',body:JSON.stringify({i:i})});
+            toast('Voucher #'+num+' restaurado','ok');
+            const ov=document.getElementById('vhOverlay'); if(ov) ov.classList.remove('aberto');
+            loadSaved().catch(function(){});
+          }catch(e){ toast('Não foi possível restaurar: '+(e&&e.message||e),'err'); }
+        },'Sim, restaurar');
+    };
+  });
+}
+
 // atalho: Ctrl+Shift+L (ou Cmd+Shift+L no Mac) abre o log
 document.addEventListener('keydown',e=>{
   if((e.ctrlKey||e.metaKey) && e.shiftKey && (e.key==='L'||e.key==='l')){ e.preventDefault(); abrirLog(); }
   // (·311) Ctrl+Shift+D — Diagnóstico do Hub (só admin)
   if((e.ctrlKey||e.metaKey) && e.shiftKey && (e.key==='D'||e.key==='d')){ e.preventDefault(); uvAbrirDiag(); }
   if(e.key==='Escape'){
+    const ovh=document.getElementById('vhOverlay'); if(ovh&&ovh.classList.contains('aberto')) ovh.classList.remove('aberto');
     const ov=$('#logOverlay'); if(ov&&ov.classList.contains('aberto')) fecharLog();
     const od=$('#diagOverlay'); if(od&&od.classList.contains('aberto')) od.classList.remove('aberto');
   }
