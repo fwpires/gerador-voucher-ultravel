@@ -1546,16 +1546,23 @@ body.dark .mx-cal-btn{color:#2ee0b8}
    LISTA de emojis, essa sim, é a mesma (window.UV_EMOJIS_REACAO). */
 /* as chips ficam SEMPRE visíveis: uma reação que só aparece no hover é uma
    reação que ninguém vê, e o ponto dela é justamente ser vista de longe */
-.mr-reacoes{ display:flex; flex-wrap:wrap; gap:4px; margin-top:2px; }
-.mr-chip{ display:inline-flex; align-items:center; gap:3px; font-family:inherit;
-  background:rgba(255,255,255,.62); border:1px solid rgba(29,42,53,.18);
-  border-radius:20px; padding:1px 7px; font-size:11.5px; line-height:1.5;
-  color:#2c3b47; margin:0; }
+.mr-reacoes{ display:flex; flex-wrap:wrap; align-items:center; gap:7px; margin-top:2px; }
+/* (·412) EMOJI PURO SOBRE O PAPEL — sem pílula, sem borda, sem fundo.
+   Pedido do Nando: a moldurinha de chip competia com o post-it e fazia o
+   bilhete parecer um aplicativo de mensagens colado num quadro de cortica.
+   Sobrou só o símbolo, como um carimbo no papel.
+   ⚠️ O QUE A BORDA FAZIA e precisou de outro jeito: ela era o único sinal de
+   qual reação era a MINHA (a que um clique remove). Sem chrome, o sinal passou
+   a ser o TAMANHO — a minha vem um pouco maior e sólida, as dos outros um
+   tiquinho menores e mais apagadas. É diferença de ênfase, não de contorno. */
+.mr-chip{ display:inline-flex; align-items:center; gap:2px; font-family:inherit;
+  background:transparent; border:0; border-radius:0; padding:0; margin:0;
+  font-size:14px; line-height:1.15; color:#2c3b47; opacity:.82; }
 button.mr-chip{ cursor:pointer; }
-button.mr-chip:hover{ background:#fff; border-color:rgba(29,42,53,.4); }
-.mr-chip.minha{ border-color:#d8a53a; background:rgba(253,240,184,.9); font-weight:700; }
-button.mr-chip.minha:hover{ border-color:#b9870f; background:#fbe9a8; }
-.mr-chip-n{ font-size:10.5px; font-weight:700; color:#5a6b7a; }
+button.mr-chip:hover{ transform:scale(1.18); }
+.mr-chip{ transition:transform .13s ease, opacity .13s ease; }
+.mr-chip.minha{ opacity:1; font-size:15.5px; }
+.mr-chip-n{ font-size:10px; font-weight:700; color:#5a6b7a; opacity:.9; }
 /* o botão de reagir, ao contrário do ✎ e do ✕, NÃO é só-hover: ele é um
    convite, não um comando perigoso — mas fica discreto até o ponteiro chegar */
 .mr-post-dir{ display:flex; align-items:center; gap:4px; flex:0 0 auto; }
@@ -4802,7 +4809,18 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 411; // (·411) REAGIR COM EMOJIS NO MURAL DE RECADOS. Pedido do Nando: cada
+var UV_BUILD_NUM = 412; // (·412) EMOJI PURO SOBRE O PAPEL, sem a moldurinha. Pedido do Nando
+// sobre o ·411: a reação vinha dentro de uma pílula (fundo claro + borda arredondada) e ele
+// pediu "somente o emoji puro em cima da nota". Saíram background, border, border-radius e
+// padding; sobrou o símbolo, como um carimbo no papel.
+// ⚠️ O QUE A BORDA FAZIA, E QUE PRECISOU DE OUTRO JEITO: ela era o ÚNICO sinal de qual
+// reação era a MINHA — a que um clique remove. Sem chrome nenhum, ninguém descobriria em qual
+// clicar. O sinal passou a ser Ênfase: a minha vem maior e sólida (opacity 1, 15,5px), as dos
+// outros um tiquinho menores e mais apagadas (opacity .82, 14px), e o hover cresce um pouco.
+// É diferença de ênfase, não de contorno — que é exatamente o que ele pediu.
+// O teste guarda as DUAS coisas: que a pílula não volte (nem pelo hover, nem pelo `.minha`) e
+// que a distinção da minha reação não desapareça junto com ela.
+// ANTERIOR: (·411) REAGIR COM EMOJIS NO MURAL DE RECADOS. Pedido do Nando: cada
 // nota fixada no mural ganhou um botão 😊 que abre o seletor de emojis, e as reações aparecem
 // como chips logo acima da assinatura. A LISTA de emojis é a MESMA das Ações Comerciais e do
 // Time Insights (window.UV_EMOJIS_REACAO, fonte única do ·322/·347) — acrescentar um emoji
