@@ -4859,6 +4859,12 @@ async function salvar(){
     vcClienteGravado=(saved.cliente||v.cliente||'');   /* (·415) agora É o gravado */
     $('#voucherNum').textContent='#'+saved.num;
     setSalvo(true);
+    /* ⚠️ (·416) ENTRA NA LISTA AGORA, sem esperar a nuvem responder de novo.
+       O POST JÁ devolveu o voucher gravado — esperar uma segunda viagem para
+       exibir algo que a gente já tem em mãos é latência de graça. E pior: essa
+       segunda viagem lê o KV, que é eventualmente consistente e pode responder
+       o mundo de até 60s atrás — era ESSA a espera que o Nando via. */
+    vsInserirNaLista(saved);
     toast('Voucher #'+saved.num+' salvo na nuvem','ok');
     _ok=true;
   }catch(e){
@@ -4872,8 +4878,8 @@ async function salvar(){
     saveLocal(v);
     $('#voucherNum').textContent='#'+v.num;
     setSalvo(true);
+    vsInserirNaLista(v);                               /* (·416) idem no local */
     toast('Salvo localmente (sem nuvem) — #'+v.num,'info');
-    renderSaved(savedCache);
   }finally{ clearTimeout(_sos); $('#btnSalvar').disabled=false; }
   /* ⚠️ A ATUALIZAÇÃO DA LISTA SAIU DE DENTRO DO try. Antes ela era esperada
      ANTES de o botão voltar — então uma releitura lenta da nuvem deixava o
@@ -4881,6 +4887,36 @@ async function salvar(){
      salvar" quando na verdade já tinha salvado. Agora o botão volta primeiro e
      a lista se atualiza depois, no seu tempo. */
   if(_ok){ loadSaved().catch(function(){}); }
+}
+
+/* ╔══ (·416) O VOUCHER APARECE NA HORA ═════════════════════════════
+   Insere (ou substitui) um voucher na lista em memória e redesenha. Usado logo
+   após salvar e ao receber o aviso ao vivo de outro PC.
+   ⚠️ MARCA `_novo` COM A HORA. É o que impede o próprio sistema de apagar o que
+   acabou de mostrar: a leitura seguinte da nuvem pode vir SEM este voucher (KV
+   eventualmente consistente), e sem a marca o loadSaved() o varreria da tela —
+   o mesmo defeito do "salvo localmente" que o ·413 corrigiu, com outra roupa. */
+function vsInserirNaLista(v){
+  if(!v || !v.num) return;
+  try{
+    const copia=Object.assign({},v); copia._novo=Date.now();
+    savedCache=(savedCache||[]).filter(function(x){
+      return x && String(x.num)!==String(copia.num) && (!copia.id || x.id!==copia.id);
+    });
+    savedCache.unshift(copia);
+    savedCache.sort(function(a,b){ return (b.criadoEm||'').localeCompare(a.criadoEm||''); });
+    localStorage.setItem('uv_vouchers',JSON.stringify(savedCache));
+    renderSaved(savedCache);
+  }catch(e){}
+}
+/* remove da lista NA HORA (exclusão feita em outro PC) */
+function vsTirarDaLista(num){
+  if(!num) return;
+  try{
+    savedCache=(savedCache||[]).filter(function(x){ return x && String(x.num)!==String(num); });
+    localStorage.setItem('uv_vouchers',JSON.stringify(savedCache));
+    renderSaved(savedCache);
+  }catch(e){}
 }
 
 /* ===== LOCAL CACHE ===== */
@@ -4909,9 +4945,24 @@ async function loadSaved(){
        ressuscitá-lo seria o defeito inverso. */
     const nuvem=list.sort((a,b)=>(b.criadoEm||'').localeCompare(a.criadoEm||''));
     const idsNuvem={}; nuvem.forEach(function(x){ if(x&&x.id) idsNuvem[x.id]=1; });
+    const numsNuvem={}; nuvem.forEach(function(x){ if(x&&x.num) numsNuvem[String(x.num)]=1; });
     let locais=[]; try{ locais=JSON.parse(localStorage.getItem('uv_vouchers')||'[]'); }catch(e2){ locais=[]; }
     const pendentes=locais.filter(function(x){ return x && x._pend && x.id && !idsNuvem[x.id]; });
-    savedCache=pendentes.concat(nuvem);
+    /* ⚠️ (·416) SEGURA OS RECÉM-SALVOS QUE A NUVEM AINDA NÃO DEVOLVE.
+       O KV é eventualmente consistente ("até 60 segundos ou mais"), então esta
+       lista pode chegar SEM o voucher que a pessoa acabou de gravar — e aí ele
+       apareceria e sumiria na frente dela, que é pior que demorar.
+       A janela é de 3 MINUTOS, bem acima dos 60s documentados: o limite é "60s
+       OU MAIS", sem teto. Passado o prazo o item cai sozinho — se a nuvem
+       continua sem ele, ele realmente não está lá, e insistir seria mentir. */
+    const JANELA=3*60*1000, agora=Date.now();
+    const recemSalvos=locais.filter(function(x){
+      return x && x._novo && (agora-x._novo)<JANELA
+             && x.num && !numsNuvem[String(x.num)]
+             && !(x._pend && x.id && !idsNuvem[x.id]);   /* já contado nos pendentes */
+    });
+    savedCache=pendentes.concat(recemSalvos).concat(nuvem);
+    savedCache.sort(function(a,b){ return (b.criadoEm||'').localeCompare(a.criadoEm||''); });
     localStorage.setItem('uv_vouchers',JSON.stringify(savedCache));
     renderSaved(savedCache);
     if(pendentes.length) reenviarPendentes(pendentes);
@@ -4933,7 +4984,7 @@ async function reenviarPendentes(pendentes){
   try{
   for(const p of pendentes){
     try{
-      const copia=Object.assign({},p); delete copia._pend;   /* marca interna não vai ao servidor */
+      const copia=Object.assign({},p); delete copia._pend; delete copia._novo;   /* marcas internas não vão ao servidor */
       const salvo=await api('/api/vouchers',{method:'POST',body:JSON.stringify(copia)});
       let arr=[]; try{ arr=JSON.parse(localStorage.getItem('uv_vouchers')||'[]'); }catch(e){ arr=[]; }
       arr=arr.filter(function(x){ return x && x.id!==p.id; });
@@ -5027,7 +5078,38 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 415; // (·415) TRAVA CONTRA SOBREGRAVAÇÃO DE VOUCHER + HISTÓRICO DE VERSÕES.
+var UV_BUILD_NUM = 416; // (·416) O VOUCHER SALVO APARECE NA HORA. Pergunta do Nando: "por que
+// demora tanto pra aparecer um novo voucher na lista? não tem como ser instantâneo?"
+// ⚠️ A CAUSA NÃO ERA O HUB, NEM A REDE DA AGÊNCIA: é o KV do Cloudflare, onde os vouchers
+// moram. Ele é EVENTUALMENTE CONSISTENTE — a própria documentação diz que uma mudança "pode
+// levar até 60 segundos ou mais para ficar visível em outras localizações da rede", e que até
+// a resposta "esta chave NÃO existe" fica em cache. O voucher era gravado na hora; a LEITURA
+// da lista é que podia devolver o mundo de um minuto atrás. Atualizar a página não adiantava,
+// porque a leitura nova caía no mesmo cache. (Verificado na documentação, não deduzido.)
+// TRÊS FRENTES, e cada uma resolve um pedaço diferente:
+// (1) QUEM SALVOU vê na hora: o POST JÁ devolve o voucher gravado, então ele entra na lista
+//     direto (vsInserirNaLista) — esperar uma segunda viagem para exibir algo que já está em
+//     mãos era latência de graça, e essa segunda viagem ainda caía na janela cega do KV.
+// (2) OS OUTROS PCs veem na hora: o aviso em tempo real (·277) agora CARREGA o voucher, em vez
+//     de só dizer "vá buscar" — o buscar era exatamente o que travava.
+// (3) QUALQUER LEITURA fica correta: o Durable Object (que É fortemente consistente) guarda os
+//     vouchers recém-gravados numa janela de 10 min, e o GET /api/vouchers sobrepõe essa janela
+//     à lista do KV. Quando o KV alcança, os dois concordam e o item sai da janela sozinho.
+//     A EXCLUSÃO entra na janela também — senão a lista velha do KV devolveria o voucher
+//     apagado e ele "voltaria à vida" por um minuto.
+// ⚠️ E NÃO PODE SUMIR DEPOIS: o loadSaved() seguinte pode chegar SEM o voucher recém-salvo
+// (KV atrasado), e sem proteção ele apareceria e sumiria na frente da pessoa — pior que
+// demorar. A marca `_novo` segura o item por 3 MINUTOS, e depois ele CAI SOZINHO: se a nuvem
+// continua sem ele, ele realmente não está lá, e insistir seria mentir. Mesma lição do `_pend`
+// do ·413, com outra roupa. As janelas (10 min no servidor, 3 min no navegador) são bem
+// maiores que os 60s documentados de propósito: o limite é "60s OU MAIS", sem teto.
+// ⚠️ DE NOVO UMA SABOTAGEM PASSOU: tirar os recém-salvos do loadSaved não quebrava nada,
+// porque a checagem lia o CÓDIGO-FONTE e a palavra continuava na declaração. Reescrevi como
+// teste de COMPORTAMENTO: o loadSaved real roda contra uma nuvem que responde sem o voucher, e
+// o que se verifica é que ele CONTINUA na tela. Terceira vez nesta sequência (·409, ·414,
+// ·415) — ler o fonte não prova o efeito.
+// ⚠️ MEXE NO WORKER E NO DURABLE OBJECT — precisa de `npx wrangler deploy`, além do Pages.
+// ANTERIOR: (·415) TRAVA CONTRA SOBREGRAVAÇÃO DE VOUCHER + HISTÓRICO DE VERSÕES.
 // CASO REAL, 18/09/2026: o Nando cadastrou "Murilo Lombardo Lopes Pereira", salvou, e sem
 // clicar em "Novo" digitou "Nayara De Mattos Olimpio" e salvou de novo. O segundo Salvar NÃO
 // criou nada — EDITOU o registro do Murilo, gravando a Nayara por cima no mesmo #00340. O log
@@ -22053,6 +22135,17 @@ function excluirNotaUI(id){
         // continua existindo só como rede de segurança (ex.: aba que perdeu
         // a conexão de tempo real por um instante).
         if(msg.t==='vouchers'){
+          /* (·416) o aviso agora pode TRAZER o voucher. Quando traz, a lista do
+             outro PC atualiza na hora, sem ida à nuvem — e sem cair na janela
+             cega do KV, que era o que fazia "demorar a aparecer". A releitura
+             continua acontecendo depois, só que sem ninguém esperando por ela. */
+          try{
+            if(msg.acao==='excluido' && msg.v && msg.v.num){
+              if(typeof vsTirarDaLista==='function') vsTirarDaLista(msg.v.num);
+            } else if(msg.v && msg.v.num){
+              if(typeof vsInserirNaLista==='function') vsInserirNaLista(msg.v);
+            }
+          }catch(e){}
           try{ if(typeof loadSaved==='function') loadSaved(); }catch(e){}
           return;
         }
