@@ -4906,6 +4906,7 @@ function vsInserirNaLista(v){
     savedCache.unshift(copia);
     savedCache.sort(function(a,b){ return (b.criadoEm||'').localeCompare(a.criadoEm||''); });
     localStorage.setItem('uv_vouchers',JSON.stringify(savedCache));
+    if(typeof window.uvMarcarDadosMudaram==='function') window.uvMarcarDadosMudaram();   /* (·417) funil */
     renderSaved(savedCache);
   }catch(e){}
 }
@@ -4915,6 +4916,7 @@ function vsTirarDaLista(num){
   try{
     savedCache=(savedCache||[]).filter(function(x){ return x && String(x.num)!==String(num); });
     localStorage.setItem('uv_vouchers',JSON.stringify(savedCache));
+    if(typeof window.uvMarcarDadosMudaram==='function') window.uvMarcarDadosMudaram();   /* (·417) funil */
     renderSaved(savedCache);
   }catch(e){}
 }
@@ -4962,6 +4964,7 @@ async function loadSaved(){
              && !(x._pend && x.id && !idsNuvem[x.id]);   /* já contado nos pendentes */
     });
     savedCache=pendentes.concat(recemSalvos).concat(nuvem);
+    try{ if(typeof window.uvMarcarDadosMudaram==='function') window.uvMarcarDadosMudaram(); }catch(e){}   /* (·417) funil */
     savedCache.sort(function(a,b){ return (b.criadoEm||'').localeCompare(a.criadoEm||''); });
     localStorage.setItem('uv_vouchers',JSON.stringify(savedCache));
     renderSaved(savedCache);
@@ -5078,7 +5081,40 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 416; // (·416) O VOUCHER SALVO APARECE NA HORA. Pergunta do Nando: "por que
+var UV_BUILD_NUM = 417; // (·417) AS CINCO TELAS DO WECANN PARARAM DE RECONSTRUIR TUDO A CADA
+// CLIQUE. Queixa do Nando: "toda vez que clico para abrir qualquer uma delas demora um pouco,
+// elas estão pesadas, carregadas demais".
+// ⚠️ AS CINCO NÃO SÃO CINCO TELAS: Ranking, Kanban, Disponibilidade, Ocupação e Conciliação
+// são VISÕES DE UM CARROSSEL, todas dentro do mesmo #scr-wecann. Trocar entre elas deveria ser
+// só deslizar — mas `uvRenderDaTela` chamava `renderDisponibilidade()` em TODAS, e essa função
+// reconstrói o painel inteiro por HTML e ainda dispara `renderStatusColunas()`, que redesenha
+// Conciliação, Recusados, Erro, Sem Retorno, Contato Feito e Arquivados. OITO redesenhos para
+// mover uma faixa de lugar, com o conteúdo idêntico. É a lição do ·241 de novo.
+// SEGUNDO ACHADO, no mesmo caminho: `renderStatusColunas` chamava `salvarConfig()` QUATRO vezes
+// seguidas, uma por verificação. E salvarConfig serializa a configuração INTEIRA (JSON.stringify
+// síncrono, bloqueia a tela), faz um GET /api/config e depois um POST — quatro disparos eram
+// quatro serializações e OITO viagens de rede para gravar a MESMA coisa. Pior: os quatro
+// corriam em paralelo sobre o mesmo registro, cada um lendo e escrevendo por cima — "lost
+// update" clássico. Agora as quatro verificações rodam (elas LIMPAM estado, não só respondem)
+// e o salvamento sai UMA vez. ⚠️ Elas ficam FORA do `||`: com `a()||b()` o JavaScript não
+// executaria b() quando a() fosse verdadeira, e b() precisa rodar sempre.
+// MEDIDO EM CHROMIUM, não deduzido — com 332 vouchers e 900 linhas de CSV, a troca de tela caiu
+// de 131ms de mediana para 6ms (soma de 10 trocas: 1500ms → 285ms). Com 2000 linhas de CSV, de
+// 250ms para 10ms. O ganho cresce junto com o volume de dados, que é o que torna a queixa dele
+// cada vez mais notável com o tempo.
+// ⚠️ O RISCO DESTA OTIMIZAÇÃO É TELA DESATUALIZADA, não lentidão. Por isso o atalho exige TRÊS
+// condições (painel montado + versão dos dados igual + atalho disponível) e, faltando qualquer
+// uma, REDESENHA. A versão é incrementada nos FUNIS por onde toda mudança passa: salvarConfig,
+// a chegada da lista de vouchers, a inserção/remoção ao vivo e a importação do CSV — escolher
+// funis, em vez de assinar campo a campo, é o que impede a lista de envelhecer e passar a
+// esconder mudanças reais. Na dúvida, redesenha: redesenhar à toa custa tempo; NÃO redesenhar
+// quando devia mostra dado errado, e só esse é defeito de verdade.
+// ⚠️ A VERSÃO DESENHADA VIVE EM `window` (uvDispVerDesenhada), e não como `var` de bloco: quem
+// a declara e quem a lê estão em blocos <script> DIFERENTES — lição do ·352. Como var simples
+// ela seria `undefined` do outro lado, a comparação nunca bateria e o atalho jamais entraria em
+// ação, em silêncio: tudo continuaria funcionando, só que lento, e ninguém saberia por quê.
+// Só front — não precisa de deploy do Worker.
+// ANTERIOR: (·416) O VOUCHER SALVO APARECE NA HORA. Pergunta do Nando: "por que
 // demora tanto pra aparecer um novo voucher na lista? não tem como ser instantâneo?"
 // ⚠️ A CAUSA NÃO ERA O HUB, NEM A REDE DA AGÊNCIA: é o KV do Cloudflare, onde os vouchers
 // moram. Ele é EVENTUALMENTE CONSISTENTE — a própria documentação diz que uma mudança "pode
@@ -7616,6 +7652,8 @@ window.addEventListener('beforeunload', function(e){
 });
 async function salvarConfig(){
   uvSeqSujo++; uvSeloFila();
+  /* (·417) funil: TODA mudança de configuração passa por aqui */
+  try{ if(typeof window.uvMarcarDadosMudaram==='function') window.uvMarcarDadosMudaram(); }catch(e){}
   /* (·310) o localStorage saiu de FORA do try. Estava desprotegido: se ele
      estourasse a cota (~5MB), salvarConfig morria NESTA linha, antes de
      qualquer tentativa de ir à nuvem — e quem chama envolve tudo em try/catch,
@@ -8252,6 +8290,7 @@ async function importarStatusHotel(file){
   const _statusAntesMap={};
   _oldRows.forEach(r=>{ const k=normNome(r.nome); if(k) _statusAntesMap[k]=normStatusHotel(r.statusRaw); });
   statusHotelData={ rows, importadoEm:new Date().toISOString(), __idReservaOk: !!parsed.idReservaOk };
+  try{ if(typeof window.uvMarcarDadosMudaram==='function') window.uvMarcarDadosMudaram(); }catch(e){}   /* (·417) funil */
   localStorage.setItem('uv_statushotel', JSON.stringify(statusHotelData));
   uvCsvAutoritativo=true;   // acabou de vir do arquivo que o usuário subiu: é confiável (build ·86)
   // avisa se a coluna ID Reserva (conciliação por quarto) não foi encontrada
@@ -8324,6 +8363,7 @@ async function carregarStatusHotel(){
     const d=await api('/api/statushotel');
     if(d && Array.isArray(d.rows)){
       statusHotelData=d; localStorage.setItem('uv_statushotel',JSON.stringify(d));
+      try{ if(typeof window.uvMarcarDadosMudaram==='function') window.uvMarcarDadosMudaram(); }catch(e){}   /* (·417) funil */
       uvCsvAutoritativo=true;   // CSV do SERVIDOR: só agora o rastreador pode dar soft delete (build ·86)
       renderStatusColunas();
     }
@@ -11001,10 +11041,26 @@ function renderStatusColunas(){
   const rows=(statusHotelData&&statusHotelData.rows)||[];
   // AUTO-EXCLUSÃO dos Arquivados: quem foi arquivado mas agora tem status preenchido
   // no CSV (saiu de "em branco" → virou "Em tratativa"/"Fechado") é apagado em definitivo.
-  if(purgarArquivadosPorStatus()) salvarConfig();
-  if(purgarCarteiraPorStatus()) salvarConfig();
-  if(uvRastrearTratativa()) salvarConfig();   // relógio do "Em Tratativa" (notificações do Control Desk)
-  if(uvRastrearContatoFeito()) salvarConfig(); // relógio do "Contato Feito" (notificações do Control Desk)
+  /* ⚠️ (·417) UM SALVAMENTO, NÃO QUATRO. Aqui havia quatro `salvarConfig()`
+     em sequência, um por verificação. E `salvarConfig()` não é barato: ele
+     serializa a configuração INTEIRA (JSON.stringify de appConfig, síncrono e
+     bloqueante), faz um GET /api/config para mesclar e depois um POST. Quatro
+     disparos = quatro serializações travando a tela e OITO viagens de rede,
+     para gravar exatamente a mesma configuração.
+     Pior que o custo: os quatro correm em PARALELO sobre o mesmo registro
+     (nenhum é esperado), cada um lendo a nuvem e escrevendo por cima — o
+     clássico "lost update", em que a última gravação apaga o que as outras
+     três acabaram de decidir.
+     Agora as quatro rodam, cada uma faz o seu trabalho, e o salvamento sai UMA
+     vez se qualquer uma delas mudou algo. ⚠️ As chamadas ficam FORA do `||`
+     de propósito: com `a() || b()`, o JavaScript não executaria `b()` quando
+     `a()` fosse verdadeira — e b() PRECISA rodar sempre, porque ela limpa
+     estado, não só responde uma pergunta. */
+  var _mudouArq  = purgarArquivadosPorStatus();
+  var _mudouCart = purgarCarteiraPorStatus();
+  var _mudouTrat = uvRastrearTratativa();      // relógio do "Em Tratativa" (notificações do Control Desk)
+  var _mudouCont = uvRastrearContatoFeito();   // relógio do "Contato Feito" (notificações do Control Desk)
+  if(_mudouArq || _mudouCart || _mudouTrat || _mudouCont) salvarConfig();
   try{ renderCdNotifs(); }catch(e){}          // atualiza as notificações sempre que o Kanban re-renderiza
   const termo=_normE(shBusca||'').trim();
   const vSet=nomesDeVouchers();
@@ -11358,6 +11414,38 @@ function aplicarWecannPorParticipante(){
   }
   return bateu;
 }
+/* ╔══ (·417) A TROCA DE TELA DO WECANN RECONSTRUÍA TUDO, SEMPRE ══════════
+   Queixa do Nando: "toda vez que clico para abrir qualquer uma delas demora um
+   pouco, elas estão pesadas".
+   AS CINCO TELAS (Ranking, Kanban, Disponibilidade, Ocupação, Conciliação) NÃO
+   SÃO CINCO TELAS: são visões de UM carrossel, no mesmo #scr-wecann. Trocar
+   entre elas deveria ser só DESLIZAR — mas `uvRenderDaTela` chamava
+   `renderDisponibilidade()` em TODAS, e essa função reconstrói o painel inteiro
+   por HTML e ainda dispara `renderStatusColunas()`, que redesenha Conciliação,
+   Recusados, Erro, Sem Retorno, Contato Feito e Arquivados. Oito redesenhos, e
+   até quatro gravações de configuração, para mover um carrossel cujo conteúdo
+   NÃO MUDOU — exatamente a lição do ·241, quando a busca de vouchers
+   reconstruía o Kanban a cada tecla digitada.
+   AGORA o painel guarda a VERSÃO DOS DADOS com que foi desenhado. Se nada mudou
+   e o painel já está montado, a troca de tela só desliza o carrossel.
+   ⚠️ A VERSÃO É INCREMENTADA NOS FUNIS por onde TODA mudança passa —
+   salvarConfig, a chegada da lista de vouchers, a inserção/remoção ao vivo e a
+   importação do CSV. Escolher os funis, em vez de assinar campo a campo, é o
+   que impede a lista de assinaturas de envelhecer e passar a esconder mudanças
+   reais. ⚠️ NA DÚVIDA, REDESENHA: uma tela redesenhada à toa custa tempo; uma
+   tela NÃO redesenhada quando devia mostra dado errado — e só o segundo caso é
+   um defeito de verdade. */
+window.uvDadosVer = 0;
+window.uvMarcarDadosMudaram = function(){ try{ window.uvDadosVer++; }catch(e){} };
+/* ⚠️ VIVE EM `window`, e não como `var` de bloco — lição do ·352: cada bloco
+   <script> do Hub é um escopo próprio, e quem lê este valor (uvRenderDaTela)
+   está em OUTRO bloco. Como `var` simples ele seria `undefined` lá, a comparação
+   de versão nunca bateria e o atalho jamais entraria em ação — falhando em
+   silêncio, que é a pior forma de falhar: tudo continuaria funcionando, só que
+   lento, e ninguém descobriria por quê. */
+window.uvDispVerDesenhada = -1;
+window.uvDispIrParaVisao = null; /* move o carrossel sem reconstruir nada */
+
 function renderDisponibilidade(){
   const el=$('#estoqueCard'); if(!el) return;
   // Este render RECRIA todo o HTML do painel — inclusive os nós do Kanban (colunas
@@ -11569,6 +11657,7 @@ function renderDisponibilidade(){
   if(setaNext) setaNext.onclick=()=>irParaVisao(estView+1);
   el.querySelectorAll('.est-dot').forEach(d=> d.onclick=()=>irParaVisao(+d.dataset.v));
   aplicarSeta();
+  window.uvDispIrParaVisao=irParaVisao;      /* (·417) atalho para só deslizar */
   renderStatusColunas();
   // RELIGA a rolagem do Kanban nos nós recém-criados e restaura a posição onde
   // o usuário estava (correção do travamento após CSV/auto-refresh/polling).
@@ -11582,6 +11671,11 @@ function renderDisponibilidade(){
   el.style.display='block';
   // após o layout assentar, ajusta a fonte para preencher exatamente cada coluna
   requestAnimationFrame(()=>{ ajustarFonteEstoque(); ajustarAlturaCarrossel(); });
+  /* (·417) registra a versão DEPOIS do desenho: as purgas lá dentro podem ter
+     chamado salvarConfig() e incrementado a versão no meio do caminho — gravar
+     antes deixaria o painel eternamente "desatualizado" e o atalho nunca
+     pegaria. */
+  try{ window.uvDispVerDesenhada = window.uvDadosVer; }catch(e){}
 }
 
 /* Auto-ajuste: calcula UM ÚNICO tamanho de fonte que cabe em todas as linhas
@@ -13209,7 +13303,21 @@ init();
       try{ appConfig.estoqueVisivel=true; }catch(e){}
       try{ estView=WEC[scr]; }catch(e){}
       if(scr==='conc'){ try{ shConcAberto=true; }catch(e){} }
-      if(typeof renderDisponibilidade==='function') renderDisponibilidade();
+      /* ⚠️ (·417) SÓ DESLIZA, quando dá. As cinco telas do WeCann são visões do
+         MESMO carrossel: se o painel já está montado e nenhum dado mudou desde
+         o desenho, reconstruir tudo de novo é trabalho puro — oito redesenhos
+         para mover uma faixa de lugar. Ver o comentário de renderDisponibilidade.
+         As TRÊS condições são necessárias: painel montado, versão igual e o
+         atalho existindo. Faltando qualquer uma, redesenha — na dúvida o custo
+         é tempo, e o erro contrário seria mostrar dado velho. */
+      var _painelPronto = !!document.getElementById('shCols');
+      var _podeSoDeslizar = _painelPronto
+                            && typeof window.uvDispIrParaVisao==='function'
+                            && window.uvDispVerDesenhada === window.uvDadosVer;
+      if(_podeSoDeslizar){
+        try{ window.uvDispIrParaVisao(WEC[scr]); }catch(e){ _podeSoDeslizar=false; }
+      }
+      if(!_podeSoDeslizar && typeof renderDisponibilidade==='function') renderDisponibilidade();
       if(scr==='conc' && typeof renderConciliacao==='function') renderConciliacao();
       if(scr==='conc' && typeof renderNotas==='function'){ if(typeof recolherTodasNotas==='function') recolherTodasNotas(); renderNotas(); }
       if(typeof ajustarAlturaCarrossel==='function') requestAnimationFrame(ajustarAlturaCarrossel);
