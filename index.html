@@ -3023,6 +3023,28 @@ body:not(.dark) .mt-lock-card select,body:not(.dark) .mt-lock-card input[type=pa
 .conc-ckcorrigido{flex:0 0 auto;font-size:11px;font-weight:700;border-radius:7px;padding:4px 10px;cursor:pointer;background:rgba(53,208,127,.14);color:#35D07F;border:1px solid rgba(53,208,127,.4);transition:all .14s;line-height:1;align-self:flex-start}
 .conc-ckcorrigido:hover{background:#35D07F;color:#0A1929;border-color:#35D07F}
 .conc-lista{list-style:none;margin:0;padding:0;max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:4px}
+/* ╔══ (·418) O QUE SOBROU DEPOIS QUE O JS FICOU RÁPIDO: LAYOUT ═══════════
+   MEDIDO: com o CSV cheio, o painel de Conciliação chega a ~8.900 elementos e
+   400+ itens de lista. Depois de memorizar a normalização de nomes (·418), o
+   JS caiu de 84ms para 23ms — e o perfil passou a mostrar o tempo restante em
+   "(program)", ou seja, o próprio navegador calculando posição e pintando.
+   `content-visibility:auto` diz ao navegador para NÃO calcular o interior de um
+   bloco enquanto ele estiver fora da área visível. O conteúdo continua no HTML,
+   continua sendo encontrado pelo Ctrl+F do navegador e nada muda no
+   comportamento — só o trabalho de desenhar é adiado até a pessoa rolar até lá.
+   ⚠️ O `contain-intrinsic-size` É OBRIGATÓRIO AQUI, e não um detalhe: sem ele
+   o bloco não medido vale ZERO de altura, a barra de rolagem encolhe e volta
+   ao crescer, e a página "pula" debaixo do dedo de quem está rolando. O valor
+   é uma estimativa da altura típica — errar um pouco só ajusta a barra; não
+   errar nada seria não poder adiar nada. */
+.conc-grupo{ content-visibility:auto; contain-intrinsic-size:auto 220px; }
+.conc-lista{ content-visibility:auto; contain-intrinsic-size:auto 200px; }
+/* ⚠️ `.sh-card` NÃO EXISTE — a classe real dos cartões do Kanban é `.sh-item`.
+   A primeira versão desta regra citava um nome inventado e portanto não fazia
+   nada: uma otimização que NÃO RODA é pior que nenhuma, porque fica no arquivo
+   parecendo que o assunto foi tratado. Conferido com grep nas classes usadas,
+   que é a regra desta base para prefixo CSS novo. */
+.sh-item{ content-visibility:auto; contain-intrinsic-size:auto 58px; }
 .conc-lista li{font-size:12px;color:#E7EDF7;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:6px;padding:5px 9px}
 /* painel de conciliação por QUARTO (ID Reserva) */
 .conc-quartos-wrap{flex:1 1 100%;border:1px solid #2C3B66;border-radius:10px;padding:11px;background:rgba(80,120,200,.05);margin-bottom:4px}
@@ -5081,7 +5103,44 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 417; // (·417) AS CINCO TELAS DO WECANN PARARAM DE RECONSTRUIR TUDO A CADA
+var UV_BUILD_NUM = 418; // (·418) A CONCILIAÇÃO ERA A ÚNICA QUE CONTINUOU PESADA DEPOIS DO
+// ·417 — e o Nando avisou. MEDIDO EM CHROMIUM (332 vouchers + 900 linhas de CSV): abrir a
+// Conciliação custava 147ms, contra 9ms das outras quatro telas do WeCann.
+// ⚠️ MINHA PRIMEIRA APOSTA ESTAVA ERRADA, e isso fica registrado. Ataquei a comparação de
+// nomes "um contra todos" (~72 mil comparações por abertura) trocando por índice: o tempo
+// ficou em 147ms. Só o PROFILER do Chromium mostrou onde estava de verdade:
+//    normNome   → 36% do tempo   |   tokensNome → 23%
+// Quase 60% da tela gasto em NORMALIZAR AS MESMAS STRINGS de novo e de novo — trim +
+// toLowerCase + normalize('NFD') + duas expressões regulares, centenas de milhares de vezes,
+// sempre sobre as mesmas ~660 pessoas do evento. Memorizar o resultado por string derrubou
+// renderConciliacao de 84ms para 23ms e conciliacaoWecann de 30ms para 5ms.
+// ⚠️ O ÍNDICE FICOU ASSIM MESMO, e não é código inútil: ele tira o crescimento QUADRÁTICO
+// (dobrar o evento quadruplicava a espera), que a memorização sozinha não resolve. As duas
+// versões antigas continuam no arquivo como `...Bruto` e o teste compara as duas em 7.200
+// pares de nomes gerados ao acaso — reescrever comparação de nome "no olho" é como trocar um
+// casamento certo por um errado sem ninguém ver.
+// ⚠️ tokensNome DEVOLVE CÓPIA. Entregar o array do cache seria mais rápido e perigoso: um
+// sort/push de qualquer chamador corromperia o cache de todos, e o defeito apareceria como
+// nome casando errado em outro canto da tela. Tentei provar por busca que ninguém altera e
+// NÃO DEU — as variáveis se chamam `t`, `ta`, `tb`, `tk`, genéricas demais num arquivo de
+// 8 MB. Em vez de provar, tornei impossível; o slice de 2 a 4 palavras é barato e o ganho se
+// manteve (medido).
+// ⚠️ AS CACHES USAM `var` + CRIAÇÃO PREÇGUIÇOSA. Com `const`, a primeira chamada de normNome
+// durante o BOOT acontece antes da declaração rodar e estoura "Cannot access before
+// initialization", derrubando a página — aconteceu aqui, e o erro apareceu com OUTRO nome
+// (participantesWecann), porque a inicialização morria no meio. Teto de 20 mil entradas: numa
+// página aberta o dia inteiro, cache sem limite é vazamento de memória.
+// MAIS DUAS FRENTES: (1) a Conciliação não é mais recalculada ao REENTRAR na tela (mesmo
+// princípio do ·417); todos os 16 chamadores que SABEM de uma mudança passam `true` e forçam,
+// e sobrou exatamente um sem forçar — a troca de tela. Guardar a exceção em vez da regra é
+// deliberado: um chamador novo amanhã redesenha por padrão, lento no pior caso e nunca
+// desatualizado. (2) `content-visibility:auto` nas listas e nos cartões: o painel chega a
+// ~8.900 elementos, e depois que o JS ficou rápido o tempo restante era o navegador
+// calculando posição. Com `contain-intrinsic-size` junto — sem ele a barra de rolagem pula.
+// RESULTADO MEDIDO: abrir a Conciliação caiu de 147ms para 50ms; as outras quatro telas
+// seguem em 7ms. O que sobra é layout do navegador, proporcional ao tamanho do painel.
+// Só front — não precisa de deploy do Worker.
+// ANTERIOR: (·417) AS CINCO TELAS DO WECANN PARARAM DE RECONSTRUIR TUDO A CADA
 // CLIQUE. Queixa do Nando: "toda vez que clico para abrir qualquer uma delas demora um pouco,
 // elas estão pesadas, carregadas demais".
 // ⚠️ AS CINCO NÃO SÃO CINCO TELAS: Ranking, Kanban, Disponibilidade, Ocupação e Conciliação
@@ -8401,7 +8460,16 @@ function chaveNome(nome){
   return tk[0]+' '+tk[tk.length-1];         // primeiro + último
 }
 // tokens normalizados (palavras do nome)
-function tokensNome(nome){ return normNome(nome).split(' ').filter(Boolean); }
+function tokensNome(nome){
+  var C = tokensNome._c || (tokensNome._c = new Map());
+  const k=(nome==null?'':String(nome));
+  const v=C.get(k);
+  if(v!==undefined) return v.slice();          /* cópia: o cache nunca sai daqui */
+  const r=normNome(k).split(' ').filter(Boolean);
+  if(C.size>=20000) C.clear();
+  C.set(k,r);
+  return r.slice();
+}
 
 function umNomeBate(a, b){
   const ta=tokensNome(a), tb=tokensNome(b);
@@ -8414,11 +8482,69 @@ function umNomeBate(a, b){
   // CASO 2: ambos têm sobrenome -> primeiro nome E último sobrenome iguais
   return ta[0]===tb[0] && ta[ta.length-1]===tb[tb.length-1];
 }
+/* ╔══ (·418) ÍNDICE DE NOMES — O QUE DEIXAVA A CONCILIAÇÃO PESADA ═══════
+   MEDIDO (Chromium, 332 vouchers + 900 linhas de CSV): abrir a Conciliação
+   custava 145ms, contra 9ms das outras quatro telas do WeCann depois do ·417.
+   Dentro dela, `conciliacaoWecann` sozinha levava 32ms e `conciliacaoPorQuarto`
+   16ms — e a conta não está no HTML, está na COMPARAÇÃO DE NOMES.
+   `nomeBateVoucher` percorria o conjunto INTEIRO a cada pergunta, e a pergunta
+   é feita uma vez por linha: ~110 linhas × ~660 hóspedes = 72 mil comparações,
+   cada uma normalizando os DOIS nomes de novo (acento, caixa, split). Cresce ao
+   QUADRADO: dobrar o evento quadruplica a espera.
+   ⚠️ A REGRA NÃO MUDOU — só deixou de ser varrida. Lendo `umNomeBate`:
+     • os dois lados com sobrenome → casa se PRIMEIRO e ÚLTIMO forem iguais
+     • qualquer lado com uma palavra só → casa se o PRIMEIRO for igual
+   Ou seja, a resposta depende de duas chaves exatas. Então o conjunto vira
+   ÍNDICE uma vez e cada pergunta vira uma consulta direta:
+     • `primeiros`   — primeiro nome de TODAS as entradas
+     • `unicos`      — primeiro nome das entradas de UMA palavra só
+     • `chaves`      — "primeiro último" das entradas com sobrenome
+   ⚠️ O ÍNDICE É CACHEADO NUM WeakMap pela própria Set. É o que faz valer a
+   pena: dentro de um render o MESMO conjunto é perguntado centenas de vezes, e
+   sem cache a montagem do índice aconteceria a cada pergunta — trocando um
+   problema quadrático por outro. WeakMap (e não Map) porque a Set é recriada a
+   cada render: com Map forte, cada render deixaria um índice morto na memória
+   para sempre.
+   ⚠️ A VERSÃO ANTIGA CONTINUA NO ARQUIVO como `nomeBateVoucherBruto`, e não é
+   código morto: o teste compara as duas em milhares de pares de nomes gerados
+   ao acaso e falha se discordarem uma única vez. Reescrever comparação de nome
+   "no olho" é como se troca um casamento certo por um errado sem ninguém ver. */
+const _uvIdxNomes = new WeakMap();
+function uvIndiceNomes(setNomes){
+  let ix=_uvIdxNomes.get(setNomes);
+  if(ix) return ix;
+  ix={ primeiros:new Set(), unicos:new Set(), chaves:new Set() };
+  for(const p of setNomes){
+    const t=tokensNome(p);
+    if(!t.length) continue;
+    ix.primeiros.add(t[0]);
+    if(t.length===1) ix.unicos.add(t[0]);
+    else ix.chaves.add(t[0]+' '+t[t.length-1]);
+  }
+  try{ _uvIdxNomes.set(setNomes, ix); }catch(e){}
+  return ix;
+}
 function nomeBateVoucher(nome, setNomes){
+  if(!setNomes || !setNomes.size) return false;
+  const t=tokensNome(nome);
+  if(!t.length) return false;
+  const ix=uvIndiceNomes(setNomes);
+  /* pergunta com UMA palavra: casa com qualquer entrada de mesmo primeiro nome
+     (é o CASO 1 de umNomeBate, valendo para os dois lados) */
+  if(t.length===1) return ix.primeiros.has(t[0]);
+  /* pergunta com sobrenome: casa com uma entrada de UMA palavra de mesmo
+     primeiro nome (CASO 1), ou com uma entrada completa de mesma chave (CASO 2) */
+  return ix.unicos.has(t[0]) || ix.chaves.has(t[0]+' '+t[t.length-1]);
+}
+/* versão original, varrendo o conjunto — guardada só para o teste de
+   equivalência (ver o comentário acima). NÃO usar em tela. */
+function nomeBateVoucherBruto(nome, setNomes){
   if(!setNomes || !setNomes.size) return false;
   for(const p of setNomes){ if(umNomeBate(nome, p)) return true; }
   return false;
 }
+window.nomeBateVoucherBruto=nomeBateVoucherBruto;
+window.uvIndiceNomes=uvIndiceNomes;
 // acha o voucher salvo que contém este nome (cliente, passageiro ou hóspede)
 function acharVoucherPorNome(nome){
   if(!nome) return null;
@@ -8544,11 +8670,45 @@ function umNomeBateEstrito(a,b){
   const surA=new Set(ta.slice(1));
   return tb.slice(1).some(t=>surA.has(t));
 }
+/* (·418) MESMO PROBLEMA, REGRA DIFERENTE. `umNomeBateEstrito` não é uma chave
+   exata: depois do primeiro nome bater, ela aceita também "compartilhar
+   QUALQUER sobrenome" (foi o que casou "Raquel Goldstein Costa Cruz" com
+   "Raquel Raimunda Goldstein Costa", no ·284). Isso não vira consulta direta.
+   Mas o PRIMEIRO NOME é condição obrigatória nos dois ramos — então basta
+   agrupar por primeiro nome e comparar só dentro do balde. De ~660 comparações
+   por pergunta passa a umas poucas, sem tocar em uma vírgula da regra: o que
+   entra no balde é só quem teria chance de casar, e quem fica fora já falharia
+   na primeira linha de umNomeBateEstrito. */
+const _uvIdxEstrito = new WeakMap();
+function uvIndiceEstrito(setNomes){
+  let ix=_uvIdxEstrito.get(setNomes);
+  if(ix) return ix;
+  ix=new Map();
+  for(const p of setNomes){
+    const t=tokensNome(p);
+    if(!t.length) continue;
+    let b=ix.get(t[0]); if(!b){ b=[]; ix.set(t[0], b); }
+    b.push(p);
+  }
+  try{ _uvIdxEstrito.set(setNomes, ix); }catch(e){}
+  return ix;
+}
 function nomeBateVoucherEstrito(nome, setNomes){
+  if(!setNomes || !setNomes.size) return false;
+  const t=tokensNome(nome);
+  if(!t.length) return false;
+  const balde=uvIndiceEstrito(setNomes).get(t[0]);
+  if(!balde) return false;                       /* nenhum candidato com este primeiro nome */
+  for(const p of balde){ if(umNomeBateEstrito(nome, p)) return true; }
+  return false;
+}
+/* original, para o teste de equivalência — NÃO usar em tela */
+function nomeBateVoucherEstritoBruto(nome, setNomes){
   if(!setNomes || !setNomes.size) return false;
   for(const p of setNomes){ if(umNomeBateEstrito(nome, p)) return true; }
   return false;
 }
+window.nomeBateVoucherEstritoBruto=nomeBateVoucherEstritoBruto;
 // lista fixa de atendentes (espelha o select de cadastro de voucher)
 const ATENDENTES=['Eduardo Vinícius','Ghabriella Bressan','Letícia Rosa','Diego Oliveira','Liliane Gaspar','Israel Hespanhol','Maria Eduarda','Fernando Pires','Ana Maria','Juliana Lupo','Hynaê Teston','Mayara Marcelli'];
 // Chaves (primeiro nome + último sobrenome) dos VENDEDORES/ATENDENTES.
@@ -8876,7 +9036,7 @@ function conciliacaoWecann(){
 }
 
 /* ===== AUDITORIA DE CHECK-IN/CHECK-OUT (colunas F/G do CSV × voucher WeCann) =====
-   Disparada implicitamente a cada CSV importado, porque roda dentro de renderConciliacao()
+   Disparada implicitamente a cada CSV importado, porque roda dentro de renderConciliacao(true)
    (chamada por renderStatusColunas() ao fim de toda importação). Compara, hóspede a
    hóspede, a data de Check-in e a de Check-out do CSV com o que está gravado no voucher
    salvo. Divergência de QUALQUER uma das duas datas vira pendência, apontando qual delas
@@ -8913,7 +9073,7 @@ function marcarCkCorrigido(chave, nome){
   if(!appConfig.ckAuditoriaCorrigidos || typeof appConfig.ckAuditoriaCorrigidos!=='object') appConfig.ckAuditoriaCorrigidos={};
   appConfig.ckAuditoriaCorrigidos[chave]=true;
   salvarConfig();
-  renderConciliacao();
+  renderConciliacao(true);
   toast('"'+nome+'" marcado como corrigido — não aparece mais.','ok');
 }
 
@@ -9286,7 +9446,7 @@ function darBaixaAuditoria(chave, rotulo){
   appConfig.audBaixados[chave]=true;
   salvarConfig();
   logRemoto('conciliacao','Auditoria de disparidade: item conferido e baixado', { chave, rotulo:rotulo||'' });
-  renderConciliacao();
+  renderConciliacao(true);
   toast('Conferido ✅ — "'+(rotulo||chave)+'" saiu da auditoria','ok');
 }
 
@@ -9418,7 +9578,7 @@ function integrarMesmaPessoa(nomeSolto, numVoucher){
   appConfig.vinculos[normNome(nomeSolto)]=normNome(alvo);
   shIntegrarNome=''; shResolverAberto='';
   salvarConfig();
-  renderConciliacao();
+  renderConciliacao(true);
   toast('Vinculado: '+nomeSolto+' = '+alvo+' (mesma pessoa) ✅','ok');
 }
 
@@ -9436,7 +9596,7 @@ async function integrarNovoHospede(nomeSolto, numVoucher){
   if(!sv.data.hospedes.some(h=>normNome(h)===normNome(nomeSolto))) sv.data.hospedes.push(nomeSolto.trim());
   shIntegrarNome='';
   await salvarVoucherEditado(v);
-  renderConciliacao();
+  renderConciliacao(true);
   renderStatusColunas();
   toast(nomeSolto+' adicionado como hóspede no voucher #'+numVoucher+' ✅','ok');
 }
@@ -9450,14 +9610,14 @@ function resolverVinculo(nomeSolto, nomeEscolhido){
   appConfig.vinculos[normNome(nomeSolto)]=normNome(nomeEscolhido);
   shResolverAberto='';
   salvarConfig();
-  renderConciliacao();
+  renderConciliacao(true);
   toast('Vínculo definido: '+nomeSolto+' → '+nomeEscolhido+' ✅','ok');
 }
 // desfaz um vínculo (volta a ser ambíguo)
 function limparVinculo(nomeSolto){
   if(appConfig.vinculos) delete appConfig.vinculos[normNome(nomeSolto)];
   salvarConfig();
-  renderConciliacao();
+  renderConciliacao(true);
 }
 
 // marca um "Adicionado ao Fechado via voucher" como CONFERIDO -> some da lista.
@@ -9467,12 +9627,12 @@ function marcarViaVoucherVisto(nome){
   if(!appConfig.viaVoucherVistos || typeof appConfig.viaVoucherVistos!=='object') appConfig.viaVoucherVistos={};
   appConfig.viaVoucherVistos[n]=true;
   salvarConfig();
-  renderConciliacao();
+  renderConciliacao(true);
   toast('“'+nome+'” marcado como conferido ✅','ok');
 }
 
 // alterna o painel de detalhes da conciliação
-function toggleConciliacao(){ shConcAberto=!shConcAberto; renderConciliacao(); requestAnimationFrame(ajustarAlturaCarrossel); }
+function toggleConciliacao(){ shConcAberto=!shConcAberto; renderConciliacao(true); requestAnimationFrame(ajustarAlturaCarrossel); }
 
 /* ===== BAIXA DE QUARTO CONFERIDO (conciliação por ID Reserva) =====
    OPÇÃO C — "impressão digital" do quarto: a baixa é gravada combinando o
@@ -9501,7 +9661,7 @@ function darBaixaQuarto(id, pessoas){
     appConfig.quartosBaixadosPorId[kid]=true;
   }
   salvarConfig();
-  renderConciliacao();
+  renderConciliacao(true);
   toast('Quarto "'+id+'" conferido e baixado ✅','ok');
 }
 function reverterBaixaQuarto(id, pessoas){
@@ -9511,7 +9671,7 @@ function reverterBaixaQuarto(id, pessoas){
   const kid=(id||'').trim().toUpperCase();
   if(kid && appConfig.quartosBaixadosPorId) delete appConfig.quartosBaixadosPorId[kid];
   salvarConfig();
-  renderConciliacao();
+  renderConciliacao(true);
   toast('Baixa do quarto "'+id+'" desfeita','info');
 }
 
@@ -9658,8 +9818,23 @@ function montarBlocoAuditoriaDisparidade(ad){
 }
 
 // renderiza o banner de conciliação + (opcional) o detalhe com os nomes
-function renderConciliacao(){
+/* (·418) MESMO PRINCÍPIO DO ·417, agora na Conciliação. Ela é recalculada a
+   cada visita à tela — e é a mais cara das cinco (medido: 147ms contra 9ms das
+   outras). Se nada mudou desde o último desenho, refazer a conta e reescrever
+   ~8.900 elementos é trabalho puro.
+   ⚠️ A ASSINATURA INCLUI `shResolverAberto` E `shConcAberto`, e não só a versão
+   dos dados: os dois mudam o QUE é desenhado (o seletor de desempate aberto, o
+   detalhe expandido) sem passar por nenhum funil de dados. Esquecer um deles
+   faria o painel ignorar um clique do usuário — o tipo de defeito que aparece
+   como "o botão não funciona". */
+window.uvConcAssinatura = null;
+function renderConciliacao(forcar){
   const box=document.getElementById('shConc'); if(!box) return;
+  var _assin = [window.uvDadosVer, shResolverAberto||'', shConcAberto?1:0,
+                (typeof shIntegrarNome!=='undefined'?shIntegrarNome:''),
+                (typeof shIntegrarBusca!=='undefined'?shIntegrarBusca:'')].join('|');
+  if(!forcar && box.innerHTML && window.uvConcAssinatura===_assin) return;
+  window.uvConcAssinatura=_assin;
   const rows=(statusHotelData&&statusHotelData.rows)||[];
   if(!rows.length){ box.innerHTML=''; return; } // sem CSV, nada a conciliar
   const c=conciliacaoWecann();
@@ -9774,12 +9949,12 @@ function renderConciliacao(){
     const ck=e.target.closest('[data-ckcorrigido]');
     if(ck){ marcarCkCorrigido(ck.getAttribute('data-ckcorrigido'), ck.getAttribute('data-ckcorrigido-nome')); return; }
     const r=e.target.closest('[data-resolver]');
-    if(r){ const nm=r.getAttribute('data-resolver'); shResolverAberto = (shResolverAberto===normNome(nm))?'':normNome(nm); renderConciliacao(); return; }
+    if(r){ const nm=r.getAttribute('data-resolver'); shResolverAberto = (shResolverAberto===normNome(nm))?'':normNome(nm); renderConciliacao(true); return; }
     const o=e.target.closest('[data-vinc-pessoa]');
     if(o){ resolverVinculo(o.getAttribute('data-vinc-nome'), o.getAttribute('data-vinc-pessoa')); return; }
     // abrir/fechar o integrador de um nome solto
     const ig=e.target.closest('[data-integrar]');
-    if(ig){ const nm=ig.getAttribute('data-integrar'); const novo=normNome(nm); shIntegrarNome=(shIntegrarNome===novo)?'':novo; shIntegrarBusca=''; renderConciliacao(); return; }
+    if(ig){ const nm=ig.getAttribute('data-integrar'); const novo=normNome(nm); shIntegrarNome=(shIntegrarNome===novo)?'':novo; shIntegrarBusca=''; renderConciliacao(true); return; }
     // ação 1 — é a mesma pessoa
     const am=e.target.closest('[data-mesma-num]');
     if(am){ integrarMesmaPessoa(am.getAttribute('data-mesma-nome'), am.getAttribute('data-mesma-num')); return; }
@@ -9793,7 +9968,7 @@ function renderConciliacao(){
   };
   // busca de voucher dentro do integrador (mantém o foco, atualiza só a lista)
   const bv=document.getElementById('concBuscaVch');
-  if(bv){ bv.oninput=()=>{ shIntegrarBusca=bv.value; renderConciliacao(); const el2=document.getElementById('concBuscaVch'); if(el2){ el2.focus(); el2.setSelectionRange(el2.value.length,el2.value.length); } }; }
+  if(bv){ bv.oninput=()=>{ shIntegrarBusca=bv.value; renderConciliacao(true); const el2=document.getElementById('concBuscaVch'); if(el2){ el2.focus(); el2.setSelectionRange(el2.value.length,el2.value.length); } }; }
 }
 let shSelecionados=new Set();   // normNomes marcados (checkbox) na coluna "Fazer contato"
 let shFiltroAtendente='';       // filtro por atendente na coluna "Contato Realizado"
@@ -11123,7 +11298,7 @@ function renderStatusColunas(){
   renderStatusColunasDraw();
 
   atualizarBotaoTrazer();
-  renderConciliacao();
+  renderConciliacao(true);
   renderRecusados();
   renderErro();
   renderSemRetorno();
@@ -11344,7 +11519,60 @@ function ligarRankingCol(){
 }
 /* ===== PARTICIPANTES WECANN (lista CSV) ===== */
 let participantesWecann = new Set();
-function normNome(s){ return (s||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' '); }
+/* ╔══ (·418) NORMALIZAÇÃO COM MEMÓRIA — O QUE REALMENTE PESAVA ═════════
+   ⚠️ ISTO FOI MEDIDO COM O PROFILER DO CHROMIUM, e desmentiu a minha primeira
+   aposta. Eu tinha atacado a comparação "um contra todos" achando que o custo
+   estava no número de comparações — troquei por índice e a Conciliação
+   continuou em 147ms. O perfil mostrou onde o tempo estava de verdade:
+     normNome   → 36% do tempo total
+     tokensNome → 23%
+   Quase 60% da tela sendo gasto em NORMALIZAR AS MESMAS STRINGS de novo e de
+   novo. Cada chamada faz trim + toLowerCase + normalize('NFD') + duas trocas
+   por expressão regular — barato uma vez, caro quinhentas mil vezes. E os
+   nomes são sempre os mesmos: as ~660 pessoas do evento.
+   A correção é guardar o resultado por string de entrada. A função é PURA
+   (mesma entrada, mesma saída, sem efeito colateral), então lembrar a resposta
+   não muda comportamento nenhum — só deixa de refazer a conta.
+   ⚠️ COM TETO. Um cache sem limite numa página que fica aberta o dia inteiro
+   vira vazamento de memória: nome digitado na busca, linha de CSV reimportado,
+   cada variação entra e nunca sai. Ao passar do teto ele é esvaziado inteiro —
+   simples e previsível; o custo é reaquecer, que é justamente o que a função
+   faz rápido.
+   ⚠️ `tokensNome` DEVOLVE UMA CÓPIA, e isso é decisão, não descuido. Guardar o
+   array e entregá-lo direto seria mais rápido — e perigoso: qualquer chamador
+   que fizesse um `sort`, um `push` ou trocasse uma posição estaria corrompendo
+   o cache de TODO MUNDO, e o defeito apareceria como nome casando errado em
+   outro lugar da tela, sem nenhuma pista de onde veio.
+   Tentei garantir isso conferindo os usos com busca e nÃO DEU: as variáveis que
+   recebem tokensNome se chamam `t`, `ta`, `tb`, `tk` — nomes genéricos demais
+   para procurar num arquivo de 8 MB sem falso positivo. Então em vez de provar
+   que ninguém altera, o código passou a tornar isso impossível. O `slice()` de
+   um array de 2 a 4 palavras é barato perto de normalizar a string (medido: o
+   ganho se manteve), e nenhum chamador precisa saber da regra. */
+/* ⚠️ A CACHE MORA NA PRÓPRIA FUNÇÃO (normNome._c), e não numa variável ao
+   lado. Duas razões, as duas aprendidas doendo:
+   1) TDZ. Com `const _uvNormCache` ao lado, a primeira chamada de normNome
+      durante o BOOT acontece ANTES da declaração rodar — `normNome` é
+      declaração de função (içada), a constante não é — e a leitura estoura com
+      "Cannot access before initialization", derrubando a página inteira.
+      Aconteceu aqui, e o erro apareceu com OUTRO nome (participantesWecann),
+      porque a inicialização morria no meio e o sintoma surgia longe da causa.
+   2) A função fica AUTOCONTIDA. Quatro testes desta base extraem `normNome` e
+      `tokensNome` do arquivo e as executam isoladas; com a cache do lado de
+      fora, todos quebraram de uma vez com "not defined". Uma função que
+      depende de uma declaração vizinha é uma função que não se pode testar
+      sozinha — e o custo disso apareceu na mesma tarde. */
+function normNome(s){
+  var C = normNome._c || (normNome._c = new Map());
+  const k=(s==null?'':String(s));
+  const v=C.get(k);
+  if(v!==undefined) return v;
+  const r=k.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ');
+  if(C.size>=20000) C.clear();          /* teto: página aberta o dia inteiro não pode vazar */
+  C.set(k,r);
+  return r;
+}
+window.uvLimparCacheNomes=function(){ try{ if(normNome._c) normNome._c.clear(); if(tokensNome._c) tokensNome._c.clear(); }catch(e){} };
 function ehParticipanteWecann(nome){
   const n=normNome(nome);
   if(!n || !participantesWecann.size) return false;
@@ -13318,6 +13546,13 @@ init();
         try{ window.uvDispIrParaVisao(WEC[scr]); }catch(e){ _podeSoDeslizar=false; }
       }
       if(!_podeSoDeslizar && typeof renderDisponibilidade==='function') renderDisponibilidade();
+      /* ⚠️ ÚNICO PONTO QUE USA O ATALHO. Todos os outros chamadores de
+         renderConciliacao passam `true` e forçam o redesenho, porque eles SÃO a
+         mudança (vincular um nome, importar CSV, abrir o desempate). Aqui é
+         diferente: é só reentrar na tela, e reentrar não muda nada.
+         Guardar a exceção em vez da regra é deliberado: se amanhé alguém criar um
+         chamador novo e esquecer do assunto, o padrão dele será REDESENHAR —
+         lento no pior caso, nunca desatualizado. */
       if(scr==='conc' && typeof renderConciliacao==='function') renderConciliacao();
       if(scr==='conc' && typeof renderNotas==='function'){ if(typeof recolherTodasNotas==='function') recolherTodasNotas(); renderNotas(); }
       if(typeof ajustarAlturaCarrossel==='function') requestAnimationFrame(ajustarAlturaCarrossel);
@@ -22636,7 +22871,7 @@ function excluirNotaUI(id){
         if(typeof renderDisponibilidade==='function') renderDisponibilidade();
         if(typeof renderStatusColunas==='function') renderStatusColunas();
         var wec = ativa.getAttribute('data-wec');
-        if(wec==='conc' && typeof renderConciliacao==='function') renderConciliacao();
+        if(wec==='conc' && typeof renderConciliacao==='function') renderConciliacao(true);
         if(wec==='ranking' && typeof renderRankingCol==='function') renderRankingCol();
         if(typeof ajustarAlturaCarrossel==='function') requestAnimationFrame(ajustarAlturaCarrossel);
         if(wec==='kanban' && typeof setupKanbanScroll==='function') requestAnimationFrame(setupKanbanScroll);
