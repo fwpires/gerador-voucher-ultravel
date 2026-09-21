@@ -2456,6 +2456,61 @@ body:not(.dark) .termo-nome{color:#5a7085}
   .hub-sidebar{width:100%;flex:none;height:auto;max-height:60vh;overflow-y:auto;position:sticky;top:14px;overscroll-behavior:contain}
   .hub-main{height:auto;overflow:visible;padding-right:0}
 }
+/* ==================================================================
+   (·426) CELULAR DE LADO A LADO — o fim das faixas vazias nas laterais.
+   CAUSA-RAIZ MEDIDA (não deduzida): a margem nunca foi o problema. Quando
+   QUALQUER elemento fica mais largo que a tela, o navegador do celular
+   AFASTA O ZOOM para caber o mais largo — e a partir daí a página inteira
+   é desenhada menor, sobrando faixa vazia à direita. Medido em Chromium
+   móvel: na tela Clientes a viewport passava de 390 para 465 px sozinha,
+   enquanto todo o resto continuava desenhado com 390 — exatamente as
+   barras laterais do print. O culpado ali era `grid-template-columns:
+   1fr 1.25fr 132px`: em CSS `1fr` significa `minmax(AUTO,1fr)`, e `auto`
+   NÃO encolhe abaixo do conteúdo mínimo — um nome comprido (ou um
+   localizador como "CAJH3G · FLN-IST") empurra a linha para fora da tela.
+   Por isso o sintoma piora com dado real e não aparece com a base vazia.
+   As quatro camadas abaixo atacam a causa, não o sintoma; a última é só
+   rede de segurança para o que ninguém previu.
+   ⚠ Tudo escrito com :where(), que tem especificidade ZERO: qualquer
+   regra de componente continua vencendo. É isso que permite zerar o piso
+   de largura "onde ninguém pediu piso" sem atropelar quem pediu — a
+   coluna do Kanban (min-width:270px) segue intacta e rolando de lado no
+   próprio wrap, em vez de esticar a página inteira. */
+@media(max-width:980px){
+  /* (1) RESPIRO MÍNIMO — 12px de cada lado viraram 6px (escolha do Nando),
+     e nunca menos que a área segura do notch no modo paisagem. */
+  main{padding-left:max(6px,env(safe-area-inset-left));
+       padding-right:max(6px,env(safe-area-inset-right))}
+  .topbar-inner{padding-left:max(10px,env(safe-area-inset-left));
+                padding-right:max(10px,env(safe-area-inset-right))}
+  /* (2) TEXTO LONGO QUEBRA em vez de empurrar a tela. `anywhere` (e não
+     `break-word`) porque só ele reduz também o CONTEÚDO MÍNIMO — e é o
+     conteúdo mínimo que o grid consulta para decidir a largura da coluna.
+     É esta única linha que conserta a tela Clientes: com ela, o `1fr` que
+     não encolhia passa a encolher, sem precisar reescrever grid nenhum.
+     ⚠ HOUVE UMA TERCEIRA CAMADA AQUI — `min-width:0` em tudo — e ela FOI
+     REMOVIDA depois de medida: com a quebra de texto no lugar, desligá-la
+     não mudava um pixel em nenhuma das 25 telas, em 4 larguras, nem com as
+     planilhas abertas. Regra de CSS que não muda nada é pior que regra
+     nenhuma: ela engana quem for mexer nisto daqui a seis meses. */
+  :where(#hubMain,#hubSidebar){overflow-wrap:anywhere}
+  /* (3) NADA MAIS LARGO QUE A TELA por natureza. */
+  :where(#hubMain,#hubSidebar) :is(img,svg,canvas,video,iframe,pre){max-width:100%}
+  :where(.hub-shell,.hub-main,.hub-sidebar){max-width:100%}
+  /* (4) CONTROLES também não podem esticar a página. O caso medido é o
+     <select> de atendentes: ele nasce com a largura da MAIOR opção, então um
+     nome comprido no cadastro estica a tela inteira — e ninguém relaciona
+     uma coisa com a outra. Só `max-width`: NADA de overflow:hidden aqui,
+     que cortaria os balões ::after de quem reagiu (·355/·357). */
+  :where(#hubMain,#hubSidebar,.topbar-inner) :is(button,select,input,textarea){max-width:100%}
+  /* (5) REDE FINAL — já existe desde antes, no topo do arquivo:
+     html{overflow-x:hidden} + @supports(overflow-x:clip). NÃO foi duplicada
+     aqui de propósito; regra repetida é regra para divergir depois. Fica o
+     registro de que ela é a quinta camada, e de que ela sozinha NÃO resolve
+     o problema deste build: medido, o navegador móvel afasta o zoom mesmo
+     com o corte no <html>, porque a decisão dele é tomada sobre o LAYOUT,
+     não sobre o que está visível. */
+}
 /* HUB v2 — visões WeCann em telas limpas (sem carrossel/setas) */
 #scr-wecann .est-setas,#scr-wecann .est-dots{display:none !important}
 #scr-wecann .est-carousel{overflow:visible !important;height:auto !important;transition:none !important}
@@ -5152,7 +5207,55 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 425; // (·425) OS BOTÕES VOLTARAM À APARÊNCIA ORIGINAL. O ·424 mudou os
+var UV_BUILD_NUM = 426; // (·426) O HUB OCUPA A TELA INTEIRA DO CELULAR. Pedido do Nando, com
+// print do iPhone: "sempre sobra esses espaços laterais, quero deixar inteligente se adaptando
+// de forma dinâmica pra cada tela de celular ocupando toda a tela de lado a lado".
+// ⚠️ SINTOMA ≠ CAUSA, E AQUI A DIFERENÇA É TUDO. A margem nunca foi o problema: ela era de
+// 12px, e as faixas do print são MUITO maiores que isso. MEDIDO em Chromium móvel (não
+// deduzido): ao entrar na tela Clientes, a viewport pulava sozinha de 390 para 465px enquanto
+// TODO o resto continuava desenhado com 390 — ou seja, o navegador do celular AFASTA O ZOOM
+// para caber o elemento mais largo da página, e a partir daí a página inteira é desenhada
+// menor, sobrando faixa vazia à direita. É por isso que "diminuir a margem" nunca resolveria:
+// o espaço não era margem, era a parte da tela que a página deixou de usar ao encolher.
+// ⚠️ A CAUSA do elemento largo: `grid-template-columns:1fr 1.25fr 132px`. Em CSS `1fr` é
+// `minmax(AUTO,1fr)`, e `auto` NÃO encolhe abaixo do conteúdo mínimo — um nome comprido, ou um
+// localizador como "CAJH3G · FLN-IST", empurra a linha para fora da tela. Por isso o defeito
+// PIORA COM DADO REAL e não aparece com a base vazia, e por isso ele aparecia no Control Desk
+// dele (onde o alerta de check-in imprime companhia + localizador + trecho, sem um espaço onde
+// quebrar) sem aparecer em bancada.
+// ⚠️ O QUE FOI FEITO, em quatro linhas de CSS dentro do @media(max-width:980px) que o ·246 já
+// tinha criado para o modo celular: (1) o respiro lateral caiu de 12px para 6px, escolha do
+// Nando, e nunca menor que a área segura do notch (env(safe-area-inset)) — é o único item que
+// mexe em margem, e sozinho ele não resolveria nada; (2) TEXTO LONGO QUEBRA
+// (overflow-wrap:anywhere) — `anywhere` e não `break-word` porque só ele reduz também o
+// CONTEÚDO MÍNIMO, que é a medida que o grid consulta para decidir a largura da coluna: é esta
+// linha que conserta o `1fr` sem reescrever grid nenhum; (3) img/svg/canvas/iframe/pre nunca
+// passam de 100%; (4) CONTROLES também não — o caso medido é o <select> de atendentes, que
+// nasce com a largura da MAIOR opção, então um nome comprido no cadastro estica a tela inteira
+// e ninguém relaciona uma coisa com a outra. Sem overflow:hidden nos controles, de propósito:
+// cortaria os balões ::after de quem reagiu (·355/·357).
+// ⚠️ TUDO COM :where(), QUE TEM ESPECIFICIDADE ZERO — qualquer regra de componente continua
+// vencendo. É isso que permite mexer no Hub inteiro sem atropelar quem pediu largura de
+// propósito: a coluna do Kanban (min-width:270px) segue intacta e rolando de lado no próprio
+// quadro, e as planilhas (min-width 480/620px) seguem rolando dentro do quadro delas.
+// ⚠️ UMA QUINTA CAMADA FOI ESCRITA, MEDIDA E REMOVIDA: `min-width:0` em tudo. Com a quebra de
+// texto no lugar, desligá-la não mudava UM PIXEL em nenhuma das 25 telas, em 4 larguras, nem
+// com as planilhas abertas — e regra de CSS que não muda nada engana quem for mexer nisto
+// depois (a lição que o ·404 e o ·418 já tinham cobrado com CSS órfão). Saiu.
+// ⚠️ A rede final (html{overflow-x:hidden} + @supports clip) JÁ EXISTIA no topo do arquivo e
+// NÃO foi duplicada aqui. Registro importante: ela sozinha NÃO resolve este defeito — medido,
+// o navegador móvel afasta o zoom mesmo com o corte no <html>, porque a decisão dele é tomada
+// sobre o LAYOUT, não sobre o que está visível.
+// VALIDAÇÃO: test_mobile_largura.mjs (novo, 273 checagens) varre as 25 telas em 320/375/390/
+// 430px, repete tudo com texto real longo injetado, abre as planilhas (Controle Geral e Gestão
+// e Controle) e monta a linha de check-in do print — e falha se o documento ficar mais largo
+// que a tela. Validado por 4 SABOTAGENS, todas pegas POR COMPORTAMENTO e não por leitura de
+// código (a lição repetida do ·409/·414/·415/·416/·422): tirar a quebra de texto, tirar o
+// max-width dos controles e devolver os 12px fazem o teste falhar. ⚠️ O teste também falhou
+// sozinho duas vezes por culpa minha e foi endurecido: ele clicava em nós DESANEXADOS ao abrir
+// as seções de Minhas Tarefas (o quadro se redesenha) e não abria planilha nenhuma, passando
+// sem testar nada; e o estresse pulava o <select> por ele ter <option> como filhos, justamente
+// o controle que mais estica a tela. ANTERIOR: OS BOTÕES VOLTARAM À APARÊNCIA ORIGINAL. O ·424 mudou os
 // três de lugar — mas também trocou a cor, o tamanho e o estilo deles, o que NÃO foi pedido.
 // O Nando: "era somente pra mudar de lugar e nao para mudar as cores, o tamanho e o estilo".
 // ⚠️ O ERRO FOI MEU E É DE MÉTODO: ao mover os botões criei uma classe nova (.cd-admin-bt) em
