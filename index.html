@@ -259,6 +259,23 @@ body.dark .hub-sidebar .nav-add{color:var(--verde)}
 .scr-soon{text-align:center;padding:64px 20px;color:var(--texto-fraco)}
 /* ===== HUB v2 — Dashboard ===== */
 .dash-head{display:flex;align-items:baseline;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+/* (·424) os botões de administração vão para a DIREITA do cabeçalho.
+   `margin-left:auto` empurra o grupo para a ponta sem precisar mexer no título
+   nem no subtítulo, que continuam alinhados como sempre estiveram. */
+.cd-admin{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.cd-admin-bt{background:#1B2A55;border:1px solid #3B4E82;color:#CFE0F0;border-radius:9px;
+  padding:7px 13px;font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer;
+  white-space:nowrap;transition:all .14s}
+.cd-admin-bt:hover{background:#25376B;border-color:#5570AE;color:#fff}
+body:not(.dark) .cd-admin-bt{background:#EEF4F8;border-color:#CBD8E4;color:#2B4257}
+body:not(.dark) .cd-admin-bt:hover{background:#DDE9F2;border-color:#9FB6CC;color:#15252F}
+/* ⚠️ `.cd-admin:empty` some junto: quando os três estão escondidos (não-admin),
+   o contêiner vazio continuaria ocupando o `gap` do cabeçalho e deixaria um
+   buraco inexplicável à direita do subtítulo. Como `uv-auth-hidden` é
+   display:none e não remove do DOM, `:empty` NÃO basta — daí a regra abaixo,
+   que age quando NÃO há nenhum filho visível. */
+.cd-admin:not(:has(> :not(.uv-auth-hidden))){display:none}
+@media(max-width:700px){ .cd-admin{margin-left:0;width:100%} }
 .dash-title{font-size:22px;font-weight:800;margin:0;color:var(--texto)}
 .dash-sub{color:var(--texto-fraco);font-size:13px}
 /* ===== (·388) WELCOME DAY — faixa da semana, no topo do Control Desk =====
@@ -4102,6 +4119,22 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
         <div class="dash-head">
           <h1 class="dash-title"><span class="ic-chat ic-chat-lg"><svg viewBox="0 0 24 24"><path d="M12 6.6c-3.3 0-6 2-6 4.6 0 1.4.8 2.7 2 3.6-.1.7-.5 1.5-1 2.1-.2.3 0 .6.3.5 1-.2 2-.6 2.8-1.1.6.2 1.2.3 1.9.3 3.3 0 6-2 6-4.6S15.3 6.6 12 6.6z" fill="#fff"/><circle cx="9.6" cy="11.3" r=".95" fill="#7a3fd0"/><circle cx="12" cy="11.3" r=".95" fill="#e0518b"/><circle cx="14.4" cy="11.3" r=".95" fill="#2f6bff"/></svg></span> Control Desk</h1>
           <span class="dash-sub">Ocupação dos atendentes e ausências programadas em tempo real</span>
+          <!-- ╔══ (·424) OS TRÊS BOTÕES DE ADMINISTRAÇÃO ═════════════════════
+               Vieram do cabeçalho do quadro de Ocupação para o espaço vazio do topo,
+               a pedido do Nando. Eles não pertenciam àquele quadro: Usuários, Log e
+               Alertas são do HUB INTEIRO, não da ocupação dos atendentes.
+               ⚠️ NASCEM ESCONDIDOS (uv-auth-hidden no próprio HTML) e só aparecem se
+               `aplicarIdentidadeNaTela` confirmar perfil admin. A ordem importa:
+               nascer VISÍVEL e ser escondido depois mostraria os botões por uma
+               fração de segundo a todo mundo, a cada carregamento.
+               ⚠️ OS IDs FORAM MANTIDOS. Toda a ligação (cliques, regra de admin,
+               senha do 📧 Alertas) procura por id — renomear só para "combinar com o
+               lugar novo" quebraria três pontos distantes daqui de uma vez. -->
+          <div class="cd-admin" id="cdAdminBtns">
+            <button type="button" class="cd-admin-bt uv-auth-hidden" id="ocpUsersBtn" title="Gestão de usuários — criar contas, ver sessões, revogar acesso (somente admin)">👤 Usuários</button>
+            <button type="button" class="cd-admin-bt uv-auth-hidden" id="ocpLogBtn" title="Registro de atividades — quem fez o quê, onde e quando (somente admin)">📋 Log</button>
+            <button type="button" class="cd-admin-bt uv-auth-hidden" id="ocpMailCfgBtn" title="Alertas por e-mail — configurar destinatários (somente administrador)">📧 Alertas</button>
+          </div>
         </div>
         <!-- (·388) Welcome Day — desenhada por WD_ESCALA + appConfig.wdPautas -->
         <div class="wd-wrap" id="wdWrap">
@@ -4136,7 +4169,11 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
         <div class="dash-cards-cd">
         <div class="cd-aniv-wrap" id="cdAnivWrap"></div>
         <div class="dash-card ocp-card">
-          <div class="dash-card-t">🚦 Ocupação dos Atendentes<span class="ocp-hint">verde = livre &nbsp;·&nbsp; vermelho = ocupado</span><button type="button" class="ocp-mailcfg-btn uv-auth-hidden" id="ocpMailCfgBtn" title="Alertas por e-mail — configurar destinatários (somente administrador)">📧 Alertas</button><button type="button" class="ocp-relat-btn" id="ocpRelatBtn" title="Relatório de vendas — todos os atendimentos, TMA e gráficos, com filtros">📊 Relatório</button><button type="button" class="ocp-users-btn uv-auth-hidden" id="ocpUsersBtn" title="Gestão de usuários — criar contas, ver sessões, revogar acesso (somente admin)">👤 Usuários</button><button type="button" class="ocp-log-btn uv-auth-hidden" id="ocpLogBtn" title="Registro de atividades — quem fez o quê, onde e quando (somente admin)">📋 Log</button></div>
+          <!-- (·424) Usuários, Log e Alertas SAÍRAM daqui e foram para o cabeçalho do
+               Control Desk (espaço vazio no topo), a pedido do Nando. O 📊 Relatório
+               FICOU: ele não é de administração, é sobre os atendimentos deste
+               quadro — e é o único dos quatro que todo mundo enxerga. -->
+          <div class="dash-card-t">🚦 Ocupação dos Atendentes<span class="ocp-hint">verde = livre &nbsp;·&nbsp; vermelho = ocupado</span><button type="button" class="ocp-relat-btn" id="ocpRelatBtn" title="Relatório de vendas — todos os atendimentos, TMA e gráficos, com filtros">📊 Relatório</button></div>
           <div class="ocp-vez-bar" id="ocpVezBar"></div>
           <div class="ocp-grid" id="ocpGrid"></div>
         </div>
@@ -5108,7 +5145,32 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 423; // (·423) REGISTRO DE TUDO QUE ACONTECE NO WELCOME DAY. Pedido do
+var UV_BUILD_NUM = 424; // (·424) USUÁRIOS, LOG E ALERTAS SUBIRAM PARA O TOPO DO CONTROL DESK.
+// Pedido do Nando: tirar os três do cabeçalho do quadro "Ocupação dos Atendentes" e pôr no
+// espaço vazio à direita do título. Eles não pertenciam àquele quadro mesmo: Usuários, Log e
+// Alertas são do HUB INTEIRO, não da ocupação dos atendentes.
+// 📊 RELATÓRIO FICOU onde estava, de propósito: ele é sobre os atendimentos DAQUELE quadro,
+// não é administração, e é o único dos quatro que a equipe inteira enxerga.
+// ⚠️ A PERMISSÃO É O PONTO DELICADO, e o Nando foi explícito: "somente eu Fernando Pires
+// (admin) tenho acesso a estes botões, ninguém mais pode visualizar". Mover um botão de lugar
+// é a mudança que mais facilmente desfaz uma regra de visibilidade sem ninguém notar — o botão
+// continua lá, bonito, e só o perfil errado descobre. Então: eles NASCEM ESCONDIDOS
+// (uv-auth-hidden no próprio HTML) e só aparecem se `aplicarIdentidadeNaTela` confirmar admin.
+// A ordem importa — nascer visível e ser escondido depois mostraria os botões por uma fração
+// de segundo a TODO MUNDO, a cada carregamento. MEDIDO no navegador em três perfis (admin,
+// atendente e sessão sem perfil): só o admin vê.
+// ⚠️ OS IDs FORAM MANTIDOS. Toda a ligação — cliques, regra de admin, senha do 📧 Alertas —
+// procura por id; renomear só para "combinar com o lugar novo" quebraria três pontos distantes
+// daqui de uma vez, e nenhum deles reclamaria em voz alta.
+// ⚠️ O 📋 LOG PASSOU A SER LIGADO POR DELEGAÇÃO. Ele era o único dos três preso por `.onclick`
+// num elemento procurado por id — o mesmo padrão que matou seis botões no ·422. Aqui ele
+// funcionava por sorte (o bloco roda em DOMContentLoaded, quando o botão já existe), e mover
+// um botão de lugar é justamente o tipo de mudança que transforma sorte em defeito.
+// ⚠️ O GRUPO SOME INTEIRO quando ninguém dentro dele aparece: `uv-auth-hidden` é display:none
+// e NÃO remove do DOM, então o contêiner vazio continuaria consumindo o `gap` do cabeçalho e
+// deixaria um buraco inexplicável à direita do subtítulo para quem não é admin.
+// Só front — o Worker não mudou (mas o ·421 ainda precisa de deploy, se não foi feito).
+// ANTERIOR: (·423) REGISTRO DE TUDO QUE ACONTECE NO WELCOME DAY. Pedido do
 // Nando: "todo nome que for escrito ou apagado, o dia e a hora e o nome da pessoa que escreveu
 // ou apagou". Três eventos novos no Registro de Atividades:
 //   wd_pauta_nova     → "Pauta do Welcome Day criada — QUARTA · 23/09: \"texto\""
@@ -14075,11 +14137,20 @@ init();
     };
   }
   window.uvAuthAplicarIdentidade=aplicarIdentidadeNaTela;
-  function ligarLogBtn(){
-    var b=document.getElementById('ocpLogBtn');
-    if(b) b.onclick=function(){ if(typeof window.abrirLog==='function') window.abrirLog(); };
-  }
-  function ini(){ aplicarIdentidadeNaTela(); ligarLogout(); ligarLogBtn(); if(typeof window.ocpWireUsuariosBtn==='function') window.ocpWireUsuariosBtn(); }
+  /* ⚠️ (·424) O 📋 Log passou a ser ligado por DELEGAÇÃO, como os outros dois.
+     Ele era o único dos três preso por `.onclick` num elemento procurado por id
+     — e foi exatamente esse padrão que matou seis botões no ·422. Aqui ele
+     funcionava por sorte (este bloco roda em DOMContentLoaded, quando o botão
+     já existe), mas mover o botão de lugar é justamente o tipo de mudança que
+     transforma sorte em defeito. Delegação não se importa com onde o botão
+     está nem com quando ele nasce. */
+  document.addEventListener('click', function(e){
+    if(!e.target || !e.target.closest) return;
+    if(e.target.closest('#ocpLogBtn')){
+      if(typeof window.abrirLog==='function') window.abrirLog();
+    }
+  });
+  function ini(){ aplicarIdentidadeNaTela(); ligarLogout(); if(typeof window.ocpWireUsuariosBtn==='function') window.ocpWireUsuariosBtn(); }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',ini);
   else ini();
 })();
