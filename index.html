@@ -5103,7 +5103,39 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 419; // (·419) O BANCO PASSOU A APARECER NA LISTA DE CARTÕES DE CRÉDITO.
+var UV_BUILD_NUM = 420; // (·420) ⚠️ OS RECADOS DA RUTH NÃO APARECIAM PARA NINGUÉM.
+// RELATO (21/09/2026): a Ruth fixou dois recados, via os dois na tela dela, e mais ninguém via
+// — nem o Nando. O Registro de Atividades PROVAVA que os eventos tinham chegado ao servidor
+// ("mural novo", 14:24 e 14:47), porque o LOG usa um endereço próprio (/api/log).
+// ⚠️ CAUSA: o mural NÃO estava em CAMPOS_VIVOS. Ele viajava só dentro de `config`, no KV —
+// que é EVENTUALMENTE CONSISTENTE ("até 60 segundos ou mais"; até a resposta "não existe" fica
+// em cache). A sequência que APAGAVA o recado, e é pior que um simples atraso:
+//   1. a Ruth grava o recado           → KV.put(config COM o recado)
+//   2. outro PC carrega a configuração → GET devolve a versão VELHA, SEM o recado
+//   3. esse PC salva qualquer coisa    → PUT da configuração SEM o recado  ← apagou
+// O passo 3 não é hipótese: o Hub salva a configuração INTEIRA, e a mescla de mural roda
+// contra a cópia da nuvem que AQUELE PC recebeu — se ela veio velha, o recado não está em
+// nenhum dos dois lados e a união não tem o que preservar. Qualquer atendente salvando
+// qualquer coisa apagava o recado da Ruth. Ela via porque a cópia dela era local.
+// CORREÇÃO: o mural entrou em CAMPOS_VIVOS e passou a viajar pelo Durable Object, que É
+// fortemente consistente e SERIALIZA as chamadas — dois PCs mandando junto não se
+// sobrescrevem, o segundo mescla em cima do primeiro. Mesma decisão do ·254 para as Ações
+// Comerciais. De quebra o recado passa a aparecer nos outros PCs NA HORA, pelo WebSocket.
+// ⚠️ A REGRA DE MESCLA FOI ESPELHADA NO SERVIDOR (mergeMural), idêntica à do cliente,
+// incluindo a união de reações POR PESSOA do ·411. Se o servidor mesclasse diferente, os PCs
+// convergiriam para telas diferentes — que é exatamente a queixa que trouxe este build. O
+// teste roda as DUAS versões lado a lado e falha se discordarem em qualquer caso.
+// ⚠️ ARMADILHA QUE QUASE APAGOU TUDO, e ela não é óbvia: o Durable Object existe desde o
+// ·306 e o estado guardado dele NÃO tinha a chave `mural`. Como `mesclarEstadoVivo` passa a
+// SEMPRE definir a chave (mesmo vazia) e `espelharNoKV` grava no KV toda chave viva definida,
+// o PRIMEIRO salvamento depois do deploy escreveria um mural VAZIO por cima do bom — zerando
+// justamente o que este build veio consertar. Por isso `carregar()` agora ADOTA do KV toda
+// chave viva ausente do estado guardado. A migração é GENÉRICA de propósito: vale para o
+// mural agora e para qualquer campo que entre em CAMPOS_VIVOS no futuro, para ninguém ter de
+// lembrar desta armadilha de novo.
+// ⚠️ PRECISA DE `npx wrangler deploy` — a correção principal está no Worker. Só publicar o
+// Pages NÃO resolve.
+// ANTERIOR: (·419) O BANCO PASSOU A APARECER NA LISTA DE CARTÕES DE CRÉDITO.
 // Pedido do Nando, apontando o espaço vazio entre o TITULAR e o SALDO — e o espaço estava
 // vazio mesmo: a grade tinha cinco colunas e sobrava folga ali. Agora são SEIS:
 //    bandeira | cartão | titular | BANCO | saldo | janela
@@ -22368,6 +22400,7 @@ function excluirNotaUI(id){
         var antesOcp =JSON.stringify(appConfig.ocupacaoAtendentes||{});
         var antesAus =JSON.stringify(appConfig.ausenciasProgramadas||{});
         var antesAcoes=JSON.stringify(appConfig.acoes||{});
+        var antesMural=JSON.stringify(appConfig.mural||{});   // (·420) Mural de Recados
 
         // --- Kanban: carteira + arquivados (carimbo mais recente vence) ---
         if(typeof uvMesclarCarteiraArq==='function'){
@@ -22438,6 +22471,13 @@ function excluirNotaUI(id){
           var mac=window.uvMesclarAcoes(appConfig.acoes, remoto.acoes);
           appConfig.acoes={ cards:mac.cards, lido:mac.lido };
         }
+        /* ⚠️ (·420) MURAL DE RECADOS AO VIVO. Sem esta linha o recado entraria no
+           Durable Object mas só apareceria nos outros PCs no próximo
+           carregamento — e a queixa da Ruth foi justamente "ninguém viu". Usa o
+           MESMO mrMergeMaps que protege o dado no boot: nenhuma regra nova. */
+        if(remoto.mural && typeof window.mrMergeMaps==='function'){
+          appConfig.mural=window.mrMergeMaps(appConfig.mural, remoto.mural);
+        }
         try{ localStorage.setItem('uv_config',JSON.stringify(appConfig)); }catch(e){}
 
         // Só re-renderiza o que REALMENTE mudou (evita piscar tela à toa)
@@ -22447,6 +22487,7 @@ function excluirNotaUI(id){
         var mudouOcp    = (JSON.stringify(appConfig.ocupacaoAtendentes||{})!==antesOcp);
         var mudouAus    = (JSON.stringify(appConfig.ausenciasProgramadas||{})!==antesAus);
         var mudouAcoes  = (JSON.stringify(appConfig.acoes||{})!==antesAcoes);
+        var mudouMural  = (JSON.stringify(appConfig.mural||{})!==antesMural);   // (·420)
 
         if(mudouKanban){ try{ if(typeof renderStatusColunas==='function') renderStatusColunas(); }catch(e){} }
         if(mudouKanban || mudouNotif){ try{ if(typeof window.renderCdNotifs==='function') window.renderCdNotifs(); }catch(e){} }
@@ -22463,6 +22504,8 @@ function excluirNotaUI(id){
           // e o Diego, comparando o "antes" (acCardsAntes) com o resultado do merge
           try{ if(typeof window.acVerificarNovasMarcacoes==='function') window.acVerificarNovasMarcacoes(acCardsAntes, (appConfig.acoes||{}).cards); }catch(e){}
         }
+        /* (·420) recado novo aparece no quadro na hora, sem recarregar nada */
+        if(mudouMural){ try{ if(typeof window.mrRender==='function') window.mrRender(); }catch(e){} }
       }catch(e){ /* nunca deixa o tempo real derrubar a tela */ }
       aplicando=false;
     }
