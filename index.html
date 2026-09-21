@@ -263,12 +263,19 @@ body.dark .hub-sidebar .nav-add{color:var(--verde)}
    `margin-left:auto` empurra o grupo para a ponta sem precisar mexer no título
    nem no subtítulo, que continuam alinhados como sempre estiveram. */
 .cd-admin{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.cd-admin-bt{background:#1B2A55;border:1px solid #3B4E82;color:#CFE0F0;border-radius:9px;
-  padding:7px 13px;font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer;
-  white-space:nowrap;transition:all .14s}
-.cd-admin-bt:hover{background:#25376B;border-color:#5570AE;color:#fff}
-body:not(.dark) .cd-admin-bt{background:#EEF4F8;border-color:#CBD8E4;color:#2B4257}
-body:not(.dark) .cd-admin-bt:hover{background:#DDE9F2;border-color:#9FB6CC;color:#15252F}
+/* ⚠️ (·425) OS BOTÕES MANTÊM AS CLASSES ORIGINAIS — .ocp-users-btn, .ocp-log-btn
+   e .ocp-mailcfg-btn — e portanto a COR, o TAMANHO e o ESTILO de sempre.
+   Na primeira versão deste build eu criei uma classe nova (.cd-admin-bt) e com
+   ela repintei os três de azul, num tamanho diferente. O pedido era MUDAR DE
+   LUGAR, e só. Mudar a aparência "de brinde" é decidir pelo outro uma coisa que
+   ele não pediu — e no caso desses três a cor tem função: roxo, amarelo e azul
+   distinguem Usuários, Log e Alertas de relance.
+   Único ajuste aqui é de POSIÇÃO, que é justamente o que ele pediu para mudar:
+   `float:right` e `margin-left:auto` foram feitos para o cabeçalho do quadro
+   antigo. Dentro deste contêiner flex o float é ignorado, e três margens
+   automáticas espalhariam os botões em vez de mantê-los juntos. Nada de cor,
+   borda, fonte ou tamanho é tocado. */
+.cd-admin > button{float:none;margin-left:0}
 /* ⚠️ `.cd-admin:empty` some junto: quando os três estão escondidos (não-admin),
    o contêiner vazio continuaria ocupando o `gap` do cabeçalho e deixaria um
    buraco inexplicável à direita do subtítulo. Como `uv-auth-hidden` é
@@ -4131,9 +4138,9 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
                senha do 📧 Alertas) procura por id — renomear só para "combinar com o
                lugar novo" quebraria três pontos distantes daqui de uma vez. -->
           <div class="cd-admin" id="cdAdminBtns">
-            <button type="button" class="cd-admin-bt uv-auth-hidden" id="ocpUsersBtn" title="Gestão de usuários — criar contas, ver sessões, revogar acesso (somente admin)">👤 Usuários</button>
-            <button type="button" class="cd-admin-bt uv-auth-hidden" id="ocpLogBtn" title="Registro de atividades — quem fez o quê, onde e quando (somente admin)">📋 Log</button>
-            <button type="button" class="cd-admin-bt uv-auth-hidden" id="ocpMailCfgBtn" title="Alertas por e-mail — configurar destinatários (somente administrador)">📧 Alertas</button>
+            <button type="button" class="ocp-users-btn uv-auth-hidden" id="ocpUsersBtn" title="Gestão de usuários — criar contas, ver sessões, revogar acesso (somente admin)">👤 Usuários</button>
+            <button type="button" class="ocp-log-btn uv-auth-hidden" id="ocpLogBtn" title="Registro de atividades — quem fez o quê, onde e quando (somente admin)">📋 Log</button>
+            <button type="button" class="ocp-mailcfg-btn uv-auth-hidden" id="ocpMailCfgBtn" title="Alertas por e-mail — configurar destinatários (somente administrador)">📧 Alertas</button>
           </div>
         </div>
         <!-- (·388) Welcome Day — desenhada por WD_ESCALA + appConfig.wdPautas -->
@@ -5145,7 +5152,25 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 424; // (·424) USUÁRIOS, LOG E ALERTAS SUBIRAM PARA O TOPO DO CONTROL DESK.
+var UV_BUILD_NUM = 425; // (·425) OS BOTÕES VOLTARAM À APARÊNCIA ORIGINAL. O ·424 mudou os
+// três de lugar — mas também trocou a cor, o tamanho e o estilo deles, o que NÃO foi pedido.
+// O Nando: "era somente pra mudar de lugar e nao para mudar as cores, o tamanho e o estilo".
+// ⚠️ O ERRO FOI MEU E É DE MÉTODO: ao mover os botões criei uma classe nova (.cd-admin-bt) em
+// vez de manter as que eles já tinham. Mudar a aparência "de brinde" é decidir pelo outro uma
+// coisa que ele não pediu — e neste caso a cor tem FUNÇÃO: roxo (Usuários), amarelo (Log) e
+// azul (Alertas) distinguem os três de relance. Repintar tudo de azul apagou essa distinção.
+// AGORA: as classes originais de volta — .ocp-users-btn, .ocp-log-btn e .ocp-mailcfg-btn — e
+// a classe inventada removida do arquivo. MEDIDO no navegador comparando o ·423 (botões no
+// lugar antigo) com este: cor, fundo, borda, raio, fonte, peso, espaçamento e altura são
+// IDÊNTICOS nos três. O único ajuste que sobrou é de POSIÇÃO, que é o que ele pediu para
+// mudar: `float:right` e `margin-left:auto` foram feitos para o cabeçalho do quadro antigo —
+// dentro do contêiner flex novo o float é ignorado e três margens automáticas espalhariam os
+// botões em vez de mantê-los juntos.
+// ⚠️ O TESTE AGORA TRANCA ISSO: além de exigir as classes originais, ele proibe o contêiner
+// .cd-admin de declarar cor, fundo, borda, fonte, peso, padding ou raio — só posicionamento.
+// Sem essa trava, a mesma tentação voltaria na próxima vez que alguém mexesse no cabeçalho.
+// Só front — o Worker não mudou (mas o ·421 ainda precisa de deploy, se não foi feito).
+// ANTERIOR: (·424) USUÁRIOS, LOG E ALERTAS SUBIRAM PARA O TOPO DO CONTROL DESK.
 // Pedido do Nando: tirar os três do cabeçalho do quadro "Ocupação dos Atendentes" e pôr no
 // espaço vazio à direita do título. Eles não pertenciam àquele quadro mesmo: Usuários, Log e
 // Alertas são do HUB INTEIRO, não da ocupação dos atendentes.
