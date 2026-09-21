@@ -5103,7 +5103,25 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 418; // (·418) A CONCILIAÇÃO ERA A ÚNICA QUE CONTINUOU PESADA DEPOIS DO
+var UV_BUILD_NUM = 419; // (·419) O BANCO PASSOU A APARECER NA LISTA DE CARTÕES DE CRÉDITO.
+// Pedido do Nando, apontando o espaço vazio entre o TITULAR e o SALDO — e o espaço estava
+// vazio mesmo: a grade tinha cinco colunas e sobrava folga ali. Agora são SEIS:
+//    bandeira | cartão | titular | BANCO | saldo | janela
+// POR QUE ISSO IMPORTAVA: o banco só aparecia ao ABRIR o cartão. Com 19 cartões na tela,
+// vários do MESMO titular e da MESMA bandeira, o banco era o único dado que distinguia um do
+// outro — e para descobrir qual era qual ele tinha de abrir um por um.
+// ⚠️ SEM BANCO SAI UM TRAÇO APAGADO, nunca vazio. É a mesma regra que o ·206 aplicou ao
+// saldo: coluna em branco parece defeito de layout, traço diz "não preenchido" — que é a
+// informação verdadeira — e o balão convida a abrir o cartão para preencher.
+// ⚠️ NOME LONGO ENCURTA COM RETICÊNCIAS (ellipsis + nowrap + min-width:0). Sem isso um
+// "NUBANK ULTRAVIOLETA EMPRESARIAL PJ" esticaria a coluna e empurraria o saldo para fora da
+// linha — e o saldo é o número que decide a compra. Em tela abaixo de 1100px a linha quebra
+// em duas faixas em vez de espremer seis colunas.
+// MEDIDO EM CHROMIUM em 1500/1250/1000/820px: transbordo ZERO em todas; uma faixa até
+// 1250px, duas nas estreitas. O modal NÃO foi mexido — o banco foi ACRESCENTADO à lista,
+// não movido de lugar, e as duas telas leem o mesmo `c.banco`.
+// Só front — não precisa de deploy do Worker.
+// ANTERIOR: (·418) A CONCILIAÇÃO ERA A ÚNICA QUE CONTINUOU PESADA DEPOIS DO
 // ·417 — e o Nando avisou. MEDIDO EM CHROMIUM (332 vouchers + 900 linhas de CSV): abrir a
 // Conciliação custava 147ms, contra 9ms das outras quatro telas do WeCann.
 // ⚠️ MINHA PRIMEIRA APOSTA ESTAVA ERRADA, e isso fica registrado. Ataquei a comparação de
@@ -24385,7 +24403,9 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
   #scr-cartoes .cc-sec{color:#2ec7a5;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.7px;margin:20px 0 9px;display:flex;align-items:center;gap:8px}
   #scr-cartoes .cc-sec.off{color:#8CA3B3}
   #scr-cartoes .cc-list{display:flex;flex-direction:column;gap:8px}
-  #scr-cartoes .cc-row{display:grid;grid-template-columns:46px 1.3fr 1fr .95fr auto;gap:14px;align-items:center;background:#16232F;border:1px solid #243849;border-radius:12px;padding:13px 16px;cursor:pointer;transition:border .15s,box-shadow .15s;text-align:left;width:100%;font-family:inherit}
+  /* (·419) SEIS colunas: bandeira | cartão | titular | BANCO | saldo | janela.
+     O banco entrou entre o titular e o saldo, que era o espaço vazio da linha. */
+  #scr-cartoes .cc-row{display:grid;grid-template-columns:46px 1.25fr .95fr .95fr .8fr auto;gap:14px;align-items:center;background:#16232F;border:1px solid #243849;border-radius:12px;padding:13px 16px;cursor:pointer;transition:border .15s,box-shadow .15s;text-align:left;width:100%;font-family:inherit}
   #scr-cartoes .cc-row:hover{border-color:#33586b}
   #scr-cartoes .cc-row.best{background:linear-gradient(90deg,rgba(46,199,165,.1),rgba(46,199,165,.03));border-color:rgba(46,199,165,.55)}
   #scr-cartoes .cc-row.best:hover{box-shadow:0 0 12px rgba(46,199,165,.25)}
@@ -24396,6 +24416,19 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
   #scr-cartoes .cc-nome{font-weight:650;font-size:.98rem;color:#E6EEF3;line-height:1.3}
   #scr-cartoes .cc-fim{color:#8CA3B3;font-weight:500;font-size:.85rem}
   #scr-cartoes .cc-tit{color:#cfe8e0;font-size:.85rem}
+  /* (·419) o banco é informação de APOIO: fica um tom abaixo do titular, para
+     a linha continuar sendo lida pelo cartão e pelo dono, não pelo banco.
+     Nome longo encurta com reticências em vez de empurrar o saldo para fora. */
+  #scr-cartoes .cc-banco{color:#9ab4c6;font-size:.82rem;font-weight:600;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+  #scr-cartoes .cc-banco.vazio{color:#54697d;font-weight:400}
+  body:not(.dark) #scr-cartoes .cc-banco{color:#4f6b80}
+  body:not(.dark) #scr-cartoes .cc-banco.vazio{color:#9fb0bd}
+  /* em tela estreita a linha vira duas faixas em vez de espremer seis colunas */
+  @media(max-width:1100px){
+    #scr-cartoes .cc-row{grid-template-columns:46px 1.2fr 1fr auto;row-gap:6px}
+    #scr-cartoes .cc-banco{grid-column:2 / -1}
+  }
   #scr-cartoes .cc-chips{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
   /* (·206) SALDO NA LINHA — tabular-nums alinha os dígitos em coluna, para
      comparar saldos de relance sem o olho tropeçar em larguras diferentes. */
@@ -25001,6 +25034,17 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
         '<span class="cc-nome">'+(destaque?'<span class="cc-star">⭐ </span>':'')+ccEsc(ccNomeCartao(c))+' <span class="cc-fim">'+ccEsc(ccFinal(c))+'</span>'+(c._extraId?' <span class="cc-novo-selo" title="Cadastrado pela tela">novo</span>':'')+
           (alertaFixo?' <span class="cc-led-alerta" title="'+ccEsc(alertaFixo)+'"></span>':'')+'</span>'+
         '<span class="cc-tit">'+ccEsc(c.tit)+'</span>'+
+        /* (·419) BANCO na lista, no espaço vazio entre o titular e o saldo —
+           pedido do Nando. Até aqui o banco só aparecia ao ABRIR o cartão, e com
+           19 cartões na tela (vários do mesmo titular e da mesma bandeira) era o
+           único dado que distinguia um do outro sem abrir um por um.
+           ⚠️ SEM BANCO sai um TRAÇO apagado, nunca vazio: a mesma regra que o
+           ·206 aplicou ao saldo. Coluna em branco parece defeito de layout;
+           traço diz "não preenchido", que é a informação verdadeira. */
+        '<span class="cc-banco'+(c.banco?'':' vazio')+'" title="'+
+          (c.banco ? ('Banco: '+ccEsc(c.banco)) : 'Banco ainda não informado — abra o cartão para preencher')+'">'+
+          (c.banco ? ccEsc(c.banco) : '–')+
+        '</span>'+
         /* (·206) SALDO no resumo, exatamente no espaço entre o titular e os
            melhores dias, como pedido. Sem valor sai um TRAÇO apagado e não
            "R$ 0,00": zero é uma afirmação sobre o limite do cartão, e afirmar
