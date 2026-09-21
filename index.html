@@ -5103,7 +5103,31 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 420; // (·420) ⚠️ OS RECADOS DA RUTH NÃO APARECIAM PARA NINGUÉM.
+var UV_BUILD_NUM = 421; // (·421) RESGATE DOS RECADOS + COMO SABER SE O WORKER SUBIU.
+// Depois do ·420 o Nando publicou e perguntou: "não deveriam aparecer pra todos? até agora
+// continua tudo igual". Duas coisas faltavam, e só a segunda é conserto de código:
+// (1) ⚠️ O ·420 FECHA O BURACO, MAS NÃO RESSUSCITA O QUE JÁ SE PERDEU. Os recados da Ruth
+//     muito provavelmente JÁ tinham sido apagados da nuvem antes do conserto — ela continuava
+//     vendo os dois porque a cópia estava no navegador DELA. Agora, quando um computador tem
+//     recado que a nuvem não tem, ele SOBE sozinho no carregamento. A união do boot já trazia
+//     esses recados de volta, mas só para dentro daquela aba: sem um salvamento, o resgate
+//     morria ao fechar a página. NÃO entra em laço — depois que sobem, a nuvem passa a ter os
+//     mesmos ids e a comparação dá zero. Exclusão feita só num PC também sobe: apagar é
+//     informação. O atraso de 3s existe para salvar DEPOIS de a configuração terminar de
+//     montar — salvar no meio do boot gravaria pela metade.
+// (2) ⚠️ NÃO HAVIA COMO SABER SE O WORKER TINHA SIDO PUBLICADO. O selo do canto mostra a
+//     versão do ARQUIVO (Pages) e não diz NADA sobre o servidor. Publicar só o Pages e achar
+//     que o Worker foi junto é um engano fácil de cometer e impossível de perceber — a tela
+//     fica idêntica. Com o mural vazio, não dá para distinguir "a correção não funcionou" de
+//     "a correção não foi publicada", e essa dúvida custou uma rodada inteira.
+//     Agora o Worker declara a própria versão (WORKER_BUILD) e a rota /api/versao a devolve,
+//     junto com a lista de CAMPOS_VIVOS — que responde direto "o mural já viaja pelo caminho
+//     rápido?". A própria AUSÊNCIA da rota já é resposta: ela nasceu neste build.
+// O Diagnóstico (Ctrl+Shift+D) ganhou o botão "🔎 Conferir servidor", que pergunta À NUVEM
+// quantos recados existem lá e qual build do Worker está no ar. O resto do Diagnóstico lê só
+// o computador local — e uma tela vazia responde igual às duas perguntas.
+// ⚠️ PRECISA DE `npx wrangler deploy` (a rota /api/versao é nova) além do Pages.
+// ANTERIOR: (·420) ⚠️ OS RECADOS DA RUTH NÃO APARECIAM PARA NINGUÉM.
 // RELATO (21/09/2026): a Ruth fixou dois recados, via os dois na tela dela, e mais ninguém via
 // — nem o Nando. O Registro de Atividades PROVAVA que os eventos tinham chegado ao servidor
 // ("mural novo", 14:24 e 14:47), porque o LOG usa um endereço próprio (/api/log).
@@ -7422,6 +7446,30 @@ async function carregarConfig(){
       }
       if(typeof window.mrMergeMaps==='function'){            // (·406) Mural de Recados
         appConfig.mural=window.mrMergeMaps(local.mural, c.mural);
+        /* ╔══ (·421) O QUE EXISTE SÓ AQUI SOBE SOZINHO ══════════════════
+           O ·420 fechou o buraco por onde os recados se perdiam, mas NÃO
+           ressuscita o que já tinha sido apagado da nuvem antes do conserto —
+           e foi isso que aconteceu com os recados da Ruth: ela continuava
+           vendo os dois porque a cópia estava no navegador DELA, enquanto a
+           nuvem já os tinha perdido.
+           Esta união acima JÁ traz de volta o que existe só aqui — mas só
+           para dentro desta aba, e ninguém mais fica sabendo. Sem um
+           salvamento, o resgate morre quando a pessoa fecha a página.
+           Então: se este computador tem recado que a nuvem não tem, ele SOBE.
+           ⚠️ NÃO ENTRA EM LAÇO: depois que sobem, a nuvem passa a ter os mesmos
+           ids e a comparação dá zero no próximo carregamento. E o atraso de 3s
+           existe para o salvamento acontecer DEPOIS de a configuração inteira
+           terminar de montar — salvar no meio do boot gravaria pela metade. */
+        try{
+          var _muNuvem=(c && c.mural && typeof c.mural==='object')?c.mural:{};
+          var _soAqui=Object.keys(appConfig.mural||{}).filter(function(id){ return !_muNuvem[id]; });
+          if(_soAqui.length){
+            console.log('[mural] '+_soAqui.length+' recado(s) existem só neste computador — enviando para a nuvem');
+            setTimeout(function(){
+              try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+            }, 3000);
+          }
+        }catch(e){}
       }
       if(typeof window.ccExtrasMergeMaps==='function'){
         appConfig.ccExtras=window.ccExtrasMergeMaps(local.ccExtras, c.ccExtras);
@@ -13341,6 +13389,22 @@ function uvDiagTexto(){
     pesos.forEach(function(p){ L.push('  '+p[0]+': '+p[1]+' KB'); });
   }catch(e){}
   L.push('');
+  /* ╔══ (·421) MURAL DE RECADOS — O QUE ESTE PC TEM ═══════════════════
+     Existe porque a investigação do ·420 travou numa pergunta que ninguém
+     conseguia responder olhando a tela: "os recados ainda EXISTEM no servidor,
+     ou já foram apagados?". A tela vazia responde as duas coisas igual. */
+  L.push('MURAL DE RECADOS (neste computador)');
+  try{
+    var _mu=(appConfig.mural&&typeof appConfig.mural==='object')?appConfig.mural:{};
+    var _ks=Object.keys(_mu), _vivos=[], _apag=0;
+    _ks.forEach(function(k){ if(_mu[k]&&_mu[k].del) _apag++; else if(_mu[k]) _vivos.push(_mu[k]); });
+    L.push('  vivos: '+_vivos.length+'   apagados: '+_apag+'   (total gravado: '+_ks.length+')');
+    _vivos.sort(function(a,b){ return (b.ts||0)-(a.ts||0); }).slice(0,6).forEach(function(r){
+      L.push('    • "'+(r.tit||'(sem título)')+'" — '+(r.autor||'?')+' — '+uvDiagData(r.ts));
+    });
+    if(!_ks.length) L.push('    (este computador não tem nenhum recado gravado)');
+  }catch(e){ L.push('  (erro ao ler: '+e+')'); }
+  L.push('');
   L.push('FILA DE SAÍDA');
   try{ L.push('  Alterações ainda não confirmadas pela nuvem: '+(typeof uvPendencias==='function'?uvPendencias():'?')); }catch(e){}
   L.push('');
@@ -13465,6 +13529,51 @@ window.uvAbrirDiag=uvAbrirDiag; window.uvDiagTexto=uvDiagTexto;
 (function ligaDiagBtns(){
   var f=$('#diagFechar'); if(f) f.onclick=function(){ $('#diagOverlay').classList.remove('aberto'); };
   var r=$('#diagRefresh'); if(r) r.onclick=function(){ var a=$('#diagTexto'); if(a) a.textContent=uvDiagTexto(); };
+  /* ⚠️ (·421) O BOTÃO QUE PERGUNTA AO SERVIDOR. O resto do Diagnóstico lê
+     só este computador — e foi exatamente isso que faltou na investigação do
+     ·420: com a tela vazia, ninguém sabia dizer se o recado tinha sumido do
+     servidor ou se só não estava chegando aqui. Uma tela vazia responde as
+     duas perguntas do mesmo jeito. Agora dá para ver o que a NUVEM tem. */
+  var sv=$('#diagServidor');
+  if(sv) sv.onclick=async function(){
+    var a=$('#diagTexto'); if(!a) return;
+    sv.disabled=true; var _rot=sv.textContent; sv.textContent='Consultando…';
+    var L=['CONSULTA AO SERVIDOR — '+new Date().toLocaleString('pt-BR'),''];
+    try{
+      var cfg=await api('/api/config');
+      var mu=(cfg&&cfg.mural&&typeof cfg.mural==='object')?cfg.mural:null;
+      if(!mu){
+        L.push('MURAL: o servidor NÃO devolveu o campo "mural".');
+        L.push('  → ou nunca houve recado gravado, ou ele foi apagado da nuvem.');
+      } else {
+        var ks=Object.keys(mu), vivos=[], apag=0;
+        ks.forEach(function(k){ if(mu[k]&&mu[k].del) apag++; else if(mu[k]) vivos.push(mu[k]); });
+        L.push('MURAL NO SERVIDOR: '+vivos.length+' vivo(s), '+apag+' apagado(s), '+ks.length+' no total');
+        vivos.sort(function(x,y){ return (y.ts||0)-(x.ts||0); }).slice(0,8).forEach(function(r2){
+          L.push('    • "'+(r2.tit||'(sem título)')+'" — '+(r2.autor||'?')+' — '+uvDiagData(r2.ts));
+        });
+        if(!ks.length) L.push('    (o campo existe, mas está vazio)');
+      }
+      L.push('');
+      /* ⚠️ COMO SABER SE O WORKER FOI MESMO ATUALIZADO. O selo do canto mostra
+         a versão do ARQUIVO da tela (Pages) — ele não diz nada sobre o Worker.
+         Publicar só o Pages e achar que o servidor foi junto é um engano fácil
+         de cometer e impossível de perceber. A rota /api/versao (·421) responde
+         qual versão do Worker está no ar. */
+      try{
+        var v=await api('/api/versao');
+        L.push('WORKER NO AR: build '+(v&&v.build!=null?('·'+v.build):'(não informado)'));
+        L.push('  campos ao vivo: '+((v&&v.camposVivos||[]).join(', ')||'?'));
+        var temMural=!!(v&&v.camposVivos&&v.camposVivos.indexOf('mural')>=0);
+        L.push('  → mural viaja pelo caminho rápido? '+(temMural?'SIM':'NÃO — o Worker ainda é antigo, falta `npx wrangler deploy`'));
+      }catch(e2){
+        L.push('WORKER NO AR: a rota /api/versao não respondeu.');
+        L.push('  → isto por si só indica Worker ANTIGO: a rota nasceu no ·421.');
+      }
+    }catch(e){ L.push('Não foi possível falar com o servidor: '+(e&&e.message||e)); }
+    a.textContent=L.join('\n')+'\n\n\n'+uvDiagTexto();
+    sv.disabled=false; sv.textContent=_rot;
+  };
   var c=$('#diagCopiar'); if(c) c.onclick=function(){
     var t=(($('#diagTexto')||{}).textContent)||'';
     try{ navigator.clipboard.writeText(t); c.textContent='Copiado \u2705'; setTimeout(function(){ c.textContent='Copiar'; },1800); }
@@ -13485,6 +13594,7 @@ init();
     <div class="log-head">
       <h3>🧪 Diagnóstico do Hub</h3>
       <div class="log-head-acoes">
+        <button class="log-btn-sec" id="diagServidor" type="button">🔎 Conferir servidor</button>
         <button class="log-btn-sec" id="diagCopiar" type="button">Copiar</button>
         <button class="log-btn-sec" id="diagRefresh" type="button">Atualizar</button>
         <button class="log-btn-sec" id="diagFechar" type="button">Fechar (Esc)</button>
