@@ -4523,7 +4523,12 @@ var LOG_AREA_POR_TIPO={
   cabeca_rede:'Cabeça de Rede', matriz_operacional:'Matriz Operacional', cliente_corp:'Cliente',
   cartao_saldo:'Cartões de Crédito', acoes_comerciais:'Ações Comerciais',
   tarefas_senha_criada:'Minhas Tarefas', tarefas_reset:'Minhas Tarefas',
-  login:'Acesso', logout:'Acesso', erro:'Sistema'
+  login:'Acesso', logout:'Acesso', erro:'Sistema',
+  /* (·423) Welcome Day — vive no Control Desk, e é lá que quem audita vai
+     procurar. Redundante com o `area` que wdRegistrar já manda? É: esta tabela
+     é a rede de segurança para uma chamada futura que esqueça o campo — sem
+     ela o evento cairia em "Outros", que é onde ninguém procura. */
+  wd_pauta_nova:'Control Desk', wd_pauta_editada:'Control Desk', wd_pauta_apagada:'Control Desk'
 };
 function logArea(tipo, dados){
   if(dados && dados.area) return dados.area;
@@ -5103,7 +5108,33 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 422; // (·422) ⚠️ SEIS BOTÕES ESTAVAM MORTOS — INCLUSIVE O QUE EU
+var UV_BUILD_NUM = 423; // (·423) REGISTRO DE TUDO QUE ACONTECE NO WELCOME DAY. Pedido do
+// Nando: "todo nome que for escrito ou apagado, o dia e a hora e o nome da pessoa que escreveu
+// ou apagou". Três eventos novos no Registro de Atividades:
+//   wd_pauta_nova     → "Pauta do Welcome Day criada — QUARTA · 23/09: \"texto\""
+//   wd_pauta_editada  → "… editada — QUARTA · 23/09: \"antes\" → \"depois\""
+//   wd_pauta_apagada  → "… apagada — QUARTA · 23/09 (era: \"texto\")"
+// ⚠️ O REGISTRO MORA DENTRO DE `gravar`, O FUNIL — não nos botões. Escrever, editar e limpar
+// passam TODOS por essa função: botão Salvar, botão Limpar e tecla Enter. Pendurar em cada
+// botão deixaria de fora o caminho que alguém esquecesse, e um diário com buraco é pior que
+// nenhum — ele dá a impressão de que nada aconteceu naquele instante.
+// ⚠️ GUARDA O TEXTO ANTERIOR. "Pauta editada" sem dizer o que era antes não responde à
+// pergunta que faz alguém abrir o log: "quem trocou o que estava escrito aqui?". O mesmo vale
+// para apagar — sem o texto no registro, o conteúdo some de vez.
+// ⚠️ SALVAR SEM MUDAR NADA NÃO REGISTRA. Abrir o editor e salvar igual não é acontecimento, e
+// encheria o diário de linhas vazias empurrando as de verdade para fora das 500 guardadas.
+// TRÊS RÓTULOS SEPARADOS (e não um "Welcome Day" só): os chips do log servem para filtrar, e
+// "quem APAGOU uma pauta" é a pergunta que se faz — juntar tudo num rótulo obrigaria a ler
+// linha por linha. O dia vai em MAIÚSCULAS porque é assim que o card aparece na tela: quem for
+// do log conferir na tela tem de ler a mesma coisa nos dois lugares. E o dia leva SEMANA +
+// DATA: só "QUARTA" é ambíguo entre semanas, só "23/09" obriga a ir ao calendário.
+// A data/hora e o autor NÃO precisam ser passados: o próprio logRemoto carimba `quem` (nome da
+// sessão) e o servidor carimba o instante — foi para isso que ele foi centralizado.
+// ⚠️ O REGISTRO NUNCA IMPEDE A PAUTA DE SER SALVA: vive num try próprio, e o teste prova isso
+// com o log quebrado de propósito. Conferido também com CLIQUES REAIS em Chromium — escrever,
+// editar e limpar produziram exatamente os três eventos.
+// Só front — o Worker não mudou (mas o ·421 ainda precisa de deploy, se não foi feito).
+// ANTERIOR: (·422) ⚠️ SEIS BOTÕES ESTAVAM MORTOS — INCLUSIVE O QUE EU
 // TINHA ACABADO DE ENTREGAR. Relato do Nando: "quando eu clico no botão conferir servidor não
 // acontece nada". Medido no Chromium: diagServidor, diagCopiar, diagRefresh, diagFechar,
 // logRefresh e logFechar — NENHUM tinha handler.
@@ -13026,7 +13057,13 @@ const LOG_ROTULOS={ todos:'Todos', voucher_criado:'Criados', voucher_editado:'Ed
   login:'Login', logout:'Logout', ocp_sentinela:'Status Ocupação', ocp_atendimento_fechado:'Atendimento encerrado',
   ausencia_programada:'Ausência Programada', escala_plantao:'Escala', cabeca_rede:'Cabeça de Rede',
   matriz_operacional:'Matriz Operacional', cliente_corp:'Cliente', cartao_saldo:'Cartão — saldo',
-  acoes_comerciais:'Ações Comerciais', tarefas_senha_criada:'Minhas Tarefas', tarefas_reset:'Minhas Tarefas' };
+  acoes_comerciais:'Ações Comerciais', tarefas_senha_criada:'Minhas Tarefas', tarefas_reset:'Minhas Tarefas',
+  /* (·423) três rótulos separados, e não um "Welcome Day" só: os chips do log
+     servem para filtrar, e "quem APAGOU uma pauta" é a pergunta que se faz —
+     juntar criar, editar e apagar num rótulo único obrigaria a ler tudo. */
+  wd_pauta_nova:'Welcome Day — pauta criada',
+  wd_pauta_editada:'Welcome Day — pauta editada',
+  wd_pauta_apagada:'Welcome Day — pauta apagada' };
 
 // (·216) filtros novos: além do TIPO (categoria fina da ação), a auditoria pedida
 // é por ÁREA (onde), OPERADOR (quem) e PERÍODO (quando) — os 4 dados que o
@@ -13097,6 +13134,7 @@ function logTextoDoEvento(e){
   return logDobra([
     e.msg, e.tipo, (LOG_ROTULOS[e.tipo]||''), e.origem,
     d.quem, d.area, d.cliente, d.atendente, d.topico,
+    d.dia, d.textoAnterior, d.textoNovo,            /* (·423) Welcome Day */
     d.num, d.numColisao, d.numNovo, d.numAntigo, d.ocupante, d.numTela
   ].filter(function(x){ return x!=null && x!==''; }).join(' \u00b7 '));
 }
@@ -13239,6 +13277,7 @@ function renderLog(){
     if(d.cliente) partes.push('Cliente: '+d.cliente);
     if(d.atendente) partes.push('Atendente: '+d.atendente);
     if(d.topico) partes.push('Tópico: '+d.topico);
+    if(d.dia) partes.push('Dia: '+d.dia);          /* (·423) Welcome Day */
     if(d.num) partes.push('Nº: #'+d.num);
     if(d.numColisao) partes.push('Nº em conflito: #'+d.numColisao);
     if(d.numNovo) partes.push('Realocado p/: #'+d.numNovo);
@@ -37365,9 +37404,63 @@ var WD_ESCALA=[
     return appConfig.wdPautas;
   }
   function ler(k){ var e=store()[k]; return (e && typeof e==='object' && e.txt) ? e : null; }
+
+  /* ╔══ (·423) REGISTRO DE TUDO QUE ACONTECE NO WELCOME DAY ════════════
+     Pedido do Nando: "todo nome que for escrito ou apagado, o dia e a hora e o
+     nome da pessoa que escreveu ou apagou".
+     ⚠️ O REGISTRO MORA AQUI DENTRO DO `gravar`, e não nos botões. Escrever,
+     editar e limpar passam TODOS por esta função — pelo botão Salvar, pelo
+     Limpar e pela tecla Enter. Pendurar o registro em cada botão deixaria de
+     fora o caminho que alguém esquecesse, e um diário com buraco é pior que
+     nenhum: ele dá a impressão de que nada aconteceu naquele instante.
+     ⚠️ GUARDA O TEXTO ANTIGO E O NOVO. "Pauta editada" sem dizer o que era
+     antes não responde à pergunta que faz alguém abrir o log ("quem trocou o
+     que estava escrito aqui?"). Por isso a mensagem carrega os dois lados.
+     A data/hora e o autor não precisam ser passados: o próprio logRemoto já
+     carimba `quem` (nome da sessão) e o servidor carimba o instante. */
+  function wdRotuloDia(k){
+    /* "QUARTA · 23/09" — o dia da semana sozinho seria ambíguo entre semanas,
+       e a data sozinha obriga quem lê a ir ao calendário */
+    try{
+      var pt=k.split('-'), dt=new Date(+pt[0], (+pt[1])-1, +pt[2]);
+      for(var i=0;i<WD_ESCALA.length;i++){
+        /* MAIÚSCULAS de propósito: é assim que o card aparece na tela (o CSS
+           usa text-transform). Quem for do log para a tela conferir tem de ler
+           exatamente a mesma coisa nos dois lugares. */
+        if(WD_ESCALA[i].d===dt.getDay()) return WD_ESCALA[i].dia.toUpperCase()+' · '+pt[2]+'/'+pt[1];
+      }
+      return pt[2]+'/'+pt[1]+'/'+pt[0];
+    }catch(e){ return k; }
+  }
+  function wdCurto(t){
+    t=(t||'').replace(/\s+/g,' ').trim();
+    return t.length>90 ? (t.slice(0,90)+'…') : t;
+  }
+  function wdRegistrar(k, antes, depois){
+    var dia=wdRotuloDia(k), base={ area:'Control Desk', topico:'Welcome Day', dia:dia };
+    try{
+      if(!antes && depois){
+        logRemoto('wd_pauta_nova','Pauta do Welcome Day criada — '+dia+': "'+wdCurto(depois)+'"',
+          Object.assign({}, base, {textoNovo:wdCurto(depois)}));
+      } else if(antes && !depois){
+        logRemoto('wd_pauta_apagada','Pauta do Welcome Day apagada — '+dia+' (era: "'+wdCurto(antes)+'")',
+          Object.assign({}, base, {textoAnterior:wdCurto(antes)}));
+      } else if(antes && depois && antes!==depois){
+        logRemoto('wd_pauta_editada','Pauta do Welcome Day editada — '+dia+': "'+wdCurto(antes)+'" → "'+wdCurto(depois)+'"',
+          Object.assign({}, base, {textoAnterior:wdCurto(antes), textoNovo:wdCurto(depois)}));
+      }
+      /* texto igual ao que já estava: NÃO registra. Abrir o editor e salvar sem
+         mudar nada não é um acontecimento — e encheria o diário de linhas que
+         não contam nada, empurrando as de verdade para fora das 500. */
+    }catch(e){ /* o registro nunca pode impedir a pauta de ser salva */ }
+  }
+
   function gravar(k, txt){
-    store()[k]={ txt:(txt||'').trim(), ts:Date.now(), por:quem() };
+    var _antes=((store()[k]||{}).txt||'').trim();
+    var _depois=(txt||'').trim();
+    store()[k]={ txt:_depois, ts:Date.now(), por:quem() };
     try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){}
+    wdRegistrar(k, _antes, _depois);
   }
 
   /* MERGE MULTI-PC — plugado nos DOIS pontos de sempre (carregarConfig e
