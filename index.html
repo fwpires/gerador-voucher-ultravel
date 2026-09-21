@@ -5103,7 +5103,34 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 421; // (·421) RESGATE DOS RECADOS + COMO SABER SE O WORKER SUBIU.
+var UV_BUILD_NUM = 422; // (·422) ⚠️ SEIS BOTÕES ESTAVAM MORTOS — INCLUSIVE O QUE EU
+// TINHA ACABADO DE ENTREGAR. Relato do Nando: "quando eu clico no botão conferir servidor não
+// acontece nada". Medido no Chromium: diagServidor, diagCopiar, diagRefresh, diagFechar,
+// logRefresh e logFechar — NENHUM tinha handler.
+// ⚠️ CAUSA: a ligação usava `$('#id').onclick = …` dentro do bloco de script, e o HTML
+// desses botões vem DEPOIS do fim dele (linha ~13597 contra ~13529). Quando o código rodava,
+// os botões ainda NÃO EXISTIAM: `$('#diagServidor')` devolvia null, o `if(sv)` protegia contra
+// o erro — e o handler simplesmente não era ligado. Sem erro no console, sem aviso: O `IF` QUE
+// EVITAVA A QUEBRA TAMBÉM ESCONDIA A FALHA.
+// ⚠️ POR QUE NINGUÉM TINHA PERCEBIDO: os atalhos mascaravam tudo. O Esc fecha (ouvinte no
+// document), clicar no fundo escuro fecha, e "Copiar" dá para fazer selecionando o texto à
+// mão. Só o botão NOVO, que não tinha alternativa, tornou o defeito visível — e ele estava
+// ali desde que essas telas nasceram.
+// ⚠️ E NENHUM TESTE MEU PEGOU, porque todos liam o CÓDIGO-FONTE do handler; nenhum perguntou
+// se ele estava ATIVO na página. O teste novo CLICA em cada botão e confere o EFEITO. É a
+// mesma lição do ·409/·414/·415/·416, agora na sua forma mais crua: código perfeito que
+// nunca é executado.
+// CORREÇÃO: um ouvinte ÚNICO no document, por delegação — o mesmo padrão que o Mural de
+// Recados e as Ações Comerciais já usam. Delegação não se importa com a ordem em que as
+// coisas nascem na página, que é exatamente a armadilha aqui.
+// ⚠️ SEGUNDO DEFEITO, meu, na PRÓPRIA correção: escrevi a marca de fim de bloco de script
+// DENTRO de um comentário para explicar a causa — e ela encerrou o bloco DE VERDADE, fazendo
+// o navegador tratar o resto do código como texto. Pego pela conferência de sintaxe. O teste
+// agora varre TODOS os blocos e falha se algum comentário contiver essa marca.
+// A consulta virou função com nome (uvDiagConferirServidor), que é o que torna possível
+// testá-la — dentro de um `onclick` anônimo ela não tinha como ser chamada de lugar nenhum.
+// Só front — o Worker não mudou desde o ·421 (mas o ·421 ainda precisa de deploy).
+// ANTERIOR: (·421) RESGATE DOS RECADOS + COMO SABER SE O WORKER SUBIU.
 // Depois do ·420 o Nando publicou e perguntou: "não deveriam aparecer pra todos? até agora
 // continua tudo igual". Duas coisas faltavam, e só a segunda é conserto de código:
 // (1) ⚠️ O ·420 FECHA O BURACO, MAS NÃO RESSUSCITA O QUE JÁ SE PERDEU. Os recados da Ruth
@@ -13526,66 +13553,96 @@ function uvAbrirDiag(){
   ov.classList.add('aberto');
 }
 window.uvAbrirDiag=uvAbrirDiag; window.uvDiagTexto=uvDiagTexto;
-(function ligaDiagBtns(){
-  var f=$('#diagFechar'); if(f) f.onclick=function(){ $('#diagOverlay').classList.remove('aberto'); };
-  var r=$('#diagRefresh'); if(r) r.onclick=function(){ var a=$('#diagTexto'); if(a) a.textContent=uvDiagTexto(); };
-  /* ⚠️ (·421) O BOTÃO QUE PERGUNTA AO SERVIDOR. O resto do Diagnóstico lê
-     só este computador — e foi exatamente isso que faltou na investigação do
-     ·420: com a tela vazia, ninguém sabia dizer se o recado tinha sumido do
-     servidor ou se só não estava chegando aqui. Uma tela vazia responde as
-     duas perguntas do mesmo jeito. Agora dá para ver o que a NUVEM tem. */
-  var sv=$('#diagServidor');
-  if(sv) sv.onclick=async function(){
-    var a=$('#diagTexto'); if(!a) return;
-    sv.disabled=true; var _rot=sv.textContent; sv.textContent='Consultando…';
-    var L=['CONSULTA AO SERVIDOR — '+new Date().toLocaleString('pt-BR'),''];
-    try{
-      var cfg=await api('/api/config');
-      var mu=(cfg&&cfg.mural&&typeof cfg.mural==='object')?cfg.mural:null;
-      if(!mu){
-        L.push('MURAL: o servidor NÃO devolveu o campo "mural".');
-        L.push('  → ou nunca houve recado gravado, ou ele foi apagado da nuvem.');
-      } else {
-        var ks=Object.keys(mu), vivos=[], apag=0;
-        ks.forEach(function(k){ if(mu[k]&&mu[k].del) apag++; else if(mu[k]) vivos.push(mu[k]); });
-        L.push('MURAL NO SERVIDOR: '+vivos.length+' vivo(s), '+apag+' apagado(s), '+ks.length+' no total');
-        vivos.sort(function(x,y){ return (y.ts||0)-(x.ts||0); }).slice(0,8).forEach(function(r2){
-          L.push('    • "'+(r2.tit||'(sem título)')+'" — '+(r2.autor||'?')+' — '+uvDiagData(r2.ts));
-        });
-        if(!ks.length) L.push('    (o campo existe, mas está vazio)');
-      }
-      L.push('');
-      /* ⚠️ COMO SABER SE O WORKER FOI MESMO ATUALIZADO. O selo do canto mostra
-         a versão do ARQUIVO da tela (Pages) — ele não diz nada sobre o Worker.
-         Publicar só o Pages e achar que o servidor foi junto é um engano fácil
-         de cometer e impossível de perceber. A rota /api/versao (·421) responde
-         qual versão do Worker está no ar. */
-      try{
-        var v=await api('/api/versao');
-        L.push('WORKER NO AR: build '+(v&&v.build!=null?('·'+v.build):'(não informado)'));
-        L.push('  campos ao vivo: '+((v&&v.camposVivos||[]).join(', ')||'?'));
-        var temMural=!!(v&&v.camposVivos&&v.camposVivos.indexOf('mural')>=0);
-        L.push('  → mural viaja pelo caminho rápido? '+(temMural?'SIM':'NÃO — o Worker ainda é antigo, falta `npx wrangler deploy`'));
-      }catch(e2){
-        L.push('WORKER NO AR: a rota /api/versao não respondeu.');
-        L.push('  → isto por si só indica Worker ANTIGO: a rota nasceu no ·421.');
-      }
-    }catch(e){ L.push('Não foi possível falar com o servidor: '+(e&&e.message||e)); }
-    a.textContent=L.join('\n')+'\n\n\n'+uvDiagTexto();
-    sv.disabled=false; sv.textContent=_rot;
-  };
-  var c=$('#diagCopiar'); if(c) c.onclick=function(){
+/* ╔══ (·422) OS BOTÕES DO DIAGNÓSTICO E DO LOG ESTAVAM MORTOS ══════════
+   RELATO DO NANDO: "quando eu clico no botão conferir servidor não acontece
+   nada". Medido no Chromium: SEIS botões sem handler nenhum — diagServidor,
+   diagCopiar, diagRefresh, diagFechar, logRefresh e logFechar.
+   ⚠️ CAUSA: a ligação rodava com `$('#id').onclick = …` dentro do bloco
+   de script, e o HTML desses botões vem DEPOIS do fim dele (linha ~13597
+   contra ~13529). Quando o código rodava, os botões ainda NÃO EXISTIAM:
+   `$('#diagServidor')` devolvia null, o `if(sv)` protegia contra o erro — e o
+   handler simplesmente não era ligado. Sem erro no console, sem aviso: o `if`
+   que evitava a quebra também escondia a falha.
+   ⚠️ NINGUÉM PERCEBEU PORQUE OS ATALHOS MASCARAVAM: o Esc fecha (ouvinte no
+   document), clicar no fundo escuro fecha, e "Copiar" dá para fazer
+   selecionando o texto à mão. Só o botão NOVO, que não tinha alternativa,
+   tornou o defeito visível — e ele estava lá desde que essas telas nasceram.
+   CORREÇÃO: um ouvinte ÚNICO no document, por delegação — o mesmo padrão que o
+   Mural de Recados e as Ações Comerciais já usam nesta base. Delegação não se
+   importa com a ordem em que as coisas nascem na página, que é exatamente a
+   armadilha aqui. */
+document.addEventListener('click', function(e){
+  if(!e.target || !e.target.closest) return;
+
+  /* fundo escuro: clicar fora da caixa fecha */
+  if(e.target.id==='diagOverlay'){ e.target.classList.remove('aberto'); return; }
+  if(e.target.id==='logOverlay'){ try{ fecharLog(); }catch(x){} return; }
+
+  var bt=e.target.closest('button'); if(!bt) return;
+
+  if(bt.id==='diagFechar'){ var ov=$('#diagOverlay'); if(ov) ov.classList.remove('aberto'); return; }
+  if(bt.id==='diagRefresh'){ var a=$('#diagTexto'); if(a) a.textContent=uvDiagTexto(); return; }
+  if(bt.id==='logFechar'){ try{ fecharLog(); }catch(x){} return; }
+  if(bt.id==='logRefresh'){ try{ abrirLog(); }catch(x){} return; }
+
+  if(bt.id==='diagCopiar'){
     var t=(($('#diagTexto')||{}).textContent)||'';
-    try{ navigator.clipboard.writeText(t); c.textContent='Copiado \u2705'; setTimeout(function(){ c.textContent='Copiar'; },1800); }
-    catch(e){ try{ var ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); c.textContent='Copiado \u2705'; setTimeout(function(){ c.textContent='Copiar'; },1800); }catch(e2){} }
-  };
-  var ov=$('#diagOverlay'); if(ov) ov.onclick=function(e){ if(e.target===ov) ov.classList.remove('aberto'); };
-})();
-(function ligaLogBtns(){
-  const f=$('#logFechar'); if(f) f.onclick=fecharLog;
-  const r=$('#logRefresh'); if(r) r.onclick=abrirLog;
-  const ov=$('#logOverlay'); if(ov) ov.onclick=(e)=>{ if(e.target===ov) fecharLog(); };
-})();
+    function _ok(){ bt.textContent='Copiado ✅'; setTimeout(function(){ bt.textContent='Copiar'; },1800); }
+    try{ navigator.clipboard.writeText(t).then(_ok,function(){ _copiaFallback(t); _ok(); }); }
+    catch(x){ _copiaFallback(t); _ok(); }
+    return;
+  }
+
+  if(bt.id==='diagServidor'){ uvDiagConferirServidor(bt); return; }
+});
+function _copiaFallback(t){
+  try{ var ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta);
+       ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }catch(e){}
+}
+
+/* ⚠️ (·422) A CONSULTA VIROU FUNÇÃO COM NOME, e não um handler anônimo preso ao
+   botão. É o que torna possível TESTÁ-LA: a versão do ·421 só existia dentro de
+   um `onclick` que nunca chegou a ser ligado, e nenhum teste meu pegou isso
+   porque todos liam o CÓDIGO-FONTE do handler — nenhum perguntou se ele estava
+   ATIVO na página. Mesma lição do ·409/·414/·415/·416, com outra roupa. */
+async function uvDiagConferirServidor(bt){
+  var a=$('#diagTexto'); if(!a) return;
+  var _rot = bt ? bt.textContent : '';
+  if(bt){ bt.disabled=true; bt.textContent='Consultando…'; }
+  var L=['CONSULTA AO SERVIDOR — '+new Date().toLocaleString('pt-BR'),''];
+  try{
+    var cfg=await api('/api/config');
+    var mu=(cfg&&cfg.mural&&typeof cfg.mural==='object')?cfg.mural:null;
+    if(!mu){
+      L.push('MURAL: o servidor NÃO devolveu o campo "mural".');
+      L.push('  → ou nunca houve recado gravado, ou ele foi apagado da nuvem.');
+    } else {
+      var ks=Object.keys(mu), vivos=[], apag=0;
+      ks.forEach(function(k){ if(mu[k]&&mu[k].del) apag++; else if(mu[k]) vivos.push(mu[k]); });
+      L.push('MURAL NO SERVIDOR: '+vivos.length+' vivo(s), '+apag+' apagado(s), '+ks.length+' no total');
+      vivos.sort(function(x,y){ return (y.ts||0)-(x.ts||0); }).slice(0,8).forEach(function(r2){
+        L.push('    • "'+(r2.tit||'(sem título)')+'" — '+(r2.autor||'?')+' — '+uvDiagData(r2.ts));
+      });
+      if(!ks.length) L.push('    (o campo existe, mas está vazio)');
+    }
+    L.push('');
+    /* ⚠️ COMO SABER SE O WORKER FOI MESMO ATUALIZADO. O selo do canto mostra a
+       versão do ARQUIVO da tela (Pages) e não diz nada sobre o Worker. */
+    try{
+      var v=await api('/api/versao');
+      L.push('WORKER NO AR: build '+(v&&v.build!=null?('·'+v.build):'(não informado)'));
+      L.push('  campos ao vivo: '+((v&&v.camposVivos||[]).join(', ')||'?'));
+      var temMural=!!(v&&v.camposVivos&&v.camposVivos.indexOf('mural')>=0);
+      L.push('  → mural viaja pelo caminho rápido? '+(temMural?'SIM':'NÃO — o Worker ainda é antigo, falta `npx wrangler deploy`'));
+    }catch(e2){
+      L.push('WORKER NO AR: a rota /api/versao não respondeu.');
+      L.push('  → isto por si só indica Worker ANTIGO: a rota nasceu no ·421.');
+    }
+  }catch(e){ L.push('Não foi possível falar com o servidor: '+(e&&e.message||e)); }
+  a.textContent=L.join('\n')+'\n\n\n'+uvDiagTexto();
+  if(bt){ bt.disabled=false; bt.textContent=_rot; }
+}
+window.uvDiagConferirServidor=uvDiagConferirServidor;
 
 init();
 </script>
