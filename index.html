@@ -2592,6 +2592,32 @@ body:not(.dark) .termo-nome{color:#5a7085}
   /* o respiro da pasta grudada não pode colar no conteúdo de baixo */
   .uv-acoplado #hubSidebar .nav-item.active + .hub-main{margin-top:10px}
 
+  /* ====== (·430) O MENU DO CELULAR: NOME CENTRALIZADO, CAIXA E FONTE MAIOR ======
+     Pedido do Nando, só para o celular. Fonte de 13,5px → 16px (e 15px nas
+     sub-pastas), que é o tamanho em que se lê de relance com o aparelho na mão,
+     e caixa própria em cada pasta para o dedo saber onde termina uma e começa
+     a outra — no desktop o menu continua exatamente como está, porque lá ele é
+     uma coluna estreita ao lado do conteúdo e caixa em tudo viraria ruído.
+     ⚠ `justify-content:center` sozinho NÃO centraliza aqui: a seta ▾ e o selo
+     de notificação têm `margin-left:auto`, que os cola na borda direita e
+     empurra o nome para a esquerda. Os dois precisam perder o `auto` — senão o
+     texto fica centralizado "quase", que é pior que não centralizar. */
+  .uv-acoplado #hubSidebar .nav-item{
+    justify-content:center;text-align:center;
+    border:1px solid var(--borda);border-radius:12px;
+    padding:13px 12px;margin:0 0 7px;font-size:16px;
+  }
+  .uv-acoplado #hubSidebar .nav-sub{font-size:15px;padding:11px 12px}
+  .uv-acoplado #hubSidebar .nav-caret{margin-left:8px}
+  .uv-acoplado #hubSidebar .nav-badge{margin-left:8px}
+  body.dark.uv-acoplado #hubSidebar .nav-item{border-color:rgba(255,255,255,.16)}
+  /* a pasta ATIVA é a única sem borda concorrente: o azul já a separa */
+  .uv-acoplado #hubSidebar .nav-item.active{border-color:transparent}
+
+  /* (·430) CONTEÚDO RECOLHIDO — esconder, nunca desmontar: a tela continua
+     ativa e recebendo o tempo real; só não ocupa a tela. */
+  .uv-acoplado.uv-recolhido .hub-main{display:none}
+
   /* (·428) O CORTE TAMBÉM NO <body> — ver a explicação inteira lá em cima, na
      regra do <html>. Precisa estar AQUI dentro, e não junto da outra: o bloco
      do ·246 acima declara `body{overflow:visible}` no celular, e o atalho
@@ -5302,7 +5328,43 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 429; // (·429) NO CELULAR, A TELA ABRE DENTRO DA PASTA DO MENU. Pedido do
+var UV_BUILD_NUM = 430; // (·430) CELULAR: RECOLHER A PASTA, ABRIR SEMPRE NO COMEÇO DO CONTEÚDO
+// E UM MENU FEITO PARA O DEDO. Quatro pedidos do Nando, todos só no celular.
+// (1) RECOLHER: tocar de novo na pasta já aberta esconde o conteúdo; tocar outra vez mostra.
+// ⚠️ Recolher é ESCONDER, nunca desmontar — a tela continua ativa, montada e recebendo o tempo
+// real; quem some é o CONTÊINER. Uma sabotagem que escondia a própria tela passou no teste e me
+// obrigou a endurecê-lo: "tem filhos" continua verdadeiro com display:none, então a checagem
+// passou a ler o display APLICADO da tela ativa. ⚠️ O toggle vem ANTES da navegação no clique do
+// menu: deixar a navegação rodar redesenharia a tela inteira só para escondê-la em seguida. E
+// qualquer troca de pasta desfaz o recolhido — navegar é querer ver.
+// (2) COMEÇO DO CONTEÚDO, SEMPRE: o ·429 rolava até a PASTA, o que não bastava — com a pasta
+// grudada ocupando o topo, o começo da tela nascia por baixo dela. Agora a conta é sobre o
+// CONTEÚDO, que para logo abaixo da barra do topo MAIS a pasta grudada.
+// ⚠️ `scroll-margin` + `scrollIntoView`, e NÃO uma conta de scrollY: medido, a conta manual
+// errava ~20px porque, entre calcular e rolar, a tela termina de montar e tudo se desloca. Com
+// scroll-margin quem faz a conta é o navegador, no instante da rolagem, com o layout final.
+// ⚠️ QUATRO disparos (agora, no quadro seguinte, 260ms e 700ms) e isso não é exagero: MEDIDO, a
+// tela de Cartões ainda crescia aos 650ms e o conteúdo nascia 19px por baixo da pasta; em 1,5s
+// já batia certo. O meu próprio teste acusou isso.
+// (3)+(4) MENU DO CELULAR: nome centralizado, caixa com borda em cada pasta, fonte de 13,5px →
+// 16px (15px nas sub-pastas). ⚠️ `justify-content:center` SOZINHO NÃO CENTRALIZA aqui: a seta ▾ e
+// o selo de notificação têm `margin-left:auto`, que os cola na direita e empurra o nome para a
+// esquerda — o texto ficaria centralizado "quase", que é pior que não centralizar. Os dois
+// perderam o `auto`. A pasta ATIVA fica sem borda: o azul sólido já a separa, e duas marcações
+// na mesma peça competem.
+// ⚠️ NADA DISSO VALE NO DESKTOP, e o teste cobre: lá o menu é uma coluna estreita ao lado do
+// conteúdo, caixa em tudo viraria ruído, e "recolher" deixaria metade da tela em branco sem
+// ninguém entender por quê.
+// VALIDAÇÃO: test_mobile_menu.mjs (novo, 26 checagens), tudo por CLIQUE de verdade no menu.
+// Validado por 6 SABOTAGENS. ⚠️ DUAS DELAS PASSARAM NA PRIMEIRA RODADA e o teste foi endurecido
+// — vale registrar as duas armadilhas: (a) a que escondia a tela em vez do contêiner, explicada
+// acima; (b) a do desktop, onde eu dava um número PAR de toques na mesma pasta — um recolhimento
+// indevido se desfazia sozinho e o teste passava sem testar nada. Hoje é um toque para abrir e
+// um na pasta já aberta, e a sabotagem falha. ⚠️ O teste também acusou uma suposição minha errada:
+// ao entrar, o Hub restaura a última pasta usada, então ela JÁ está ativa — o primeiro toque nela
+// é o "segundo toque" que recolhe. Não era defeito; o teste é que precisava começar por outra
+// pasta. As suítes do ·426 (273), ·427 (16), ·428 (16) e ·429 (29) seguem sem falha.
+// ANTERIOR: NO CELULAR, A TELA ABRE DENTRO DA PASTA DO MENU. Pedido do
 // Nando: "ao clicar na pasta do menu, o conteúdo abre logo abaixo dela mesmo, como se estivesse
 // dentro dela... e ao subir a página, o botão fica travado em cima". Antes, no celular, o menu
 // inteiro vinha primeiro e a tela só começava DEPOIS DE TODAS as pastas — era preciso rolar um
@@ -14244,18 +14306,64 @@ init();
       }
     }catch(e){}
   };
-  /* Rolar até a pasta clicada: sem isto, clicar numa pasta lá embaixo abriria a
-     tela fora da vista e pareceria que nada aconteceu. Desconta a barra do topo,
-     senão a pasta nasce ESCONDIDA atrás dela. */
-  window.uvMobIrAteAPasta=function(){
+  /* (·430) ABRIR UMA PASTA MOSTRA O COMEÇO DO CONTEÚDO — sempre, nunca o meio.
+     O ·429 rolava até a PASTA, o que já ajudava mas não bastava: com a pasta
+     grudada no topo ocupando espaço, o começo da tela podia nascer por baixo
+     dela. Agora a conta é sobre o CONTEÚDO: ele para logo abaixo da barra do
+     topo MAIS a pasta grudada.
+     ⚠ Quatro disparos, não um: a tela ainda está sendo desenhada quando o clique
+     termina, e uma tela que cresce DEPOIS da rolagem move o começo do conteúdo
+     embaixo do pé de quem está olhando. Por isso a posição é reaplicada no
+     quadro seguinte, 260ms depois e mais uma vez em 700ms.
+     ⚠ `auto` e não `smooth`: a animação suave é interrompida por qualquer nova
+     rolagem, e aqui a garantia pedida foi "mostre a parte de cima SEMPRE". */
+  window.uvMobIrAoTopoDoConteudo=function(){
+    function ir(){
+      try{
+        if(!uvMobEhCelular()) return;
+        if(document.body.classList.contains('uv-recolhido')) return;
+        var main=document.getElementById('hubMain'); if(!main) return;
+        var btn=document.querySelector('#hubSidebar .nav-item.active');
+        var t=document.querySelector('.topbar');
+        var alt=(t?t.getBoundingClientRect().height:0)+(btn?btn.getBoundingClientRect().height:0)+8;
+        /* ⚠ scroll-margin + scrollIntoView, e NÃO uma conta de scrollY: medido,
+           a conta manual errava ~20px e o começo do conteúdo nascia por baixo
+           da pasta grudada. Motivo: entre calcular e rolar, a tela termina de
+           montar e tudo se desloca. Com scroll-margin quem faz a conta é o
+           navegador, no instante da rolagem, já com o layout final. */
+        main.style.scrollMarginTop = alt + 'px';
+        main.scrollIntoView({block:'start', behavior:'auto'});
+      }catch(e){}
+    }
     try{
-      if(!uvMobEhCelular()) return;
-      var btn=document.querySelector('#hubSidebar .nav-item.active'); if(!btn) return;
-      var t=document.querySelector('.topbar');
-      var alt=t?t.getBoundingClientRect().height:0;
-      var y=window.scrollY + btn.getBoundingClientRect().top - alt - 4;
-      window.scrollTo({top:Math.max(0,y), behavior:'smooth'});
+      ir();
+      if(window.requestAnimationFrame) requestAnimationFrame(ir);
+      setTimeout(ir, 260);
+      /* ⚠ o quarto disparo não é exagero: MEDIDO, a tela de Cartões ainda
+         estava crescendo aos 650ms e o começo do conteúdo nascia 19px por
+         baixo da pasta grudada; em 1,5s já batia certo. 700ms cobre as telas
+         pesadas sem a pessoa ver a página "pulando" depois de começar a ler. */
+      setTimeout(ir, 700);
     }catch(e){}
+  };
+  /* (·430) SEGUNDO TOQUE NA MESMA PASTA RECOLHE O CONTEÚDO.
+     ⚠ Só no celular: no desktop o menu e o conteúdo são colunas lado a lado e
+     "recolher" não quer dizer nada ali — esconder a tela deixaria metade do
+     Hub em branco sem ninguém entender por quê.
+     ⚠ Recolher é ESCONDER, não desmontar: a tela continua ativa, montada e
+     recebendo o tempo real. Trocar de pasta com o conteúdo recolhido mostra a
+     pasta nova aberta (é o que a pessoa acabou de pedir ao clicar nela), e é
+     por isso que a marca de recolhido cai dentro do funil de navegação.
+     Devolve `true` quando CONSOME o clique — aí o menu nem chama a navegação,
+     que redesenharia a tela à toa. */
+  window.uvMobTogglePasta=function(it, scr){
+    try{
+      if(!uvMobEhCelular()) return false;
+      if(!it || !it.classList.contains('active')) return false;
+      var recolheu=document.body.classList.toggle('uv-recolhido');
+      if(!recolheu){ window.uvMobAcoplar(); window.uvMobIrAoTopoDoConteudo(); }
+      return true;
+    }catch(e){ return false; }
   };
   try{
     window.addEventListener('resize', function(){ try{ window.uvMobAcoplar(); }catch(e){} });
@@ -14317,8 +14425,10 @@ init();
        depende de saber QUAL pasta está ativa e se a árvore dela está aberta.
        Fica no FUNIL, não no clique do menu — navegar por botão interno, pelo
        boot ou por desvio de permissão tem de acoplar igual (a lição do ·423). */
+    /* navegar = querer ver: qualquer troca de tela desfaz o recolhido do ·430 */
+    try{ document.body.classList.remove('uv-recolhido'); }catch(e){}
     try{ window.uvMobAcoplar(); }catch(e){}
-    try{ window.uvMobIrAteAPasta(); }catch(e){}
+    try{ window.uvMobIrAoTopoDoConteudo(); }catch(e){}
   };
   /* ========== (·317) O MAPA TELA -> RENDER, AGORA NUM LUGAR SÓ ==========
      Este bloco estava DENTRO de hubGoScreen e só rodava ao NAVEGAR. O redesenho
@@ -14526,6 +14636,11 @@ init();
       var it=e.target.closest('.nav-item'); if(!it) return;
       var tree=it.getAttribute('data-tree');
       var scr=it.getAttribute('data-screen');
+      /* (·430) No celular, tocar de novo na pasta JÁ ABERTA recolhe o conteúdo.
+         Vem antes de tudo: deixar a navegação rodar redesenharia a tela inteira
+         só para escondê-la em seguida. A árvore de sub-pastas NÃO é mexida —
+         quem foi recolhido é o conteúdo, não a lista de filhas. */
+      if(scr && window.uvMobTogglePasta && window.uvMobTogglePasta(it, scr)) return;
       if(tree){ if(scr) openTree(tree); else toggleTree(tree); } // navega → garante aberto; só árvore → alterna
       if(scr) window.hubGoScreen(scr);
     });
