@@ -2614,6 +2614,36 @@ body:not(.dark) .termo-nome{color:#5a7085}
   /* a pasta ATIVA é a única sem borda concorrente: o azul já a separa */
   .uv-acoplado #hubSidebar .nav-item.active{border-color:transparent}
 
+  /* ===== (·435) PASTA-MÃE ABERTA TAMBÉM FICA AZUL =====
+     Comercial, Matriz Operacional, Eventos e Grupos não têm tela própria, então
+     nunca recebem a classe `active` — que é quem pinta de azul. Resultado: eram
+     as únicas quatro pastas do menu que abriam sem nenhum sinal de que estavam
+     abertas, e o Nando notou.
+     ⚠ COPIEI OS VALORES do `.nav-item.active` em vez de escolher um azul
+     parecido de olho — inclusive a regra do tema escuro e o `filter:none` do
+     ícone, que só aparecem em outras três regras espalhadas. Azul aproximado
+     faria as duas coisas brigarem na mesma tela (a lição do ·394/·396).
+     ⚠ Só vale para quem NÃO tem tela própria (`:not([data-screen])`): pasta com
+     tela já fica azul quando é a aberta, e pintá-la por estar "com as filhas à
+     mostra" deixaria DUAS pastas azuis disputando o significado de "é aqui que
+     você está".
+     ⚠ HONESTIDADE SOBRE ESSE `:not()`: medido, HOJE ele é redundante — tirando-o,
+     a mãe continua não ficando azul, porque a regra da trilha do ·431
+     (`.uv-fixa-mae`) já declara o fundo dela e tem especificidade maior. Ele
+     fica como trava de INTENÇÃO, não porque mude um pixel agora: no dia em que
+     a trilha mudar de forma, é ele que impede o azul de vazar para a mãe. Está
+     registrado aqui para ninguém apagá-lo achando que "não faz nada" nem
+     mantê-lo achando que é ele que segura o comportamento de hoje.
+     ⚠ E só no celular: no desktop as sete árvores nascem abertas, então isto
+     pintaria metade do menu de azul. */
+  .uv-acoplado #hubSidebar .nav-item.open:not([data-screen]){
+    background:var(--azul);color:#fff;border-color:transparent;
+  }
+  body.dark.uv-acoplado #hubSidebar .nav-item.open:not([data-screen]){
+    background:var(--azul);color:#fff;
+  }
+  .uv-acoplado #hubSidebar .nav-item.open:not([data-screen]) .nav-ic{filter:none}
+
   /* (·430) CONTEÚDO RECOLHIDO — esconder, nunca desmontar: a tela continua
      ativa e recebendo o tempo real; só não ocupa a tela. */
   .uv-acoplado.uv-recolhido .hub-main{display:none}
@@ -5353,7 +5383,30 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 434; // (·434) A PASTA-MÃE SEM TELA PRÓPRIA (Comercial, Matriz, Eventos,
+var UV_BUILD_NUM = 435; // (·435) AS QUATRO PASTAS SEM TELA PRÓPRIA AGORA FICAM AZUIS QUANDO
+// ABERTAS. Relato do Nando: "as pastas Comercial, Matriz Operacional, Eventos e Grupos não estão
+// ficando na cor azul quando estão selecionadas".
+// ⚠️ CAUSA: o azul do menu vem da classe `active`, e `active` é dada pela TELA que a pasta abre.
+// Essas quatro não abrem tela nenhuma — só mostram as filhas —, então nunca recebiam a classe e
+// eram as ÚNICAS quatro pastas do menu que abriam sem nenhum sinal de que estavam abertas.
+// ⚠️ COPIEI OS VALORES do `.nav-item.active` em vez de escolher um azul parecido de olho —
+// inclusive a regra do tema escuro e o `filter:none` do ícone, que moram em três regras
+// espalhadas pelo arquivo. Azul aproximado faria as duas coisas brigarem na mesma tela, que é a
+// lição do ·394/·396.
+// ⚠️ Só no celular: no desktop as sete árvores nascem abertas e isto pintaria metade do menu.
+// ⚠️⚠️ DUAS SABOTAGENS MINHAS PASSARAM PRIMEIRO, POR CULPA DA SABOTAGEM E NÃO DO TESTE — e a
+// lição é nova: eu removia UMA das três regras do bloco, e as outras duas seguravam o azul
+// sozinhas. Sabotagem que não desliga o comportamento não prova nada. Refeitas removendo o bloco
+// inteiro, as duas são pegas na hora.
+// ⚠️ HONESTIDADE SOBRE O `:not([data-screen])`: medido, HOJE ele é redundante — tirando-o, a
+// pasta-mãe com tela continua não ficando azul, porque a regra da trilha do ·431 declara o fundo
+// dela e tem especificidade maior. Fica como trava de INTENÇÃO, e isso está escrito ao lado dele
+// para ninguém apagá-lo achando que não faz nada, nem mantê-lo achando que é ele que segura o
+// comportamento de hoje.
+// VALIDAÇÃO: test_mobile_fechar.mjs em 42 checagens — as quatro pastas, uma a uma, comparando com
+// o azul REAL do `.nav-item.active` medido na própria página (e não com um código escrito no
+// teste), o voltar ao normal ao fechar, e a trava de que só UMA pasta fica azul por vez.
+// ANTERIOR: A PASTA-MÃE SEM TELA PRÓPRIA (Comercial, Matriz, Eventos,
 // Grupos) PASSOU A SE COMPORTAR. Dois relatos do Nando: "quando eu clico na pasta comercial,
 // mostra a pasta Insights dentro de Equipe" e "quando a pasta comercial está aberta, ao clicar em
 // cima de novo ela não está fechando".
