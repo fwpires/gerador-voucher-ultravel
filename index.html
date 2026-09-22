@@ -2673,6 +2673,43 @@ body:not(.dark) .termo-nome{color:#5a7085}
     padding-top:6px;box-shadow:0 6px 14px rgba(0,0,0,.4);
   }
 
+  /* ======= (·436) O CABEÇALHO NO CELULAR: LOGO CENTRADA E BOTÕES IGUAIS =======
+     Pedido do Nando, com o print circulando o topo: "deixe todos eles com o
+     mesmo tamanho padronizado e distribuídos de forma que ocupe todo o espaço
+     sem sobras" e "centralize a logomarca".
+     ⚠ De FLEX para GRADE, e é isso que resolve de verdade: em `flex-wrap` cada
+     botão tem a largura do próprio texto, então "Novo" fica curtinho, "Imprimir
+     / PDF" comprido, e o que sobra na linha vira buraco — exatamente o que o
+     print mostra. Numa grade de duas colunas iguais, a largura deixa de
+     depender do texto: as colunas dividem o espaço todo, sempre.
+     ⚠ São CINCO botões, número ímpar — sem tratar, o último sobraria com meia
+     linha vazia ao lado, que é a "sobra" que ele pediu para tirar. O último
+     ocupa a linha inteira (`grid-column:1/-1`).
+     ⚠ ALTURA IGUAL não sai de graça: os cinco vêm de estilos diferentes (dois
+     `.btn`, a caixa da nuvem, o botão de sair com padding próprio). Uma altura
+     mínima comum + centralização do conteúdo iguala os cinco sem reescrever o
+     estilo de nenhum — e no desktop nada disso vale.
+     ⚠ O botão de sair tem `margin-left:10px` pensado para a fila do desktop;
+     dentro da grade isso o desalinharia dos outros quatro. Zerado só aqui. */
+  .topbar-inner{flex-direction:column;align-items:stretch;gap:10px}
+  .brand{flex:none;justify-content:center;min-width:0}
+  .topbar-actions{
+    display:grid;grid-template-columns:repeat(2,1fr);gap:8px;width:100%;
+  }
+  .topbar-actions > *{
+    width:100%;margin:0;min-height:46px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .topbar-actions > *:last-child{grid-column:1 / -1}
+  /* ⚠ DOIS ITENS PRECISAM DE SELETOR MAIS FORTE, e não é preciosismo: medido,
+     a caixa da nuvem tem `max-width:82px` (regra de duas classes) e o botão de
+     sair tem `margin-left:10px` numa regra de ID. As duas vencem `.topbar-
+     actions > *` e, sem isto, a segunda fila saía com a nuvem espremida em
+     82px e o botão de sair 10px para fora da grade — exatamente o desalinho
+     que o print mostrava, só que em lugar diferente. */
+  .topbar-actions > .cloud.cloud-square{max-width:none;min-width:0;width:100%}
+  .topbar-actions > #uvLogoutBtn{margin:0;width:100%}
+
   /* (·428) O CORTE TAMBÉM NO <body> — ver a explicação inteira lá em cima, na
      regra do <html>. Precisa estar AQUI dentro, e não junto da outra: o bloco
      do ·246 acima declara `body{overflow:visible}` no celular, e o atalho
@@ -5383,7 +5420,34 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 435; // (·435) AS QUATRO PASTAS SEM TELA PRÓPRIA AGORA FICAM AZUIS QUANDO
+var UV_BUILD_NUM = 436; // (·436) O CABEÇALHO DO CELULAR: LOGO CENTRADA E BOTÕES DO MESMO
+// TAMANHO, OCUPANDO A LARGURA TODA. Pedido do Nando com o print circulando o topo: "deixe todos
+// eles com o mesmo tamanho padronizado e distribuídos de forma que ocupe todo o espaço sem
+// sobras" e "centralize a logomarca da Ultravel".
+// ⚠️ DE FLEX PARA GRADE, e é isso que resolve de verdade: em `flex-wrap` cada botão tem a largura
+// do PRÓPRIO TEXTO — "Novo" curtinho, "Imprimir / PDF" comprido — e o que sobra na linha vira
+// buraco, que é exatamente o que o print mostra. Numa grade de duas colunas iguais a largura
+// deixa de depender do texto.
+// ⚠️ São CINCO botões, número ímpar: sem tratar, o último sobraria com meia linha vazia ao lado —
+// a "sobra" que ele pediu para tirar. Ele passa a ocupar a linha inteira.
+// ⚠️ ALTURA IGUAL NÃO SAI DE GRAÇA: os cinco vêm de estilos diferentes (dois `.btn`, a caixa da
+// nuvem, o botão de sair com padding próprio). Uma altura mínima comum iguala os cinco sem
+// reescrever o estilo de nenhum.
+// ⚠️ DOIS ITENS PRECISARAM DE SELETOR MAIS FORTE, e não é preciosismo — foi medido: a caixa da
+// nuvem tem `max-width:82px` (regra de duas classes) e o botão de sair tem `margin-left:10px`
+// numa regra de ID. As duas vencem `.topbar-actions > *`, e sem o reforço a segunda fila saía com
+// a nuvem espremida em 82px e o botão de sair 10px FORA da grade.
+// ⚠️ A logo são DUAS imagens (o "ultravel" e o "Hub" por cima, puxado 20px para a esquerda).
+// Centralizar é centralizar o CONJUNTO; medir só a primeira dava 15px fora do centro com o
+// conjunto certinho — o teste foi corrigido, não o CSS.
+// ⚠️ Nada disso vale no desktop, onde a fila horizontal continua igual — o teste cobre.
+// VALIDAÇÃO: test_mobile_topo.mjs (novo, 42 checagens) mede em 320/390/430px altura, largura,
+// bordas, o quinto botão e a logo. 6 SABOTAGENS. ⚠️ UMA PASSOU NA PRIMEIRA RODADA e o teste foi
+// endurecido: trocando a grade por `flex-wrap` com largura 100%, os cinco botões empilham um por
+// linha e TODAS as contas de largura continuavam batendo — inclusive "as colunas preenchem a
+// largura", por coincidência aritmética. Faltava exigir DUAS COLUNAS DE VERDADE (mesma linha,
+// lado a lado), que é o que a checagem nova faz. Suítes anteriores: todas sem falha.
+// ANTERIOR: AS QUATRO PASTAS SEM TELA PRÓPRIA AGORA FICAM AZUIS QUANDO
 // ABERTAS. Relato do Nando: "as pastas Comercial, Matriz Operacional, Eventos e Grupos não estão
 // ficando na cor azul quando estão selecionadas".
 // ⚠️ CAUSA: o azul do menu vem da classe `active`, e `active` é dada pela TELA que a pasta abre.
