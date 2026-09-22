@@ -123,6 +123,30 @@ html{overflow-x:hidden}
    tirado com a página já correta, só afastada pela pinça. */
 html{touch-action:pan-x pan-y;overscroll-behavior-x:none}
 body{overscroll-behavior-x:none}
+/* (·428) O ARRASTO PARA A ESQUERDA AINDA DESLOCAVA A PÁGINA — e só para ESSE
+   lado, detalhe do relato que já entrega o diagnóstico: para a direita não
+   deslocava porque a página JÁ ESTAVA no começo (não há para onde ir). Ou
+   seja, não era balanço elástico (esse volta sozinho): era ROLAGEM DE VERDADE,
+   o que prova que sobra conteúdo à direita — com os dados reais da agência,
+   que a bancada não tem.
+   ⚠ O corte no <html> (que já existia) NÃO basta — e aqui eu me corrijo: numa
+   primeira medição apressada concluí que o Chromium segurava o arrasto só com
+   o <html>, e escrevi isso. A SABOTAGEM do teste desmentiu: retirando o corte
+   do <body>, a página anda 234px para o lado no Chromium também. O defeito do
+   Nando se reproduz em bancada, e esta trava é o que o resolve — não era só
+   uma precaução para o Safari.
+   ⚠ `clip` e não `hidden`: hidden no <body> o transforma em caixa de rolagem,
+   o eixo vertical vira `auto` junto e o `position:sticky` da barra do topo
+   passa a grudar no corpo em vez de na tela — o topo "escaparia" ao rolar.
+   `clip` corta sem criar caixa de rolagem, então a barra continua grudando.
+   Escopado ao celular: no desktop o <body> já é `overflow:hidden` por outro
+   motivo (modelo de dois painéis) e não se mexe nele.
+   ⚠ MEDIDO E CORRIGIDO NA HORA: a primeira tentativa declarou isto AQUI, no
+   topo do arquivo, e não valeu nada — o bloco do ·246, lá embaixo, tem
+   `body{overflow:visible}` no celular, e o atalho `overflow` reescreve o eixo
+   horizontal junto. O estilo aplicado continuava `visible`. A trava foi para
+   dentro do bloco do celular do ·426, que vem DEPOIS. Ler o CSS não bastava;
+   foi preciso ler o estilo APLICADO. */
 body{
   font-family:'Inter',system-ui,sans-serif;
   background:var(--fundo);
@@ -2539,6 +2563,12 @@ body:not(.dark) .termo-nome{color:#5a7085}
      uma coisa com a outra. Só `max-width`: NADA de overflow:hidden aqui,
      que cortaria os balões ::after de quem reagiu (·355/·357). */
   :where(#hubMain,#hubSidebar,.topbar-inner) :is(button,select,input,textarea){max-width:100%}
+  /* (·428) O CORTE TAMBÉM NO <body> — ver a explicação inteira lá em cima, na
+     regra do <html>. Precisa estar AQUI dentro, e não junto da outra: o bloco
+     do ·246 acima declara `body{overflow:visible}` no celular, e o atalho
+     `overflow` reescreve o eixo horizontal junto. */
+  body{max-width:100%}
+  @supports (overflow-x:clip){ body{overflow-x:clip} }
   /* (5) REDE FINAL — já existe desde antes, no topo do arquivo:
      html{overflow-x:hidden} + @supports(overflow-x:clip). NÃO foi duplicada
      aqui de propósito; regra repetida é regra para divergir depois. Fica o
@@ -5243,7 +5273,44 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 427; // (·427) PINÇA BLOQUEADA E TELA FIRME NO LUGAR. Relato do Nando depois
+var UV_BUILD_NUM = 428; // (·428) O ARRASTO PARA A ESQUERDA TAMBÉM FOI TRAVADO. Relato depois do
+// ·427: "quando arrasto pro lado esquerdo ele vai pro lado e fica aquela sobra lateral... pro lado
+// direito já funciona certinho".
+// ⚠️ A OBSERVAÇÃO DELE É O DIAGNÓSTICO INTEIRO, e vale registrar como se lê um relato assim: se
+// deslocasse para os DOIS lados seria balanço elástico (que volta sozinho); deslocar só para UM
+// lado significa que a página estava no COMEÇO da rolagem — para a direita não havia para onde
+// ir. Ou seja, não era efeito elástico: era ROLAGEM HORIZONTAL DE VERDADE, prova de que sobra
+// conteúdo à direita com os dados reais da agência.
+// ⚠️ ME CORRIJO NUMA AFIRMAÇÃO: numa primeira medição apressada concluí que o corte no <html>
+// (que já existia) segurava o arrasto no Chromium, e que esta trava seria só uma precaução para o
+// Safari. A SABOTAGEM do teste novo desmentiu na hora: retirando o corte do <body>, a página anda
+// 234px para o lado no Chromium também. O defeito se reproduz em bancada e esta trava é o que o
+// resolve. Medir de novo valeu mais que a minha conclusão anterior.
+// ⚠️ POR QUE O CORTE PRECISA SER NO <body> TAMBÉM, e por que ele é `clip` e não `hidden`:
+// `hidden` transforma o <body> em caixa de rolagem, o eixo vertical vira `auto` junto e o
+// `position:sticky` da barra do topo passa a grudar no corpo em vez de na tela — o topo escaparia
+// ao rolar. Medido: com `hidden`, overflow-y vira `auto` e o teste acusa. `clip` corta sem criar
+// caixa de rolagem, e a barra continua grudada (medido em 0px do topo depois de rolar 600px).
+// ⚠️ E ONDE a regra é declarada importa tanto quanto a regra: a primeira tentativa colocou o corte
+// no topo do arquivo e ele NÃO VALEU NADA — o bloco do ·246, mais abaixo, tem
+// `body{overflow:visible}` no celular, e o atalho `overflow` reescreve o eixo horizontal junto.
+// O estilo aplicado continuava `visible`. Ler o CSS não bastava: foi preciso ler o estilo
+// APLICADO na página. A trava foi para dentro do bloco do celular do ·426, que vem depois.
+// ✨ JUNTO VAI UMA FERRAMENTA: **toque triplo no selo da build** abre um RAIO-X DA LARGURA — diz o
+// tamanho da tela, o da página, quanto está sobrando e quais elementos passam da borda direita.
+// Existe porque a causa de fundo (o que sobra) só aparece COM OS DADOS REAIS, no celular dele: em
+// bancada a base está vazia e o culpado não existe. O Ctrl+Shift+D, que seria o caminho natural,
+// é atalho de teclado e não existe no celular. Um toque continua copiando a build; o raio-X só
+// abre no terceiro toque dentro de 900ms. Ele reporta a ORIGEM (se o pai também passa da borda,
+// quem interessa é o pai) e ignora o que rola de propósito (Kanban, planilhas), que apareceria
+// como culpado falso assim que alguém rolasse aquilo para o lado.
+// VALIDAÇÃO: test_mobile_pan.mjs (novo, 16 checagens) monta o cenário (conteúdo sobrando), tenta
+// mandar a página para o lado por três caminhos diferentes e exige que ela não saia do lugar;
+// confere que a barra do topo continua grudada e que o eixo vertical continua rolando; e clica de
+// verdade no selo para provar que um toque NÃO abre o raio-X e três abrem. Validado por
+// 4 SABOTAGENS, todas pegas — inclusive a do `hidden` e a da regra posta no lugar errado do
+// arquivo. As suítes do ·426 (273) e do ·427 (16) seguem sem falha.
+// ANTERIOR: PINÇA BLOQUEADA E TELA FIRME NO LUGAR. Relato do Nando depois
 // do ·426: "quando eu faço a função de pinça... para diminuir a tela, volta a aparecer as sobras
 // de página no canto" — e, ao arrastar, o sistema fica "dançando de um lado para o outro". Ele
 // mandou as duas fotos, uma com a tela afastada e outra no tamanho certo.
@@ -7397,6 +7464,57 @@ try{
           document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); ok();
         }catch(e){}
       };
+      /* (·428) TOQUE TRIPLO NO SELO = RAIO-X DA LARGURA. Serve para achar o que
+         está sobrando pela direita NO APARELHO ONDE O DEFEITO APARECE — que é
+         o celular do Nando, com os dados reais da agência. Em bancada a base
+         está vazia e o culpado simplesmente não existe, então nenhuma medição
+         minha aqui responderia essa pergunta; o Ctrl+Shift+D, que seria o
+         caminho natural, é atalho de teclado e não existe no celular.
+         Um clique continua copiando o número da build, como sempre: o raio-X
+         só abre no TERCEIRO toque dentro de 900ms, que ninguém dá sem querer.
+         ⚠ Ele reporta a ORIGEM, não o filho: se o pai também passa da borda,
+         quem interessa é o pai. E ignora o que rola de propósito (Kanban,
+         planilhas) — rolado para o lado, o conteúdo deles fica legitimamente
+         fora da tela e apareceria como culpado falso. */
+      var _uvToques=0, _uvUltimo=0;
+      b.addEventListener('click', function(){
+        var agora=Date.now();
+        if(agora-_uvUltimo>900) _uvToques=0;
+        _uvUltimo=agora; _uvToques++;
+        if(_uvToques<3) return;
+        _uvToques=0;
+        try{
+          var vw=window.innerWidth, sw=document.documentElement.scrollWidth, achados=[];
+          var todos=document.querySelectorAll('body *');
+          for(var i=0;i<todos.length;i++){
+            var el=todos[i];
+            var cs=getComputedStyle(el);
+            if(cs.display==='none'||cs.visibility==='hidden') continue;
+            var r=el.getBoundingClientRect();
+            if(r.width===0||r.height===0) continue;
+            if(r.right<=vw+1) continue;
+            var pai=el.parentElement, pr=pai?pai.getBoundingClientRect():null;
+            if(pr && pr.right>vw+1) continue;
+            if(el.closest('.kl-colunas-wrap,.gc-tab-wrap,.cg-tab-box,.bk-tab-wrap,.est-carousel')) continue;
+            var nome=el.tagName.toLowerCase()
+              + (el.id?('#'+el.id):'')
+              + (el.className && el.className.toString ? ('.'+el.className.toString().trim().split(/\s+/).slice(0,2).join('.')) : '');
+            achados.push({n:nome, r:Math.round(r.right), w:Math.round(r.width)});
+            if(achados.length>40) break;
+          }
+          achados.sort(function(a,c){ return c.r-a.r; });
+          var txt='RAIO-X DA LARGURA\n\nTela: '+vw+'px\nPágina: '+sw+'px\n';
+          txt += (sw>vw ? ('SOBRA: '+(sw-vw)+'px\n\n') : '\nNada sobrando.\n\n');
+          if(!achados.length) txt+='Nenhum elemento passa da borda.';
+          else{
+            txt+='Passam da borda direita:\n';
+            for(var j=0;j<Math.min(6,achados.length);j++){
+              txt+='\n'+(j+1)+') '+achados[j].n+'\n   chega a '+achados[j].r+'px (largura '+achados[j].w+')';
+            }
+          }
+          alert(txt);
+        }catch(e){ try{ alert('Raio-X falhou: '+e.message); }catch(_){} }
+      });
       document.body.appendChild(b);
     }catch(e){}
   });
