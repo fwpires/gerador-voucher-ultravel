@@ -2710,6 +2710,21 @@ body:not(.dark) .termo-nome{color:#5a7085}
   .topbar-actions > .cloud.cloud-square{max-width:none;min-width:0;width:100%}
   .topbar-actions > #uvLogoutBtn{margin:0;width:100%}
 
+  /* ===== (·437) AS LINHAS DE AUSÊNCIA PROGRAMADA CABEM NA TELA =====
+     Print do Nando com a marcação no canto direito: os botões ✎ e 🗑 das
+     ausências ficavam FORA do card. Medido com três ausências reais: a linha
+     precisa de 494 a 599px e o card tem 336 — os botões nasciam entre 456 e
+     627px, além da borda em 365, e o corte do ·428 os deixava invisíveis.
+     ⚠ CAUSA: `.apr-item` é uma fila `flex` SEM quebra, e as peças dela (nome,
+     data, hora) são chips que não encolhem. Numa tela larga sobra espaço e
+     ninguém percebe; no celular a fila simplesmente continua para fora.
+     ⚠ A correção é deixar a fila QUEBRAR, e não espremer os chips: apertar
+     "23/09/26" ou "09:30–10:00" cortaria justamente o dado que a pessoa vai
+     ler. Quebrando, cada peça desce inteira para a linha de baixo.
+     ⚠ `.apr-acoes` mantém o `margin-left:auto`, então os dois botões seguem
+     ancorados na direita da última linha, que é onde o dedo já os procura. */
+  .apr-item{flex-wrap:wrap}
+
   /* (·428) O CORTE TAMBÉM NO <body> — ver a explicação inteira lá em cima, na
      regra do <html>. Precisa estar AQUI dentro, e não junto da outra: o bloco
      do ·246 acima declara `body{overflow:visible}` no celular, e o atalho
@@ -5420,7 +5435,34 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 436; // (·436) O CABEÇALHO DO CELULAR: LOGO CENTRADA E BOTÕES DO MESMO
+var UV_BUILD_NUM = 437; // (·437) AS LINHAS DE AUSÊNCIA PROGRAMADA CABEM NA TELA DO CELULAR.
+// Print do Nando com a marcação no canto direito: os botões ✎ e 🗑 de cada ausência ficavam FORA
+// do card, cortados pela borda da tela.
+// ⚠️ MEDIDO com três ausências reais, e o número explica tudo: a fila precisava de 494 a 599px e
+// o card tem 336 — os botões nasciam entre 456 e 627px, além da borda em 365. O corte do ·428
+// impedia a página de rolar de lado (certo), então eles simplesmente não existiam para o dedo.
+// ⚠️ CAUSA: `.apr-item` é uma fila `flex` SEM quebra, e as peças dela (nome, data, hora) são
+// chips que não encolhem. Numa tela larga sobra espaço e ninguém percebe; no celular a fila
+// continua para fora e leva os botões junto.
+// ⚠️ A CORREÇÃO É DEIXAR A FILA QUEBRAR, e não espremer os chips: apertar "23/09/26" ou
+// "09:30–18:00" cortaria justamente o dado que a pessoa abre a tela para ler. Quebrando, cada
+// peça desce inteira. O `margin-left:auto` das ações fica, então os dois botões seguem ancorados
+// à direita da última linha, onde o dedo já os procura. Só no celular.
+// ⚠️ VARREDURA JUNTO: com as mesmas ausências carregadas, nenhum outro bloco do conteúdo
+// transborda — então este era o único caso desse tipo na tela, não a ponta de um problema maior.
+// VALIDAÇÃO: test_mobile_ausencias.mjs (novo, 40 checagens). Ele INJETA as ausências pela mesma
+// porta que o Hub usa, porque com a base vazia da bancada a lista nem existe e o defeito não
+// aparece. 2 SABOTAGENS, as duas pegas — inclusive a que "resolve" espremendo os chips.
+// ⚠️⚠️ TRÊS DEFEITOS DO PRÓPRIO TESTE, todos medidos e corrigidos antes de eu confiar nele:
+//   (1) a primeira versão devolvia a config embrulhada em {config:{…}} e a lista vinha VAZIA —
+//       passava sem testar nada;
+//   (2) media "quebrou em quantas linhas" pelos TOPOS dos filhos, e com `align-items:center` os
+//       topos divergem mesmo numa fila única: acusou "3 linhas" no desktop, onde não há quebra;
+//   (3) para saber se os botões estão alcançáveis era preciso rolar até eles, e NEM
+//       `scrollIntoView` NEM `behavior:'auto'` rolam aqui — o Hub declara `scroll-behavior:
+//       smooth`, e "auto" quer dizer "siga o CSS". A página parava a 3097px do botão e o teste
+//       acusava seis botões inalcançáveis que estavam perfeitos. Só `behavior:'instant'` rola na
+//       hora. ANTERIOR: O CABEÇALHO DO CELULAR: LOGO CENTRADA E BOTÕES DO MESMO
 // TAMANHO, OCUPANDO A LARGURA TODA. Pedido do Nando com o print circulando o topo: "deixe todos
 // eles com o mesmo tamanho padronizado e distribuídos de forma que ocupe todo o espaço sem
 // sobras" e "centralize a logomarca da Ultravel".
