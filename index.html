@@ -5353,7 +5353,58 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 431; // (·431) CELULAR: SUB-PASTAS OCULTAS ATÉ SE PEDIR, E UMA TRILHA QUE NÃO
+var UV_BUILD_NUM = 433; // (·433) UM TOQUE FECHA A PASTA INTEIRA. Dois pedidos do Nando, que no
+// fundo são o mesmo: "ao clicar na pasta principal deve imediatamente fechar tudo, ocultar todo o
+// conteúdo daquela pasta incluindo as subpastas, sem precisar dar duplo clique" e "a pasta Ações
+// Comerciais não está fechando quando clico em cima".
+// ⚠️ MEDI OS DOIS ANTES DE MEXER, e o relato dele estava certo nos dois: (a) com "Vouchers
+// Salvos" aberto, tocar em "Gerador de Voucher" apenas NAVEGAVA para a mãe — a tela trocava e
+// nada fechava; (b) tocar em "Ações Comerciais" escondia o conteúdo mas deixava o grupo
+// "Comercial" aberto na tela, e de fora isso é "não fechou nada".
+// ⚠️ CAUSA COMUM: o recolher do ·430 só considerava "em uso" a pasta que estivesse ATIVA. A
+// pasta-mãe de uma sub-pasta aberta não é a ativa, e a sub-pasta ativa não levava o grupo dela
+// junto ao fechar. Agora "em uso" é a pasta aberta OU a pasta que CONTÉM a tela aberta, e fechar
+// fecha as duas coisas: o conteúdo e TODAS as árvores.
+// ⚠️ Fechar todas as árvores (inclusive a da tela em uso) é seguro exatamente porque o conteúdo
+// também é escondido no mesmo gesto: ninguém fica com uma tela aberta e o caminho dela sumido do
+// menu. Reabrir devolve as duas coisas, e quem decide o que volta é a MESMA função de sempre (a
+// árvore da tela em uso) — não uma lista guardada no momento de fechar, que seria um segundo
+// lugar onde o mesmo fato mora.
+// ⚠️⚠️ REGRESSÃO QUE EU MESMO CAUSEI NESTA BUILD, e que só não foi para produção porque o teste
+// do ·429 existia: ao reescrever o bloco do toggle, apaguei junto os OUVINTES DE `resize` e
+// `orientationchange`. Sem eles, girar o aparelho (ou abrir a aba num monitor) deixava o Hub
+// preso DENTRO do menu, porque nada reavaliava a largura — o defeito mais caro possível, e
+// silencioso. A checagem que pegou foi "desacopla sozinho ao virar desktop". Restaurados, com
+// comentário no lugar para ninguém repetir.
+// VALIDAÇÃO: test_mobile_fechar.mjs (novo, 15 checagens) cobre os dois casos do relato, o reabrir,
+// a troca de pasta com tudo fechado, a pasta sem sub-pastas e o desktop intocado. 5 SABOTAGENS,
+// todas pegas — inclusive a dos ouvintes de resize. ⚠️ Dois testes antigos falharam
+// LEGITIMAMENTE e foram atualizados, não afrouxados: eles tocavam numa pasta já aberta para
+// "garantir aberta", gesto que desde esta build FECHA — ganharam um passo que chega ao estado
+// aberto sem depender de quantos toques. Suítes: ·426 (273), ·427 (16), ·428 (16), ·429 (28),
+// ·430/·432 (30) e ·431 (23), todas sem falha.
+// ANTERIOR: O COMEÇO DA TELA PARAVA POR BAIXO DAS SUB-PASTAS GRUDADAS.
+// Prints do Nando depois do ·431: "veja como o conteúdo está abrindo desalinhado, a parte de cima
+// está sendo comida" — em três telas diferentes, o topo do conteúdo aparecia cortado atrás da
+// trilha fixa ("por IA" cortado no Gerador, o título dos Vouchers Salvos escondido).
+// ⚠️ CAUSA, E É UM DESCUIDO MEU DO ·431: a rolagem do ·430 descontava barra do topo + pasta
+// ativa. O ·431 acrescentou um terceiro grudado — o BLOCO DE SUB-PASTAS — e eu não atualizei a
+// conta. O teto real virou barra + mãe + sub-pastas, e o conteúdo parava exatamente por baixo
+// das sub-pastas. Quanto maior o grupo (Comercial tem três), maior o pedaço comido.
+// ⚠️ CADA PEÇA SOMA UMA VEZ SÓ: com a mãe aberta, ela É o item ativo; com uma sub-pasta aberta, o
+// item ativo está DENTRO do bloco. Somar os dois separadamente empurraria a tela para baixo
+// demais — trocaria um desalinho por outro, e ninguém repara em espaço sobrando como repara em
+// texto cortado.
+// ⚠️⚠️ O TESTE DO ·430 NÃO PEGOU ISSO, E O MOTIVO IMPORTA MAIS QUE O CONSERTO: ele comparava a
+// posição do conteúdo com um teto que ELE MESMO calculava do mesmo jeito errado. Duas contas
+// erradas iguais batem, e o defeito passa — a versão com o furo passava com 26/26. Entrou uma
+// checagem que não depende de conta nenhuma: perguntar ao navegador QUEM ESTÁ no ponto onde o
+// conteúdo começa (elementFromPoint). Se ali houver um pedaço do menu grudado, o começo está
+// escondido, ponto final. Com a conta antiga ela acusa "no ponto do topo está: BUTTON.nav-item",
+// que é exatamente o print do Nando reproduzido em bancada.
+// VALIDAÇÃO: test_mobile_menu.mjs subiu para 30 checagens; a sabotagem que devolve a conta antiga
+// falha em 4 delas. As suítes do ·426 (273), ·427 (16), ·428 (16), ·429 (28) e ·431 (23) seguem
+// sem falha. ANTERIOR: CELULAR: SUB-PASTAS OCULTAS ATÉ SE PEDIR, E UMA TRILHA QUE NÃO
 // SOME. Dois pedidos do Nando: "as subpastas devem ficar sempre ocultas, elas só aparecem quando
 // clicar em cima da pasta principal" e "nas pastas que contêm subpastas, quando abrir e mostrar o
 // conteúdo, a subpasta também fica fixa e não some quando o conteúdo for levantado".
@@ -14488,7 +14539,22 @@ init();
         var main=document.getElementById('hubMain'); if(!main) return;
         var btn=document.querySelector('#hubSidebar .nav-item.active');
         var t=document.querySelector('.topbar');
-        var alt=(t?t.getBoundingClientRect().height:0)+(btn?btn.getBoundingClientRect().height:0)+8;
+        /* (·432) O TETO É A TRILHA INTEIRA, não só a barra e a pasta.
+           ⚠ Era aqui o defeito dos prints: depois do ·431 quem fica grudado
+           pode ser barra + pasta-mãe + BLOCO DE SUB-PASTAS, e a conta somava
+           só a barra e o item ativo. Faltavam as sub-pastas, então o começo da
+           tela parava exatamente por baixo delas — "a parte de cima está sendo
+           comida". Some cada peça UMA vez: no caso da mãe aberta ela é o
+           próprio item ativo, e no caso da sub-pasta o item ativo está DENTRO
+           do bloco — contar os dois separadamente empurraria a tela para baixo
+           demais, trocando um desalinho por outro. */
+        var mae=document.querySelector('#hubSidebar .nav-item.uv-fixa-mae');
+        var filhas=document.querySelector('#hubSidebar .nav-children.uv-fixa-filhos');
+        var cabeca = mae || btn;                       /* mãe grudada, ou a própria pasta */
+        var alt=(t?t.getBoundingClientRect().height:0)
+              + (cabeca?cabeca.getBoundingClientRect().height:0)
+              + (filhas?filhas.getBoundingClientRect().height:0)
+              + 8;
         /* ⚠ scroll-margin + scrollIntoView, e NÃO uma conta de scrollY: medido,
            a conta manual errava ~20px e o começo do conteúdo nascia por baixo
            da pasta grudada. Motivo: entre calcular e rolar, a tela termina de
@@ -14521,22 +14587,54 @@ init();
      que redesenharia a tela à toa. */
   window.uvMobTogglePasta=function(it, scr){
     try{
-      if(!uvMobEhCelular()) return false;
-      if(!it || !it.classList.contains('active')) return false;
-      var recolheu=document.body.classList.toggle('uv-recolhido');
-      /* (·431) recolher a pasta esconde TAMBÉM as sub-pastas dela — é o mesmo
-         gesto de "fechar esta pasta". Expandir devolve as duas coisas. */
-      var arv=it.getAttribute('data-tree');
-      if(arv){
-        var caixa=document.querySelector('#hubSidebar [data-tree-body="'+arv+'"]');
-        if(caixa) caixa.classList.toggle('show', !recolheu);
-        it.classList.toggle('open', !recolheu);
+      if(!uvMobEhCelular() || !it) return false;
+      /* (·433) "EM USO" é a pasta aberta OU a pasta que CONTÉM a tela aberta.
+         Antes só a primeira contava, e daí vinham as duas queixas do Nando:
+         com "Vouchers Salvos" aberto, tocar em "Gerador de Voucher" apenas
+         NAVEGAVA para a mãe (a tela trocava, nada fechava); e tocar em "Ações
+         Comerciais" escondia o conteúdo mas deixava o grupo "Comercial"
+         aberto na tela — de fora, "não fechou nada". */
+      var emUso=it.classList.contains('active');
+      if(!emUso){
+        var arv=it.getAttribute('data-tree');
+        if(arv){
+          var caixa=document.querySelector('#hubSidebar [data-tree-body="'+arv+'"]');
+          var ativo=document.querySelector('#hubSidebar .nav-item.active');
+          emUso=!!(caixa && ativo && caixa.contains(ativo));
+        }
       }
-      if(!recolheu){ window.uvMobAcoplar(); window.uvMobIrAoTopoDoConteudo(); }
-      else { window.uvMobAcoplar(); }
+      if(!emUso) return false;
+      var recolheu=document.body.classList.toggle('uv-recolhido');
+      if(recolheu){
+        /* FECHAR É FECHAR TUDO, num toque só: o conteúdo e TODAS as árvores,
+           inclusive a que contém a tela aberta. É o que "fechar a pasta
+           inteira" quer dizer — e é seguro justamente porque o conteúdo também
+           está escondido: ninguém fica com a tela aberta e o caminho dela
+           sumido do menu. Reabrir devolve as duas coisas. */
+        document.querySelectorAll('#hubSidebar [data-tree-body]').forEach(function(cx){
+          cx.classList.remove('show');
+          var cab=document.querySelector('#hubSidebar [data-tree="'+cx.getAttribute('data-tree-body')+'"]');
+          if(cab) cab.classList.remove('open');
+        });
+        window.uvMobAcoplar();
+      } else {
+        /* reabrir: quem decide o que volta a aparecer é a mesma função de
+           sempre (a árvore da tela em uso), e não uma lista guardada aqui —
+           lista guardada é o segundo lugar onde o mesmo fato mora */
+        window.uvMobUmaArvore();
+        window.uvMobAcoplar();
+        window.uvMobIrAoTopoDoConteudo();
+      }
       return true;
     }catch(e){ return false; }
   };
+  /* ⚠ (·433) ESTES DOIS OUVINTES SÃO O CAMINHO DE VOLTA AO DESKTOP, e eu os
+     apaguei sem querer ao reescrever o bloco acima nesta mesma build — quem
+     pegou foi o teste do ·429, na checagem "desacopla sozinho ao virar
+     desktop". Sem eles, girar o aparelho (ou abrir a mesma aba num monitor)
+     deixava o Hub preso DENTRO do menu, porque nada reavaliava a largura.
+     Ficam logo antes de hubGoScreen de propósito: é o ponto em que todas as
+     funções que eles chamam já existem. */
   try{
     window.addEventListener('resize', function(){ try{ window.uvMobAcoplar(); }catch(e){} });
     window.addEventListener('orientationchange', function(){ setTimeout(function(){ try{ window.uvMobAcoplar(); }catch(e){} },120); });
