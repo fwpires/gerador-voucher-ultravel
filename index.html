@@ -5353,7 +5353,32 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 433; // (·433) UM TOQUE FECHA A PASTA INTEIRA. Dois pedidos do Nando, que no
+var UV_BUILD_NUM = 434; // (·434) A PASTA-MÃE SEM TELA PRÓPRIA (Comercial, Matriz, Eventos,
+// Grupos) PASSOU A SE COMPORTAR. Dois relatos do Nando: "quando eu clico na pasta comercial,
+// mostra a pasta Insights dentro de Equipe" e "quando a pasta comercial está aberta, ao clicar em
+// cima de novo ela não está fechando".
+// ⚠️ OS DOIS SAÍAM DA MESMA LINHA DO ·431 — uma só, e errada por dois motivos diferentes: depois
+// de alternar a árvore eu chamava `uvMobUmaArvore(tree)` SEMPRE.
+//   (a) Quando o toque acabava de FECHAR a pasta, essa chamada a REABRIA no mesmo gesto. Ela
+//       fechava e abria em milissegundos, e de fora isso é "não fecha".
+//   (b) Essa função preserva a árvore da TELA EM USO — comportamento certo ao navegar, e errado
+//       aqui: com o Insights aberto, tocar em Comercial deixava Comercial E Equipe ▸ Insights à
+//       mostra ao mesmo tempo. Era exatamente o que ele viu.
+// ⚠️ A REGRA AGORA: tocar numa pasta-mãe sem tela própria é gesto de MENU, não de navegação — ela
+// não tem conteúdo para mostrar, só filhas. ABRIU → fecha TODAS as outras, sem exceção, e recolhe
+// o conteúdo (ele é de outra pasta; o menu fica limpo para escolher). FECHOU → não reabre nada.
+// ⚠️ Recolher o conteúdo junto não é efeito colateral, é o que torna seguro fechar a árvore da
+// tela em uso: ninguém fica com uma tela aberta e o caminho dela sumido do menu.
+// VALIDAÇÃO: test_mobile_fechar.mjs subiu para 23 checagens, com os DOIS relatos reproduzidos —
+// inclusive revelando o item Insights como o Hub faz para quem tem permissão, senão o caso não
+// existe em bancada. 3 SABOTAGENS novas, todas pegas, e cada uma reproduz um dos relatos.
+// ⚠️ O teste do ·431 falhou LEGITIMAMENTE e foi atualizado, não afrouxado: ele exigia que abrir
+// uma pasta-mãe PRESERVASSE a árvore da tela em uso — que é exatamente o comportamento que o
+// Nando pediu para mudar. E o helper dele entrava em círculo: com o conteúdo recolhido e a
+// árvore fechada, tocar na sub-pasta abria a mãe, a mãe estava "em uso" e o toque nela fechava
+// tudo de novo; agora quem expande, nesse estado, é a mãe — o gesto real da pessoa.
+// Suítes: ·426 (273), ·427 (16), ·428 (16), ·429 (28), ·430/·432 (30), ·431 (25) e ·433/·434 (23).
+// ANTERIOR: UM TOQUE FECHA A PASTA INTEIRA. Dois pedidos do Nando, que no
 // fundo são o mesmo: "ao clicar na pasta principal deve imediatamente fechar tudo, ocultar todo o
 // conteúdo daquela pasta incluindo as subpastas, sem precisar dar duplo clique" e "a pasta Ações
 // Comerciais não está fechando quando clico em cima".
@@ -14915,9 +14940,37 @@ init();
          quem foi recolhido é o conteúdo, não a lista de filhas. */
       if(scr && window.uvMobTogglePasta && window.uvMobTogglePasta(it, scr)) return;
       if(tree){ if(scr) openTree(tree); else toggleTree(tree); } // navega → garante aberto; só árvore → alterna
-      /* (·431) no celular, abrir uma pasta fecha as outras — menos a que contém
-         a tela em uso (fechá-la levaria o conteúdo acoplado junto) */
-      if(tree && !scr){ try{ window.uvMobUmaArvore(tree); window.uvMobAcoplar(); }catch(e){} }
+      /* (·434) PASTA-MÃE SEM TELA PRÓPRIA (Comercial, Matriz, Eventos, Grupos):
+         tocar nela é gesto de MENU, não de navegação — ela não tem conteúdo
+         para mostrar, só filhas.
+         ⚠ DOIS DEFEITOS DO ·431 CORRIGIDOS AQUI, e os dois vinham da mesma
+         linha: eu chamava `uvMobUmaArvore(tree)` depois do toggle, SEMPRE.
+         (a) Quando o toggle acabava de FECHAR a pasta, essa chamada a
+             REABRIA na hora — por isso "a pasta Comercial não fecha quando
+             clico em cima": ela fechava e abria no mesmo toque.
+         (b) A função preserva a árvore da tela em uso — o que é certo ao
+             navegar, mas aqui fazia aparecer a pasta de OUTRO grupo junto:
+             com o Insights aberto, tocar em Comercial mostrava Comercial e
+             Equipe ▸ Insights ao mesmo tempo. Era o relato do Nando.
+         Agora: ABRIU → fecha TODAS as outras, sem exceção, e recolhe o
+         conteúdo (ele é de outra pasta; o menu fica limpo para escolher).
+         FECHOU → não reabre nada. */
+      if(tree && !scr){
+        try{
+          var caixaT=document.querySelector('#hubSidebar [data-tree-body="'+tree+'"]');
+          var abriu=!!(caixaT && caixaT.classList.contains('show'));
+          if(abriu){
+            document.querySelectorAll('#hubSidebar [data-tree-body]').forEach(function(cx){
+              var k=cx.getAttribute('data-tree-body'); if(k===tree) return;
+              cx.classList.remove('show');
+              var cab=document.querySelector('#hubSidebar [data-tree="'+k+'"]');
+              if(cab) cab.classList.remove('open');
+            });
+            document.body.classList.add('uv-recolhido');
+          }
+          window.uvMobAcoplar();
+        }catch(e){}
+      }
       if(scr) window.hubGoScreen(scr);
     });
     // (·281) CORREÇÃO — "navegação reseta ao atualizar página". O Hub já
