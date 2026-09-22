@@ -2618,6 +2618,31 @@ body:not(.dark) .termo-nome{color:#5a7085}
      ativa e recebendo o tempo real; só não ocupa a tela. */
   .uv-acoplado.uv-recolhido .hub-main{display:none}
 
+  /* ===== (·431) A TRILHA QUE NÃO SOME: mãe grudada, sub-pasta grudada =====
+     Pedido: "nas pastas que contêm subpastas, quando abrir e mostrar o
+     conteúdo, a subpasta também fica fixa e não some quando o conteúdo for
+     levantado". São dois casos, e cada um gruda uma coisa diferente:
+     CASO A — a pasta-mãe é a que está aberta: as FILHAS dela grudam logo
+              abaixo dela (`--uv-ativa-h` é a altura da mãe);
+     CASO B — a aberta é uma sub-pasta: a MÃE gruda abaixo da barra e a
+              sub-pasta ativa gruda abaixo da mãe (`--uv-mae-h`).
+     ⚠ As alturas são MEDIDAS e publicadas pelo JS, nunca cravadas: a barra do
+     topo quebra em duas linhas no celular e uma pasta de nome comprido ocupa
+     duas linhas na caixa do ·430 — com número fixo, um grudado nasceria em
+     cima do outro.
+     ⚠ Fundo OPACO no bloco de filhas: grudado, o conteúdo passa por baixo
+     dele, e sem fundo as duas camadas viram uma sopa de texto. */
+  .uv-acoplado #hubSidebar .nav-item.uv-fixa-mae{
+    position:sticky;top:var(--uv-topbar-h,0px);z-index:31;
+    background:var(--card);box-shadow:0 5px 14px rgba(0,0,0,.4);
+  }
+  body.dark.uv-acoplado #hubSidebar .nav-item.uv-fixa-mae{background:#16212E}
+  .uv-acoplado #hubSidebar .nav-children.uv-fixa-filhos{
+    position:sticky;top:calc(var(--uv-topbar-h,0px) + var(--uv-mae-h,0px));
+    z-index:29;background:var(--fundo);
+    padding-top:6px;box-shadow:0 6px 14px rgba(0,0,0,.4);
+  }
+
   /* (·428) O CORTE TAMBÉM NO <body> — ver a explicação inteira lá em cima, na
      regra do <html>. Precisa estar AQUI dentro, e não junto da outra: o bloco
      do ·246 acima declara `body{overflow:visible}` no celular, e o atalho
@@ -5328,7 +5353,44 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 430; // (·430) CELULAR: RECOLHER A PASTA, ABRIR SEMPRE NO COMEÇO DO CONTEÚDO
+var UV_BUILD_NUM = 431; // (·431) CELULAR: SUB-PASTAS OCULTAS ATÉ SE PEDIR, E UMA TRILHA QUE NÃO
+// SOME. Dois pedidos do Nando: "as subpastas devem ficar sempre ocultas, elas só aparecem quando
+// clicar em cima da pasta principal" e "nas pastas que contêm subpastas, quando abrir e mostrar o
+// conteúdo, a subpasta também fica fixa e não some quando o conteúdo for levantado".
+// (1) UMA ÁRVORE POR VEZ. As sete árvores do menu nascem ABERTAS no HTML — e assim continuam no
+// desktop, onde a coluna é estreita e ver tudo ajuda. No celular, com as caixas grandes do ·430,
+// sete árvores abertas são dezenas de botões a rolar antes de chegar em qualquer coisa.
+// ⚠️ A ÁRVORE DA TELA ATIVA NUNCA É FECHADA: com o conteúdo acoplado logo abaixo dela (·429),
+// fechá-la esconderia o item ativo E o conteúdo junto — o Hub pareceria ter sumido. A varredura
+// sobe por TODOS os níveis, porque há árvore dentro de árvore (Eventos ▸ WeCann) e fechar a avó
+// levaria a neta junto. E a pasta que a pessoa ACABOU de abrir também fica: pastas como Comercial
+// e Matriz não têm tela própria, então não entrariam por "contém a ativa" e fechariam no mesmo
+// gesto que as abriu.
+// (2) A TRILHA GRUDADA. Com a pasta-mãe aberta, o bloco de sub-pastas gruda logo abaixo dela; com
+// uma sub-pasta aberta, a mãe gruda abaixo da barra e o grupo de sub-pastas abaixo da mãe.
+// ⚠️ QUEM GRUDA É O BLOCO INTEIRO DE SUB-PASTAS, não a sub-pasta sozinha — e isto foi o TESTE que
+// mostrou, não eu que previ: um elemento `sticky` só gruda ENQUANTO O PAI DELE está na área
+// visível, e o pai de uma sub-pasta é um bloco de poucos pixels. A medição dizia "sub em 149px,
+// mãe em 180px": a sub subia junto com a rolagem enquanto a mãe ficava.
+// ⚠️⚠️ E ISSO OBRIGOU A MUDAR O ENCAIXE DO ·429: numa sub-pasta ativa, o conteúdo agora entra
+// DEPOIS do bloco de sub-pastas, e não grudado no botão. Motivo medido: o conteúdo estava DENTRO
+// do bloco que passou a ser sticky, então o Hub inteiro virava um painel flutuante por cima do
+// menu — o clique em "Comercial" chegava na barra de filtros dos Vouchers Salvos. Com o conteúdo
+// do lado de fora, gruda só o que tem de grudar, e ele continua logo abaixo das sub-pastas — a
+// mesma regra que o Nando já tinha escolhido para a pasta-mãe no ·429.
+// ⚠️ AS ALTURAS SÃO MEDIDAS e publicadas em variáveis CSS (--uv-topbar-h, --uv-mae-h): a barra do
+// topo quebra em duas linhas no celular e um nome comprido ocupa duas linhas na caixa do ·430 —
+// com número cravado, um grudado nasceria em cima do outro. E o bloco grudado leva fundo OPACO,
+// senão o conteúdo passa por baixo e as duas camadas viram uma sopa de texto.
+// (3) Recolher a pasta (·430) passou a esconder TAMBÉM as sub-pastas dela: é o mesmo gesto de
+// "fechar esta pasta". Expandir devolve as duas coisas.
+// VALIDAÇÃO: test_mobile_arvores.mjs (novo, 23 checagens) + os testes do ·429 e do ·430
+// atualizados para o encaixe novo. 6 SABOTAGENS, todas pegas. ⚠️ DUAS DELAS QUEBRAVAM O TESTE em
+// vez de reprovar (o item ficava inalcançável e o clique estourava com rastro de pilha) — o
+// clique passou a ser protegido e vira uma checagem reprovada com o motivo: teste que quebra
+// ensina menos que teste que acusa, a lição do ·423. As suítes do ·426 (273), ·427 (16), ·428
+// (16), ·429 (28) e ·430 (26) seguem sem falha.
+// ANTERIOR: CELULAR: RECOLHER A PASTA, ABRIR SEMPRE NO COMEÇO DO CONTEÚDO
 // E UM MENU FEITO PARA O DEDO. Quatro pedidos do Nando, todos só no celular.
 // (1) RECOLHER: tocar de novo na pasta já aberta esconde o conteúdo; tocar outra vez mostra.
 // ⚠️ Recolher é ESCONDER, nunca desmontar — a tela continua ativa, montada e recebendo o tempo
@@ -14282,6 +14344,93 @@ init();
     }
     return a;
   }
+  /* (·431) NO CELULAR, SÓ UMA ÁRVORE ABERTA POR VEZ — a da tela em uso.
+     Pedido do Nando: "as subpastas devem ficar sempre ocultas, elas só aparecem
+     quando clicar em cima da pasta principal". As sete árvores do menu nascem
+     ABERTAS no HTML (e assim continuam no desktop, onde a coluna é estreita e
+     ver tudo de uma vez ajuda). No celular, com as caixas grandes do ·430, sete
+     árvores abertas são dezenas de botões a rolar antes de chegar em qualquer
+     coisa.
+     ⚠ A árvore que contém a tela ATIVA nunca é fechada, e não é detalhe: com o
+     conteúdo acoplado logo abaixo do item ativo (·429), fechar a árvore dele
+     esconderia o item E o conteúdo junto — o Hub pareceria ter sumido.
+     ⚠ Sobe por TODOS os níveis: há árvore dentro de árvore no menu (Eventos ▸
+     WeCann), e fechar a avó levaria a neta aberta junto. */
+  function uvMobArvoresDaAtiva(){
+    var dentro={};
+    try{
+      var el=document.querySelector('#hubSidebar .nav-item.active');
+      while(el){
+        var caixa=el.closest ? el.closest('.nav-children[data-tree-body]') : null;
+        if(!caixa) break;
+        dentro[caixa.getAttribute('data-tree-body')]=true;
+        el=caixa.parentElement;
+      }
+      /* a própria pasta ativa, quando ela MESMA é uma árvore */
+      var at=document.querySelector('#hubSidebar .nav-item.active[data-tree]');
+      if(at) dentro[at.getAttribute('data-tree')]=true;
+    }catch(e){}
+    return dentro;
+  }
+  window.uvMobUmaArvore=function(extra){
+    try{
+      if(!uvMobEhCelular()) return;
+      var manter=uvMobArvoresDaAtiva();
+      /* a pasta que a pessoa ACABOU de abrir também fica: ela não tem tela
+         própria (Comercial, Matriz…), então não entraria por "contém a ativa" e
+         fecharia no mesmo gesto que a abriu */
+      if(extra) manter[extra]=true;
+      document.querySelectorAll('#hubSidebar [data-tree-body]').forEach(function(caixa){
+        var k=caixa.getAttribute('data-tree');
+        k=caixa.getAttribute('data-tree-body');
+        var cab=document.querySelector('#hubSidebar [data-tree="'+k+'"]');
+        if(manter[k]){ caixa.classList.add('show'); if(cab) cab.classList.add('open'); }
+        else { caixa.classList.remove('show'); if(cab) cab.classList.remove('open'); }
+      });
+    }catch(e){}
+  };
+  /* (·431) MEDIDAS DE QUEM FICA GRUDADO. A pasta-mãe gruda abaixo da barra do
+     topo, e a sub-pasta ativa gruda abaixo da mãe — uma trilha que não some
+     quando o conteúdo sobe. As alturas são MEDIDAS e publicadas em variáveis
+     porque mudam: a barra quebra em duas linhas, e nome de pasta comprido ocupa
+     duas linhas na caixa do ·430. Cravar número aqui esconderia um atrás do
+     outro na primeira pasta de nome longo. */
+  function uvMobMarcarGrudados(){
+    try{
+      var raiz=document.documentElement;
+      document.querySelectorAll('#hubSidebar .uv-fixa-mae').forEach(function(e){ e.classList.remove('uv-fixa-mae'); });
+      document.querySelectorAll('#hubSidebar .uv-fixa-filhos').forEach(function(e){ e.classList.remove('uv-fixa-filhos'); });
+      raiz.style.setProperty('--uv-mae-h','0px');
+      raiz.style.setProperty('--uv-ativa-h','0px');
+      if(!uvMobEhCelular()) return;
+      var btn=document.querySelector('#hubSidebar .nav-item.active'); if(!btn) return;
+      raiz.style.setProperty('--uv-ativa-h', Math.round(btn.getBoundingClientRect().height)+'px');
+      var arv=btn.getAttribute('data-tree'), mae=null, filhos=null;
+      if(arv){
+        /* CASO A — a pasta-mãe é a que está aberta */
+        mae=btn;
+        filhos=document.querySelector('#hubSidebar [data-tree-body="'+arv+'"]');
+      } else {
+        /* CASO B — a aberta é uma sub-pasta: a mãe dela entra na trilha */
+        var caixa=btn.closest('.nav-children[data-tree-body]');
+        if(caixa){
+          mae=document.querySelector('#hubSidebar [data-tree="'+caixa.getAttribute('data-tree-body')+'"]');
+          filhos=caixa;
+          if(mae) mae.classList.add('uv-fixa-mae');
+        }
+      }
+      if(!mae || !filhos || filhos.offsetParent===null) return;
+      raiz.style.setProperty('--uv-mae-h', Math.round(mae.getBoundingClientRect().height)+'px');
+      /* ⚠ QUEM GRUDA É O BLOCO DE FILHAS INTEIRO, e não a sub-pasta sozinha —
+         isto foi descoberto pelo teste, não previsto: um elemento `sticky` só
+         gruda ENQUANTO O PAI DELE está na área visível, e o pai de uma
+         sub-pasta é um bloco de poucos pixels de altura. Marcar só a sub-pasta
+         dava a medição "sub em 149px, mãe em 180px": ela simplesmente subia
+         junto com a rolagem, enquanto a mãe ficava. Com o bloco inteiro
+         grudado, a sub-pasta ativa vai junto e a trilha se mantém. */
+      filhos.classList.add('uv-fixa-filhos');
+    }catch(e){}
+  }
   window.uvMobAcoplar=function(){
     try{
       var main=document.getElementById('hubMain'); if(!main) return;
@@ -14300,10 +14449,24 @@ init();
         var filhos=document.querySelector('#hubSidebar [data-tree-body="'+arv+'"]');
         /* offsetParent null = está escondida; pasta fechada não vira ponto de encaixe */
         if(filhos && filhos.offsetParent!==null) alvo=filhos;
+      } else {
+        /* (·431) SUB-PASTA ATIVA: o conteúdo entra DEPOIS do bloco de sub-pastas,
+           e não grudado na sub-pasta como no ·429.
+           ⚠ Isto não é preferência, é obrigação — e foi o teste que mostrou: a
+           trilha grudada do ·431 torna o BLOCO de sub-pastas `sticky`, e o
+           conteúdo estava dentro desse bloco. Resultado medido: o Hub inteiro
+           virava um painel flutuante por cima do menu, cobrindo as pastas de
+           baixo (o clique em "Comercial" chegava na barra de filtros dos
+           Vouchers Salvos). Com o conteúdo do lado de fora, gruda só o que tem
+           de grudar — mãe e sub-pastas — e ele continua logo abaixo delas,
+           que é a mesma regra já escolhida pelo Nando para a pasta-mãe. */
+        var caixaAtiva=btn.closest('.nav-children[data-tree-body]');
+        if(caixaAtiva && caixaAtiva.offsetParent!==null) alvo=caixaAtiva;
       }
       if(alvo.nextElementSibling!==main && alvo.parentNode){
         alvo.parentNode.insertBefore(main, alvo.nextSibling);
       }
+      uvMobMarcarGrudados();
     }catch(e){}
   };
   /* (·430) ABRIR UMA PASTA MOSTRA O COMEÇO DO CONTEÚDO — sempre, nunca o meio.
@@ -14361,7 +14524,16 @@ init();
       if(!uvMobEhCelular()) return false;
       if(!it || !it.classList.contains('active')) return false;
       var recolheu=document.body.classList.toggle('uv-recolhido');
+      /* (·431) recolher a pasta esconde TAMBÉM as sub-pastas dela — é o mesmo
+         gesto de "fechar esta pasta". Expandir devolve as duas coisas. */
+      var arv=it.getAttribute('data-tree');
+      if(arv){
+        var caixa=document.querySelector('#hubSidebar [data-tree-body="'+arv+'"]');
+        if(caixa) caixa.classList.toggle('show', !recolheu);
+        it.classList.toggle('open', !recolheu);
+      }
       if(!recolheu){ window.uvMobAcoplar(); window.uvMobIrAoTopoDoConteudo(); }
+      else { window.uvMobAcoplar(); }
       return true;
     }catch(e){ return false; }
   };
@@ -14427,6 +14599,9 @@ init();
        boot ou por desvio de permissão tem de acoplar igual (a lição do ·423). */
     /* navegar = querer ver: qualquer troca de tela desfaz o recolhido do ·430 */
     try{ document.body.classList.remove('uv-recolhido'); }catch(e){}
+    /* (·431) fecha as árvores das outras pastas — ANTES de acoplar, porque o
+       ponto de encaixe do conteúdo depende de quais filhas estão visíveis */
+    try{ window.uvMobUmaArvore(); }catch(e){}
     try{ window.uvMobAcoplar(); }catch(e){}
     try{ window.uvMobIrAoTopoDoConteudo(); }catch(e){}
   };
@@ -14642,6 +14817,9 @@ init();
          quem foi recolhido é o conteúdo, não a lista de filhas. */
       if(scr && window.uvMobTogglePasta && window.uvMobTogglePasta(it, scr)) return;
       if(tree){ if(scr) openTree(tree); else toggleTree(tree); } // navega → garante aberto; só árvore → alterna
+      /* (·431) no celular, abrir uma pasta fecha as outras — menos a que contém
+         a tela em uso (fechá-la levaria o conteúdo acoplado junto) */
+      if(tree && !scr){ try{ window.uvMobUmaArvore(tree); window.uvMobAcoplar(); }catch(e){} }
       if(scr) window.hubGoScreen(scr);
     });
     // (·281) CORREÇÃO — "navegação reseta ao atualizar página". O Hub já
