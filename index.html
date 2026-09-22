@@ -2,7 +2,28 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+<script>
+/* (·427) ZOOM DE PINÇA BLOQUEADO — PRIMEIRA DAS TRÊS TRAVAS.
+   O `user-scalable=no` acima resolve no Android/Chrome. ⚠ NO iPHONE ELE NÃO
+   FAZ NADA: o Safari IGNORA user-scalable e maximum-scale desde o iOS 10, de
+   propósito (decisão de acessibilidade da Apple). Quem tentasse resolver só
+   pelo meta juraria ter resolvido — e no aparelho do Nando continuaria
+   exatamente igual. Por isso existem as outras duas travas: os eventos de
+   gesto aqui embaixo, que são a API proprietária do Safari para pinça, e o
+   `touch-action` no CSS.
+   Este bloco fica no <head>, ANTES de qualquer outra coisa: gesto capturado
+   depois da página montar deixaria uma janela em que a pinça ainda funciona.
+   Nada de mexer em 'touchend' para matar o duplo-toque: cancelar touchend
+   cancela junto o clique que o navegador gera a partir dele, e dois toques
+   rápidos em botões diferentes deixariam de funcionar. O duplo-toque já cai
+   com o touch-action do CSS. */
+(function(){
+  ['gesturestart','gesturechange','gestureend'].forEach(function(ev){
+    document.addEventListener(ev, function(e){ e.preventDefault(); }, {passive:false});
+  });
+})();
+</script>
 <title>Hub Ultravel</title>
 <link rel="icon" type="image/png" sizes="64x64" href="data:image/png;base64,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">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -87,6 +108,21 @@ html{scroll-behavior:smooth}
    funcionando normalmente. 'hidden' fica só como reserva para navegador antigo. */
 html{overflow-x:hidden}
 @supports (overflow-x:clip){ html{overflow-x:clip} }
+/* (·427) SEM PINÇA E SEM BALANÇO — as outras duas travas.
+   `pan-x pan-y` diz ao navegador: arrastar pode, PINÇA NÃO — e derruba junto
+   o zoom por duplo-toque. ⚠ NÃO usei `pan-y` sozinho, que seria o caminho
+   óbvio para "só rola para baixo": touch-action se resolve pela INTERSEÇÃO do
+   elemento com todos os ancestrais, então `pan-y` aqui no <html> mataria a
+   rolagem lateral DE DENTRO do Kanban e das planilhas — que é rolagem
+   legítima, a única forma de ver as colunas da direita no celular. O defeito
+   apareceria longe daqui e ninguém ligaria uma coisa à outra.
+   `overscroll-behavior-x:none` tira o efeito elástico: sem ele a página ainda
+   "dança" alguns pixels para os lados no arrasto, mesmo sem ter para onde ir.
+   O que existia antes (overflow-x) impede a página de ser mais larga; isto
+   impede o GESTO. São coisas diferentes: o print do Nando com as sobras foi
+   tirado com a página já correta, só afastada pela pinça. */
+html{touch-action:pan-x pan-y;overscroll-behavior-x:none}
+body{overscroll-behavior-x:none}
 body{
   font-family:'Inter',system-ui,sans-serif;
   background:var(--fundo);
@@ -5207,7 +5243,46 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 426; // (·426) O HUB OCUPA A TELA INTEIRA DO CELULAR. Pedido do Nando, com
+var UV_BUILD_NUM = 427; // (·427) PINÇA BLOQUEADA E TELA FIRME NO LUGAR. Relato do Nando depois
+// do ·426: "quando eu faço a função de pinça... para diminuir a tela, volta a aparecer as sobras
+// de página no canto" — e, ao arrastar, o sistema fica "dançando de um lado para o outro". Ele
+// mandou as duas fotos, uma com a tela afastada e outra no tamanho certo.
+// ⚠️ NÃO É REGRESSÃO DO ·426, E ISSO IMPORTA: a largura continua certa (a suíte do ·426 segue em
+// 273 checagens, 0 falhas). O ·426 tirou o que fazia o navegador AFASTAR O ZOOM SOZINHO; a pinça
+// é a pessoa afastando o zoom À MÃO. São dois caminhos para o mesmo desenho encolhido, e o
+// segundo nenhuma correção de largura jamais alcançaria — só se resolve bloqueando o GESTO.
+// ⚠️ TRÊS TRAVAS, PORQUE UMA SÓ NÃO COBRE O iPHONE:
+//   (1) `maximum-scale=1, minimum-scale=1, user-scalable=no` no meta viewport. Resolve no
+//       Android/Chrome. ⚠️ NO iPHONE NÃO FAZ ABSOLUTAMENTE NADA: o Safari IGNORA user-scalable e
+//       maximum-scale desde o iOS 10, de propósito (decisão de acessibilidade da Apple). Quem
+//       parasse aqui juraria ter resolvido e o aparelho dele continuaria idêntico — é a
+//       armadilha central deste build.
+//   (2) Os eventos `gesturestart`/`gesturechange`/`gestureend`, que são a API PROPRIETÁRIA do
+//       Safari para pinça, cancelados num bloco no <head>, antes de tudo: gesto capturado depois
+//       de a página montar deixaria uma janela em que a pinça ainda funciona. É esta trava que
+//       resolve o iPhone.
+//   (3) CSS `touch-action:pan-x pan-y` no <html> — arrastar pode, pinça não, e o zoom por
+//       DUPLO-TOQUE cai junto; mais `overscroll-behavior-x:none` no html e no body, que tira o
+//       efeito elástico: sem ele a página ainda balança alguns pixels para os lados mesmo sem
+//       ter para onde ir. Era o "cambaleando" do relato.
+// ⚠️ POR QUE `pan-x pan-y` E NÃO `pan-y`, que seria o óbvio para "só rola para baixo":
+// touch-action se resolve pela INTERSEÇÃO do elemento com TODOS os ancestrais, então `pan-y` no
+// <html> mataria a rolagem lateral DE DENTRO do Kanban e das planilhas — rolagem legítima, a
+// única forma de ver as colunas da direita no celular. O defeito apareceria longe daqui e
+// ninguém ligaria uma coisa à outra. O teste trava exatamente esse valor.
+// ⚠️ NADA DE MATAR O DUPLO-TOQUE POR 'touchend': cancelar touchend cancela junto o clique que o
+// navegador gera a partir dele, e dois toques rápidos em botões diferentes parariam de
+// funcionar. O duplo-toque já cai pelo touch-action.
+// VALIDAÇÃO: test_mobile_zoom.mjs (novo, 16 checagens) DISPARA os eventos de gesto e confere que
+// foram cancelados, lê o estilo APLICADO na página (não o arquivo) e mede o quadro do Kanban.
+// Validado por 4 SABOTAGENS, todas pegas: meta sem trava, gestos sem bloqueio, `pan-y` no lugar
+// de `pan-x pan-y` e overscroll-behavior removido.
+// ⚠️ LIMITE HONESTO, REGISTRADO NO PRÓPRIO TESTE: neste Chromium sem tela, gesto sintético de
+// TOQUE não rola nada — medido, nem na vertical, nem na versão ANTERIOR à trava. Um teste
+// montado em cima dele acusaria regressão inexistente. O gesto de MOUSE rola (160px medidos),
+// mas mouse não passa pelo touch-action: ele prova que o quadro continua rolável e que nada foi
+// achatado, e NÃO prova o comportamento do dedo. Essa parte depende da conferência no iPhone.
+// ANTERIOR: O HUB OCUPA A TELA INTEIRA DO CELULAR. Pedido do Nando, com
 // print do iPhone: "sempre sobra esses espaços laterais, quero deixar inteligente se adaptando
 // de forma dinâmica pra cada tela de celular ocupando toda a tela de lado a lado".
 // ⚠️ SINTOMA ≠ CAUSA, E AQUI A DIFERENÇA É TUDO. A margem nunca foi o problema: ela era de
