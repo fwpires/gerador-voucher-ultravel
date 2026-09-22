@@ -5435,7 +5435,40 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 437; // (·437) AS LINHAS DE AUSÊNCIA PROGRAMADA CABEM NA TELA DO CELULAR.
+var UV_BUILD_NUM = 438; // (·438) A LUPA DE BUSCA AGORA TAMBÉM NOS CARTÕES DE CRÉDITO. Pedido
+// do Nando: "adicione a mesma função de lupinha que está dentro de Ações Comerciais dentro da
+// pasta Cartões de Crédito, repita o mesmo processo".
+// ⚠️ "O MESMO PROCESSO" VALEU TAMBÉM PARA A ENGENHARIA — e é o ponto desta build: o motor de
+// texto NÃO foi copiado. O módulo de Ações passou a publicar `window.uvBuscaTexto` (dobra de
+// acentos, quebra de termos e realce) e os Cartões consomem de lá. Copiar aquelas três funções
+// seria a oitava vez que esta base paga o mesmo fato em dois lugares: a correção de acentuação do
+// ·401 e o NFC do ·414 teriam de ser refeitos duas vezes, e a segunda seria esquecida. Mesmo
+// caminho do `UV_EMOJIS_REACAO` no ·347.
+// ⚠️ O motor é lido em TEMPO DE EXECUÇÃO, nunca no carregamento do bloco: os dois módulos vivem
+// em blocos <script> diferentes e a ordem não é garantida — a lição do ·352/·354, onde ler a
+// constante do outro módulo cedo demais deixou o recurso desligado EM SILÊNCIO. Sem o motor, a
+// busca simplesmente não filtra; nunca quebra a tela nem esconde cartão.
+// ⚠️ AS CLASSES VISUAIS TAMBÉM SÃO AS MESMAS: os seletores de `.ac-lupa`, `.ac-busca-*` e
+// `mark.ac-hl` só ganharam `#scr-cartoes` ao lado de `#scr-acoes`. Nenhuma regra de estilo nova —
+// as duas telas não têm como divergir.
+// ⚠️ O QUE A BUSCA ALCANÇA, e o que ela NÃO alcança de propósito: apelido/banco, os quatro
+// últimos dígitos, titular e bandeira — tudo o que já está à vista na lista. NÚMERO COMPLETO, CVV
+// e CPF ficam FORA: são dados que a tela só mostra ao abrir o cartão, e uma busca que os varre
+// transformaria o campo num caminho para descobri-los sem abrir nada. O teste trava isso
+// procurando pelos três e exigindo ZERO resultado.
+// ⚠️ DIGITAR REPINTA SÓ AS LISTAS: repintar a tela inteira recriaria o <input> a cada tecla e
+// levaria junto o foco e o cursor — o mesmo cuidado do ·414. E a lista NÃO some ao abrir a lupa
+// (lição do ·402): ela só dá lugar aos resultados quando há termo digitado.
+// ⚠️ UM ERRO DE PORTUGUÊS QUE O TESTE DEIXOU PASSAR: a contagem dizia "3 cartãoões encontrados",
+// porque eu pluralizei somando sufixo. Quem pegou foi o SCREENSHOT, não a checagem — que só
+// procurava a palavra "encontrado". Corrigido o texto e endurecida a checagem para exigir a frase
+// inteira; a sabotagem que devolve o sufixo falha.
+// VALIDAÇÃO: test_cartoes_busca.mjs (novo, 21 checagens) — abre e fecha a lupa, filtra por
+// titular, acha texto acentuado digitando sem acento, confere o realce, prova que o foco não se
+// perde ao digitar, que o clique no cartão ainda abre o modal, e que a função de dobra é
+// declarada UMA única vez no arquivo inteiro. 5 SABOTAGENS, todas pegas — inclusive a que faz a
+// busca varrer número/CVV/CPF e a que copia o motor em vez de reusá-lo.
+// ANTERIOR: AS LINHAS DE AUSÊNCIA PROGRAMADA CABEM NA TELA DO CELULAR.
 // Print do Nando com a marcação no canto direito: os botões ✎ e 🗑 de cada ausência ficavam FORA
 // do card, cortados pela borda da tela.
 // ⚠️ MEDIDO com três ausências reais, e o número explica tudo: a fila precisava de 494 a 599px e
@@ -26420,6 +26453,51 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
   window.ccSaldoGet=function(c){ return ccSaldoGet(c); };
   window.ccSaldoSet=function(c,v){ return ccSaldoSet(c,v); };
 
+  /* ================= (·438) LUPA NOS CARTÕES DE CRÉDITO =================
+     Pedido do Nando: a mesma busca que existe em Ações Comerciais (·401/·402),
+     aqui. "O mesmo processo" também na engenharia: a lupa colada no título, o
+     campo que só aparece ao abrir, e a lista que continua na tela enquanto não
+     há termo digitado (a lição do ·402 — sumir o conteúdo por causa de um campo
+     de texto é preço alto).
+     ⚠ O MOTOR DE TEXTO NÃO FOI COPIADO: `window.uvBuscaTexto` é publicado pelo
+     módulo de Ações e consumido aqui. É o que garante que a dobra de acentos
+     que o ·401 acertou (e o ·414 endureceu com NFC) valha para as duas telas
+     sem ninguém precisar lembrar de corrigir em dois lugares.
+     ⚠ Lido em TEMPO DE EXECUÇÃO, nunca no carregamento do bloco: os dois
+     módulos vivem em blocos <script> diferentes e a ordem não é garantida —
+     é a lição do ·352/·354, onde ler a constante do outro módulo cedo demais
+     deixou o recurso desligado em silêncio.
+     ⚠ O QUE A BUSCA ALCANÇA: apelido/banco do cartão, os quatro últimos
+     dígitos, o titular e a bandeira — tudo o que já está à vista na lista.
+     NÚMERO COMPLETO, CVV e CPF ficam de fora de propósito: são dados que a
+     tela só mostra ao abrir o cartão, e uma busca que os varre transformaria o
+     campo num caminho para descobri-los sem abrir nada. */
+  var ccBuscaAberta=false, ccBuscaTxt='';
+  function ccBuscaMotor(){
+    var m=window.uvBuscaTexto;
+    /* sem o motor (bloco ainda não rodou), a busca simplesmente não filtra —
+       nunca quebra a tela nem esconde cartão */
+    return (m && typeof m.dobra==='function') ? m : null;
+  }
+  function ccBuscaTermos(){
+    var m=ccBuscaMotor(); if(!m) return [];
+    return m.termos(ccBuscaTxt||'');
+  }
+  function ccBuscaRealce(txt){
+    var m=ccBuscaMotor(), termos=ccBuscaTermos();
+    if(!m || !termos.length) return ccEsc(txt==null?'':String(txt));
+    return m.realce(txt, termos);
+  }
+  /* um cartão entra no resultado quando TODOS os termos aparecem em algum dos
+     campos visíveis — "todos" e não "algum", igual a Ações Comerciais: quem
+     digita duas palavras está estreitando a busca, não ampliando */
+  function ccBuscaCasa(c){
+    var m=ccBuscaMotor(), termos=ccBuscaTermos();
+    if(!m || !termos.length) return true;
+    var alvo=m.dobra([ccNomeCartao(c), ccFinal(c), c.tit, c.banco, c.band].join(' '));
+    return termos.every(function(t){ return alvo.indexOf(t)>=0; });
+  }
+
   window.renderCartoes=function(){
     var wrap=document.getElementById('cartoesWrap'); if(!wrap) return;
     var hoje=new Date(); var dia=hoje.getDate();
@@ -26437,9 +26515,9 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
       var alertaFixo=ccAlertaFixo(c);
       return '<button type="button" class="cc-row'+(destaque?' best':' off')+'" data-cc="'+ccEsc(e.id)+'">'+
         '<span class="cc-band '+(c.band==='MASTERCARD'?'master':'visa')+'">'+(c.band==='MASTERCARD'?'MC':'VISA')+'</span>'+
-        '<span class="cc-nome">'+(destaque?'<span class="cc-star">⭐ </span>':'')+ccEsc(ccNomeCartao(c))+' <span class="cc-fim">'+ccEsc(ccFinal(c))+'</span>'+(c._extraId?' <span class="cc-novo-selo" title="Cadastrado pela tela">novo</span>':'')+
+        '<span class="cc-nome">'+(destaque?'<span class="cc-star">⭐ </span>':'')+ccBuscaRealce(ccNomeCartao(c))+' <span class="cc-fim">'+ccBuscaRealce(ccFinal(c))+'</span>'+(c._extraId?' <span class="cc-novo-selo" title="Cadastrado pela tela">novo</span>':'')+
           (alertaFixo?' <span class="cc-led-alerta" title="'+ccEsc(alertaFixo)+'"></span>':'')+'</span>'+
-        '<span class="cc-tit">'+ccEsc(c.tit)+'</span>'+
+        '<span class="cc-tit">'+ccBuscaRealce(c.tit)+'</span>'+
         /* (·419) BANCO na lista, no espaço vazio entre o titular e o saldo —
            pedido do Nando. Até aqui o banco só aparecia ao ABRIR o cartão, e com
            19 cartões na tela (vários do mesmo titular e da mesma bandeira) era o
@@ -26449,7 +26527,7 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
            traço diz "não preenchido", que é a informação verdadeira. */
         '<span class="cc-banco'+(c.banco?'':' vazio')+'" title="'+
           (c.banco ? ('Banco: '+ccEsc(c.banco)) : 'Banco ainda não informado — abra o cartão para preencher')+'">'+
-          (c.banco ? ccEsc(c.banco) : '–')+
+          (c.banco ? ccBuscaRealce(c.banco) : '–')+
         '</span>'+
         /* (·206) SALDO no resumo, exatamente no espaço entre o titular e os
            melhores dias, como pedido. Sem valor sai um TRAÇO apagado e não
@@ -26465,19 +26543,73 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
         '</span>'+
       '</button>';
     }
+    /* (·438) a lupa fica colada no título, como em Ações Comerciais. Fechada é
+       só um ícone; aberta vira o campo. */
+    var lupa='<button type="button" class="ac-lupa'+(ccBuscaAberta?' on':'')+'" id="ccLupa"'
+      +' title="Procurar cartão por apelido, banco, titular, bandeira ou final"'
+      +' aria-label="Procurar nos cartões">🔍</button>';
+    var barra = ccBuscaAberta
+      ? '<div class="ac-busca-barra">'
+        +'<input type="text" id="ccBuscaInp" class="ac-busca-inp" autocomplete="off"'
+        +' placeholder="Procurar cartão — apelido, banco, titular, bandeira ou final…"'
+        +' value="'+ccEsc(ccBuscaTxt)+'">'
+        +(ccBuscaTxt?'<button type="button" class="ac-busca-x" id="ccBuscaLimpar" title="Limpar">✕</button>':'')
+        +'</div>'
+      : '';
+
     wrap.innerHTML=
       '<div class="cc-head" style="margin-bottom:6px">'+
         '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap">'+
-          '<div><h1 class="cc-title">💳 MELHORES CARTÕES PARA COMPRAR HOJE <span class="cc-hoje">hoje: '+dd+'</span></h1>'+
+          '<div><h1 class="cc-title">💳 MELHORES CARTÕES PARA COMPRAR HOJE <span class="cc-hoje">hoje: '+dd+'</span>'+lupa+'</h1>'+
           '<div class="cc-sub">Sugestão automática pelo dia da compra: os cartões em destaque estão na melhor janela HOJE, ordenados pelo maior prazo até o vencimento da fatura. Clique num cartão para ver todos os dados.</div></div>'+
           '<button type="button" class="cc-btn-novo" id="ccBtnNovo">➕ Cadastrar novo cartão</button>'+
         '</div>'+
       '</div>'+
-      '<div class="cc-sec">⭐ Recomendados agora ('+best.length+')</div>'+
-      '<div class="cc-list">'+(best.length?best.map(function(e){return linha(e,true);}).join(''):'<div class="cc-sub" style="padding:8px 4px">Nenhum cartão na janela ideal hoje — veja abaixo o mais próximo.</div>')+'</div>'+
-      '<div class="cc-sec off">Fora da janela hoje ('+resto.length+')</div>'+
-      '<div class="cc-list">'+resto.map(function(e){return linha(e,false);}).join('')+'</div>';
+      barra+
+      '<div id="ccBuscaCorpo">'+ccCorpoListas(best,resto,linha)+'</div>';
+
+    /* (·438) a repintura das listas fecha sobre os dados DESTE render (a lista
+       de cartões, a ordenação e a função que desenha a linha). Recalcular tudo
+       de novo dentro dela seria uma segunda versão da mesma conta, e as duas
+       envelheceriam em desacordo — o defeito que esta base já pagou sete vezes.
+       Cada render substitui a função, então ela nunca aponta para dado velho. */
+    window.ccRepintarListas=function(){
+      try{
+        var corpo=document.getElementById('ccBuscaCorpo');
+        if(corpo) corpo.innerHTML=ccCorpoListas(best,resto,linha);
+      }catch(e){}
+    };
   };
+
+  /* (·438) O CORPO DAS DUAS LISTAS EM FUNÇÃO PRÓPRIA — não é enfeite de
+     organização: digitar na busca precisa repintar SÓ as listas. Repintar a
+     tela inteira recriaria o <input> a cada tecla e o foco (e o cursor) iriam
+     junto — o defeito que o ·414 já tinha documentado no Registro de
+     Atividades. Com o corpo separado, o campo fica intocado. */
+  function ccCorpoListas(best, resto, linha){
+    var buscando=ccBuscaTermos().length>0;
+    var b2=best.filter(function(e){ return ccBuscaCasa(e.c); });
+    var r2=resto.filter(function(e){ return ccBuscaCasa(e.c); });
+    var cabecalho='';
+    if(buscando){
+      var tot=b2.length+r2.length;
+      /* ⚠ "cartão" não vira "cartãoões": o plural troca a palavra inteira, não
+         acrescenta sufixo. O teste deixou passar porque só procurava a palavra
+         "encontrado" — e a tela dizia "3 cartãoões encontrados". Quem pegou foi
+         o screenshot; a checagem foi endurecida para exigir a frase certa. */
+      cabecalho='<div class="ac-busca-cont">'+(tot===1?'1 cartão encontrado':(tot+' cartões encontrados'))+'</div>';
+      if(!tot){
+        return cabecalho+'<div class="ac-busca-vazio">Nenhum cartão para <b>'+ccEsc(ccBuscaTxt.trim())+'</b>.<br>'+
+          'A busca olha apelido, banco, titular, bandeira e os quatro últimos dígitos.</div>';
+      }
+    }
+    return cabecalho+
+      '<div class="cc-sec">⭐ Recomendados agora ('+b2.length+')</div>'+
+      '<div class="cc-list">'+(b2.length?b2.map(function(e){return linha(e,true);}).join('')
+        :'<div class="cc-sub" style="padding:8px 4px">'+(buscando?'Nenhum dos cartões encontrados está na janela ideal hoje.':'Nenhum cartão na janela ideal hoje — veja a lista completa abaixo.')+'</div>')+'</div>'+
+      '<div class="cc-sec off">Fora da janela hoje ('+r2.length+')</div>'+
+      '<div class="cc-list">'+r2.map(function(e){return linha(e,false);}).join('')+'</div>';
+  }
 
   /* ---- modal de detalhes ---- */
   function ccCopiar(txt, btn){
@@ -26698,6 +26830,26 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
   }
 
   document.addEventListener('click', function(e){
+    /* (·438) a lupa e o limpar vêm ANTES do clique na linha: o botão da busca
+       nasce dentro do cabeçalho, e deixar o [data-cc] responder primeiro
+       abriria um cartão ao tocar na lupa se ela um dia for parar dentro de uma
+       linha. Ordem explícita custa nada e não depende de onde o botão nasce. */
+    var lp=e.target && e.target.closest ? e.target.closest('#ccLupa') : null;
+    if(lp){
+      ccBuscaAberta=!ccBuscaAberta;
+      if(!ccBuscaAberta) ccBuscaTxt='';   /* fechar limpa: busca ativa escondida
+                                             faria a lista parecer que perdeu cartões */
+      if(typeof window.renderCartoes==='function') window.renderCartoes();
+      var inp=document.getElementById('ccBuscaInp'); if(inp) inp.focus();
+      return;
+    }
+    var lx=e.target && e.target.closest ? e.target.closest('#ccBuscaLimpar') : null;
+    if(lx){
+      ccBuscaTxt='';
+      if(typeof window.renderCartoes==='function') window.renderCartoes();
+      var i2=document.getElementById('ccBuscaInp'); if(i2) i2.focus();
+      return;
+    }
     var b=e.target && e.target.closest ? e.target.closest('[data-cc]') : null;
     if(b){ ccAbrir(b.getAttribute('data-cc')); return; }
     var cp=e.target && e.target.closest ? e.target.closest('[data-cc-copy]') : null;
@@ -26709,7 +26861,30 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
   /* (·206) Esc e clique fora também FECHAM O CICLO: sobem o saldo pendente e
      repintam a lista, senão o valor recém-digitado ficaria certo no appConfig mas
      desatualizado na linha atrás do modal até o próximo render. */
+  /* (·438) DIGITAR REPINTA SÓ AS LISTAS, nunca a tela inteira: recriar o
+     cabeçalho a cada tecla levaria junto o <input> — e com ele o foco e o
+     cursor. Mesmo motivo pelo qual a busca do Registro de Atividades (·414)
+     não redesenha os filtros enquanto se digita. */
+  document.addEventListener('input', function(e){
+    if(!e.target || e.target.id!=='ccBuscaInp') return;
+    ccBuscaTxt=e.target.value;
+    try{
+      var corpo=document.getElementById('ccBuscaCorpo');
+      if(corpo && typeof window.ccRepintarListas==='function') window.ccRepintarListas();
+    }catch(err){}
+  });
+
   document.addEventListener('keydown', function(e){
+    /* Esc fecha a busca — mas só quando ela está aberta E o modal do cartão
+       não está: com o modal aberto, Esc já significa "fechar o modal". */
+    if(e.key==='Escape' && ccBuscaAberta){
+      var ovm=document.getElementById('ccOv');
+      if(!(ovm && ovm.classList.contains('on'))){
+        ccBuscaAberta=false; ccBuscaTxt='';
+        if(typeof window.renderCartoes==='function') window.renderCartoes();
+        return;
+      }
+    }
     if(e.key==='Escape'){
       var ov=document.getElementById('ccOv');
       if(ov && ov.classList.contains('on')){
@@ -28485,19 +28660,24 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
 #scr-acoes .ac-msg{background:rgba(255,255,255,.035);border:1px solid #243849;border-radius:11px;padding:11px 13px}
 #scr-acoes .ac-msg.meu{border-color:rgba(46,199,165,.35);background:rgba(46,199,165,.06)}
 /* ===== (·401) BUSCA EM TODAS AS CONVERSAS ===== */
-#scr-acoes .ac-lupa{margin-left:10px;border:1px solid #243849;background:transparent;color:#7d93a5;font-size:.9rem;
+#scr-acoes .ac-lupa,#scr-cartoes .ac-lupa{margin-left:10px;border:1px solid #243849;background:transparent;color:#7d93a5;font-size:.9rem;
   width:30px;height:30px;border-radius:9px;cursor:pointer;vertical-align:middle;transition:all .15s;padding:0}
-#scr-acoes .ac-lupa:hover{border-color:#2ec7a5;color:#2ec7a5}
-#scr-acoes .ac-lupa.on{background:rgba(46,199,165,.16);border-color:#2ec7a5;color:#5fe0c0}
-#scr-acoes .ac-busca-barra{display:flex;gap:8px;align-items:center;margin:0 0 14px}
-#scr-acoes .ac-busca-inp{flex:1;min-width:0;background:rgba(255,255,255,.05);border:1px solid #243849;border-radius:11px;
+#scr-acoes .ac-lupa:hover,#scr-cartoes .ac-lupa:hover{border-color:#2ec7a5;color:#2ec7a5}
+#scr-acoes .ac-lupa.on,#scr-cartoes .ac-lupa.on{background:rgba(46,199,165,.16);border-color:#2ec7a5;color:#5fe0c0}
+/* (·438) A LUPA DOS CARTÕES USA AS MESMAS CLASSES DA DE AÇÕES COMERCIAIS —
+   os seletores abaixo só ganharam `#scr-cartoes` ao lado de `#scr-acoes`, e
+   NENHUMA regra nova foi criada. É a decisão (2) do ·347 aplicada de novo: com
+   as classes copiadas, as duas telas começariam iguais e divergiriam na
+   primeira vez que alguém ajustasse uma e esquecesse a outra. */
+#scr-acoes .ac-busca-barra,#scr-cartoes .ac-busca-barra{display:flex;gap:8px;align-items:center;margin:0 0 14px}
+#scr-acoes .ac-busca-inp,#scr-cartoes .ac-busca-inp{flex:1;min-width:0;background:rgba(255,255,255,.05);border:1px solid #243849;border-radius:11px;
   color:#E6EEF3;font-family:inherit;font-size:.92rem;padding:11px 14px;outline:none}
-#scr-acoes .ac-busca-inp:focus{border-color:#2ec7a5}
-#scr-acoes .ac-busca-x{border:1px solid #243849;background:transparent;color:#7d93a5;border-radius:9px;
+#scr-acoes .ac-busca-inp:focus,#scr-cartoes .ac-busca-inp:focus{border-color:#2ec7a5}
+#scr-acoes .ac-busca-x,#scr-cartoes .ac-busca-x{border:1px solid #243849;background:transparent;color:#7d93a5;border-radius:9px;
   width:34px;height:34px;font-size:.8rem;cursor:pointer;flex:0 0 auto}
-#scr-acoes .ac-busca-x:hover{border-color:#ff7676;color:#ff7676}
-#scr-acoes .ac-busca-cont{color:#7d93a5;font-size:.78rem;font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin-bottom:9px}
-#scr-acoes .ac-busca-vazio{color:#7d93a5;font-size:.88rem;padding:26px 4px;line-height:1.6}
+#scr-acoes .ac-busca-x:hover,#scr-cartoes .ac-busca-x:hover{border-color:#ff7676;color:#ff7676}
+#scr-acoes .ac-busca-cont,#scr-cartoes .ac-busca-cont{color:#7d93a5;font-size:.78rem;font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin-bottom:9px}
+#scr-acoes .ac-busca-vazio,#scr-cartoes .ac-busca-vazio{color:#7d93a5;font-size:.88rem;padding:26px 4px;line-height:1.6}
 #scr-acoes .ac-busca-lista{display:flex;flex-direction:column;gap:9px}
 #scr-acoes .ac-hit{display:block;width:100%;text-align:left;background:rgba(255,255,255,.035);border:1px solid #243849;
   border-radius:12px;padding:12px 14px;cursor:pointer;font-family:inherit;transition:all .15s}
@@ -28505,16 +28685,16 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
 #scr-acoes .ac-hit-tit{color:#E6EEF3;font-size:.92rem;font-weight:800;line-height:1.35}
 #scr-acoes .ac-hit-meta{color:#7d93a5;font-size:.76rem;margin-top:3px}
 #scr-acoes .ac-hit-txt{color:#cfe0f0;font-size:.85rem;line-height:1.5;margin-top:6px;word-break:break-word}
-#scr-acoes mark.ac-hl{background:rgba(255,214,0,.30);color:inherit;border-radius:3px;padding:0 2px;font-weight:800}
+#scr-acoes mark.ac-hl,#scr-cartoes mark.ac-hl{background:rgba(255,214,0,.30);color:inherit;border-radius:3px;padding:0 2px;font-weight:800}
 /* a mensagem para onde a busca levou — pisca e apaga: serve para o olho achar
    a linha, não para ficar marcando o card para sempre */
 #scr-acoes .ac-msg.ac-msg-alvo{border-color:#FFD600;box-shadow:0 0 0 2px rgba(255,214,0,.25);
   background:rgba(255,214,0,.07);transition:all .4s}
-body:not(.dark) #scr-acoes .ac-busca-inp{background:#fff;color:#15252F;border-color:#dfe7ec}
+body:not(.dark) #scr-acoes .ac-busca-inp,body:not(.dark) #scr-cartoes .ac-busca-inp{background:#fff;color:#15252F;border-color:#dfe7ec}
 body:not(.dark) #scr-acoes .ac-hit{background:#fff;border-color:#e4ebf0}
 body:not(.dark) #scr-acoes .ac-hit-tit{color:#15252F}
 body:not(.dark) #scr-acoes .ac-hit-txt{color:#2b3d4a}
-body:not(.dark) #scr-acoes mark.ac-hl{background:rgba(240,165,0,.35)}
+body:not(.dark) #scr-acoes mark.ac-hl,body:not(.dark) #scr-cartoes mark.ac-hl{background:rgba(240,165,0,.35)}
 #scr-acoes .ac-msg-topo{color:#E6EEF3;font-size:.85rem}
 #scr-acoes .ac-msg-data{color:#7d93a5;font-size:.73rem;font-weight:400}
 #scr-acoes .ac-msg-txt{color:#cfe0f0;font-size:.88rem;line-height:1.5;margin-top:5px;white-space:pre-wrap;word-break:break-word}
@@ -29431,6 +29611,15 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     var ini=Math.max(0, pos-raio), fim=Math.min(txt.length, pos+raio*2);
     return {txt:txt.slice(ini,fim), antes:ini>0, depois:fim<txt.length};
   }
+
+  /* (·438) O MOTOR DE TEXTO DA BUSCA VIRA FONTE ÚNICA. A lupa dos Cartões de
+     Crédito precisa exatamente destas três funções — dobrar acentos sem mudar
+     o tamanho da string, quebrar o termo e realçar escapando pedaço a pedaço.
+     Copiá-las para lá seria a oitava vez que esta base paga por um mesmo fato
+     em dois lugares: a correção do NFC/NFD do ·401 e do ·414 teria de ser feita
+     duas vezes, e a segunda seria esquecida. Publicadas aqui, consumidas lá —
+     o mesmo caminho do `window.UV_EMOJIS_REACAO` do ·347. */
+  window.uvBuscaTexto={dobra:acDobra, termos:acTermos, realce:acRealce};
 
   function acProcurar(q){
     var termos=acTermos(q); if(!termos.length) return [];
