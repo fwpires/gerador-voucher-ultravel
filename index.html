@@ -2726,6 +2726,12 @@ body:not(.dark) .termo-nome{color:#5a7085}
      que o print mostrava, só que em lugar diferente. */
   .topbar-actions > .cloud.cloud-square{max-width:none;min-width:0;width:100%}
   .topbar-actions > #uvLogoutBtn{margin:0;width:100%}
+  /* ⚠ (·440) no celular os dois PRECISAM poder quebrar a linha: a padronização
+     do desktop pôs `nowrap` neles, e medido a 320px isso fez a coluna da
+     "Nuvem Conectada" esticar para caber o texto — as duas colunas saíram com
+     139 e 153px em vez de iguais. Quebrando, cada um cabe na sua metade. */
+  .topbar-actions > .cloud.cloud-square,
+  .topbar-actions > #uvLogoutBtn{white-space:normal;text-align:center;min-width:0}
 
   /* ===== (·437) AS LINHAS DE AUSÊNCIA PROGRAMADA CABEM NA TELA =====
      Print do Nando com a marcação no canto direito: os botões ✎ e 🗑 das
@@ -2789,6 +2795,41 @@ body:not(.dark) .termo-nome{color:#5a7085}
 #scr-gerador .section-eyebrow{flex-wrap:wrap}
 #scr-gerador .section-eyebrow .hint{margin-left:0}
 .gv-acoes{display:flex;align-items:center;gap:9px;margin-left:auto;flex-wrap:wrap}
+/* ===== (·440) OS DOIS BOTÕES QUE SOBRARAM NO TOPO, NO MESMO FORMATO =====
+   Com os três do voucher fora daqui (·439), sobraram a caixa da nuvem e o
+   botão de sair — e eles nunca tinham sido pensados para ficar sozinhos: a
+   nuvem era uma caixinha quadrada de duas linhas em 8,5px, e o sair um botão
+   miúdo de 10,5px com raio próprio. Lado a lado, pareciam dois elementos de
+   telas diferentes.
+   ⚠ COPIEI OS VALORES do `.btn` — a casca padrão de botão do Hub, a mesma que
+   os três recém-mudados usam: padding 10/17, raio `--raio-sm`, fonte 13,5px
+   peso 600, linha única. Escolher "algo parecido" faria o topo brigar com o
+   resto do sistema na primeira tela que abrisse os dois juntos.
+   ⚠ A BOLINHA DE ESTADO FICA, e é ela que carrega a informação: verde
+   conectado, vermelho sem conexão, azul sincronizando. Padronizar a forma não
+   pode apagar o que a peça comunica — por isso mexo em caixa e tipografia, e
+   em nada que dependa do estado.
+   ⚠ Escopado a `.topbar-actions`: `.cloud` e `.cloud-square` são usadas em
+   outros pontos do Hub, e uma regra solta mudaria todas elas. */
+.topbar-actions > .cloud.cloud-square,
+.topbar-actions > #uvLogoutBtn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:10px 17px;border-radius:var(--raio-sm);
+  font-family:'Inter';font-size:13.5px;font-weight:600;letter-spacing:0;
+  white-space:nowrap;line-height:1.2;min-height:42px;
+}
+.topbar-actions > .cloud.cloud-square{
+  flex-direction:row;text-align:left;min-width:0;max-width:none;
+}
+.topbar-actions > #uvLogoutBtn{margin-left:0}
+/* e a mesma pele do `.btn-ghost`, que é o botão neutro do Hub: os dois eram
+   cinza-transparente e azul-acinzentado, e lado a lado a diferença lia como
+   "um está ativo e o outro não". A bolinha continua sendo o único elemento que
+   muda com o estado. */
+body.dark .topbar-actions > .cloud.cloud-square,
+body.dark .topbar-actions > #uvLogoutBtn{background:#16212E;border:1px solid #2E4460;color:#E8EEF4}
+body:not(.dark) .topbar-actions > .cloud.cloud-square,
+body:not(.dark) .topbar-actions > #uvLogoutBtn{background:var(--fundo);border:1px solid var(--borda);color:var(--texto)}
 #savedCount.filtrando{color:#35D07F;font-weight:700}
 /* ===== Aviso de buracos na numeração — ícone discreto + popover ===== */
 #avisoBuracos{display:none;position:relative;align-items:center}
@@ -5474,7 +5515,29 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 439; // (·439) ＋NOVO, SALVAR E IMPRIMIR/PDF SAÍRAM DA BARRA DO TOPO E FORAM
+var UV_BUILD_NUM = 440; // (·440) OS DOIS BOTÕES QUE SOBRARAM NO TOPO, NO MESMO FORMATO PADRÃO.
+// Pedido do Nando com os dois circulados: "deixe no mesmo formato padrão esses dois botões".
+// ⚠️ ELES NUNCA TINHAM SIDO PENSADOS PARA FICAR SOZINHOS, e o ·439 os deixou assim: a nuvem era
+// uma caixinha quadrada de DUAS linhas em 8,5px com peso 800, e o sair um botão miúdo de 10,5px
+// com raio próprio. Lado a lado pareciam dois elementos de telas diferentes — e a diferença de
+// peso ainda lia como "um está ativo e o outro não".
+// ⚠️ COPIEI OS VALORES do `.btn`/`.btn-ghost`, a casca padrão do Hub e a mesma que os três botões
+// recém-mudados usam: padding 10/17, raio --raio-sm, fonte 13,5px peso 600, linha única, fundo e
+// borda do botão neutro. Escolher "algo parecido" faria o topo brigar com o resto do sistema — a
+// lição do ·394/·396, e o teste trava isso comparando com um `.btn` DE VERDADE criado na hora,
+// em vez de com números escritos no próprio teste.
+// ⚠️ A BOLINHA DE ESTADO FICA: é ela que carrega a informação (verde conectado, vermelho sem
+// conexão, azul sincronizando). Padronizar a forma não pode apagar o que a peça comunica.
+// ⚠️ ESCOPADO À BARRA DO TOPO: `.cloud` e `.cloud-square` são usadas em outros pontos do Hub, e
+// uma regra solta mudaria todas.
+// ⚠️ EFEITO COLATERAL MEDIDO NO CELULAR: a padronização do desktop pôs `nowrap` nos dois, e a
+// 320px isso fez a coluna da "Nuvem Conectada" esticar para caber o texto — as duas colunas
+// saíram com 139 e 153px em vez de iguais, quebrando a grade do ·436. No celular os dois voltam a
+// poder quebrar a linha.
+// VALIDAÇÃO: test_mobile_topo.mjs em 36 checagens. 4 SABOTAGENS. ⚠️ UMA PASSOU e o teste foi
+// endurecido: esconder a bolinha com `display:none` não era pego, porque eu media a COR dela — e
+// a cor computada continua lá num elemento escondido. Agora a checagem exige que ela esteja
+// VISÍVEL e com tamanho. ANTERIOR: ＋NOVO, SALVAR E IMPRIMIR/PDF SAÍRAM DA BARRA DO TOPO E FORAM
 // PARA O CABEÇALHO DO LEITOR POR IA. Pedido do Nando: "é realmente o lugar que eles devem ficar
 // por pertencerem a esta função".
 // ⚠️ ELE TEM RAZÃO, E O PROBLEMA ERA MAIOR QUE ESTÉTICA: os três agem sobre o VOUCHER, e no topo
