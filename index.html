@@ -2563,6 +2563,35 @@ body:not(.dark) .termo-nome{color:#5a7085}
      uma coisa com a outra. Só `max-width`: NADA de overflow:hidden aqui,
      que cortaria os balões ::after de quem reagiu (·355/·357). */
   :where(#hubMain,#hubSidebar,.topbar-inner) :is(button,select,input,textarea){max-width:100%}
+  /* ============ (·429) A TELA ABRE DENTRO DA PASTA — o lado visual ============
+     O #hubMain passa a morar DENTRO do menu (ver o bloco do ·429 no JS). Três
+     coisas precisam mudar por causa disso, e nenhuma é enfeite:
+     (1) a barra lateral deixa de ser um CARD (fundo, borda, sombra, respiro) —
+         senão a tela inteira apareceria embrulhada numa moldura de menu;
+     (2) ela deixa de ter altura máxima e rolagem PRÓPRIA (o ·246 lhe deu
+         max-height:60vh e overflow-y:auto) — com o conteúdo dentro, isso
+         espremeria o Hub inteiro em 60% da tela, com duas rolagens brigando;
+     (3) ela deixa de ser `position:sticky`, porque quem gruda agora é a PASTA
+         ATIVA. Sticky dentro de sticky não cola no lugar certo.
+     ⚠ A pasta gruda em `--uv-topbar-h`, a altura MEDIDA da barra do topo, não
+     num número cravado: no celular essa barra quebra em duas linhas e qualquer
+     valor fixo deixaria a pasta escondida atrás dela ou flutuando longe.
+     ⚠ E ela precisa de fundo OPACO e de sombra: grudada, ela fica por cima do
+     conteúdo que passa por baixo — com fundo transparente as duas coisas se
+     sobreporiam e viraria uma sopa de texto. A `.nav-item.active` já é azul
+     sólida, então o fundo vem de graça; a sombra é o que separa as camadas. */
+  .uv-acoplado .hub-sidebar{
+    background:transparent;border:0;box-shadow:none;padding:0;
+    max-height:none;overflow:visible;position:static;
+  }
+  .uv-acoplado .hub-main{margin-top:8px;margin-bottom:14px}
+  .uv-acoplado #hubSidebar .nav-item.active{
+    position:sticky;top:var(--uv-topbar-h,0px);z-index:30;
+    box-shadow:0 6px 16px rgba(0,0,0,.45);
+  }
+  /* o respiro da pasta grudada não pode colar no conteúdo de baixo */
+  .uv-acoplado #hubSidebar .nav-item.active + .hub-main{margin-top:10px}
+
   /* (·428) O CORTE TAMBÉM NO <body> — ver a explicação inteira lá em cima, na
      regra do <html>. Precisa estar AQUI dentro, e não junto da outra: o bloco
      do ·246 acima declara `body{overflow:visible}` no celular, e o atalho
@@ -5273,7 +5302,47 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 428; // (·428) O ARRASTO PARA A ESQUERDA TAMBÉM FOI TRAVADO. Relato depois do
+var UV_BUILD_NUM = 429; // (·429) NO CELULAR, A TELA ABRE DENTRO DA PASTA DO MENU. Pedido do
+// Nando: "ao clicar na pasta do menu, o conteúdo abre logo abaixo dela mesmo, como se estivesse
+// dentro dela... e ao subir a página, o botão fica travado em cima". Antes, no celular, o menu
+// inteiro vinha primeiro e a tela só começava DEPOIS DE TODAS as pastas — era preciso rolar um
+// menu inteiro para ver qualquer coisa, a cada navegação.
+// 🔑 COMO, SEM REESCREVER O HUB: o #hubMain — o contêiner de TODAS as telas — é MOVIDO no DOM
+// para logo depois da pasta ativa. É o MESMO nó: mover não recria nada, então nenhum render,
+// nenhum ouvinte de clique e nenhum campo em edição fica sabendo. A alternativa (desenhar a tela
+// dentro do menu) criaria um SEGUNDO lugar onde cada tela existe — o defeito que esta base já
+// pagou sete vezes.
+// ⚠️ A ÂNCORA INVISÍVEL É OBRIGATÓRIA, e é o que separa isto de uma armadilha: sem um marcador
+// do lugar de origem, voltar ao desktop (girar o aparelho, abrir no PC) deixaria o Hub preso
+// dentro do menu PARA SEMPRE. O teste cobre justamente o ciclo celular → desktop → celular.
+// ⚠️ ONDE O CONTEÚDO ENTRA quando a pasta tem sub-pastas: DEPOIS do bloco de sub-pastas — escolha
+// do Nando entre as duas que ofereci. Assim "Gerador de Voucher" continua colado em "Vouchers
+// Salvos", em vez de a tela inteira separar a mãe das filhas. Só conta o bloco REALMENTE aberto
+// (offsetParent), porque pasta fechada não pode virar ponto de encaixe.
+// ⚠️ FICA NO FUNIL, não no clique do menu: o encaixe é chamado no fim de hubGoScreen, depois de
+// marcar o item ativo e abrir a árvore (antes disso não há como saber QUAL pasta está ativa).
+// Assim navegar por botão interno, pelo boot ou por desvio de permissão acopla igual — a lição
+// do ·423, onde pendurar no botão teria deixado caminhos de fora.
+// ⚠️ A PASTA GRUDA EM `--uv-topbar-h`, a altura MEDIDA da barra do topo, nunca um número cravado:
+// no celular essa barra quebra em duas linhas (medida: 180px) e qualquer valor fixo deixaria a
+// pasta escondida atrás dela ou flutuando longe. E ela precisa de fundo OPACO — grudada, o
+// conteúdo passa por baixo; `.nav-item.active` já é azul sólida, então só faltou a sombra que
+// separa as camadas.
+// ⚠️ TRÊS COISAS TIVERAM QUE SAIR DA BARRA LATERAL no modo acoplado, e nenhuma é enfeite: ela
+// deixa de ser um CARD (senão a tela apareceria embrulhada numa moldura de menu); deixa de ter
+// `max-height:60vh` + rolagem própria do ·246 (com o conteúdo dentro, isso espremeria o Hub
+// inteiro em 60% da tela, com duas rolagens brigando pelo dedo — medido: a pasta grudada
+// simplesmente não gruda); e deixa de ser `position:sticky`, porque sticky dentro de sticky não
+// cola no lugar certo.
+// ✨ Junto, a página rola sozinha até a pasta clicada, descontando a barra do topo: sem isso,
+// clicar numa pasta lá embaixo abriria a tela fora da vista e pareceria que nada aconteceu.
+// VALIDAÇÃO: test_mobile_acordeao.mjs (novo, 29 checagens) confere o encaixe em 5 pastas simples,
+// na pasta-mãe com sub-pastas, na sub-pasta, o sticky depois de rolar 900px, a barra lateral sem
+// rolagem própria, a troca de tela ainda funcionando, o desktop com o conteúdo no lugar de origem
+// e o ciclo de girar o aparelho. Validado por 5 SABOTAGENS, todas pegas — inclusive a que não
+// devolve o conteúdo ao desktop e a que mantém a altura máxima da barra lateral. As suítes do
+// ·426 (273), ·427 (16) e ·428 (16) seguem sem falha.
+// ANTERIOR: O ARRASTO PARA A ESQUERDA TAMBÉM FOI TRAVADO. Relato depois do
 // ·427: "quando arrasto pro lado esquerdo ele vai pro lado e fica aquela sobra lateral... pro lado
 // direito já funciona certinho".
 // ⚠️ A OBSERVAÇÃO DELE É O DIAGNÓSTICO INTEIRO, e vale registrar como se lê um relato assim: se
@@ -14106,6 +14175,93 @@ init();
     document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
     var el=document.getElementById(id); if(el) el.classList.add('active');
   }
+  /* ================= (·429) NO CELULAR, A TELA ABRE DENTRO DA PASTA =================
+     Pedido do Nando: "ao clicar na pasta do menu, o conteúdo abre logo abaixo dela
+     mesmo, como se estivesse dentro dela" — e a pasta clicada fica "travada em cima"
+     ao rolar. Antes, no celular, o menu inteiro vinha primeiro e a tela começava só
+     depois de TODAS as pastas: era preciso rolar um menu inteiro para ver qualquer
+     coisa.
+     🔑 COMO, SEM REESCREVER O HUB: o #hubMain (o contêiner de TODAS as telas) é
+     MOVIDO no DOM para logo depois da pasta ativa. É o MESMO nó — mover não
+     recria nada, então nenhum render, nenhum listener e nenhum campo em edição
+     sabe que isso aconteceu. A alternativa (desenhar a tela dentro do menu) criaria
+     um segundo lugar onde cada tela existe, que é o defeito que esta base já pagou
+     sete vezes.
+     ⚠ A ÂNCORA É OBRIGATÓRIA: sem um marcador do lugar de origem, voltar ao desktop
+     (girar o aparelho, abrir no PC) deixaria o conteúdo preso dentro do menu para
+     sempre. Ela nasce uma vez, invisível, e é o endereço de volta.
+     ⚠ ONDE ENTRA quando a pasta tem sub-pastas: DEPOIS do bloco de sub-pastas
+     (escolha do Nando) — assim "Gerador de Voucher" continua colado em "Vouchers
+     Salvos", em vez de a tela inteira separar a mãe das filhas. Só conta o bloco
+     que está REALMENTE aberto; pasta fechada não empurra nada.
+     ⚠ A ALTURA DA BARRA DO TOPO é medida e publicada em --uv-topbar-h, porque é
+     onde a pasta gruda. Cravar um número no CSS quebraria quando a barra quebra em
+     duas linhas (é exatamente o que ela faz no celular). */
+  var UV_MOB_MAX=980;
+  function uvMobEhCelular(){
+    try{ return window.matchMedia('(max-width:'+UV_MOB_MAX+'px)').matches; }
+    catch(e){ return window.innerWidth<=UV_MOB_MAX; }
+  }
+  function uvMobMedirTopbar(){
+    try{
+      var t=document.querySelector('.topbar');
+      var h=t?Math.round(t.getBoundingClientRect().height):0;
+      document.documentElement.style.setProperty('--uv-topbar-h', h+'px');
+    }catch(e){}
+  }
+  function uvMobAncora(main){
+    var a=document.getElementById('hubMainAncora');
+    if(!a){
+      a=document.createElement('div');
+      a.id='hubMainAncora';
+      a.setAttribute('aria-hidden','true');
+      a.style.display='none';
+      if(main.parentNode) main.parentNode.insertBefore(a, main);
+    }
+    return a;
+  }
+  window.uvMobAcoplar=function(){
+    try{
+      var main=document.getElementById('hubMain'); if(!main) return;
+      var anc=uvMobAncora(main); if(!anc || !anc.parentNode) return;
+      uvMobMedirTopbar();
+      var celular=uvMobEhCelular();
+      document.body.classList.toggle('uv-acoplado', celular);
+      function devolver(){
+        if(main.previousElementSibling!==anc){ anc.parentNode.insertBefore(main, anc.nextSibling); }
+      }
+      if(!celular){ devolver(); return; }
+      var btn=document.querySelector('#hubSidebar .nav-item.active');
+      if(!btn){ devolver(); return; }
+      var alvo=btn, arv=btn.getAttribute('data-tree');
+      if(arv){
+        var filhos=document.querySelector('#hubSidebar [data-tree-body="'+arv+'"]');
+        /* offsetParent null = está escondida; pasta fechada não vira ponto de encaixe */
+        if(filhos && filhos.offsetParent!==null) alvo=filhos;
+      }
+      if(alvo.nextElementSibling!==main && alvo.parentNode){
+        alvo.parentNode.insertBefore(main, alvo.nextSibling);
+      }
+    }catch(e){}
+  };
+  /* Rolar até a pasta clicada: sem isto, clicar numa pasta lá embaixo abriria a
+     tela fora da vista e pareceria que nada aconteceu. Desconta a barra do topo,
+     senão a pasta nasce ESCONDIDA atrás dela. */
+  window.uvMobIrAteAPasta=function(){
+    try{
+      if(!uvMobEhCelular()) return;
+      var btn=document.querySelector('#hubSidebar .nav-item.active'); if(!btn) return;
+      var t=document.querySelector('.topbar');
+      var alt=t?t.getBoundingClientRect().height:0;
+      var y=window.scrollY + btn.getBoundingClientRect().top - alt - 4;
+      window.scrollTo({top:Math.max(0,y), behavior:'smooth'});
+    }catch(e){}
+  };
+  try{
+    window.addEventListener('resize', function(){ try{ window.uvMobAcoplar(); }catch(e){} });
+    window.addEventListener('orientationchange', function(){ setTimeout(function(){ try{ window.uvMobAcoplar(); }catch(e){} },120); });
+  }catch(e){}
+
   window.hubGoScreen=function(scr){
     // Minhas Tarefas: TRANCA automaticamente ao navegar para qualquer outra tela —
     // ninguém sai da sala deixando a gaveta aberta (·109)
@@ -14157,6 +14313,12 @@ init();
        pessoa deixou aberto continua aberto. */
     try{ uvAbrirArvoreDaTela(scr); }catch(e){}
     try{ localStorage.setItem('uv_hub_screen',scr); }catch(e){}
+    /* (·429) DEPOIS de marcar o item e abrir a árvore, nunca antes: o encaixe
+       depende de saber QUAL pasta está ativa e se a árvore dela está aberta.
+       Fica no FUNIL, não no clique do menu — navegar por botão interno, pelo
+       boot ou por desvio de permissão tem de acoplar igual (a lição do ·423). */
+    try{ window.uvMobAcoplar(); }catch(e){}
+    try{ window.uvMobIrAteAPasta(); }catch(e){}
   };
   /* ========== (·317) O MAPA TELA -> RENDER, AGORA NUM LUGAR SÓ ==========
      Este bloco estava DENTRO de hubGoScreen e só rodava ao NAVEGAR. O redesenho
