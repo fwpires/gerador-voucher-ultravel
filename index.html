@@ -482,8 +482,8 @@ body:not(.dark) .wd-meet{background:#e6f0ff;border-color:#a9c9f0;color:#1f5fa8}
    causa do PICO DE BRANCO no topo do degradê — a mesma receita da tarja cromada do
    ·102 — e por isso o texto aqui é ESCURO: letra branca sobre #E8EDF1 tem contraste
    de 1,2:1, ilegível. */
-.ocp-cli-btn.ti{background:linear-gradient(180deg,#FFFFFF 0%,#D6DDE4 45%,#8E9BA6 100%);border:1px solid #F2F6F9;color:#1b2027;box-shadow:0 0 7px rgba(214,221,228,.6);font-size:7px;letter-spacing:-.2px;max-width:100%;width:100%;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;padding:3px 3px;font-weight:900;animation:ocpInternoBlink 1.4s ease-in-out infinite}
-.ocp-cli-btn.ti:hover{background:linear-gradient(180deg,#FFFFFF 0%,#E6ECF2 45%,#9CA9B4 100%);box-shadow:0 0 11px rgba(230,236,242,.95)}
+.ocp-cli-btn.ti{background:linear-gradient(180deg,#FFFFFF 0%,#F2F6FA 38%,#CBD6E1 72%,#A3B1BF 100%);border:1px solid #FFFFFF;color:#141a20;box-shadow:0 0 9px rgba(238,244,249,.9);font-size:7px;letter-spacing:-.2px;max-width:100%;width:100%;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;padding:3px 3px;font-weight:900;animation:ocpInternoBlink 1.4s ease-in-out infinite}
+.ocp-cli-btn.ti:hover{background:linear-gradient(180deg,#FFFFFF 0%,#FFFFFF 38%,#DCE5EE 72%,#B2BFCC 100%);box-shadow:0 0 15px rgba(255,255,255,1)}
 /* Botão "Ausente" (rosa) abaixo do LED — pisca como os outros, MAS tem tooltip
    amarelo com o MOTIVO da ausência (igual ao botão Cliente). É híbrido. */
 .ocp-cli-btn.ausente{background:linear-gradient(180deg,#e0559a,#b83079);border:1px solid #ff7ec0;color:#fff;box-shadow:0 0 7px rgba(255,105,180,.55);font-size:7px;letter-spacing:-.2px;max-width:100%;width:100%;box-sizing:border-box;padding:3px 3px;font-weight:900;animation:ocpAusenteBlink 1.4s ease-in-out infinite;position:relative;overflow:visible}
@@ -702,15 +702,15 @@ body:not(.dark) .ocp-reab-pax input{background:#fff;color:#1A2733;border-color:#
    em qualquer um desses tons seria indistinguível de relance. Observação OPCIONAL,
    modelo Gestão Interna/Grupos — suporte de TI é rotina, exigir texto sempre
    geraria "xx" só para liberar o botão. */
-.ocp-ti-box{display:flex;align-items:center;gap:6px;margin:1px 18px 2px;padding:5px 9px;border-radius:7px;border:1px solid rgba(232,237,241,.72);background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(142,155,166,.12));cursor:pointer;transition:all .15s}
-.ocp-ti-box:hover{background:linear-gradient(180deg,rgba(255,255,255,.20),rgba(142,155,166,.18));border-color:rgba(242,246,249,.85)}
-.ocp-ti-box input[type=checkbox]{width:14px;height:14px;accent-color:#C8CFD6;cursor:pointer;flex-shrink:0}
-.ocp-ti-box label{color:#e8edf1;font-weight:800;font-size:11px;letter-spacing:.2px;cursor:pointer;user-select:none;white-space:nowrap}
-.ocp-ti-box .ocp-ti-hint{color:#a9b3bd;font-size:9px;font-weight:600;margin-left:auto;white-space:nowrap}
+.ocp-ti-box{display:flex;align-items:center;gap:6px;margin:1px 18px 2px;padding:5px 9px;border-radius:7px;border:1px solid rgba(255,255,255,.9);background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(180,193,206,.16));box-shadow:0 0 8px rgba(238,244,249,.22);cursor:pointer;transition:all .15s}
+.ocp-ti-box:hover{background:linear-gradient(180deg,rgba(255,255,255,.34),rgba(180,193,206,.24));border-color:#ffffff;box-shadow:0 0 12px rgba(255,255,255,.4)}
+.ocp-ti-box input[type=checkbox]{width:14px;height:14px;accent-color:#EEF4F9;cursor:pointer;flex-shrink:0}
+.ocp-ti-box label{color:#ffffff;font-weight:800;font-size:11px;letter-spacing:.2px;cursor:pointer;user-select:none;white-space:nowrap}
+.ocp-ti-box .ocp-ti-hint{color:#cdd8e2;font-size:9px;font-weight:600;margin-left:auto;white-space:nowrap}
 .ocp-ti-wrap .ocp-motivo-lbl{color:#e8edf1}
 .ocp-ti-wrap input{border-color:rgba(214,221,228,.5)!important}
 .ocp-ti-wrap input:focus{border-color:#E8EDF1!important;background:rgba(214,221,228,.14)!important}
-.ocp-ti-wrap .ocp-motivo-ok{background:linear-gradient(180deg,#FFFFFF 0%,#D6DDE4 45%,#8E9BA6 100%);color:#1b2027}
+.ocp-ti-wrap .ocp-motivo-ok{background:linear-gradient(180deg,#FFFFFF 0%,#F2F6FA 38%,#CBD6E1 72%,#A3B1BF 100%);color:#141a20}
 .ocp-ti-wrap .ocp-motivo-ok:hover{background:linear-gradient(180deg,#FFFFFF 0%,#E6ECF2 45%,#9CA9B4 100%);box-shadow:0 0 10px rgba(230,236,242,.75)}
 /* no tema claro o cromado precisa ESCURECER, senão a caixa branca some no fundo branco */
 body:not(.dark) .ocp-ti-box{border-color:rgba(110,122,135,.55);background:linear-gradient(180deg,rgba(142,155,166,.10),rgba(110,122,135,.16))}
@@ -1493,12 +1493,12 @@ body.dark .mx-cal-btn{color:#2ee0b8}
    ·102, quando a tarja cromada piscando precisou ser trocada. Aqui ela pulsa, mas
    com brilho contido. */
 .ocp-led.ti{
-  background:radial-gradient(circle at 32% 28%, #FFFFFF 0%, #D6DDE4 42%, #5c6773 100%);
+  background:radial-gradient(circle at 32% 28%, #FFFFFF 0%, #F4F8FB 26%, #D2DCE6 58%, #93A2B1 100%);
   animation:ocpPulseTi 1.3s ease-in-out infinite;
 }
 @keyframes ocpPulseTi{
-  0%,100%{box-shadow:0 0 6px 1px rgba(214,221,228,.5),0 0 13px 4px rgba(174,186,197,.28),inset 0 0 4px rgba(255,255,255,.55)}
-  50%{box-shadow:0 0 11px 3px rgba(232,237,241,.75),0 0 22px 8px rgba(174,186,197,.42),inset 0 0 6px rgba(255,255,255,.8)}
+  0%,100%{box-shadow:0 0 7px 2px rgba(238,244,249,.85),0 0 15px 5px rgba(205,217,228,.5),inset 0 0 4px rgba(255,255,255,.75)}
+  50%{box-shadow:0 0 13px 4px rgba(255,255,255,1),0 0 26px 10px rgba(214,226,238,.7),inset 0 0 6px rgba(255,255,255,.95)}
 }
 /* ===== Notificações de cobrança do Control Desk (build HUB-v3·102) =====
    CONTORNO CROMADO VIVO E FIXO — sem piscar.
@@ -2391,10 +2391,10 @@ body:not(.dark) .ocph-total-prosp b{color:#4c1d95}
    do modal soma os tempos POR CLASSE DA LINHA: reusar faria o tempo de TI aparecer
    no rodapé sob o rótulo de outro setor — a armadilha documentada no ·176 e repetida
    no ·204, ·211 e ·213. Balde e total próprios. */
-.ocph-row.ocph-ti{border-left:3px solid rgba(214,221,228,.65);background:rgba(214,221,228,.07)}
-.ocph-ti-tag{background:rgba(214,221,228,.20);color:#e8edf1;border:1px solid rgba(232,237,241,.45)}
-.ocph-tiobs{color:#b9c3cd;font-style:italic;opacity:.9}
-.ocph-total-ti{margin-left:14px;color:#e8edf1}
+.ocph-row.ocph-ti{border-left:3px solid rgba(255,255,255,.85);background:rgba(238,244,249,.10)}
+.ocph-ti-tag{background:rgba(238,244,249,.26);color:#ffffff;border:1px solid rgba(255,255,255,.7)}
+.ocph-tiobs{color:#d3dde6;font-style:italic;opacity:.95}
+.ocph-total-ti{margin-left:14px;color:#ffffff}
 .ocph-total-ti b{color:#ffffff}
 body:not(.dark) .ocph-row.ocph-ti{background:rgba(110,122,135,.10);border-left-color:rgba(110,122,135,.6)}
 body:not(.dark) .ocph-tiobs{color:#4e5a66}
@@ -5607,7 +5607,26 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 444; // (·444) NOVO STATUS "TI (DESENVOLVIMENTO E SUPORTE)", EXCLUSIVO DO
+var UV_BUILD_NUM = 445; // (·445) O PRATA DO TI FICOU MAIS VIVO E BRILHANTE. Pedido do Nando em
+// uma linha: "deixe na cor prata mais viva e brilhante".
+// ⚠️ O QUE MUDOU FOI O FIM DO DEGRADÊ, NÃO O COMEÇO — o branco do ponto de luz já estava no
+// máximo desde o ·444, então clarear "mais" só podia vir da outra ponta: a borda da esfera saiu de
+// #5c6773 (chumbo) para #93A2B1, e entrou um meio-tom claro extra (#F4F8FB aos 26%). O efeito é a
+// bolinha ficar clara de ponta a ponta em vez de "branca em cima, escura embaixo" — que é o que
+// fazia ela ler como cinza de longe.
+// ⚠️ O HALO DOBROU e chega a BRANCO PURO no pico do pulso (era rgba(232,237,241,.75)). É o halo,
+// mais que o miolo, que dá a sensação de "brilhante" — o miolo já era branco.
+// ⚠️ ISSO REABRE CONSCIENTEMENTE O RISCO DO ·102, quando a tarja cromada clara piscando ofuscava e
+// precisou ser trocada. A aposta é a diferença de escala: lá era uma tarja da largura da tela,
+// aqui são três esferas de 14px com pulso lento. Registro para não parecer esquecimento — e o
+// caminho de volta é UM valor, a cor final do radial-gradient de .ocp-led.ti.
+// ⚠️ SUBIRAM JUNTO, para a peça não ficar desencontrada: o botão do card (fundo mais claro, borda
+// branca, texto #141a20 para manter contraste), a caixa do seletor (borda branca + brilho suave),
+// o checkbox, o botão Ok da observação e a linha do histórico. Clarear só a bolinha deixaria o
+// resto parecendo apagado ao lado dela.
+// VALIDAÇÃO: test_ocp_ti.mjs segue em 30 checagens — a que trava a cor exige BRANCO no degradê e a
+// animação própria, então ela continua valendo com o tom novo. Print conferido antes de entregar.
+// ANTERIOR: NOVO STATUS "TI (DESENVOLVIMENTO E SUPORTE)", EXCLUSIVO DO
 // ISRAEL HESPANHOL, EM PRATA CROMADO. Pedido do Nando: "dentro do painel de ocupação dos
 // atendentes, somente para o atendente Israel Hespanhol, adicionar nova opção de ocupação chamada
 // TI (Desenvolvimento e Suporte), logo abaixo da caixa seletora prospecção. Ela terá a cor prata
@@ -5629,6 +5648,14 @@ var UV_BUILD_NUM = 444; // (·444) NOVO STATUS "TI (DESENVOLVIMENTO E SUPORTE)",
 // Mesma solução que o ·175 usou para encaixar a Licitação abaixo do Ausente. O teste mede isso em
 // PIXELS na tela montada, não pela ordem no código: um `order` de flexbox mudaria o que o Nando vê
 // sem mudar uma linha do HTML.
+// ⚠️ (·445) O PRATA SUBIU DE BRILHO A PEDIDO DO NANDO — "deixe na cor prata mais viva e
+// brilhante". O que mudou foi o FIM DO DEGRADÊ e o HALO, não o começo: a borda da bolinha saiu de
+// #5c6773 para #93A2B1 e ganhou um meio-tom claro extra (#F4F8FB), de modo que a esfera fica clara
+// de ponta a ponta em vez de "branca em cima, chumbo embaixo". O halo dobrou de força e chega a
+// branco puro no pico do pulso.
+// ⚠️ ISSO REABRE O RISCO DO ·102 (cromado claro piscando ofusca) e a escolha é consciente: aqui o
+// elemento tem 14px, não uma tarja de largura inteira, e o pulso é lento. Se incomodar na tela do
+// balcão, o caminho de volta é UM valor — a cor final do radial-gradient.
 // ⚠️ O PRATA CROMADO NÃO É CINZA CHAPADO. A leitura de "metal" vem do BRANCO PURO no ponto de luz
 // caindo para um #5c6773 quase azulado na borda — receita da tarja cromada do ·102. Cinza médio
 // uniforme ficaria igual à bolinha APAGADA no tema claro, o pior confundível possível num painel
