@@ -474,8 +474,15 @@ body:not(.dark) .wd-meet{background:#e6f0ff;border-color:#a9c9f0;color:#1f5fa8}
 .ocp-cli-btn.licitacao:hover{background:linear-gradient(180deg,#ffe23d,#dcb600);box-shadow:0 0 11px rgba(255,214,0,.9)}
 /* (·213) Botão "Prospecção" — roxo, para não se confundir com o amarelo da
    Licitação/Financeiro nem com o vermelho das outras três sentinelas. */
-.ocp-cli-btn.prospeccao{background:linear-gradient(180deg,#A855F7,#7e22ce);border:1px solid #c084fc;color:#fff;box-shadow:0 0 7px rgba(168,85,247,.6);font-size:7px;letter-spacing:-.2px;max-width:100%;width:100%;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;padding:3px 3px;font-weight:900;animation:ocpInternoBlink 1.4s ease-in-out infinite}
-.ocp-cli-btn.prospeccao:hover{background:linear-gradient(180deg,#b76cff,#8b2fd8);box-shadow:0 0 11px rgba(168,85,247,.9)}
+.ocp-cli-btn.prospeccao{background:linear-gradient(180deg,#FFFFFF 0%,#FFFFFF 55%,#E8F3FF 100%);border:1px solid #FFFFFF;color:#14181d;box-shadow:0 0 10px rgba(255,255,255,.9);font-size:7px;letter-spacing:-.2px;max-width:100%;width:100%;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;padding:3px 3px;font-weight:900;animation:ocpInternoBlink 1.4s ease-in-out infinite}
+.ocp-cli-btn.prospeccao:hover{background:linear-gradient(180deg,#ffffff,#e8f3ff);box-shadow:0 0 15px rgba(255,255,255,1)}
+/* (·446) ⚠ GRUPOS GANHA CÓPIA PRÓPRIA DO ROXO. Desde o ·225 ele REUSAVA a classe
+   .prospeccao — decisão certa na época ("mesma cor, e as duas nunca coexistem no
+   mesmo card"), que virou armadilha no instante em que a Prospecção mudou de cor: um
+   reuso é uma cor só, e mudar uma mudaria as duas. O Nando pediu a Prospecção
+   branca; o roxo do Grupos fica exatamente como estava. */
+.ocp-cli-btn.grupos{background:linear-gradient(180deg,#A855F7,#7e22ce);border:1px solid #c084fc;color:#fff;box-shadow:0 0 7px rgba(168,85,247,.6);font-size:7px;letter-spacing:-.2px;max-width:100%;width:100%;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;padding:3px 3px;font-weight:900;animation:ocpInternoBlink 1.4s ease-in-out infinite}
+.ocp-cli-btn.grupos:hover{background:linear-gradient(180deg,#b76cff,#8b2fd8);box-shadow:0 0 11px rgba(168,85,247,.9)}
 /* (·444) Botão "TI" — PRATA CROMADO, pedido do Nando. É a única sentinela CLARA do
    painel, e isso é proposital: vermelho, amarelo, roxo e rosa já estão tomados, e
    um cinza chapado sumiria no fundo escuro do card. O cromado se lê como metal por
@@ -678,11 +685,14 @@ body:not(.dark) .ocp-reab-pax input{background:#fff;color:#1A2733;border-color:#
    vermelho já é Indisponível/Interno/Ausente e amarelo já é Licitação/Financeiro,
    então uma sexta caixa em qualquer um dos dois tons seria indistinguível de
    relance justamente no card que a equipe inteira olha o dia todo. */
-.ocp-prosp-box{display:flex;align-items:center;gap:6px;margin:1px 18px 2px;padding:5px 9px;border-radius:7px;border:1px solid rgba(168,85,247,.5);background:rgba(168,85,247,.09);cursor:pointer;transition:all .15s}
-.ocp-prosp-box:hover{background:rgba(168,85,247,.18);border-color:rgba(168,85,247,.75)}
-.ocp-prosp-box input[type=checkbox]{width:14px;height:14px;accent-color:#A855F7;cursor:pointer;flex-shrink:0}
-.ocp-prosp-box label{color:#d8b4fe;font-weight:800;font-size:11px;letter-spacing:.2px;cursor:pointer;user-select:none}
-.ocp-prosp-box .ocp-prosp-hint{color:#a78bbf;font-size:9px;font-weight:600;margin-left:auto}
+/* (·446) PROSPECÇÃO EM BRANCO BRILHANTE — pedido do Nando. O roxo desta caixa era a
+   referência de cor do status desde o ·213; quem herda o roxo agora é o Grupos, que
+   já tinha caixa própria (.ocp-grupos-box) e não foi tocado. */
+.ocp-prosp-box{display:flex;align-items:center;gap:6px;margin:1px 18px 2px;padding:5px 9px;border-radius:7px;border:1px solid rgba(255,255,255,.95);background:linear-gradient(180deg,rgba(255,255,255,.26),rgba(226,240,255,.14));box-shadow:0 0 9px rgba(255,255,255,.3);cursor:pointer;transition:all .15s}
+.ocp-prosp-box:hover{background:linear-gradient(180deg,rgba(255,255,255,.40),rgba(226,240,255,.22));border-color:#ffffff;box-shadow:0 0 14px rgba(255,255,255,.55)}
+.ocp-prosp-box input[type=checkbox]{width:14px;height:14px;accent-color:#FFFFFF;cursor:pointer;flex-shrink:0}
+.ocp-prosp-box label{color:#ffffff;font-weight:800;font-size:11px;letter-spacing:.2px;cursor:pointer;user-select:none}
+.ocp-prosp-box .ocp-prosp-hint{color:#dce9f5;font-size:9px;font-weight:600;margin-left:auto}
 /* (·225) GRUPOS — clone exato da paleta roxa da Prospecção (mesmo pedido do
    Nando: "usando a cor do status Prospecção"). Observação OPCIONAL como a
    Gestão Interna, então usa .ocp-motivo-wrap puro (sem trava de obrigatório). */
@@ -718,11 +728,16 @@ body:not(.dark) .ocp-ti-box label{color:#3c4854}
 body:not(.dark) .ocp-ti-box .ocp-ti-hint{color:#6e7a87}
 body:not(.dark) .ocp-ti-wrap .ocp-motivo-lbl{color:#3c4854}
 /* campo da observação OBRIGATÓRIA — mesma estrutura do Motivo do Ausente, em roxo */
-.ocp-prosp-wrap .ocp-motivo-lbl{color:#d8b4fe}
-.ocp-prosp-wrap input{border-color:rgba(168,85,247,.45)!important}
-.ocp-prosp-wrap input:focus{border-color:#A855F7!important;background:rgba(168,85,247,.12)!important}
-.ocp-prosp-wrap .ocp-motivo-ok{background:linear-gradient(180deg,#A855F7,#7e22ce)}
-.ocp-prosp-wrap .ocp-motivo-ok:hover{background:linear-gradient(180deg,#b76cff,#8b2fd8);box-shadow:0 0 10px rgba(168,85,247,.6)}
+.ocp-prosp-wrap .ocp-motivo-lbl{color:#ffffff}
+.ocp-prosp-wrap input{border-color:rgba(255,255,255,.5)!important}
+.ocp-prosp-wrap input:focus{border-color:#FFFFFF!important;background:rgba(255,255,255,.14)!important}
+.ocp-prosp-wrap .ocp-motivo-ok{background:linear-gradient(180deg,#FFFFFF 0%,#FFFFFF 55%,#E8F3FF 100%);color:#14181d}
+.ocp-prosp-wrap .ocp-motivo-ok:hover{background:linear-gradient(180deg,#FFFFFF,#F4FAFF);box-shadow:0 0 12px rgba(255,255,255,.8)}
+/* no tema claro o branco some no fundo branco: a caixa escurece o contorno e o texto */
+body:not(.dark) .ocp-prosp-box{border-color:rgba(100,116,132,.6);background:linear-gradient(180deg,rgba(148,163,180,.12),rgba(100,116,132,.16));box-shadow:none}
+body:not(.dark) .ocp-prosp-box label{color:#2b3440}
+body:not(.dark) .ocp-prosp-box .ocp-prosp-hint{color:#5c6b7a}
+body:not(.dark) .ocp-prosp-wrap .ocp-motivo-lbl{color:#2b3440}
 /* selo do bloco de financeiro no histórico (espelha .ocph-licitacao) */
 .ocph-fin{background:rgba(255,214,0,.16);border:1px solid rgba(255,214,0,.5);color:#ffd84d;display:inline-block;padding:1px 7px;border-radius:99px;font-size:.63rem;font-weight:800;letter-spacing:.3px;line-height:1.5;vertical-align:middle}
 body:not(.dark) .ocph-fin{background:#fff8dc;border-color:#e4c76a;color:#8a6a00}
@@ -1474,9 +1489,26 @@ body.dark .mx-cal-btn{color:#2ee0b8}
 /* (·213) PROSPECÇÃO — as 3 bolinhas acendem ROXAS. Segundo estado a mudar a cor do
    próprio LED (o primeiro foi a Licitação, no ·175). Classe aplicada DEPOIS de
    .ocupado no HTML, então a especificidade natural já sobrepõe. */
-.ocp-led.prospeccao{
+/* (·446) GRUPOS — o roxo que era da classe .prospeccao mora AQUI agora, intacto. */
+.ocp-led.grupos{
   background:radial-gradient(circle at 32% 28%, #f3e0ff 0%, #A855F7 45%, #6b21a8 100%);
   animation:ocpPulseP 1.3s ease-in-out infinite;
+}
+/* (·446) PROSPECÇÃO — BRANCO BRILHANTE VIVO, a pedido do Nando.
+   ⚠ É A BOLINHA MAIS CLARA DO PAINEL, e por isso a borda NÃO é branca: ela fecha num
+   #DCE9F5 levemente azulado. Sem essa borda a esfera perde o contorno contra o halo
+   branco e deixa de parecer uma esfera — vira um borrão de luz.
+   ⚠ COMO SE DISTINGUE DO PRATA DO TI (·445), que também é claro: o TI fecha num
+   CINZA METÁLICO (#93A2B1) e lê como metal; esta fecha quase em branco e lê como
+   LUZ. Lado a lado a diferença é visível, mas é a menor do painel — registrado aqui
+   porque é o ponto que um ajuste futuro deve olhar primeiro. */
+.ocp-led.prospeccao{
+  background:radial-gradient(circle at 32% 28%, #FFFFFF 0%, #FFFFFF 38%, #F2F8FF 62%, #DCE9F5 100%);
+  animation:ocpPulseBranco 1.3s ease-in-out infinite;
+}
+@keyframes ocpPulseBranco{
+  0%,100%{box-shadow:0 0 8px 2px rgba(255,255,255,.9),0 0 17px 6px rgba(226,240,255,.55),inset 0 0 4px rgba(255,255,255,1)}
+  50%{box-shadow:0 0 15px 5px rgba(255,255,255,1),0 0 30px 12px rgba(226,240,255,.8),inset 0 0 7px rgba(255,255,255,1)}
 }
 @keyframes ocpPulseP{
   0%,100%{box-shadow:0 0 6px 1px rgba(168,85,247,.8),0 0 13px 4px rgba(168,85,247,.4),inset 0 0 4px rgba(255,255,255,.45)}
@@ -2375,18 +2407,32 @@ body:not(.dark) .ocph-total-licit b{color:#5c4800}
    O ticker do modal soma os tempos POR CLASSE DA LINHA: reusar faria o tempo de
    prospecção aparecer no rodapé sob o rótulo de outro setor, que é exatamente a
    armadilha documentada no ·176 e repetida no ·204 e no ·211. Balde e total próprios. */
-.ocph-row.ocph-prospeccao{border-left:3px solid rgba(168,85,247,.6);background:rgba(168,85,247,.06)}
-.ocph-prosp-tag{background:rgba(168,85,247,.18);color:#d8b4fe;border:1px solid rgba(168,85,247,.4)}
-.ocph-prospobs{color:#b99ad8;font-style:italic;opacity:.9}
-.ocph-total-prosp{margin-left:14px;color:#d8b4fe}
-.ocph-total-prosp b{color:#ecd5ff}
-body:not(.dark) .ocph-row.ocph-prospeccao{background:rgba(168,85,247,.08)}
-/* (·227) Grupos reusa a paleta roxa da Prospecção — mesma cor, linha própria. */
+.ocph-row.ocph-prospeccao{border-left:3px solid rgba(255,255,255,.9);background:rgba(255,255,255,.08)}
+.ocph-prosp-tag{background:rgba(255,255,255,.22);color:#ffffff;border:1px solid rgba(255,255,255,.75)}
+.ocph-prospobs{color:#e2effb;font-style:italic;opacity:.95}
+.ocph-total-prosp{margin-left:14px;color:#ffffff}
+.ocph-total-prosp b{color:#ffffff}
+/* (·446) os selos ROXOS que o Grupos usava por reuso passam a morar aqui, próprios. */
+.ocph-grupos-tag{background:rgba(168,85,247,.18);color:#d8b4fe;border:1px solid rgba(168,85,247,.4)}
+.ocph-gruposobs{color:#b99ad8;font-style:italic;opacity:.9}
+.ocph-total-grupos{margin-left:14px;color:#d8b4fe}
+.ocph-total-grupos b{color:#ecd5ff}
+body:not(.dark) .ocph-row.ocph-prospeccao{background:rgba(100,116,132,.10);border-left-color:rgba(100,116,132,.6)}
+body:not(.dark) .ocph-prospobs{color:#4a5663}
+body:not(.dark) .ocph-prosp-tag{color:#2b3440;background:rgba(100,116,132,.14);border-color:rgba(100,116,132,.45)}
+body:not(.dark) .ocph-total-prosp,body:not(.dark) .ocph-total-prosp b{color:#2b3440}
+body:not(.dark) .ocph-gruposobs{color:#6b3fa0}
+body:not(.dark) .ocph-grupos-tag,body:not(.dark) .ocph-total-grupos{color:#6b21a8}
+body:not(.dark) .ocph-total-grupos b{color:#4c1d95}
+/* (·227) linha do Grupos — roxa, agora com paleta PRÓPRIA e não mais herdada. */
 .ocph-row.ocph-grupos{border-left:3px solid rgba(168,85,247,.6);background:rgba(168,85,247,.06)}
 body:not(.dark) .ocph-row.ocph-grupos{background:rgba(168,85,247,.08)}
-body:not(.dark) .ocph-prospobs{color:#6b3fa0}
-body:not(.dark) .ocph-prosp-tag,body:not(.dark) .ocph-total-prosp{color:#6b21a8}
-body:not(.dark) .ocph-total-prosp b{color:#4c1d95}
+/* ⚠⚠ (·446) AQUI MORAVAM TRÊS LINHAS DE TEMA CLARO QUE AINDA PINTAVAM A PROSPECÇÃO
+   DE ROXO. Elas vinham DEPOIS das minhas regras novas e, entre seletores de mesmo
+   peso, vence quem vem por último — então a Prospecção ficava branca no tema escuro
+   e roxa no claro. Mesmo defeito de ORDEM NO ARQUIVO que mordeu o ·441 nos botões do
+   topo. Removidas: as versões claras da Prospecção agora estão junto das escuras,
+   logo acima, e as do Grupos ganharam nome próprio. */
 /* (·444) TI no histórico — CLASSE PRÓPRIA, nunca reuso de outra sentinela. O ticker
    do modal soma os tempos POR CLASSE DA LINHA: reusar faria o tempo de TI aparecer
    no rodapé sob o rótulo de outro setor — a armadilha documentada no ·176 e repetida
@@ -5607,7 +5653,43 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 445; // (·445) O PRATA DO TI FICOU MAIS VIVO E BRILHANTE. Pedido do Nando em
+var UV_BUILD_NUM = 446; // (·446) PROSPECÇÃO EM BRANCO BRILHANTE VIVO — E O GRUPOS FINALMENTE
+// GANHOU COR PRÓPRIA. Pedido do Nando: "agora coloque prospecção na cor branco brilhante vivo".
+// ⚠️⚠️ O PEDIDO ERA DE UMA COR, MAS O TRABALHO FOI DESFAZER UM REUSO. Desde o ·225 o GRUPOS não
+// tinha cor própria: ele saía com a classe `.prospeccao` — no LED, no botão do card, no selo do
+// histórico e até no total do rodapé. Na época a decisão estava CERTA e está escrita lá ("mesma
+// cor roxa, e as duas nunca coexistem no mesmo card"): duplicar CSS cria dois lugares para manter
+// a mesma cor. Só que um reuso é UMA cor, e no instante em que uma das duas muda, a outra muda
+// junto. Pintar a Prospecção de branco sem separar teria deixado o Grupos branco também — para a
+// Ana Maria e a Mayara, sem ninguém ter pedido.
+// ⚠️ ENTÃO O GRUPOS GANHOU AS SUAS PRÓPRIAS: `.ocp-led.grupos`, `.ocp-cli-btn.grupos`,
+// `.ocph-grupos-tag`, `.ocph-gruposobs` e `.ocph-total-grupos`, todas com EXATAMENTE o roxo que já
+// tinha (#A855F7). O teste mede o valor renderizado e trava isso: se o roxo do Grupos mudar um
+// dígito, falha.
+// ⚠️ A PROSPECÇÃO FICOU BRANCA de ponta a ponta — degradê que começa e segue em branco puro, com
+// pulso próprio (ocpPulseBranco) e halo branco forte. NÃO é branco na borda: ela fecha num #DCE9F5
+// levemente azulado, porque sem esse contorno a esfera se dissolve dentro do próprio halo e deixa
+// de parecer uma esfera. O botão do card virou claro com texto ESCURO (#14181d) — letra branca
+// sobre fundo branco seria invisível, o mesmo cuidado do ·444.
+// ⚠️ COMO ELA SE DISTINGUE DO PRATA DO TI (·445), que também é claro: o TI fecha num CINZA
+// METÁLICO (#93A2B1) e lê como METAL; a Prospecção fecha quase em branco e lê como LUZ. Lado a
+// lado a diferença é visível — mas é a MENOR do painel, e registro isso de propósito: é o primeiro
+// ponto que um ajuste futuro deve olhar se alguém confundir os dois no balcão.
+// ⚠️⚠️ DEFEITO QUE EU MESMO INTRODUZI E O TESTE PEGOU, e a lição é a mesma do ·441: sobraram TRÊS
+// regras de tema claro (`body:not(.dark) .ocph-prosp-tag` e irmãs) pintando a Prospecção de roxo,
+// escritas DEPOIS das minhas — e entre seletores de mesmo peso vence quem vem por último. O
+// resultado era a Prospecção branca no tema escuro e ROXA no claro. ORDEM NO ARQUIVO já mordeu
+// esta base três vezes (·441, ·443 e agora): quando uma cor muda, procurar TODAS as regras que a
+// citam, não só a que parece ser a principal.
+// ⚠️ UM ACHADO QUE NÃO É DESTE BUILD e fica registrado: numa linha AO VIVO do histórico, o selo de
+// QUALQUER status aparece VERDE, porque `.ocph-vivo-tag` está escrito depois de todos os selos por
+// status. Vale para Ausente, Licitação e as outras desde sempre. Quem carrega a cor do status na
+// linha é a BORDA ESQUERDA — e é ela que o teste mede, em vez de fingir que o selo serve.
+// VALIDAÇÃO: test_cores_status.mjs, novo, em 21 checagens que MARCAM os três status de verdade e
+// leem a cor RENDERIZADA (ler o CSS não serviria: quem decide é a cascata inteira). 3 SABOTAGENS,
+// todas pegas — o Grupos voltando a reusar a classe derruba 3, a Prospecção voltando ao roxo
+// derruba 3, e uma única sobra de tema claro derruba 1. ANTERIOR: O PRATA DO TI FICOU MAIS VIVO E
+// BRILHANTE. Pedido do Nando em
 // uma linha: "deixe na cor prata mais viva e brilhante".
 // ⚠️ O QUE MUDOU FOI O FIM DO DEGRADÊ, NÃO O COMEÇO — o branco do ponto de luz já estava no
 // máximo desde o ·444, então clarear "mais" só podia vir da outra ponta: a borda da esfera saiu de
@@ -18234,7 +18316,7 @@ function excluirNotaUI(id){
           }else if(grupos){
             // (·225) reusa a classe .prospeccao — mesma cor roxa, e as duas nunca
             // coexistem no mesmo card (Grupos é exclusivo de 2 atendentes).
-            btnCli='<button type="button" class="ocp-cli-btn prospeccao" data-ocp-cli-at="'+ocpEsc(a)+'" data-ocp-cli-i="'+i+'"'+
+            btnCli='<button type="button" class="ocp-cli-btn grupos" data-ocp-cli-at="'+ocpEsc(a)+'" data-ocp-cli-i="'+i+'"'+
               ' title="Grupos'+(ocpObsGrupos(nomeCli)?' \u2014 '+ocpEsc(ocpObsGrupos(nomeCli)):'')+' \u2014 o tempo est\u00e1 sendo contado no hist\u00f3rico. Clique para alterar">Grupos</button>';
           }else if(ti){
             /* (·444) a OBSERVAÇÃO vai no TOOLTIP, mesmo lugar em que o Ausente mostra o
@@ -18305,7 +18387,7 @@ function excluirNotaUI(id){
         var _podeOperar=ocpSouDonoOuAdmin(a);
         if(!_podeOperar) tipLed='🔒 Somente '+a+' ou o administrador podem alterar este status';
         return '<div class="ocp-slot">'+
-          '<button type="button" class="ocp-led '+(oc?'ocupado':'livre')+(oc&&(licit||finan)?' licitacao':'')+(oc&&(prosp||grupos)?' prospeccao':'')+(oc&&ti?' ti':'')+(oc&&indisp?' indisponivel':'')+(oc&&interno?' interno':'')+(oc&&ausente?' ausente':'')+(_podeOperar?'':' ocp-led-bloqueada')+'"'+
+          '<button type="button" class="ocp-led '+(oc?'ocupado':'livre')+(oc&&(licit||finan)?' licitacao':'')+(oc&&prosp?' prospeccao':'')+(oc&&grupos?' grupos':'')+(oc&&ti?' ti':'')+(oc&&indisp?' indisponivel':'')+(oc&&interno?' interno':'')+(oc&&ausente?' ausente':'')+(_podeOperar?'':' ocp-led-bloqueada')+'"'+
           ' data-ocp-at="'+ocpEsc(a)+'" data-ocp-i="'+i+'"'+
           ' title="'+ocpEsc(tipLed)+'"></button>'+
           '<span class="'+tmClass+'"'+tmData+'>'+tmTxt+'</span>'+
@@ -22236,9 +22318,9 @@ function excluirNotaUI(id){
                linha sai só com o rótulo — o campo é opcional, como na Gestão Interna. */
             var obsG=(e.obs||'').toString().trim();
             return '<div class="ocph-row ocph-vivo ocph-grupos">'+
-              '<span class="ocph-hora">'+ocpHistHora(e.ini)+'<span class="ocph-vivo-tag ocph-prosp-tag">👥 Grupos</span></span>'+
+              '<span class="ocph-hora">'+ocpHistHora(e.ini)+'<span class="ocph-vivo-tag ocph-grupos-tag">👥 Grupos</span></span>'+
               '<span class="ocph-cli" title="Grupos'+(obsG?' \u2014 '+ocpEsc(obsG):'')+'">Grupos'+
-                (obsG?'<span class="ocph-pax ocph-prospobs">'+ocpEsc(obsG)+'</span>':'')+'</span>'+
+                (obsG?'<span class="ocph-pax ocph-gruposobs">'+ocpEsc(obsG)+'</span>':'')+'</span>'+
               '<span class="ocph-dur ocph-dur-vivo '+decor.cor+'" data-ocp-hini="'+e.ini+'">'+decor.txt+'</span>'+
             '</div>';
           }
@@ -22315,9 +22397,9 @@ function excluirNotaUI(id){
           // (·227) BLOCO DE GRUPOS ENCERRADO: início → fim, tempo e observação.
           var obsGF=(e.obs||'').toString().trim();
           return '<div class="ocph-row ocph-grupos">'+
-            '<span class="ocph-hora">'+ocpHistHora(e.ini)+' \u2192 '+ocpHistHora(e.fim)+'<span class="ocph-vivo-tag ocph-prosp-tag">👥 Grupos</span></span>'+
+            '<span class="ocph-hora">'+ocpHistHora(e.ini)+' \u2192 '+ocpHistHora(e.fim)+'<span class="ocph-vivo-tag ocph-grupos-tag">👥 Grupos</span></span>'+
             '<span class="ocph-cli" title="Grupos'+(obsGF?' \u2014 '+ocpEsc(obsGF):'')+'">Grupos'+
-              (obsGF?'<span class="ocph-pax ocph-prospobs">'+ocpEsc(obsGF)+'</span>':'')+'</span>'+
+              (obsGF?'<span class="ocph-pax ocph-gruposobs">'+ocpEsc(obsGF)+'</span>':'')+'</span>'+
             '<span class="ocph-dur">'+ocpHistDur(e.dur)+'</span>'+
           '</div>';
         }
@@ -22390,7 +22472,7 @@ function excluirNotaUI(id){
           (nLicits?'<span class="ocph-total-licit" id="ocpHistLicit">🏛 licitação: <b>'+ocpHistDur(licMs)+'</b></span>':'')+
           (nFinans?'<span class="ocph-total-licit" id="ocpHistFin">💼 financeiro: <b>'+ocpHistDur(finMs)+'</b></span>':'')+
           (nProspecs?'<span class="ocph-total-prosp" id="ocpHistProsp">🎯 prospec\u00e7\u00e3o: <b>'+ocpHistDur(prospMs)+'</b></span>':'')+
-          (nGrupos?'<span class="ocph-total-prosp" id="ocpHistGrupos">👥 grupos: <b>'+ocpHistDur(gruposMs)+'</b></span>':'')+
+          (nGrupos?'<span class="ocph-total-grupos" id="ocpHistGrupos">👥 grupos: <b>'+ocpHistDur(gruposMs)+'</b></span>':'')+
           (nTi?'<span class="ocph-total-ti" id="ocpHistTi">\ud83d\udee0 TI: <b>'+ocpHistDur(tiMs)+'</b></span>':''))+'</span>'+
           '<button type="button" class="ocph-fechar" id="ocpHistFechar">Fechar</button></div>'+
       '</div>';
@@ -22484,7 +22566,7 @@ function excluirNotaUI(id){
              somada ao "Tempo total", inflando a métrica que mede conversa com cliente. */
           if((finProsp+somaProsp)>0) htmlTot+='<span class="ocph-total-prosp" id="ocpHistProsp">🎯 prospec\u00e7\u00e3o: <b>'+ocpHistDur(finProsp+somaProsp)+'</b></span>';
           /* (·227) total próprio de Grupos — mesma razão da prospecção. */
-          if((finGrupos+somaGrupos)>0) htmlTot+='<span class="ocph-total-prosp" id="ocpHistGrupos">👥 grupos: <b>'+ocpHistDur(finGrupos+somaGrupos)+'</b></span>';
+          if((finGrupos+somaGrupos)>0) htmlTot+='<span class="ocph-total-grupos" id="ocpHistGrupos">👥 grupos: <b>'+ocpHistDur(finGrupos+somaGrupos)+'</b></span>';
           /* (·444) total próprio de TI — mesma razão da prospecção e de grupos: sem
              balde separado ele apareceria somado ao "Tempo total", inflando justamente
              a métrica que mede conversa com cliente. */
