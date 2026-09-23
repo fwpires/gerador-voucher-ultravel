@@ -5547,7 +5547,37 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 442; // (·442) O CELULAR VOLTOU AO QUE ERA + PROVA DE QUE ELE SE ADAPTA A
+var UV_BUILD_NUM = 443; // (·443) AS SUB-PASTAS VOLTAM A APARECER TODAS NO DESKTOP. Relato do
+// Nando: "quando eu solicitei pra deixar todas as subpastas ocultas era somente para o celular,
+// mas você fez também para o desktop".
+// ⚠️ ELE ESTÁ CERTO E O DESCUIDO É MEU, e o lugar exato é este: a função `uvMobUmaArvore` do ·431
+// SEMPRE checou `uvMobEhCelular()` por dentro — mas a limpeza de árvores que o ·434 escreveu no
+// próprio ouvinte de clique ficou SOLTA, e ela fecha as caixas direto no DOM, sem passar por
+// aquela função. Guardar a função e esquecer a cópia é o mesmo tipo de defeito que a base já
+// pagou com a lista da diretoria (·398): a regra existe em dois lugares e só um foi protegido.
+// ⚠️ O EFEITO NO DESKTOP, MEDIDO e não suposto: as sete árvores nascem abertas (isso estava
+// certo), mas bastava clicar numa pasta-mãe pela SEGUNDA vez — reabrindo-a — para as outras SEIS
+// fecharem de uma vez. Estado colhido no navegador antes da correção: `{comercial:true}` e todas
+// as demais `false`. Navegar para qualquer tela depois disso mantinha o menu encolhido.
+// ⚠️ A CORREÇÃO É UMA CONDIÇÃO, não um bloco novo: `if(tree && !scr && uvMobEhCelular())`. "Uma
+// árvore aberta por vez" é regra de TELA PEQUENA — no celular, com as caixas grandes do ·430,
+// sete árvores abertas são dezenas de botões a rolar antes de chegar em qualquer coisa; na coluna
+// do desktop, ver tudo de uma vez é justamente o que ajuda. Nada do comportamento do celular foi
+// tocado.
+// ⚠️ O TESTE MEDE OS DOIS LADOS NO MESMO ARQUIVO (test_desktop_subpastas.mjs, novo): desktop
+// (nasce tudo aberto, fechar uma não mexe nas outras, REABRIR não fecha as outras, navegar não
+// encolhe) e celular (a regra de uma-por-vez continua de pé), mais a travessia dos 980px nas duas
+// direções. Testar só o lado consertado deixaria passar a correção que arruma um quebrando o
+// outro — que é exatamente o defeito deste build, ao contrário.
+// ⚠️⚠️ DOIS FALSOS ALARMES DO MEU PRÓPRIO TESTE, corrigidos no teste e não no produto: (a) há
+// ÁRVORE DENTRO DE ÁRVORE no menu (Eventos ▸ WeCann) e fechar a mãe esconde a neta junto — isso
+// sempre foi assim, é o desenho do menu; a checagem passou a saber quem é descendente de quem;
+// (b) na travessia eu clicava duas vezes às cegas e acusava falha em cima do próprio clique — a
+// pasta que a pessoa tocou no celular PODE estar fechada ao voltar, o que importa é se as OUTRAS
+// voltaram.
+// VALIDAÇÃO: 27 checagens, 2 SABOTAGENS, ambas pegas — tirar a condição nova derruba 16
+// checagens, e desguardar a `uvMobUmaArvore` derruba 18. ANTERIOR: O CELULAR VOLTOU AO QUE ERA +
+// PROVA DE QUE ELE SE ADAPTA A
 // QUALQUER TELA. Dois pedidos do Nando na mesma mensagem: "não quero trocar nada no celular,
 // devolva como estava" e "preciso ter certeza que o sistema na versão celular vai abrir igual em
 // todo tipo de celular e navegador".
@@ -15367,7 +15397,19 @@ init();
          Agora: ABRIU → fecha TODAS as outras, sem exceção, e recolhe o
          conteúdo (ele é de outra pasta; o menu fica limpo para escolher).
          FECHOU → não reabre nada. */
-      if(tree && !scr){
+      /* ⚠⚠ (·443) ESTE BLOCO INTEIRO É DO CELULAR, E SÓ DELE. Relato do Nando:
+         "quando eu solicitei pra deixar todas as subpastas ocultas era somente
+         para o celular, mas você fez também para o desktop". Ele está certo e o
+         descuido é meu: a função `uvMobUmaArvore` do ·431 sempre checou
+         `uvMobEhCelular()` por dentro, mas a limpeza que o ·434 escreveu AQUI
+         ficou solta — e ela fecha as árvores direto no DOM, sem passar por
+         aquela função. No desktop o efeito era este, medido: as sete árvores
+         nascem abertas (certo), mas bastava clicar numa pasta-mãe pela segunda
+         vez para as OUTRAS SEIS fecharem de uma vez. "Uma árvore por vez" é
+         regra de tela pequena, onde sete árvores abertas viram dezenas de
+         botões a rolar; na coluna do desktop ver tudo de uma vez é justamente o
+         que ajuda. */
+      if(tree && !scr && uvMobEhCelular()){
         try{
           var caixaT=document.querySelector('#hubSidebar [data-tree-body="'+tree+'"]');
           var abriu=!!(caixaT && caixaT.classList.contains('show'));
