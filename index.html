@@ -2726,12 +2726,11 @@ body:not(.dark) .termo-nome{color:#5a7085}
      que o print mostrava, só que em lugar diferente. */
   .topbar-actions > .cloud.cloud-square{max-width:none;min-width:0;width:100%}
   .topbar-actions > #uvLogoutBtn{margin:0;width:100%}
-  /* ⚠ (·440) no celular os dois PRECISAM poder quebrar a linha: a padronização
-     do desktop pôs `nowrap` neles, e medido a 320px isso fez a coluna da
-     "Nuvem Conectada" esticar para caber o texto — as duas colunas saíram com
-     139 e 153px em vez de iguais. Quebrando, cada um cabe na sua metade. */
-  .topbar-actions > .cloud.cloud-square,
-  .topbar-actions > #uvLogoutBtn{white-space:normal;text-align:center;min-width:0}
+  /* (·442) NADA de tamanho ou tipografia para estes dois aqui: no celular eles
+     voltaram a ser o que o componente define (a caixinha de duas linhas da
+     nuvem e o botão miúdo de sair). O que a grade do ·436 continua dando é só
+     o que a GRADE precisa — largura da coluna e altura de toque —, sem tocar
+     em fonte, cor ou forma. */
 
   /* ===== (·437) AS LINHAS DE AUSÊNCIA PROGRAMADA CABEM NA TELA =====
      Print do Nando com a marcação no canto direito: os botões ✎ e 🗑 das
@@ -2795,7 +2794,18 @@ body:not(.dark) .termo-nome{color:#5a7085}
 #scr-gerador .section-eyebrow{flex-wrap:wrap}
 #scr-gerador .section-eyebrow .hint{margin-left:0}
 .gv-acoes{display:flex;align-items:center;gap:9px;margin-left:auto;flex-wrap:wrap}
-/* ===== (·440) OS DOIS BOTÕES QUE SOBRARAM NO TOPO, NO MESMO FORMATO =====
+/* ⚠⚠ (·442) TUDO O QUE O ·440 E O ·441 FIZERAM COM ESTES DOIS BOTÕES VALE
+   SOMENTE NO DESKTOP — e é por isso que o bloco inteiro está dentro de
+   `@media(min-width:981px)`.
+   O Nando foi claro: "não quero trocar nada no celular". O ·440 padronizou a
+   forma dos dois e, sem perceber, isso também valia no telefone: lá a nuvem
+   saiu de 8,5px e o sair de 10,5px para 12,5px nos dois, com outra pele. O
+   ·441 restringiu só o ENCOLHIMENTO; a padronização continuava escapando.
+   Agora a fronteira é uma só e explícita: abaixo de 981px, estes dois botões
+   são exatamente o que sempre foram — o estilo do componente, sem nada por
+   cima. O teste mede os dois lados da fronteira. */
+@media(min-width:981px){
+  /* ===== (·440) OS DOIS BOTÕES QUE SOBRARAM NO TOPO, NO MESMO FORMATO =====
    Com os três do voucher fora daqui (·439), sobraram a caixa da nuvem e o
    botão de sair — e eles nunca tinham sido pensados para ficar sozinhos: a
    nuvem era uma caixinha quadrada de duas linhas em 8,5px, e o sair um botão
@@ -2811,25 +2821,47 @@ body:not(.dark) .termo-nome{color:#5a7085}
    em nada que dependa do estado.
    ⚠ Escopado a `.topbar-actions`: `.cloud` e `.cloud-square` são usadas em
    outros pontos do Hub, e uma regra solta mudaria todas elas. */
-.topbar-actions > .cloud.cloud-square,
-.topbar-actions > #uvLogoutBtn{
-  display:inline-flex;align-items:center;justify-content:center;gap:8px;
-  padding:10px 17px;border-radius:var(--raio-sm);
-  font-family:'Inter';font-size:13.5px;font-weight:600;letter-spacing:0;
-  white-space:nowrap;line-height:1.2;min-height:42px;
-}
-.topbar-actions > .cloud.cloud-square{
+  .topbar-actions > .cloud.cloud-square,
+  .topbar-actions > #uvLogoutBtn{
+  display:inline-flex;align-items:center;justify-content:center;
+  border-radius:var(--raio-sm);
+  font-family:'Inter';font-weight:600;letter-spacing:0;line-height:1.2;
+  }
+  /* (·441) METADE DO TAMANHO, a pedido do Nando — e SÓ NO DESKTOP.
+   A caixa caiu pela metade de verdade: padding 10/17 → 3/9 e altura 38 → 20px,
+   medida e não estimada. É isso que o olho lê como "metade".
+   ⚠ A FONTE NÃO: 13,5px pela metade seriam 6,75px, tamanho em que "Nuvem
+   Conectada" deixa de ser legível numa distância normal de tela. Foi para 11px,
+   o menor ainda confortável, mantendo a proporção com a caixa nova. Registro
+   porque "metade" foi o pedido e a fonte é a única medida que não o seguiu — de
+   propósito, não por esquecimento.
+   ⚠⚠ ESTE BLOCO É `@media(min-width:981px)` POR CAUSA DE UM DEFEITO QUE O TESTE
+   PEGOU: sem ele, a regra valia também no celular — não por especificidade (as
+   duas pesam igual), mas por ORDEM: o bloco do celular está ANTES no arquivo, e
+   entre iguais vence quem vem depois. Os botões do celular encolheram para
+   21px, alvo de toque ruim que ninguém perceberia antes de errar o "Sair" no
+   aparelho. Separar por faixa de tela torna a intenção explícita em vez de
+   depender de quem foi escrito primeiro. */
+  .topbar-actions > .cloud.cloud-square,
+  .topbar-actions > #uvLogoutBtn{
+    gap:5px;padding:3px 9px;font-size:11px;
+    white-space:nowrap;min-height:20px;
+  }
+  .topbar-actions > .cloud.cloud-square{
   flex-direction:row;text-align:left;min-width:0;max-width:none;
-}
-.topbar-actions > #uvLogoutBtn{margin-left:0}
-/* e a mesma pele do `.btn-ghost`, que é o botão neutro do Hub: os dois eram
+  }
+  /* a bolinha acompanha a caixa: 9px numa caixa de 24 ficaria desproporcional */
+  .topbar-actions > .cloud.cloud-square .dot{width:7px;height:7px}
+  .topbar-actions > #uvLogoutBtn{margin-left:0}
+  /* e a mesma pele do `.btn-ghost`, que é o botão neutro do Hub: os dois eram
    cinza-transparente e azul-acinzentado, e lado a lado a diferença lia como
    "um está ativo e o outro não". A bolinha continua sendo o único elemento que
    muda com o estado. */
-body.dark .topbar-actions > .cloud.cloud-square,
-body.dark .topbar-actions > #uvLogoutBtn{background:#16212E;border:1px solid #2E4460;color:#E8EEF4}
-body:not(.dark) .topbar-actions > .cloud.cloud-square,
-body:not(.dark) .topbar-actions > #uvLogoutBtn{background:var(--fundo);border:1px solid var(--borda);color:var(--texto)}
+  body.dark .topbar-actions > .cloud.cloud-square,
+  body.dark .topbar-actions > #uvLogoutBtn{background:#16212E;border:1px solid #2E4460;color:#E8EEF4}
+  body:not(.dark) .topbar-actions > .cloud.cloud-square,
+  body:not(.dark) .topbar-actions > #uvLogoutBtn{background:var(--fundo);border:1px solid var(--borda);color:var(--texto)}
+}
 #savedCount.filtrando{color:#35D07F;font-weight:700}
 /* ===== Aviso de buracos na numeração — ícone discreto + popover ===== */
 #avisoBuracos{display:none;position:relative;align-items:center}
@@ -5515,7 +5547,63 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 440; // (·440) OS DOIS BOTÕES QUE SOBRARAM NO TOPO, NO MESMO FORMATO PADRÃO.
+var UV_BUILD_NUM = 442; // (·442) O CELULAR VOLTOU AO QUE ERA + PROVA DE QUE ELE SE ADAPTA A
+// QUALQUER TELA. Dois pedidos do Nando na mesma mensagem: "não quero trocar nada no celular,
+// devolva como estava" e "preciso ter certeza que o sistema na versão celular vai abrir igual em
+// todo tipo de celular e navegador".
+// ⚠️ PARTE 1 — A DEVOLUÇÃO. Ele tinha razão e eu errei antes: o ·440/·441 era para ser SÓ DESKTOP,
+// mas vazou para o celular por ORDEM NO ARQUIVO (regras de mesmo peso — vence quem vem depois).
+// O ·441 já tinha tapado o encolhimento com `@media(min-width:981px)`; faltava a TIPOGRAFIA, que
+// eu tinha mexido no bloco do celular. Agora TODO o efeito do ·440 e do ·441 sobre estes dois
+// botões mora dentro de `@media(min-width:981px)`, e o bloco do celular não declara mais nem
+// tamanho nem fonte para eles. MEDIDO depois da devolução, a 390px: `cloud` → 8,5px, padding
+// 6/12, altura 46px; `uvLogoutBtn` → 10,5px, padding 4/10, altura 46px — exatamente o que o
+// componente dá sozinho, que é o estado "como estava". Desktop segue 21px de caixa e 11px de
+// fonte.
+// ⚠️ A TRAVA CONTRA VAZAR DE NOVO não olha números escritos no teste: ela CLONA cada botão para
+// fora da barra do topo e compara a tipografia do botão de verdade com a do componente puro. Se
+// algum dia outra regra de desktop escorregar para o celular, a comparação acusa. (O clone
+// PRECISA manter o id: renomeando, o estilo por `#uvLogoutBtn` some e o teste acusa vazamento que
+// não existe — errei isso primeiro.)
+// ⚠️ PARTE 2 — A PROVA DE ADAPTAÇÃO (test_universal.mjs, novo). Varredura CONTÍNUA de 280 a
+// 1024px de 16 em 16 px, e não só nos tamanhos famosos: defeito de layout mora ENTRE os tamanhos
+// que a gente escolhe testar. Mais 7 aparelhos reais (iPhone SE/12/14 Pro Max, Galaxy S8/S9+,
+// Pixel 5, iPad Mini) em retrato E paisagem, checando transbordo, conteúdo visível, modo acoplado
+// coerente com a largura e alvo de toque ≥36px.
+// ⚠️⚠️ DUAS CEGUEIRAS DO MEU PRÓPRIO TESTE, e as duas deixavam sabotagem passar: (a) medir
+// `scrollWidth` NÃO ENXERGA transbordo desde o ·428, porque o `overflow-x:clip` do body corta o
+// excesso E o número junto — troquei por perguntar quais ELEMENTOS terminam além da borda; (b) a
+// base da bancada é VAZIA, e sem dado nenhum desligar a quebra de texto não transborda coisa
+// alguma — a varredura agora injeta texto real longo (nome comprido, localizador sem espaço,
+// e-mail) antes de medir. Com as duas correções, a sabotagem que remove
+// `overflow-wrap:anywhere` FALHA em 22 larguras, como tem de ser.
+// ⚠️ HONESTIDADE SOBRE O ALCANCE: só o Chromium instala neste ambiente (o download do WebKit e do
+// Firefox é bloqueado pela rede daqui). Então "todo navegador" está PROVADO para o motor do
+// Chrome/Edge/Opera/Samsung Internet. Para o Safari o que está provado é outra coisa, e menor:
+// nenhuma regra ESSENCIAL depende de recurso que ele não tenha — `overflow-x:clip` protegido por
+// `@supports` com `hidden` de reserva, `env()` sempre dentro de `max()` com piso próprio, e
+// `:has()` usado UMA única vez e só cosmético. A conferência final continua sendo no iPhone.
+// VALIDAÇÃO: 63 checagens no teste universal + 50 no test_mobile_topo, e a regressão completa das
+// 12 suítes. ANTERIOR: OS DOIS BOTÕES DO TOPO NA METADE DO TAMANHO. Pedido do Nando
+// com os dois circulados: "diminua pela metade o tamanho".
+// ⚠️ A CAIXA CAIU PELA METADE DE VERDADE, medida e não estimada: padding 10/17 → 3/9 e altura de
+// 38px (a do botão padrão do Hub, medida no navegador) para 20px. É a caixa que o olho lê como
+// "metade".
+// ⚠️ A FONTE NÃO SEGUIU: 13,5px pela metade seriam 6,75px, tamanho em que "Nuvem Conectada" deixa
+// de ser legível numa distância normal de tela. Foi para 11px — o menor ainda confortável, e
+// proporcional à caixa nova. Registro porque "metade" foi o pedido e esta é a única medida que
+// não o seguiu, de propósito e não por esquecimento. O teste trava os dois lados: a caixa TEM de
+// estar perto da metade, e a fonte TEM de ficar entre 10 e 12px.
+// ⚠️⚠️ DEFEITO QUE O TESTE PEGOU, e a lição é de CSS puro: sem separar por faixa de tela, o
+// encolhimento valia TAMBÉM NO CELULAR. Não por especificidade — as duas regras pesam igual —,
+// mas por ORDEM: o bloco do celular está antes no arquivo, e entre iguais vence quem vem depois.
+// Medido: os botões do celular foram para 21px, alvo de toque ruim que ninguém perceberia antes
+// de errar o "Sair" no aparelho. Agora o encolhimento mora num `@media(min-width:981px)`, o que
+// torna a intenção explícita em vez de depender de quem foi escrito primeiro — e o teste passou a
+// exigir 40px de altura mínima no celular, porque alvo de toque é requisito, não estética.
+// VALIDAÇÃO: test_mobile_topo.mjs em 38 checagens, 4 SABOTAGENS, todas pegas — inclusive a que
+// deixa o encolhimento vazar para o celular e a que quebra a igualdade entre os dois botões
+// conquistada no ·440. ANTERIOR: OS DOIS BOTÕES QUE SOBRARAM NO TOPO, NO MESMO FORMATO PADRÃO.
 // Pedido do Nando com os dois circulados: "deixe no mesmo formato padrão esses dois botões".
 // ⚠️ ELES NUNCA TINHAM SIDO PENSADOS PARA FICAR SOZINHOS, e o ·439 os deixou assim: a nuvem era
 // uma caixinha quadrada de DUAS linhas em 8,5px com peso 800, e o sair um botão miúdo de 10,5px
