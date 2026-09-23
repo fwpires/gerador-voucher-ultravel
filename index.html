@@ -474,8 +474,8 @@ body:not(.dark) .wd-meet{background:#e6f0ff;border-color:#a9c9f0;color:#1f5fa8}
 .ocp-cli-btn.licitacao:hover{background:linear-gradient(180deg,#ffe23d,#dcb600);box-shadow:0 0 11px rgba(255,214,0,.9)}
 /* (·213) Botão "Prospecção" — roxo, para não se confundir com o amarelo da
    Licitação/Financeiro nem com o vermelho das outras três sentinelas. */
-.ocp-cli-btn.prospeccao{background:linear-gradient(180deg,#FFFFFF 0%,#FFFFFF 55%,#E8F3FF 100%);border:1px solid #FFFFFF;color:#14181d;box-shadow:0 0 10px rgba(255,255,255,.9);font-size:7px;letter-spacing:-.2px;max-width:100%;width:100%;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;padding:3px 3px;font-weight:900;animation:ocpInternoBlink 1.4s ease-in-out infinite}
-.ocp-cli-btn.prospeccao:hover{background:linear-gradient(180deg,#ffffff,#e8f3ff);box-shadow:0 0 15px rgba(255,255,255,1)}
+.ocp-cli-btn.prospeccao{background:linear-gradient(180deg,#E8306A 0%,#B31042 55%,#7A0A2C 100%);border:1px solid #FF93AE;color:#fff;box-shadow:0 0 9px rgba(208,27,72,.75);font-size:7px;letter-spacing:-.2px;max-width:100%;width:100%;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;padding:3px 3px;font-weight:900;animation:ocpInternoBlink 1.4s ease-in-out infinite}
+.ocp-cli-btn.prospeccao:hover{background:linear-gradient(180deg,#FF4A80,#C41350);box-shadow:0 0 14px rgba(226,45,95,1)}
 /* (·446) ⚠ GRUPOS GANHA CÓPIA PRÓPRIA DO ROXO. Desde o ·225 ele REUSAVA a classe
    .prospeccao — decisão certa na época ("mesma cor, e as duas nunca coexistem no
    mesmo card"), que virou armadilha no instante em que a Prospecção mudou de cor: um
@@ -685,14 +685,14 @@ body:not(.dark) .ocp-reab-pax input{background:#fff;color:#1A2733;border-color:#
    vermelho já é Indisponível/Interno/Ausente e amarelo já é Licitação/Financeiro,
    então uma sexta caixa em qualquer um dos dois tons seria indistinguível de
    relance justamente no card que a equipe inteira olha o dia todo. */
-/* (·446) PROSPECÇÃO EM BRANCO BRILHANTE — pedido do Nando. O roxo desta caixa era a
-   referência de cor do status desde o ·213; quem herda o roxo agora é o Grupos, que
-   já tinha caixa própria (.ocp-grupos-box) e não foi tocado. */
-.ocp-prosp-box{display:flex;align-items:center;gap:6px;margin:1px 18px 2px;padding:5px 9px;border-radius:7px;border:1px solid rgba(255,255,255,.95);background:linear-gradient(180deg,rgba(255,255,255,.26),rgba(226,240,255,.14));box-shadow:0 0 9px rgba(255,255,255,.3);cursor:pointer;transition:all .15s}
-.ocp-prosp-box:hover{background:linear-gradient(180deg,rgba(255,255,255,.40),rgba(226,240,255,.22));border-color:#ffffff;box-shadow:0 0 14px rgba(255,255,255,.55)}
-.ocp-prosp-box input[type=checkbox]{width:14px;height:14px;accent-color:#FFFFFF;cursor:pointer;flex-shrink:0}
-.ocp-prosp-box label{color:#ffffff;font-weight:800;font-size:11px;letter-spacing:.2px;cursor:pointer;user-select:none}
-.ocp-prosp-box .ocp-prosp-hint{color:#dce9f5;font-size:9px;font-weight:600;margin-left:auto}
+/* (·447) PROSPECÇÃO EM VINHO BRILHANTE. O roxo desta caixa era a referência de cor
+   do status desde o ·213; quem herdou o roxo no ·446 foi o Grupos, com classes
+   próprias, e ele segue intocado. */
+.ocp-prosp-box{display:flex;align-items:center;gap:6px;margin:1px 18px 2px;padding:5px 9px;border-radius:7px;border:1px solid rgba(226,45,95,.75);background:linear-gradient(180deg,rgba(208,27,72,.20),rgba(78,5,24,.22));box-shadow:0 0 8px rgba(208,27,72,.22);cursor:pointer;transition:all .15s}
+.ocp-prosp-box:hover{background:linear-gradient(180deg,rgba(226,45,95,.32),rgba(122,10,44,.30));border-color:#E82D5F;box-shadow:0 0 13px rgba(226,45,95,.5)}
+.ocp-prosp-box input[type=checkbox]{width:14px;height:14px;accent-color:#D01B48;cursor:pointer;flex-shrink:0}
+.ocp-prosp-box label{color:#ffb3c7;font-weight:800;font-size:11px;letter-spacing:.2px;cursor:pointer;user-select:none}
+.ocp-prosp-box .ocp-prosp-hint{color:#c98da0;font-size:9px;font-weight:600;margin-left:auto}
 /* (·225) GRUPOS — clone exato da paleta roxa da Prospecção (mesmo pedido do
    Nando: "usando a cor do status Prospecção"). Observação OPCIONAL como a
    Gestão Interna, então usa .ocp-motivo-wrap puro (sem trava de obrigatório). */
@@ -728,16 +728,16 @@ body:not(.dark) .ocp-ti-box label{color:#3c4854}
 body:not(.dark) .ocp-ti-box .ocp-ti-hint{color:#6e7a87}
 body:not(.dark) .ocp-ti-wrap .ocp-motivo-lbl{color:#3c4854}
 /* campo da observação OBRIGATÓRIA — mesma estrutura do Motivo do Ausente, em roxo */
-.ocp-prosp-wrap .ocp-motivo-lbl{color:#ffffff}
-.ocp-prosp-wrap input{border-color:rgba(255,255,255,.5)!important}
-.ocp-prosp-wrap input:focus{border-color:#FFFFFF!important;background:rgba(255,255,255,.14)!important}
-.ocp-prosp-wrap .ocp-motivo-ok{background:linear-gradient(180deg,#FFFFFF 0%,#FFFFFF 55%,#E8F3FF 100%);color:#14181d}
-.ocp-prosp-wrap .ocp-motivo-ok:hover{background:linear-gradient(180deg,#FFFFFF,#F4FAFF);box-shadow:0 0 12px rgba(255,255,255,.8)}
-/* no tema claro o branco some no fundo branco: a caixa escurece o contorno e o texto */
-body:not(.dark) .ocp-prosp-box{border-color:rgba(100,116,132,.6);background:linear-gradient(180deg,rgba(148,163,180,.12),rgba(100,116,132,.16));box-shadow:none}
-body:not(.dark) .ocp-prosp-box label{color:#2b3440}
-body:not(.dark) .ocp-prosp-box .ocp-prosp-hint{color:#5c6b7a}
-body:not(.dark) .ocp-prosp-wrap .ocp-motivo-lbl{color:#2b3440}
+.ocp-prosp-wrap .ocp-motivo-lbl{color:#ffb3c7}
+.ocp-prosp-wrap input{border-color:rgba(208,27,72,.5)!important}
+.ocp-prosp-wrap input:focus{border-color:#E82D5F!important;background:rgba(208,27,72,.14)!important}
+.ocp-prosp-wrap .ocp-motivo-ok{background:linear-gradient(180deg,#E8306A 0%,#B31042 55%,#7A0A2C 100%);color:#fff}
+.ocp-prosp-wrap .ocp-motivo-ok:hover{background:linear-gradient(180deg,#FF4A80,#C41350);box-shadow:0 0 12px rgba(226,45,95,.7)}
+/* tema claro: o vinho já é escuro, então aqui ele só perde o brilho e ganha contraste */
+body:not(.dark) .ocp-prosp-box{border-color:rgba(142,11,48,.6);background:linear-gradient(180deg,rgba(208,27,72,.10),rgba(142,11,48,.14));box-shadow:none}
+body:not(.dark) .ocp-prosp-box label{color:#7A0A2C}
+body:not(.dark) .ocp-prosp-box .ocp-prosp-hint{color:#9a5266}
+body:not(.dark) .ocp-prosp-wrap .ocp-motivo-lbl{color:#7A0A2C}
 /* selo do bloco de financeiro no histórico (espelha .ocph-licitacao) */
 .ocph-fin{background:rgba(255,214,0,.16);border:1px solid rgba(255,214,0,.5);color:#ffd84d;display:inline-block;padding:1px 7px;border-radius:99px;font-size:.63rem;font-weight:800;letter-spacing:.3px;line-height:1.5;vertical-align:middle}
 body:not(.dark) .ocph-fin{background:#fff8dc;border-color:#e4c76a;color:#8a6a00}
@@ -1494,21 +1494,23 @@ body.dark .mx-cal-btn{color:#2ee0b8}
   background:radial-gradient(circle at 32% 28%, #f3e0ff 0%, #A855F7 45%, #6b21a8 100%);
   animation:ocpPulseP 1.3s ease-in-out infinite;
 }
-/* (·446) PROSPECÇÃO — BRANCO BRILHANTE VIVO, a pedido do Nando.
-   ⚠ É A BOLINHA MAIS CLARA DO PAINEL, e por isso a borda NÃO é branca: ela fecha num
-   #DCE9F5 levemente azulado. Sem essa borda a esfera perde o contorno contra o halo
-   branco e deixa de parecer uma esfera — vira um borrão de luz.
-   ⚠ COMO SE DISTINGUE DO PRATA DO TI (·445), que também é claro: o TI fecha num
-   CINZA METÁLICO (#93A2B1) e lê como metal; esta fecha quase em branco e lê como
-   LUZ. Lado a lado a diferença é visível, mas é a menor do painel — registrado aqui
-   porque é o ponto que um ajuste futuro deve olhar primeiro. */
+/* (·447) PROSPECÇÃO — VINHO BRILHANTE. O branco do ·446 não agradou, e o vinho
+   resolve de quebra o incômodo que eu tinha registrado lá: branco e prata eram as
+   duas cores mais parecidas do painel. Agora nenhuma sentinela se confunde.
+   ⚠ O VINHO PRECISA FICAR LONGE DE DOIS VERMELHOS QUE JÁ EXISTEM: o #ff3d3d do
+   atendimento normal e o #FF69B4 (rosa-choque) do Ausente. Por isso o meio-tom é
+   #D01B48 — mais ESCURO e mais magenta que o vermelho, e muito mais FECHADO que o
+   rosa — e a borda mergulha em #4E0518, quase preto-vinho. É a queda para o
+   quase-preto que dá a leitura de "vinho" em vez de "vermelho claro".
+   ⚠ O "BRILHANTE" mora no ponto de luz (#FFB3C7) e no halo, não no meio-tom: clarear
+   o meio-tom empurraria a cor para o rosa do Ausente, que é o confundível a evitar. */
 .ocp-led.prospeccao{
-  background:radial-gradient(circle at 32% 28%, #FFFFFF 0%, #FFFFFF 38%, #F2F8FF 62%, #DCE9F5 100%);
-  animation:ocpPulseBranco 1.3s ease-in-out infinite;
+  background:radial-gradient(circle at 32% 28%, #FFB3C7 0%, #D01B48 38%, #8E0B30 66%, #4E0518 100%);
+  animation:ocpPulseVinho 1.3s ease-in-out infinite;
 }
-@keyframes ocpPulseBranco{
-  0%,100%{box-shadow:0 0 8px 2px rgba(255,255,255,.9),0 0 17px 6px rgba(226,240,255,.55),inset 0 0 4px rgba(255,255,255,1)}
-  50%{box-shadow:0 0 15px 5px rgba(255,255,255,1),0 0 30px 12px rgba(226,240,255,.8),inset 0 0 7px rgba(255,255,255,1)}
+@keyframes ocpPulseVinho{
+  0%,100%{box-shadow:0 0 7px 2px rgba(208,27,72,.85),0 0 15px 5px rgba(142,11,48,.5),inset 0 0 4px rgba(255,179,199,.6)}
+  50%{box-shadow:0 0 13px 4px rgba(226,45,95,1),0 0 28px 10px rgba(178,17,60,.7),inset 0 0 7px rgba(255,200,215,.85)}
 }
 @keyframes ocpPulseP{
   0%,100%{box-shadow:0 0 6px 1px rgba(168,85,247,.8),0 0 13px 4px rgba(168,85,247,.4),inset 0 0 4px rgba(255,255,255,.45)}
@@ -2407,20 +2409,20 @@ body:not(.dark) .ocph-total-licit b{color:#5c4800}
    O ticker do modal soma os tempos POR CLASSE DA LINHA: reusar faria o tempo de
    prospecção aparecer no rodapé sob o rótulo de outro setor, que é exatamente a
    armadilha documentada no ·176 e repetida no ·204 e no ·211. Balde e total próprios. */
-.ocph-row.ocph-prospeccao{border-left:3px solid rgba(255,255,255,.9);background:rgba(255,255,255,.08)}
-.ocph-prosp-tag{background:rgba(255,255,255,.22);color:#ffffff;border:1px solid rgba(255,255,255,.75)}
-.ocph-prospobs{color:#e2effb;font-style:italic;opacity:.95}
-.ocph-total-prosp{margin-left:14px;color:#ffffff}
-.ocph-total-prosp b{color:#ffffff}
+.ocph-row.ocph-prospeccao{border-left:3px solid rgba(208,27,72,.9);background:rgba(208,27,72,.09)}
+.ocph-prosp-tag{background:rgba(208,27,72,.22);color:#ffb3c7;border:1px solid rgba(226,45,95,.6)}
+.ocph-prospobs{color:#d79aae;font-style:italic;opacity:.95}
+.ocph-total-prosp{margin-left:14px;color:#ffb3c7}
+.ocph-total-prosp b{color:#ffd6e2}
 /* (·446) os selos ROXOS que o Grupos usava por reuso passam a morar aqui, próprios. */
 .ocph-grupos-tag{background:rgba(168,85,247,.18);color:#d8b4fe;border:1px solid rgba(168,85,247,.4)}
 .ocph-gruposobs{color:#b99ad8;font-style:italic;opacity:.9}
 .ocph-total-grupos{margin-left:14px;color:#d8b4fe}
 .ocph-total-grupos b{color:#ecd5ff}
-body:not(.dark) .ocph-row.ocph-prospeccao{background:rgba(100,116,132,.10);border-left-color:rgba(100,116,132,.6)}
-body:not(.dark) .ocph-prospobs{color:#4a5663}
-body:not(.dark) .ocph-prosp-tag{color:#2b3440;background:rgba(100,116,132,.14);border-color:rgba(100,116,132,.45)}
-body:not(.dark) .ocph-total-prosp,body:not(.dark) .ocph-total-prosp b{color:#2b3440}
+body:not(.dark) .ocph-row.ocph-prospeccao{background:rgba(208,27,72,.10);border-left-color:rgba(142,11,48,.7)}
+body:not(.dark) .ocph-prospobs{color:#8e2447}
+body:not(.dark) .ocph-prosp-tag{color:#7A0A2C;background:rgba(208,27,72,.14);border-color:rgba(142,11,48,.45)}
+body:not(.dark) .ocph-total-prosp,body:not(.dark) .ocph-total-prosp b{color:#7A0A2C}
 body:not(.dark) .ocph-gruposobs{color:#6b3fa0}
 body:not(.dark) .ocph-grupos-tag,body:not(.dark) .ocph-total-grupos{color:#6b21a8}
 body:not(.dark) .ocph-total-grupos b{color:#4c1d95}
@@ -5653,7 +5655,30 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 446; // (·446) PROSPECÇÃO EM BRANCO BRILHANTE VIVO — E O GRUPOS FINALMENTE
+var UV_BUILD_NUM = 447; // (·447) PROSPECÇÃO EM VINHO BRILHANTE. O branco do ·446 não agradou —
+// "não gostei, deixe prospecção na cor vinho brilhante" — e a troca resolve de quebra o incômodo
+// que eu mesmo tinha registrado lá: branco e prata eram as duas cores mais parecidas do painel.
+// Agora nenhuma sentinela se confunde com outra.
+// ⚠️ TROCA BARATA PORQUE O ·446 FEZ O TRABALHO DURO: separar o Grupos do reuso da classe
+// `.prospeccao`. Sem aquela separação, este build teria pintado o Grupos de vinho junto. É a
+// diferença entre mexer numa cor e mexer numa cor COMPARTILHADA — e por isso o ·446 custou 21
+// checagens e este custa 4 a mais.
+// ⚠️ O VINHO PRECISA FICAR LONGE DE DOIS VERMELHOS QUE JÁ EXISTEM no painel: o #ff3d3d do
+// atendimento normal e o #FF69B4 (rosa-choque) do Ausente. Por isso o meio-tom é #D01B48 — mais
+// ESCURO e mais magenta que o vermelho, e muito mais FECHADO que o rosa — e a borda mergulha em
+// #4E0518, quase preto-vinho. É a QUEDA PARA O QUASE-PRETO que dá a leitura de "vinho" em vez de
+// "vermelho claro"; sem ela, qualquer escolha nessa faixa vira só mais um vermelho.
+// ⚠️ O "BRILHANTE" MORA NO PONTO DE LUZ (#FFB3C7) E NO HALO, não no meio-tom. Clarear o meio-tom
+// empurraria a cor direto para o rosa do Ausente — que é exatamente o confundível a evitar. Mesma
+// lição do ·445, quando o brilho do prata veio do halo e não do miolo.
+// ⚠️ O TESTE NÃO PROCURA "UM VERMELHO": ele exige as DUAS pontas — o meio-tom #D01B48 E a borda
+// #4E0518 — e recusa explicitamente o #ff3d3d e o #FF69B4. Procurar só "algo avermelhado" deixaria
+// passar o rosa do Ausente, e aí o teste estaria aprovando justamente o defeito que ele existe
+// para impedir. Duas sabotagens confirmam: trocar o vinho pelo vermelho do atendimento derruba 4
+// checagens, e trocá-lo pelo rosa do Ausente derruba as mesmas 4.
+// VALIDAÇÃO: test_cores_status.mjs em 25 checagens (as 21 do ·446 + 4 novas: as duas pontas do
+// degradê e as duas vizinhas de matiz). 3 SABOTAGENS, todas pegas. ANTERIOR: PROSPECÇÃO EM BRANCO
+// BRILHANTE VIVO — E O GRUPOS FINALMENTE
 // GANHOU COR PRÓPRIA. Pedido do Nando: "agora coloque prospecção na cor branco brilhante vivo".
 // ⚠️⚠️ O PEDIDO ERA DE UMA COR, MAS O TRABALHO FOI DESFAZER UM REUSO. Desde o ·225 o GRUPOS não
 // tinha cor própria: ele saía com a classe `.prospeccao` — no LED, no botão do card, no selo do
