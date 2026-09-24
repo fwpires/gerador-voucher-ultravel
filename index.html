@@ -1772,6 +1772,45 @@ button.mr-chip:hover{ transform:scale(1.18); }
   border-radius:9px; background:#fffdf8; color:#241d12;
   font-family:'Inter',sans-serif; font-size:13px; padding:9px 11px; outline:none; }
 .mr-ta{ min-height:78px; resize:vertical; line-height:1.5; }
+/* ═══ (·448) EDITOR COM BARRA DE FORMATAÇÃO ═══
+   É a MESMA .nota-toolbar do Diretório (mesmos botões, mesmo tamanho, mesmo
+   seletor de cor), só com a PELE do papel: a barra do Diretório é escura porque
+   mora no painel escuro do Hub, e colada no linho do mural ela seria uma tarja
+   de outra tela. A forma é a mesma; só a tinta acompanha o quadro.
+   ⚠ OS SELETORES LEVAM `.nota-toolbar.mr-toolbar` (duas classes) DE PROPÓSITO:
+   este bloco mora no arquivo ANTES do da barra do Diretório, e entre pesos
+   iguais vence quem vem depois — a barra sairia escura mesmo com estas regras.
+   É o defeito de ORDEM NO ARQUIVO que já mordeu o ·441, o ·443 e o ·446;
+   aqui ele foi evitado no desenho em vez de achado no teste. */
+.mr-editor{ display:flex; flex-direction:column; }
+.nota-toolbar.mr-toolbar{ background:#f3ead8; border:1px solid rgba(90,74,48,.28); border-bottom:none;
+  border-radius:9px 9px 0 0; padding:6px 8px; gap:4px; }
+.nota-toolbar.mr-toolbar .ntb-sep{ background:rgba(90,74,48,.25); }
+.nota-toolbar.mr-toolbar button, .nota-toolbar.mr-toolbar .ntb-cor-btn{ background:#fffdf8; border-color:rgba(90,74,48,.3);
+  color:#2e2618; min-width:28px; height:28px; }
+.nota-toolbar.mr-toolbar button:hover, .nota-toolbar.mr-toolbar .ntb-cor-btn:hover{ background:#fff; border-color:#8a5f2d; }
+.nota-toolbar.mr-toolbar .ntb-cor-amostra{ border-color:rgba(0,0,0,.25); }
+.nota-toolbar.mr-toolbar .mr-emoji-ins-btn{ font-size:14px; padding:0 6px; }
+.nota-toolbar.mr-toolbar .mr-emoji-ins-btn.on{ background:#fff; border-color:#d8a53a; box-shadow:0 0 0 2px rgba(216,165,58,.25); }
+/* o editor gruda na barra: sem o canto de cima arredondado */
+.mr-editor .mr-ta{ border-radius:0 0 9px 9px; }
+.mr-editor .mr-emoji-ins + .mr-ta{ border-top-left-radius:0; border-top-right-radius:0; }
+.mr-rico{ min-height:92px; max-height:260px; overflow-y:auto; resize:none; cursor:text;
+  white-space:normal; overflow-wrap:anywhere; }
+/* placeholder de um editável: ele não tem o atributo nativo */
+.mr-rico:empty:before{ content:attr(data-ph); color:#9a8f7c; pointer-events:none; }
+/* painel de emojis para INSERIR — mesma lista e mesmo botão do seletor de
+   reação dos bilhetes (.mr-emoji-op), só que preso à barra */
+.mr-emoji-ins{ display:flex; flex-wrap:wrap; gap:2px; padding:6px 7px;
+  background:#fffaf0; border:1px solid rgba(90,74,48,.28); border-bottom:none;
+  max-height:150px; overflow-y:auto; }
+.mr-emoji-ins[hidden]{ display:none; }
+/* o recado formatado no bilhete: sem o pre-wrap do texto puro (HTML tem as
+   próprias quebras) e com recuo de lista que caiba num post-it estreito */
+.mr-post-txt.mr-rico{ white-space:normal; min-height:0; max-height:none; overflow:visible; cursor:auto; }
+.mr-rico ul, .mr-rico ol{ margin:3px 0; padding-left:18px; }
+.mr-rico li{ margin:1px 0; }
+.mr-rico p{ margin:0; }
 .mr-inp:focus,.mr-ta:focus{ border-color:#8a5f2d; box-shadow:0 0 0 2px rgba(138,95,45,.16); }
 .mr-cores{ display:flex; gap:7px; align-items:center; }
 .mr-cor{ width:24px; height:24px; border-radius:50%; border:2px solid transparent; cursor:pointer;
@@ -5655,7 +5694,49 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 447; // (·447) PROSPECÇÃO EM VINHO BRILHANTE. O branco do ·446 não agradou —
+var UV_BUILD_NUM = 448; // (·448) FORMATAÇÃO DE TEXTO + EMOJI NO CORPO DOS RECADOS DO MURAL.
+// Pedido do Nando: a barra do Diretório → Notas dentro de cada recado, SÓ com negrito, itálico,
+// sublinhado, cor, marca-texto, lista com marcadores e lista numerada ("as demais não precisa") —
+// e um botão de emojis como o das Ações Comerciais.
+// ⚠️ O MOTOR NÃO FOI COPIADO: é o MESMO notaCmd/abrirPopoverCor do Diretório, retargetável desde
+// o ·109 (__notaEditorAtivo + __ntbPrefixo). Minhas Tarefas já reusa com "mt"; o mural entra com
+// "mr". A barra é a mesma .nota-toolbar, com a pele do papel — escura no linho do mural ela
+// pareceria uma tarja de outra tela. Seletores com DUAS classes, porque este CSS mora ANTES do da
+// barra no arquivo e entre pesos iguais vence quem vem depois (·441/·443/·446) — evitado no
+// desenho, não achado no teste.
+// ⚠️ O EMOJI: nas Ações Comerciais o 😊 é de REAÇÃO, e o mural JÁ TEM essa reação em cada
+// bilhete desde o ·411. Então o botão novo, na barra, INSERE o emoji no texto, no cursor — com a
+// MESMA lista (window.UV_EMOJIS_REACAO) e o mesmo botão visual. O painel abre por classe, sem
+// redesenhar o mural: um mrRender() ali apagaria o que a pessoa já escreveu.
+// ⚠️⚠️ O SANITIZADOR É PRÓPRIO E MAIS ESTRITO que o do Diretório, por SEGURANÇA: a nota do
+// Diretório é do próprio PC, mas o recado aparece na tela dos DOZE. O filtro de lá deixa passar
+// qualquer tag e qualquer style — um `position:fixed` cobrindo a tela de todo mundo, por exemplo.
+// Aqui é LISTA BRANCA: só as tags que a barra produz, só color/background-color com valor de cor
+// válido; o resto é desembrulhado (fica o texto). E roda na hora de DESENHAR, não só na de salvar
+// — o recado chega de outros PCs e da nuvem, e filtrar só na entrada é confiar no caminho.
+// ⚠️ COMPATÍVEL COM PC DESATUALIZADO: o recado guarda `html` E continua guardando `txt` em texto
+// puro. Um Hub ainda no ·447 mostra o recado legível, só sem formatação. Recado sem formatação
+// nenhuma não ganha `html` — continua idêntico ao que era.
+// ⚠️ O LIMITE DE 400 CONTINUA, contado no TEXTO e não no HTML: negrito não gasta caractere.
+// ⚠️ COLAR ENTRA COMO TEXTO PURO: colar do Word/site traria dezenas de estilos que o filtro
+// jogaria fora de qualquer jeito, mas só DEPOIS de a pessoa ver o recado "bonito" no editor.
+// ⚠️⚠️ DEFEITO QUE O TESTE PEGOU, e é padrão desta base: mrVivos() RECONSTRÓI cada recado com uma
+// LISTA FIXA de campos, e `html` não estava nela — o dado salvo certinho, o bilhete mostrando só
+// texto puro. MESMA armadilha do histórico da Ocupação (·211/·213/·227/·444), agora em outro
+// módulo: não é acidente, é padrão.
+// ⚠️ DE BRINDE, um defeito ANTIGO consertado: qualquer redesenho do mural recriava o formulário do
+// zero — abrir o 😊 de reação de outro bilhete com um recado pela metade APAGAVA o que estava
+// escrito. Agora título e corpo sobrevivem ao redesenho.
+// ⚠️⚠️ DUAS SABOTAGENS PASSARAM e o teste foi endurecido: no Chromium, clicar num botão não apaga
+// a seleção do editor, e o focusin já aponta o motor para o mural — então tirar as duas travas
+// não quebrava nada AQUI. Elas existem para o Safari do iPhone (que limpa a seleção ao tocar num
+// botão) e para o ponteiro do motor VELHO (quem usou o Diretório antes). O teste agora cria os
+// dois casos na mão. Numa delas, o erro era do próprio teste: ele perguntava "há algum <b> no
+// mural?" — e havia, o de antes.
+// VALIDAÇÃO: test_mural_formatacao.mjs em 42 checagens que DIGITAM, SELECIONAM e CLICAM, mais
+// HTML hostil gravado direto no dado (img onerror, script, iframe, javascript:, position:fixed,
+// expression()). 5 SABOTAGENS, todas pegas. ANTERIOR: PROSPECÇÃO EM VINHO BRILHANTE. O branco do
+// ·446 não agradou —
 // "não gostei, deixe prospecção na cor vinho brilhante" — e a troca resolve de quebra o incômodo
 // que eu mesmo tinha registrado lá: branco e prata eram as duas cores mais parecidas do painel.
 // Agora nenhuma sentinela se confunde com outra.
@@ -25233,7 +25314,13 @@ var MR_CORES=[
     var S=mrStore();
     return Object.keys(S).filter(function(k){ return S[k] && !S[k].del; })
       .sort(function(a,b){ return (S[b].ts||0)-(S[a].ts||0); })   /* mais novo primeiro */
-      .map(function(k){ var r=S[k]; return {id:k, tit:r.tit||'', txt:r.txt||'', cor:r.cor||'amarelo',
+      /* ⚠⚠ (·448) `html` PRECISA ESTAR NESTA LISTA, e o teste pegou a falta: esta
+         função RECONSTRÓI cada recado com uma lista fixa de campos, e campo não
+         copiado nominalmente simplesmente não existe para o desenho. O dado
+         estava salvo certinho e o bilhete mostrava só o texto puro. É a MESMA
+         armadilha do histórico da Ocupação (·211, ·213, ·227, ·444) — agora em
+         outro módulo, o que diz que ela é um padrão desta base, não um acidente. */
+      .map(function(k){ var r=S[k]; return {id:k, tit:r.tit||'', txt:r.txt||'', html:(typeof r.html==='string'?r.html:''), cor:r.cor||'amarelo',
                                             autor:r.autor||'', ts:r.ts||0,
                                             reac:(r.reac&&typeof r.reac==='object')?r.reac:{},
                                             reacTs:(r.reacTs&&typeof r.reacTs==='object')?r.reacTs:{}}; });
@@ -25296,6 +25383,7 @@ var MR_CORES=[
     var id='mr'+mrAgora().toString(36)+Math.random().toString(36).slice(2,7);
     S[id]={ tit:(dados.tit||'').trim(), txt:(dados.txt||'').trim(), cor:dados.cor||'amarelo',
             autor:mrNome(), ts:mrAgora(), del:0 };
+    if(dados.html) S[id].html=dados.html;   /* (·448) já sanitizado pelo chamador */
     mrSalvar();
     try{ if(typeof logRemoto==='function') logRemoto('mural_novo','Recado fixado no mural: '+(S[id].tit||'(sem título)'),{area:'Mural de Recados'}); }catch(e){}
     return id;
@@ -25303,6 +25391,10 @@ var MR_CORES=[
   function mrEditar(id, dados){
     var S=mrStore(), r=S[id]; if(!r || r.del) return false;
     r.tit=(dados.tit||'').trim(); r.txt=(dados.txt||'').trim(); r.cor=dados.cor||r.cor;
+    /* (·448) '' e não delete: numa edição que TIRA toda a formatação, o `html`
+       antigo vindo de outro PC poderia voltar pela união — o mesmo motivo do
+       apagado suave das reações */
+    r.html=dados.html||'';
     r.ts=mrAgora();
     mrSalvar();
     try{ if(typeof logRemoto==='function') logRemoto('mural_editado','Recado editado no mural: '+(r.tit||'(sem título)'),{area:'Mural de Recados'}); }catch(e){}
@@ -25383,6 +25475,124 @@ var MR_CORES=[
     }).join('')+'</div>';
   }
 
+  /* ═══════════ (·448) TEXTO FORMATADO NO CORPO DO RECADO ═══════════
+     Pedido do Nando: a barra de formatação do Diretório → Notas dentro de cada
+     recado, mas SÓ com negrito, itálico, sublinhado, cor do texto, marca-texto,
+     lista com marcadores e lista numerada — e um botão de emojis.
+     ⚠ O MOTOR NÃO FOI COPIADO: é o MESMO notaCmd/abrirPopoverCor do Diretório,
+     retargetável desde o ·109 (window.__notaEditorAtivo + __ntbPrefixo). Minhas
+     Tarefas já reusa assim com o prefixo "mt"; o mural entra com "mr". Um motor
+     só é um lugar só para consertar.
+
+     ⚠⚠ O SANITIZADOR, AO CONTRÁRIO, É PRÓPRIO E MAIS ESTRITO que o
+     sanitizarNotaHTML do Diretório — e a razão é de segurança, não de gosto:
+     a nota do Diretório é do próprio computador, mas o RECADO é desenhado na
+     tela dos DOZE atendentes. O filtro do Diretório tira `on*` e `javascript:`,
+     mas deixa passar qualquer tag (<img>, <a>, <form>) e qualquer `style` —
+     um `position:fixed` cobrindo a tela inteira de todo mundo, por exemplo.
+     Aqui é LISTA BRANCA: só as tags que a barra produz, só as propriedades
+     color e background-color, e só valores de cor válidos. Qualquer outra tag
+     é DESEMBRULHADA (fica o texto, some a casca); script/style/iframe e afins
+     somem com o conteúdo.
+     ⚠ E ELE RODA NA HORA DE DESENHAR, não só na de salvar: o recado chega de
+     outros PCs e da nuvem, e salvar limpo aqui não garante que o dado que
+     volta de lá esteja limpo. Filtrar só na entrada é confiar no caminho. */
+  var MR_TAGS_OK={B:1,STRONG:1,I:1,EM:1,U:1,SPAN:1,FONT:1,UL:1,OL:1,LI:1,BR:1,DIV:1,P:1};
+  var MR_TAGS_FORA={SCRIPT:1,STYLE:1,IFRAME:1,OBJECT:1,EMBED:1,LINK:1,META:1,TEMPLATE:1,SVG:1,MATH:1,NOSCRIPT:1,TEXTAREA:1,SELECT:1,BUTTON:1,INPUT:1,FORM:1};
+  function mrCorValida(v){
+    v=(v||'').toString().trim();
+    return /^#[0-9a-f]{3,8}$/i.test(v) || /^rgba?\(\s*[\d.]+\s*,\s*[\d.]+\s*,\s*[\d.]+\s*(,\s*[\d.]+\s*)?\)$/i.test(v) || /^[a-z]{3,20}$/i.test(v);
+  }
+  function mrSanitizar(html){
+    /* <template> é INERTE: um <img onerror> dentro dele não dispara, ao
+       contrário de um <div> solto onde o navegador já começaria a carregar */
+    var t=document.createElement('template'); t.innerHTML=String(html||'');
+    (function limpar(no){
+      Array.prototype.slice.call(no.childNodes).forEach(function(n){
+        if(n.nodeType===3) return;                                   /* texto: fica */
+        if(n.nodeType!==1){ n.remove(); return; }                    /* comentário etc. */
+        var tag=n.tagName.toUpperCase();
+        if(MR_TAGS_FORA[tag]){ n.remove(); return; }
+        limpar(n);
+        if(!MR_TAGS_OK[tag]){                                        /* desembrulha */
+          while(n.firstChild) n.parentNode.insertBefore(n.firstChild, n);
+          n.remove(); return;
+        }
+        var cor=n.style?n.style.color:'', fundo=n.style?n.style.backgroundColor:'';
+        var corFont=(tag==='FONT')?(n.getAttribute('color')||''):'';
+        for(var i=n.attributes.length-1;i>=0;i--) n.removeAttribute(n.attributes[i].name);
+        var est=[];
+        if(cor && mrCorValida(cor)) est.push('color:'+cor);
+        else if(corFont && mrCorValida(corFont)) est.push('color:'+corFont);
+        if(fundo && mrCorValida(fundo)) est.push('background-color:'+fundo);
+        if(est.length) n.setAttribute('style', est.join(';'));
+      });
+    })(t.content);
+    var d=document.createElement('div'); d.appendChild(t.content.cloneNode(true));
+    return d.innerHTML;
+  }
+  window.mrSanitizar=mrSanitizar;
+  /* texto puro do HTML — é o que continua indo em `txt`, e não é detalhe: um PC
+     com o Hub ainda na versão anterior só conhece `txt`, e é ele que garante
+     que o recado formatado apareça legível lá também, só que sem a formatação. */
+  function mrTextoPuro(html){
+    var t=document.createElement('template');
+    t.innerHTML=String(html||'').replace(/<br\s*\/?>/gi,'\n').replace(/<\/(div|p|li)>/gi,'\n');
+    var d=document.createElement('div'); d.appendChild(t.content.cloneNode(true));
+    return (d.textContent||'').replace(/\u00a0/g,' ').replace(/\n{3,}/g,'\n\n').trim();
+  }
+  /* o corpo do recado como HTML seguro: formatado quando houver `html`, e o
+     texto antigo (escapado, com as quebras preservadas pelo pre-wrap) quando não */
+  function mrCorpoHtml(r){
+    if(r && typeof r.html==='string' && r.html) return mrSanitizar(r.html);
+    return mrEsc((r&&r.txt)||'');
+  }
+  function mrCorpoEditavel(r){
+    if(r && typeof r.html==='string' && r.html) return mrSanitizar(r.html);
+    return mrEsc((r&&r.txt)||'').replace(/\n/g,'<br>');
+  }
+  /* A BARRA — só as sete funções pedidas + o botão de emoji. Fonte, tamanho,
+     riscado e "limpar formatação" do Diretório ficaram de fora por pedido
+     explícito ("as demais não precisa adicionar"). Os ids seguem a convenção
+     do motor: prefixo + id original, para o abrirPopoverCor achar as amostras. */
+  function mrToolbarHtml(){
+    return '<div class="nota-toolbar mr-toolbar" id="mrToolbar">'
+      +'<button type="button" title="Negrito" data-mr-cmd="bold" style="font-weight:800">B</button>'
+      +'<button type="button" title="Itálico" data-mr-cmd="italic" style="font-style:italic">I</button>'
+      +'<button type="button" title="Sublinhado" data-mr-cmd="underline" style="text-decoration:underline">U</button>'
+      +'<span class="ntb-sep"></span>'
+      +'<button type="button" class="ntb-cor-btn" id="mrntbCorTexto" title="Cor do texto" data-mr-corbtn="texto"><span class="ntb-lbl" style="font-weight:800">A</span><span class="ntb-cor-amostra" id="mrntbCorAmostraTexto" style="background:#C62828"></span></button>'
+      +'<button type="button" class="ntb-cor-btn" id="mrntbCorFundo" title="Marca-texto" data-mr-corbtn="fundo"><span class="ntb-lbl">🖍</span><span class="ntb-cor-amostra" id="mrntbCorAmostraFundo" style="background:#FFEB3B"></span></button>'
+      +'<span class="ntb-sep"></span>'
+      +'<button type="button" title="Lista com marcadores" data-mr-cmd="insertUnorderedList">•⃝</button>'
+      +'<button type="button" title="Lista numerada" data-mr-cmd="insertOrderedList">1.</button>'
+      +'<span class="ntb-sep"></span>'
+      +'<button type="button" class="mr-emoji-ins-btn" title="Inserir emoji no texto" data-mr-emoji-ins="1">😊</button>'
+    +'</div>'
+    /* o painel nasce ESCONDIDO e abre/fecha por classe, sem redesenhar o
+       mural: um mrRender() aqui apagaria o que a pessoa já escreveu */
+    +'<div class="mr-emoji-ins" id="mrEmojiIns" hidden>'+mrEmojis().map(function(em){
+        return '<button type="button" class="mr-emoji-op" data-mr-emoji-put="'+mrEsc(em)+'" title="Inserir '+mrEsc(em)+'">'+em+'</button>';
+      }).join('')+'</div>';
+  }
+  /* aponta o motor do Diretório para ESTE editor antes de cada comando. Não
+     basta o focusin: se a pessoa abre o formulário, fica no título e clica
+     direto em "B", o editável ativo ainda seria o do Diretório (escondido em
+     outra tela) — e o negrito iria parar numa nota que ela nem está vendo. */
+  function mrMirarEditor(){
+    var ed=document.getElementById('mrTxt'); if(!ed) return null;
+    window.__notaEditorAtivo=ed; window.__ntbPrefixo='mr';
+    return ed;
+  }
+  function mrCursorNoEditor(ed){
+    var sel=window.getSelection();
+    if(sel && sel.rangeCount && ed.contains(sel.getRangeAt(0).commonAncestorContainer)) return;
+    /* sem cursor dentro do editor: põe no FIM, que é onde a pessoa esperaria */
+    ed.focus();
+    var r=document.createRange(); r.selectNodeContents(ed); r.collapse(false);
+    sel.removeAllRanges(); sel.addRange(r);
+  }
+
   function mrData(ts){
     if(!ts) return '';
     try{
@@ -25408,7 +25618,12 @@ var MR_CORES=[
     return '<div class="mr-form">'
       +'<div class="mr-form-tit">'+(editando?'✎ Editar recado':'📌 Novo recado')+'</div>'
       +'<input type="text" id="mrTit" class="mr-inp" maxlength="60" placeholder="Título (ex.: Reunião mensal — dia 12)" value="'+mrEsc(editando?r.tit:'')+'">'
-      +'<textarea id="mrTxt" class="mr-ta" maxlength="400" placeholder="Escreva o recado…">'+mrEsc(editando?r.txt:'')+'</textarea>'
+      /* (·448) o <textarea> virou um editável com a barra do Diretório. O
+         limite de 400 caracteres continua valendo, contado no TEXTO e não no
+         HTML — negrito não pode "gastar" caracteres da pessoa. */
+      +'<div class="mr-editor">'+mrToolbarHtml()
+      +'<div id="mrTxt" class="mr-ta mr-rico" contenteditable="true" data-ph="Escreva o recado…">'+mrCorpoEditavel(editando?r:null)+'</div>'
+      +'</div>'
       +'<div class="mr-cores">'+MR_CORES.map(function(c){
           return '<button type="button" class="mr-cor c-'+c.id+(c.id===cor?' on':'')+'" data-mr-cor="'+c.id+'" title="'+c.nome+'" aria-label="Cor '+c.nome+'"></button>';
         }).join('')+'</div>'
@@ -25422,6 +25637,17 @@ var MR_CORES=[
   function mrRender(){
     var wrap=document.getElementById('cdMural'); if(!wrap) return;
     var u=mrNome(), recados=mrVivos();
+    /* (·448) O RASCUNHO SOBREVIVE AO REDESENHO. Qualquer mrRender() recria o
+       formulário do zero — e isso já acontecia antes (abrir o 😊 de reação de
+       outro bilhete com um recado pela metade apagava o que estava escrito).
+       Com a barra de formatação o prejuízo cresceu: some o texto E a
+       formatação. Guarda título e corpo antes e devolve depois, desde que o
+       formulário que volta seja o MESMO (novo↔novo, edição do mesmo id). */
+    var _rasc=null;
+    try{
+      var _tE=wrap.querySelector('#mrTit'), _xE=wrap.querySelector('#mrTxt');
+      if(_tE||_xE) _rasc={ alvo:(mrEditando||'novo'), tit:_tE?_tE.value:'', html:_xE?_xE.innerHTML:'' };
+    }catch(e){}
 
     /* ângulo estável por recado: sai do próprio id, então o bilhete não "dança"
        a cada redesenho — inclinação que muda sozinha vira defeito, não charme */
@@ -25436,7 +25662,7 @@ var MR_CORES=[
       return '<article class="mr-post c-'+mrEsc(r.cor)+'" style="--ang:'+angulo(r.id)+'deg">'
         +'<span class="mr-pin" aria-hidden="true"></span>'
         +(r.tit?'<h4 class="mr-post-tit">'+mrEsc(r.tit)+'</h4>':'')
-        +(r.txt?'<div class="mr-post-txt">'+mrEsc(r.txt)+'</div>':'')
+        +((r.txt||r.html)?'<div class="mr-post-txt'+(r.html?' mr-rico':'')+'">'+mrCorpoHtml(r)+'</div>':'')
         /* (·411) as chips ficam ACIMA da assinatura: a reação pertence ao
            recado, não a quem assinou — e assim não disputam espaço com os
            botões num bilhete estreito */
@@ -25478,6 +25704,13 @@ var MR_CORES=[
         +'<div class="mr-rodape">aqui circulam boas ideias</div>'
       +'</div>';
 
+    if(_rasc && (mrForm||mrEditando) && _rasc.alvo===(mrEditando||'novo')){
+      try{
+        var _t2=wrap.querySelector('#mrTit'), _x2=wrap.querySelector('#mrTxt');
+        if(_t2) _t2.value=_rasc.tit;
+        if(_x2) _x2.innerHTML=mrSanitizar(_rasc.html);
+      }catch(e){}
+    }
     /* devolve o foco ao campo do título quando o formulário acabou de abrir */
     if(mrForm || mrEditando){
       var t=wrap.querySelector('#mrTit');
@@ -25515,6 +25748,35 @@ var MR_CORES=[
     if(rd){
       mrAplicarReacao(rd.getAttribute('data-mr-reac-del'), rd.getAttribute('data-mr-reac-emoji'));
       mrRender(); return;
+    }
+    /* (·448) BARRA DE FORMATAÇÃO — nenhum destes redesenha o mural */
+    var cm=e.target.closest('[data-mr-cmd]');
+    if(cm){
+      var edC=mrMirarEditor(); if(!edC) return;
+      mrCursorNoEditor(edC);
+      try{ window.notaCmd(cm.getAttribute('data-mr-cmd')); }catch(x){}
+      return;
+    }
+    var cb=e.target.closest('[data-mr-corbtn]');
+    if(cb){
+      var edB=mrMirarEditor(); if(!edB) return;
+      mrCursorNoEditor(edB);
+      try{ window.abrirPopoverCor(cb.getAttribute('data-mr-corbtn'), cb); }catch(x){}
+      return;
+    }
+    if(e.target.closest('[data-mr-emoji-ins]')){
+      var pn=document.getElementById('mrEmojiIns');
+      if(pn){ pn.hidden=!pn.hidden; e.target.closest('[data-mr-emoji-ins]').classList.toggle('on', !pn.hidden); }
+      return;
+    }
+    var ep=e.target.closest('[data-mr-emoji-put]');
+    if(ep){
+      var edE=mrMirarEditor(); if(!edE) return;
+      mrCursorNoEditor(edE);
+      /* insertText entra no histórico do Ctrl+Z e respeita a formatação que
+         estiver ativa no cursor — o emoji sai em negrito se o texto estiver */
+      try{ document.execCommand('insertText', false, ep.getAttribute('data-mr-emoji-put')); }catch(x){}
+      return;   /* painel fica aberto: dá para pôr vários seguidos */
     }
     if(e.target.closest('#mrNovo')){ mrForm=true; mrEditando=''; mrCorSel='amarelo'; mrRender(); return; }
     if(e.target.closest('[data-mr-cancelar]')){ mrForm=false; mrEditando=''; mrRender(); return; }
@@ -25566,7 +25828,20 @@ var MR_CORES=[
       var alvo=sv.getAttribute('data-mr-salvar')||'';
       var caixaF=sv.closest('.mr-form'); if(!caixaF) return;
       var tit=(caixaF.querySelector('#mrTit')||{}).value||'';
-      var txt=(caixaF.querySelector('#mrTxt')||{}).value||'';
+      /* (·448) o corpo agora é HTML: limpa pela lista branca, deriva o texto
+         puro e conta o limite nele. Formatação sem texto (um <br> sobrando,
+         um negrito vazio) conta como vazio. */
+      var edF=caixaF.querySelector('#mrTxt');
+      var html=edF?mrSanitizar(edF.innerHTML):'';
+      var txt=mrTextoPuro(html);
+      if(!txt) html='';
+      /* só guarda HTML quando há formatação de verdade: recado de texto puro
+         continua exatamente como era, e PC antigo não recebe nada novo */
+      if(html && !/<(b|strong|i|em|u|span|font|ul|ol|li)\b/i.test(html)) html='';
+      if(txt.length>400){
+        try{ if(typeof toast==='function') toast('O recado passou do limite: '+txt.length+' de 400 caracteres','erro'); }catch(x){}
+        return;
+      }
       var marcada=caixaF.querySelector('[data-mr-cor].on');
       var corF=marcada?marcada.getAttribute('data-mr-cor'):'amarelo';
       if(!tit.trim() && !txt.trim()){
@@ -25579,13 +25854,38 @@ var MR_CORES=[
           try{ if(typeof toast==='function') toast('Só quem escreveu o recado pode editá-lo','erro'); }catch(x){}
           mrForm=false; mrEditando=''; mrRender(); return;
         }
-        mrEditar(alvo, {tit:tit, txt:txt, cor:corF});
+        mrEditar(alvo, {tit:tit, txt:txt, html:html, cor:corF});
       }
-      else     mrCriar({tit:tit, txt:txt, cor:corF});
+      else     mrCriar({tit:tit, txt:txt, html:html, cor:corF});
       mrForm=false; mrEditando=''; mrRender();
       try{ if(typeof toast==='function') toast(alvo?'Recado atualizado':'Recado fixado no mural','ok'); }catch(x){}
       return;
     }
+  });
+
+  /* (·448) os botões da barra NÃO podem roubar o foco: um clique comum tira o
+     cursor do editor e desfaz a seleção — e aí o negrito não tem onde agir.
+     Cancelar o mousedown mantém a seleção exatamente onde a pessoa a deixou.
+     (O clique continua acontecendo normalmente; só o roubo de foco é evitado.) */
+  document.addEventListener('mousedown', function(e){
+    if(e.target && e.target.closest && e.target.closest('#mrToolbar button, #mrEmojiIns button')) e.preventDefault();
+  });
+  /* registra o editor como alvo do motor ao receber foco — mesmo gesto do
+     Minhas Tarefas (prefixo "mt") e das Notas (prefixo vazio) */
+  document.addEventListener('focusin', function(e){
+    if(e.target && e.target.id==='mrTxt'){ window.__notaEditorAtivo=e.target; window.__ntbPrefixo='mr'; }
+  });
+  /* ⚠ COLAR ENTRA COMO TEXTO PURO. Colar de um site ou do Word traz fonte,
+     tamanho, fundo, tabela — dezenas de estilos que o sanitizador jogaria fora
+     de qualquer jeito, mas só DEPOIS de a pessoa ter visto o recado "bonito" no
+     editor e um diferente no mural. Texto puro na entrada evita a surpresa: o
+     que se vê enquanto escreve é o que vai para o mural. */
+  document.addEventListener('paste', function(e){
+    if(!e.target || !e.target.closest || !e.target.closest('#mrTxt')) return;
+    var cd=e.clipboardData||window.clipboardData; if(!cd) return;
+    e.preventDefault();
+    var t=cd.getData('text/plain')||'';
+    try{ document.execCommand('insertText', false, t); }catch(x){}
   });
 })();
 </script>
