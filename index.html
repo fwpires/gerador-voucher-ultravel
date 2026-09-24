@@ -5712,7 +5712,40 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 452; // (·452) AÇÕES COMERCIAIS: "＋ Novo tópico" VIROU "＋ Ações" E "Criar
+var UV_BUILD_NUM = 453; // (·453) PAINEL DE INDICADORES NAS AÇÕES COMERCIAIS. Pedido do Nando: um
+// botão "Indicadores" ao lado dos filtros, azul como o 📧 Alertas, que abre um painel para
+// "controlar e acompanhar a evolução dos contatos comerciais": cadastro (sem status) → ponto de
+// partida (Contato Iniciado) → meio (Em Prospecção) → meta (Prospectado); um desenho linear como
+// linha do tempo e outro à minha escolha; % que chegou à meta; índice por executivo; filtros de
+// executivo e status.
+// ⚠️ O QUE ENTROU: herói com o % na meta; três blocos (cadastradas, só cadastro, em andamento);
+// (1) LINHA DO TEMPO DA JORNADA — quatro marcos com o NOME de cada ação no marco em que está
+// (vertical no celular); (2) FUNIL DE CONVERSÃO — quantas chegaram PELO MENOS a cada etapa e
+// quantos % passaram para a seguinte, que é o que mostra ONDE os contatos empacam; (3)
+// DESEMPENHO POR EXECUTIVO — barra da carteira por etapa, % na meta e ÍNDICE (avanço médio:
+// cadastro 0 · iniciado 1 · prospecção 2 · prospectado 3, ÷3 ×100, fórmula escrita na tela); (4)
+// TABELA com nome + status de todas, que é também a leitura sem cor.
+// ⚠️⚠️ O QUE NÃO ENTROU, E POR QUÊ: gráfico de evolução AO LONGO DOS MESES. O Hub NÃO GUARDA o
+// histórico de mudanças de status — só o status atual (acSetStatus sobrescreve `c.status`). Um
+// gráfico por mês exigiria datas que não existem; inventá-las seria desenhar uma mentira bonita.
+// O funil declara na tela a premissa que usa (quem está numa etapa passou pelas anteriores).
+// ⚠️ FILTROS: o de EXECUTIVO recorta tudo; o de STATUS DESTACA (esmaece as outras etapas e recorta
+// só nomes e tabela). Recortar os gráficos por um status transformaria o "% na meta" em 0% ou
+// 100% — um número que não diz nada. O desempenho compara SEMPRE todos os executivos, com o
+// escolhido destacado: comparar alguém só consigo mesmo não é comparar.
+// ⚠️ CORES DAS ETAPAS = AC_STATUS, as mesmas dos cards (cor segue a entidade). O validador de
+// paleta reprova as quatro como paleta categórica genérica (claras demais, cinza sem croma) e a
+// decisão CONSCIENTE foi manter: são a identidade do status no Hub inteiro. A compensação exigida
+// pela regra está feita — a cor nunca é a única pista, toda marca traz o nome da etapa escrito.
+// ⚠️ NAVEGAÇÃO: clicar num nome abre a conversa; o "Voltar" dela devolve ao PAINEL (acIndic segue
+// ligado), e o painel sobrevive aos redesenhos da sincronização.
+// ⚠️ DEFEITO PEGO NO PRINT DO CELULAR: os nomes do marco Prospectado vazavam pela direita.
+// `1fr` é minmax(AUTO,1fr), e auto não encolhe abaixo de um texto nowrap — MESMA causa do
+// transbordo do ·426. Trocado por minmax(0,1fr).
+// VALIDAÇÃO: test_acoes_indicadores.mjs, novo, 32 checagens conferidas contra CONTA FEITA À MÃO
+// sobre o livro dos prints (2·3·3·4), não contra a fórmula do produto — um teste que refaz a mesma
+// conta concorda com o erro (·432). 6 SABOTAGENS, todas pegas. ANTERIOR: AÇÕES COMERCIAIS: "＋
+// Novo tópico" VIROU "＋ Ações" E "Criar
 // tópico" VIROU "Criar Ação". Pedido do Nando com os dois botões circulados. Só o TEXTO mudou —
 // ids, classes e dado gravado são os mesmos, então nada que procura esses botões deixa de achar.
 // A frase da lista vazia ("Clique em ＋ Novo tópico…") acompanhou: mandar alguém clicar num botão
@@ -29887,6 +29920,125 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
    sessão) e acha que o livro tem só três tópicos */
 #scr-acoes .ac-filtro.on{border-color:#2ec7a5;color:#5fe0c0;background-color:rgba(46,199,165,.10)}
 #scr-acoes .ac-filtro option{background:#0F1923;color:#E6EEF3}
+/* ═══ (·453) BOTÃO INDICADORES — o azul do 📧 Alertas (.ocp-mailcfg-btn) ═══ */
+#scr-acoes .ac-ind-btn{margin-left:8px;height:30px;vertical-align:middle;background:rgba(18,176,255,.12);border:1px solid rgba(18,176,255,.4);
+  color:#7fd0ff;border-radius:9px;padding:0 12px;font-size:.8rem;font-weight:800;cursor:pointer;font-family:inherit;transition:all .15s}
+#scr-acoes .ac-ind-btn:hover{background:rgba(18,176,255,.22);border-color:#12b0ff}
+body:not(.dark) #scr-acoes .ac-ind-btn{background:#e6f5ff;border-color:#7cc8f5;color:#0a5f96}
+/* ═══ (·453) PAINEL DE INDICADORES ═══
+   Tinta de texto nos textos, cor da etapa só nas marcas (bolinhas, barras,
+   trilho) — o número nunca "veste" a cor da série. Grade e rótulos recessivos. */
+#scr-acoes .aci-voltar{width:34px;height:30px;padding:0;margin-right:10px;vertical-align:middle;font-size:1rem}
+#scr-acoes .aci-bloco{background:#111c26;border:1px solid #1f3140;border-radius:14px;padding:16px 18px;margin-bottom:14px}
+#scr-acoes .aci-tit{margin:0 0 4px;font-size:.98rem;font-weight:800;color:#E6EEF3}
+#scr-acoes .aci-nota{color:#8CA3B3;font-size:.78rem;line-height:1.45;margin-bottom:12px;max-width:900px}
+#scr-acoes .aci-cont{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:99px;background:#1b2b38;color:#9fb3c2;font-size:.72rem;vertical-align:middle}
+#scr-acoes .aci-esmaecido{opacity:.28}
+#scr-acoes .aci-pto{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--c);margin-right:6px;vertical-align:1px}
+/* KPIs: o herói (meta) + três blocos */
+#scr-acoes .aci-kpis{display:grid;grid-template-columns:1.6fr repeat(3,1fr);gap:12px;margin-bottom:14px}
+#scr-acoes .aci-heroi,#scr-acoes .aci-tile{background:#111c26;border:1px solid #1f3140;border-radius:14px;padding:14px 16px}
+#scr-acoes .aci-heroi{border-color:rgba(18,176,255,.45)}
+#scr-acoes .aci-heroi-rot{color:#9fb3c2;font-size:.78rem;font-weight:700}
+#scr-acoes .aci-heroi-num{font-size:2.6rem;font-weight:800;color:#F2F7FA;line-height:1.1;margin-top:4px;font-variant-numeric:tabular-nums}
+#scr-acoes .aci-heroi-num span{font-size:1.3rem;margin-left:2px;color:#9fb3c2}
+#scr-acoes .aci-heroi-sub{color:#8CA3B3;font-size:.8rem;margin:2px 0 10px}
+#scr-acoes .aci-heroi-trilho{height:8px;border-radius:99px;background:#1b2b38;overflow:hidden}
+#scr-acoes .aci-heroi-trilho i{display:block;height:100%;border-radius:99px;background:var(--c)}
+#scr-acoes .aci-tile-num{font-size:1.9rem;font-weight:800;color:#E6EEF3;font-variant-numeric:tabular-nums}
+#scr-acoes .aci-tile-rot{color:#8CA3B3;font-size:.78rem;margin-top:2px}
+/* (1) jornada: quatro marcos ligados por um trilho que termina na meta */
+#scr-acoes .aci-jornada{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding-top:4px}
+#scr-acoes .aci-jornada:before{content:"";position:absolute;left:12.5%;right:12.5%;top:26px;height:3px;border-radius:3px;
+  background:linear-gradient(90deg,#9FB0BD,#FF7D1A 34%,#FFD600 66%,#12B0FF)}
+#scr-acoes .aci-marco{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;min-width:0}
+#scr-acoes .aci-no{position:relative;z-index:1;width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:#0F1923;border:3px solid var(--c);color:#F2F7FA;font-weight:800;font-size:1.05rem;box-shadow:0 0 0 4px #111c26;cursor:default;font-variant-numeric:tabular-nums}
+#scr-acoes .aci-meta .aci-no{width:54px;height:54px;margin-top:-4px;box-shadow:0 0 0 4px #111c26,0 0 14px var(--c)}
+#scr-acoes .aci-marco-rot{margin-top:8px;font-weight:800;font-size:.86rem;color:#E6EEF3}
+#scr-acoes .aci-marco-sub{color:#8CA3B3;font-size:.74rem;margin-bottom:8px}
+#scr-acoes .aci-nomes{display:flex;flex-direction:column;gap:4px;width:100%}
+#scr-acoes .aci-nome{font-family:inherit;font-size:.74rem;color:#d7e3ea;text-align:left;cursor:pointer;background:#0F1923;
+  border:1px solid #1f3140;border-left:3px solid var(--c);border-radius:7px;padding:5px 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%}
+#scr-acoes .aci-nome:hover{border-color:var(--c);color:#fff}
+#scr-acoes .aci-mais{font-family:inherit;font-size:.72rem;color:#7fd0ff;background:none;border:0;cursor:pointer;padding:3px}
+#scr-acoes .aci-nenhum{color:#5f7686;font-size:.74rem;font-style:italic}
+/* (2) funil: barras ancoradas à esquerda, uma por etapa, com a conversão entre elas */
+#scr-acoes .aci-f-linha{display:grid;grid-template-columns:180px 1fr 96px;align-items:center;gap:12px}
+#scr-acoes .aci-f-rot{color:#d7e3ea;font-size:.82rem;font-weight:700}
+#scr-acoes .aci-f-trilho{height:22px;background:#15222d;border-radius:0 6px 6px 0;overflow:hidden}
+#scr-acoes .aci-f-trilho i{display:block;height:100%;background:var(--c);border-radius:0 4px 4px 0}
+#scr-acoes .aci-f-val{color:#9fb3c2;font-size:.8rem;font-variant-numeric:tabular-nums}
+#scr-acoes .aci-f-val b{color:#E6EEF3}
+#scr-acoes .aci-conv{margin:4px 0 4px 192px;color:#8CA3B3;font-size:.74rem}
+#scr-acoes .aci-conv b{color:#E6EEF3}
+/* (3) desempenho por executivo */
+#scr-acoes .aci-legenda{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:10px;font-size:.76rem;color:#9fb3c2}
+#scr-acoes .aci-legenda i{display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--c);margin-right:6px;vertical-align:-1px}
+#scr-acoes .aci-exec-cab,#scr-acoes .aci-exec{display:grid;grid-template-columns:170px 1fr 60px 78px 120px;align-items:center;gap:12px}
+#scr-acoes .aci-exec-cab{color:#6f8797;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:0 8px 6px;border-bottom:1px solid #1f3140}
+#scr-acoes .aci-exec{padding:8px;border-bottom:1px solid #172532}
+#scr-acoes .aci-exec-eu{background:rgba(18,176,255,.07);border-radius:8px}
+#scr-acoes .aci-exec-nome{color:#E6EEF3;font-size:.84rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* barra 100% empilhada com 2px de respiro entre os segmentos (o fundo do bloco aparece) */
+#scr-acoes .aci-pilha{display:flex;gap:2px;height:14px}
+#scr-acoes .aci-pilha i{display:block;flex-basis:0;min-width:4px;background:var(--c);border-radius:2px}
+#scr-acoes .aci-pilha i:first-child{border-radius:4px 2px 2px 4px}
+#scr-acoes .aci-pilha i:last-child{border-radius:2px 4px 4px 2px}
+#scr-acoes .aci-exec-num{color:#d7e3ea;font-size:.84rem;text-align:right;font-variant-numeric:tabular-nums}
+#scr-acoes .aci-exec-ind{display:flex;align-items:center;gap:8px}
+#scr-acoes .aci-exec-ind b{min-width:28px;text-align:right;color:#F2F7FA;font-variant-numeric:tabular-nums}
+#scr-acoes .aci-exec-ind i{flex:1;height:6px;background:#1b2b38;border-radius:99px;overflow:hidden}
+#scr-acoes .aci-exec-ind u{display:block;height:100%;background:#12B0FF;border-radius:99px}
+/* (4) tabela */
+#scr-acoes .aci-t-cab,#scr-acoes .aci-t-linha{display:grid;grid-template-columns:1fr 170px 160px 100px;gap:12px;align-items:center;text-align:left}
+#scr-acoes .aci-t-cab{color:#6f8797;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:0 8px 6px;border-bottom:1px solid #1f3140}
+#scr-acoes .aci-t-linha{width:100%;font-family:inherit;font-size:.82rem;color:#c9d6df;background:none;border:0;border-bottom:1px solid #172532;padding:9px 8px;cursor:pointer}
+#scr-acoes .aci-t-linha:hover{background:#15222d}
+#scr-acoes .aci-t-nome{color:#E6EEF3;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#scr-acoes .aci-t-data{color:#8CA3B3;font-variant-numeric:tabular-nums}
+/* dica flutuante */
+.aci-tip{position:fixed;z-index:99999;display:none;pointer-events:none;max-width:320px;background:#0B141C;color:#E6EEF3;
+  border:1px solid #2b4153;border-radius:8px;padding:6px 10px;font-size:.76rem;line-height:1.35;box-shadow:0 8px 20px rgba(0,0,0,.45)}
+/* tema claro */
+body:not(.dark) #scr-acoes .aci-bloco,body:not(.dark) #scr-acoes .aci-heroi,body:not(.dark) #scr-acoes .aci-tile{background:#fff;border-color:#dfe7ec}
+body:not(.dark) #scr-acoes .aci-tit,body:not(.dark) #scr-acoes .aci-heroi-num,body:not(.dark) #scr-acoes .aci-tile-num,
+body:not(.dark) #scr-acoes .aci-marco-rot,body:not(.dark) #scr-acoes .aci-exec-nome,body:not(.dark) #scr-acoes .aci-t-nome,
+body:not(.dark) #scr-acoes .aci-exec-ind b,body:not(.dark) #scr-acoes .aci-f-val b,body:not(.dark) #scr-acoes .aci-conv b{color:#15252F}
+body:not(.dark) #scr-acoes .aci-no{background:#fff;color:#15252F;box-shadow:0 0 0 4px #fff}
+body:not(.dark) #scr-acoes .aci-nome{background:#f6f9fb;border-color:#dfe7ec;color:#15252F}
+body:not(.dark) #scr-acoes .aci-f-rot,body:not(.dark) #scr-acoes .aci-exec-num,body:not(.dark) #scr-acoes .aci-t-linha{color:#2b3d4a}
+body:not(.dark) #scr-acoes .aci-f-trilho,body:not(.dark) #scr-acoes .aci-heroi-trilho,body:not(.dark) #scr-acoes .aci-exec-ind i{background:#eef3f6}
+body:not(.dark) #scr-acoes .aci-t-linha:hover{background:#f3f7f9}
+/* celular: KPIs em 2×2, jornada VERTICAL (o trilho desce), tabelas enxutas */
+@media(max-width:980px){
+  #scr-acoes .ac-ind-btn{height:38px;margin:8px 0 0;width:100%;font-size:15px}
+  #scr-acoes .aci-kpis{grid-template-columns:1fr 1fr}
+  #scr-acoes .aci-heroi{grid-column:1 / -1}
+  /* três blocos em duas colunas deixariam um buraco: o último ocupa a linha toda */
+  #scr-acoes .aci-kpis .aci-tile:last-child{grid-column:1 / -1}
+  #scr-acoes .aci-jornada{grid-template-columns:1fr;gap:14px;padding-left:4px}
+  #scr-acoes .aci-jornada:before{left:26px;right:auto;top:20px;bottom:20px;width:3px;height:auto;
+    background:linear-gradient(180deg,#9FB0BD,#FF7D1A 34%,#FFD600 66%,#12B0FF)}
+  /* ⚠ minmax(0,1fr) e não 1fr: 1fr é minmax(AUTO,1fr), e "auto" não encolhe abaixo
+     do nome mais comprido (que é nowrap) — os nomes do marco Prospectado vazavam
+     pela direita no print. Mesma causa do transbordo do ·426. */
+  #scr-acoes .aci-marco{display:grid;grid-template-columns:54px minmax(0,1fr);column-gap:12px;align-items:start;text-align:left}
+  #scr-acoes .aci-no{grid-row:1 / span 3}
+  #scr-acoes .aci-marco-rot{margin-top:4px}
+  #scr-acoes .aci-nomes{grid-column:2}
+  #scr-acoes .aci-f-linha{grid-template-columns:1fr 84px;row-gap:4px}
+  #scr-acoes .aci-f-rot{grid-column:1 / -1}
+  #scr-acoes .aci-conv{margin-left:0}
+  #scr-acoes .aci-exec-cab{display:none}
+  #scr-acoes .aci-exec{grid-template-columns:1fr auto auto;row-gap:6px}
+  #scr-acoes .aci-exec-nome{grid-column:1 / -1}
+  #scr-acoes .aci-pilha{grid-column:1 / -1}
+  #scr-acoes .aci-exec-ind{min-width:110px}
+  #scr-acoes .aci-t-cab{display:none}
+  #scr-acoes .aci-t-linha{grid-template-columns:1fr auto;row-gap:2px}
+  #scr-acoes .aci-t-linha > span:nth-child(3),#scr-acoes .aci-t-linha > span:nth-child(4){font-size:.74rem;color:#8CA3B3}
+}
 /* (·451) status escolhido = cor do próprio status (laranja, amarelo, azul…).
    ⚠ Três classes + id: vence o `.ac-filtro.on` verde por PESO, e não por vir
    depois no arquivo — a lição de ordem do ·441/·443/·446. */
@@ -30738,7 +30890,10 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     Object.keys(acAdminPend).forEach(function(k){ if(k!==acAberto) delete acAdminPend[k]; });
     // (·289) a visualização em si já dá baixa — qualquer que seja a rota de entrada
     var deuBaixa=acRegistrarVisualizacao();
-    wrap.innerHTML = acAberto ? acHtmlThread(S.cards[acAberto]) : acHtmlLista();
+    /* (·453) a thread tem prioridade; sem ela, o painel de indicadores (se aberto)
+       ou a lista. Abrir uma ação pelo painel e clicar em "Voltar" cai de novo no
+       painel, porque acIndic continua ligado — não é preciso lembrar a origem. */
+    wrap.innerHTML = acAberto ? acHtmlThread(S.cards[acAberto]) : (acIndic ? acHtmlIndicadores() : acHtmlLista());
     // devolve o foco ao campo de texto quando havia rascunho (o innerHTML o perderia)
     var ta=wrap.querySelector('#acTexto');
     if(ta && acRascunho){ try{ ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }catch(e){} }
@@ -31005,6 +31160,220 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     return h+'</div>';
   }
 
+  /* ═════════════════ (·453) INDICADORES DAS AÇÕES COMERCIAIS ═════════════════
+     Pedido do Nando: um botão "Indicadores" ao lado dos filtros que abre um
+     painel visual para "controlar e acompanhar a evolução dos contatos
+     comerciais": quanto está só no CADASTRO (sem status), no PONTO DE PARTIDA
+     (Contato Iniciado), no MEIO (Em Prospecção) e na META (Prospectado). Dois
+     desenhos — um linear, como linha do tempo, e outro à minha escolha — mais
+     a porcentagem que chegou à meta e um índice de desempenho por executivo.
+
+     AS ESCOLHAS, e por quê:
+     (1) LINHA DO TEMPO = A JORNADA em quatro marcos, da esquerda (cadastro)
+         para a direita (meta), com o NOME de cada ação embaixo do marco em que
+         ela está. É "linear" no sentido que o Nando descreveu — começo, meio e
+         alvo — e responde "quem está onde" sem precisar abrir nada.
+     (2) O SEGUNDO DESENHO É UM FUNIL DE CONVERSÃO: quantas ações chegaram PELO
+         MENOS até cada etapa, e quantos % passaram de uma para a próxima. É o
+         que mostra ONDE os contatos empacam — a pergunta que vem logo depois
+         de "quantos temos em cada etapa".
+         ⚠ Premissa, escrita na tela: o funil supõe que quem está numa etapa
+         passou pelas anteriores. É verdade no fluxo normal (ninguém prospecta
+         sem ter iniciado o contato), mas o Hub NÃO GUARDA o histórico de
+         mudanças de status — só o status atual. Por isso também NÃO há gráfico
+         de "evolução ao longo dos meses": ele exigiria datas que não existem, e
+         inventá-las seria desenhar uma mentira bonita.
+     (3) A COR DE CADA ETAPA É A MESMA DOS CARDS (AC_STATUS) — cor segue a
+         entidade. O validador de paleta reprova essas quatro como paleta
+         CATEGÓRICA genérica (claras demais e o cinza sem croma), e a decisão
+         consciente foi mantê-las: são a identidade do status em todo o Hub, e
+         trocar só aqui faria o laranja do card virar outra cor no painel. A
+         compensação é a exigida pela regra: a cor NUNCA é a única pista — todo
+         marco, barra e linha traz o NOME da etapa escrito.
+     (4) O FILTRO DE EXECUTIVO RECORTA TUDO; o de STATUS DESTACA. Filtrar os
+         gráficos por um status só zeraria as outras etapas e transformaria a
+         "porcentagem que chegou à meta" em 0% ou 100% — um número que não diz
+         nada. Então o status escolhido fica em evidência (as outras etapas
+         esmaecem) e só a lista de nomes e a tabela é que recortam.
+     (5) ÍNDICE DE DESEMPENHO = avanço médio da carteira do executivo:
+         Cadastro vale 0, Contato Iniciado 1, Em Prospecção 2, Prospectado 3;
+         soma ÷ (3 × nº de ações) × 100. 100 = tudo na meta; 0 = tudo parado no
+         cadastro. Diferente do "% prospectado", ele reconhece quem já moveu os
+         contatos para o meio do caminho — e a fórmula fica escrita na tela,
+         porque índice sem régua vira discussão. */
+  var acIndic=false;            /* painel aberto? (estado de tela, como os filtros) */
+  var acIndExpand={};           /* etapas com a lista de nomes expandida */
+  var AC_ETAPA_MAX_NOMES=8;
+  function acEtapas(){
+    return [{cod:AC_SEM_STATUS, rot:'Cadastro', sub:'Sem status', cor:AC_COR_SEM_STATUS, peso:0}]
+      .concat(AC_STATUS.map(function(s,i){ return {cod:s.cod, rot:s.rot, sub:(i===0?'Ponto de partida':(i===AC_STATUS.length-1?'Meta':'Meio do caminho')), cor:s.cor, peso:i+1}; }));
+  }
+  function acEtapaDoCard(c){ var st=acStatusDef(c.status); return st?st.cod:AC_SEM_STATUS; }
+  function acPct(n,t){ return t? Math.round(n*100/t) : 0; }
+  function acIndBase(){
+    /* só o EXECUTIVO recorta a base — ver a escolha (4) acima */
+    return acCardsVivos().filter(function(c){
+      return !acFiltroExec || acNorm(acExecDoCard(c))===acNorm(acFiltroExec);
+    });
+  }
+  function acIndContar(cards){
+    var et=acEtapas(), por={}; et.forEach(function(e){ por[e.cod]=[]; });
+    cards.forEach(function(c){ por[acEtapaDoCard(c)].push(c); });
+    return {etapas:et, por:por, total:cards.length};
+  }
+  function acIndice(cards){
+    if(!cards.length) return 0;
+    var pesos={}; acEtapas().forEach(function(e){ pesos[e.cod]=e.peso; });
+    var soma=0; cards.forEach(function(c){ soma+=pesos[acEtapaDoCard(c)]; });
+    return Math.round(soma*100/(3*cards.length));
+  }
+  function acIndFoco(cod){ return !acFiltroStatus || acFiltroStatus===cod; }
+
+  function acHtmlIndicadores(){
+    var base=acIndBase(), K=acIndContar(base), T=K.total, et=K.etapas;
+    var meta=et[et.length-1], nMeta=K.por[meta.cod].length;
+    var nAndamento=K.por[et[1].cod].length+K.por[et[2].cod].length;
+    var focoTxt = acFiltroStatus ? (function(){ for(var i=0;i<et.length;i++) if(et[i].cod===acFiltroStatus) return et[i].rot; return ''; })() : '';
+
+    var cab='<div class="ac-head aci-head">'
+      +'<div><h2 class="ac-title"><button type="button" class="ac-btn aci-voltar" id="acIndVoltar" title="Voltar para a lista de ações">←</button>'
+        +'📊 Indicadores'+acHtmlFiltros()+'</h2>'
+      +'<div class="ac-sub">Evolução dos contatos comerciais — '+T+' aç'+(T===1?'ão':'ões')
+        +(acFiltroExec?' de <b>'+acEsc(acFiltroExec)+'</b>':' de todos os executivos')
+        +(focoTxt?' · destacando <b>'+acEsc(focoTxt)+'</b>':'')+'</div></div>'
+      +'</div>';
+    if(!T){
+      return cab+'<div class="ac-vazio">Nenhuma ação'+(acFiltroExec?' criada por <b>'+acEsc(acFiltroExec)+'</b>':'')+' para medir ainda.</div>';
+    }
+
+    /* ── HERÓI + BLOCOS ── o número da meta é o protagonista: é a pergunta "quanto
+       já chegou lá?", e a resposta é um número, não um gráfico */
+    var pMeta=acPct(nMeta,T);
+    var kpis='<div class="aci-kpis">'
+      +'<div class="aci-heroi" style="--c:'+meta.cor+'">'
+        +'<div class="aci-heroi-rot">🎯 Chegaram à meta (Prospectado)</div>'
+        +'<div class="aci-heroi-num">'+pMeta+'<span>%</span></div>'
+        +'<div class="aci-heroi-sub">'+nMeta+' de '+T+' aç'+(T===1?'ão':'ões')+'</div>'
+        +'<div class="aci-heroi-trilho" role="img" aria-label="'+pMeta+'% chegaram à meta"><i style="width:'+pMeta+'%"></i></div>'
+      +'</div>'
+      +'<div class="aci-tile"><div class="aci-tile-num">'+T+'</div><div class="aci-tile-rot">Ações cadastradas</div></div>'
+      +'<div class="aci-tile" style="--c:'+et[0].cor+'"><div class="aci-tile-num">'+K.por[et[0].cod].length+'</div><div class="aci-tile-rot"><i class="aci-pto"></i>Só cadastro · '+acPct(K.por[et[0].cod].length,T)+'%</div></div>'
+      /* "em andamento" junta DUAS etapas (iniciado + prospecção): sem bolinha de
+         cor, porque qualquer uma das duas cores diria que é só uma delas */
+      +'<div class="aci-tile"><div class="aci-tile-num">'+nAndamento+'</div><div class="aci-tile-rot">Em andamento (iniciado + prospecção) · '+acPct(nAndamento,T)+'%</div></div>'
+    +'</div>';
+
+    /* ── (1) LINHA DO TEMPO: a jornada, com os nomes em cada marco ── */
+    var jornada='<section class="aci-bloco"><h3 class="aci-tit">Linha do tempo da jornada</h3>'
+      +'<div class="aci-nota">Do cadastro à meta. Cada ação aparece no marco em que está hoje — clique no nome para abrir a conversa.</div>'
+      +'<div class="aci-jornada">'+et.map(function(e,i){
+        var lst=K.por[e.cod], n=lst.length, foco=acIndFoco(e.cod);
+        var aberto=!!acIndExpand[e.cod], mostra=aberto?lst:lst.slice(0,AC_ETAPA_MAX_NOMES);
+        return '<div class="aci-marco'+(foco?'':' aci-esmaecido')+(i===et.length-1?' aci-meta':'')+'" style="--c:'+e.cor+'">'
+          +'<div class="aci-no" tabindex="0" data-ind-tip="'+acEsc(e.rot)+': '+n+' aç'+(n===1?'ão':'ões')+' ('+acPct(n,T)+'% do total)">'+n+'</div>'
+          +'<div class="aci-marco-rot">'+(i===et.length-1?'🎯 ':'')+acEsc(e.rot)+'</div>'
+          +'<div class="aci-marco-sub">'+acEsc(e.sub)+' · '+acPct(n,T)+'%</div>'
+          +'<div class="aci-nomes">'+(n?mostra.map(function(c){
+              return '<button type="button" class="aci-nome" data-ac-abrir="'+acEsc(c.id)+'" data-ind-tip="'+acEsc(c.tit)+' · '+acEsc(e.rot)+' · '+acEsc(acExecDoCard(c)||'—')+'">'+acEsc(c.tit)+'</button>';
+            }).join('')+(n>AC_ETAPA_MAX_NOMES?'<button type="button" class="aci-mais" data-ind-expandir="'+e.cod+'">'+(aberto?'mostrar menos':'+ '+(n-AC_ETAPA_MAX_NOMES)+' mais')+'</button>':'')
+            :'<span class="aci-nenhum">nenhuma</span>')+'</div>'
+        +'</div>';
+      }).join('')+'</div></section>';
+
+    /* ── (2) FUNIL: quem chegou PELO MENOS até cada etapa ── */
+    var acum=[], soma=0;
+    for(var i=et.length-1;i>=0;i--){ soma+=K.por[et[i].cod].length; acum[i]=soma; }
+    var rotFunil=['Cadastradas','Iniciaram o contato','Chegaram à prospecção','Prospectadas (meta)'];
+    var funil='<section class="aci-bloco"><h3 class="aci-tit">Funil de conversão</h3>'
+      +'<div class="aci-nota">Quantas ações chegaram <b>pelo menos</b> até cada etapa, e quantas passaram para a seguinte. Supõe que quem está numa etapa passou pelas anteriores.</div>'
+      +'<div class="aci-funil">'+et.map(function(e,i){
+        var n=acum[i], pc=acPct(n,T);
+        var conv = i>0 ? acPct(acum[i],acum[i-1]) : null;
+        return (i>0?'<div class="aci-conv'+(acIndFoco(e.cod)?'':' aci-esmaecido')+'">↓ <b>'+conv+'%</b> passaram de “'+acEsc(et[i-1].rot)+'” para “'+acEsc(e.rot)+'”</div>':'')
+          +'<div class="aci-f-linha'+(acIndFoco(e.cod)?'':' aci-esmaecido')+'" style="--c:'+e.cor+'">'
+            +'<div class="aci-f-rot">'+acEsc(rotFunil[i]||e.rot)+'</div>'
+            +'<div class="aci-f-trilho" tabindex="0" data-ind-tip="'+acEsc(rotFunil[i]||e.rot)+': '+n+' de '+T+' ('+pc+'%)"><i style="width:'+Math.max(pc, n?2:0)+'%"></i></div>'
+            +'<div class="aci-f-val"><b>'+n+'</b> · '+pc+'%</div>'
+          +'</div>';
+      }).join('')+'</div></section>';
+
+    /* ── (3) DESEMPENHO POR EXECUTIVO — sempre sobre TODOS os executivos:
+       comparar só consigo mesmo não é comparar. O escolhido fica destacado. ── */
+    var porExec={}, ordemEx=[];
+    acCardsVivos().forEach(function(c){
+      var n=acExecDoCard(c)||'—', k=acNorm(n);
+      if(!porExec[k]){ porExec[k]={nome:n, cards:[]}; ordemEx.push(k); }
+      porExec[k].cards.push(c);
+    });
+    var linhasEx=ordemEx.map(function(k){ var x=porExec[k]; x.ind=acIndice(x.cards); x.K=acIndContar(x.cards); return x; })
+      .sort(function(a,b){ return (b.ind-a.ind) || (b.cards.length-a.cards.length) || a.nome.localeCompare(b.nome,'pt-BR'); });
+    var legenda='<div class="aci-legenda">'+et.map(function(e){ return '<span class="'+(acIndFoco(e.cod)?'':'aci-esmaecido')+'" style="--c:'+e.cor+'"><i></i>'+acEsc(e.rot)+'</span>'; }).join('')+'</div>';
+    var desemp='<section class="aci-bloco"><h3 class="aci-tit">Desempenho por executivo</h3>'
+      +'<div class="aci-nota"><b>Índice</b> = avanço médio da carteira: Cadastro 0 · Contato Iniciado 1 · Em Prospecção 2 · Prospectado 3, dividido por 3 e levado a 100. <b>100</b> = tudo na meta; <b>0</b> = tudo parado no cadastro.</div>'
+      +legenda
+      +'<div class="aci-exec-tab">'
+      +'<div class="aci-exec-cab"><span>Executivo</span><span>Distribuição da carteira</span><span>Ações</span><span>% na meta</span><span>Índice</span></div>'
+      +linhasEx.map(function(x){
+        var tot=x.cards.length, eu=(acFiltroExec && acNorm(x.nome)===acNorm(acFiltroExec));
+        var nM=x.K.por[meta.cod].length;
+        return '<div class="aci-exec'+(eu?' aci-exec-eu':'')+'">'
+          +'<span class="aci-exec-nome">'+acEsc(x.nome)+'</span>'
+          +'<span class="aci-pilha" role="img" aria-label="'+acEsc(x.nome)+': '+et.map(function(e){ return e.rot+' '+x.K.por[e.cod].length; }).join(', ')+'">'
+            +et.map(function(e){ var n=x.K.por[e.cod].length; if(!n) return '';
+              return '<i class="'+(acIndFoco(e.cod)?'':'aci-esmaecido')+'" style="--c:'+e.cor+';flex-grow:'+n+'" tabindex="0" data-ind-tip="'+acEsc(x.nome)+' · '+acEsc(e.rot)+': '+n+' ('+acPct(n,tot)+'%)"></i>'; }).join('')
+          +'</span>'
+          +'<span class="aci-exec-num">'+tot+'</span>'
+          +'<span class="aci-exec-num">'+acPct(nM,tot)+'%</span>'
+          +'<span class="aci-exec-ind"><b>'+x.ind+'</b><i><u style="width:'+x.ind+'%"></u></i></span>'
+        +'</div>';
+      }).join('')
+      +'</div></section>';
+
+    /* ── (4) TABELA: nome + status de cada ação — é também a leitura sem cor ── */
+    var ordem={}; et.forEach(function(e,i){ ordem[e.cod]=i; });
+    var linhasT=base.filter(function(c){ return acIndFoco(acEtapaDoCard(c)); })
+      .sort(function(a,b){ return (ordem[acEtapaDoCard(b)]-ordem[acEtapaDoCard(a)]) || ((b.ts||0)-(a.ts||0)); });
+    var tabela='<section class="aci-bloco"><h3 class="aci-tit">Todas as ações'+(focoTxt?' — '+acEsc(focoTxt):'')+' <span class="aci-cont">'+linhasT.length+'</span></h3>'
+      +'<div class="aci-tabela" role="table">'
+      +'<div class="aci-t-cab" role="row"><span>Ação</span><span>Status</span><span>Executivo</span><span>Criada em</span></div>'
+      +linhasT.map(function(c){
+        var e=et[ordem[acEtapaDoCard(c)]];
+        return '<button type="button" class="aci-t-linha" role="row" data-ac-abrir="'+acEsc(c.id)+'">'
+          +'<span class="aci-t-nome">'+acEsc(c.tit)+'</span>'
+          +'<span class="aci-t-st" style="--c:'+e.cor+'"><i class="aci-pto"></i>'+acEsc(e.cod===AC_SEM_STATUS?'Sem status':e.rot)+'</span>'
+          +'<span>'+acEsc(acExecDoCard(c)||'—')+'</span>'
+          +'<span class="aci-t-data">'+acEsc((acData(c.ts)||'').slice(0,10))+'</span>'
+        +'</button>';
+      }).join('')
+      +'</div></section>';
+
+    return cab+kpis+jornada+funil+desemp+tabela;
+  }
+
+  /* dica flutuante dos gráficos — uma só, reaproveitada; some ao sair do alvo */
+  (function(){
+    var tip=null;
+    function mostrar(el, x, y){
+      if(!tip){ tip=document.createElement('div'); tip.className='aci-tip'; document.body.appendChild(tip); }
+      tip.textContent=el.getAttribute('data-ind-tip'); tip.style.display='block';
+      var w=tip.offsetWidth, h=tip.offsetHeight, vw=document.documentElement.clientWidth;
+      tip.style.left=Math.max(8, Math.min(vw-w-8, x-w/2))+'px';
+      tip.style.top=Math.max(8, y-h-12)+'px';
+    }
+    function esconder(){ if(tip) tip.style.display='none'; }
+    document.addEventListener('mousemove', function(e){
+      var el=e.target && e.target.closest ? e.target.closest('[data-ind-tip]') : null;
+      if(!el){ esconder(); return; }
+      mostrar(el, e.clientX, e.clientY);
+    });
+    document.addEventListener('focusin', function(e){
+      var el=e.target && e.target.closest ? e.target.closest('[data-ind-tip]') : null;
+      if(!el){ esconder(); return; }
+      var r=el.getBoundingClientRect(); mostrar(el, r.left+r.width/2, r.top);
+    });
+    document.addEventListener('scroll', esconder, true);
+  })();
+
   function acHtmlLista(){
     var todos=acCardsVivos(), u=acUsuario();
     var cards=todos.filter(acPassaFiltros);   /* (·450) */
@@ -31053,7 +31422,10 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       : '';
 
     return '<div class="ac-head">'
-      +'<div><h2 class="ac-title">📣 Ações Comerciais'+busca+acHtmlFiltros()+'</h2>'
+      /* (·453) botão Indicadores logo depois dos filtros, onde o Nando marcou —
+         azul do 📧 Alertas (mesmas cores do .ocp-mailcfg-btn) */
+      +'<div><h2 class="ac-title">📣 Ações Comerciais'+busca+acHtmlFiltros()
+        +'<button type="button" class="ac-ind-btn" id="acIndBtn" title="Ver os indicadores: jornada, funil e desempenho por executivo">📊 Indicadores</button></h2>'
       /* (·450) com filtro, o subtítulo diz "3 de 12": o número sozinho faria
          parecer que os outros nove tópicos sumiram do livro */
       +'<div class="ac-sub">Livro de bordo comercial — '+(acFiltrando()?(cards.length+' de '+todos.length):todos.length)+' tópico'+((acFiltrando()?todos.length:cards.length)===1?'':'s')+(acFiltrando()?' <span class="ac-sub-filtro">· filtrado</span>':'')+(u?'':' · <b style="color:#ff9a9a">faça login para publicar</b>')+'</div></div>'
@@ -31192,6 +31564,10 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
 
     /* (·401) a lupa abre e fecha a busca. Ao fechar, limpa o termo: deixar uma
        busca ativa escondida faria a lista parecer que perdeu tópicos. */
+    if(e.target.closest('#acIndBtn')){ acIndic=true; acBuscaAberta=false; acBuscaTxt=''; window.renderAcoes(); try{ window.scrollTo(0,0); }catch(er){} return; }
+    if(e.target.closest('#acIndVoltar')){ acIndic=false; window.renderAcoes(); return; }
+    var ix=e.target.closest('[data-ind-expandir]');
+    if(ix){ var k=ix.getAttribute('data-ind-expandir'); acIndExpand[k]=!acIndExpand[k]; window.renderAcoes(); return; }
     if(e.target.closest('#acFiltroLimpar') || e.target.closest('#acFiltroLimpar2')){
       acFiltroStatus=''; acFiltroExec=''; window.renderAcoes(); return;
     }
