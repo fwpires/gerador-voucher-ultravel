@@ -1805,6 +1805,24 @@ button.mr-chip:hover{ transform:scale(1.18); }
   background:#fffaf0; border:1px solid rgba(90,74,48,.28); border-bottom:none;
   max-height:150px; overflow-y:auto; }
 .mr-emoji-ins[hidden]{ display:none; }
+/* (·449) painel de caracteres especiais — grade quadrada como a do Google
+   Docs do print, com abas por assunto no topo */
+.nota-toolbar.mr-toolbar .mr-simb-ins-btn{ font-size:15px; font-weight:700; padding:0 7px; }
+.nota-toolbar.mr-toolbar .mr-simb-ins-btn.on{ background:#fff; border-color:#d8a53a; box-shadow:0 0 0 2px rgba(216,165,58,.25); }
+.mr-simb-ins{ background:#fffaf0; border:1px solid rgba(90,74,48,.28); border-bottom:none; padding:6px 7px 7px; }
+.mr-simb-ins[hidden]{ display:none; }
+.mr-simb-abas{ display:flex; flex-wrap:wrap; gap:4px; margin-bottom:6px; }
+.mr-simb-aba{ cursor:pointer; font-family:inherit; font-size:11px; font-weight:700; color:#5a4a30;
+  padding:3px 9px; border-radius:999px; background:transparent; border:1px solid rgba(90,74,48,.25); }
+.mr-simb-aba:hover{ background:#fff; }
+.mr-simb-aba.on{ background:#8a5f2d; border-color:#8a5f2d; color:#fff; }
+.mr-simb-grade{ display:grid; grid-template-columns:repeat(auto-fill, minmax(30px, 1fr)); gap:2px;
+  max-height:132px; overflow-y:auto; }
+.mr-simb-grade[hidden]{ display:none; }
+.mr-simb-op{ cursor:pointer; font-family:'Segoe UI Symbol','Noto Sans Symbols 2','DejaVu Sans',inherit;
+  font-size:16px; line-height:1; height:30px; padding:0; color:#241d12;
+  background:#fffdf8; border:1px solid rgba(90,74,48,.18); border-radius:5px; }
+.mr-simb-op:hover{ background:#fff; border-color:#8a5f2d; }
 /* o recado formatado no bilhete: sem o pre-wrap do texto puro (HTML tem as
    próprias quebras) e com recuo de lista que caiba num post-it estreito */
 .mr-post-txt.mr-rico{ white-space:normal; min-height:0; max-height:none; overflow:visible; cursor:auto; }
@@ -5694,7 +5712,26 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 448; // (·448) FORMATAÇÃO DE TEXTO + EMOJI NO CORPO DOS RECADOS DO MURAL.
+var UV_BUILD_NUM = 449; // (·449) CARACTERES ESPECIAIS NA BARRA DO MURAL (botão Ω). Pedido do Nando
+// com o print do "Inserir caracteres especiais" do Google Docs: "seta pra direita, pra esquerda, pra
+// cima, pra baixo e etc.".
+// ⚠️ NÃO É O CATÁLOGO INTEIRO DO GOOGLE: lá são milhares de caracteres com busca; num recado de 400
+// letras isso é peso sem uso. Ficaram ~150 que alguém da agência realmente escreve num aviso, em
+// cinco abas — Setas (primeira, porque foi o exemplo do pedido), Marcadores, Matemática, Moeda e
+// texto, Diversos.
+// ⚠️ SÓ CARACTERES DE TEXTO, NUNCA EMOJI COLORIDO: eles herdam a cor e o negrito do texto em volta.
+// Um "→" em vermelho sai vermelho; um "➡️" de emoji sairia sempre azul, ignorando a cor da barra.
+// ⚠️ "R$" é o único item de DOIS caracteres, de propósito: é a moeda que esta agência mais escreve
+// e não tem tecla própria.
+// ⚠️ MESMA MECÂNICA DO PAINEL DE EMOJI (·448): abre por classe, troca de aba por classe, insere com
+// insertText (entra no Ctrl+Z e herda a formatação do cursor) — nenhum desses gestos redesenha o
+// mural, que apagaria o que a pessoa escreveu. E UM PAINEL DE CADA VEZ: abrir símbolos fecha o de
+// emoji e vice-versa — dois abertos empurrariam o texto para fora da vista.
+// VALIDAÇÃO: test_mural_formatacao.mjs subiu de 42 para 52 checagens. 3 SABOTAGENS, todas pegas
+// (não fechar o outro painel, deixar os símbolos roubarem o foco, trocar de aba redesenhando). A
+// terceira derrubava o teste com pilha de erro em vez de falha legível — o clique inalcançável
+// agora vira uma linha que diz o que aconteceu. ANTERIOR: FORMATAÇÃO DE TEXTO + EMOJI NO CORPO DOS
+// RECADOS DO MURAL.
 // Pedido do Nando: a barra do Diretório → Notas dentro de cada recado, SÓ com negrito, itálico,
 // sublinhado, cor, marca-texto, lista com marcadores e lista numerada ("as demais não precisa") —
 // e um botão de emojis como o das Ações Comerciais.
@@ -25555,6 +25592,38 @@ var MR_CORES=[
      riscado e "limpar formatação" do Diretório ficaram de fora por pedido
      explícito ("as demais não precisa adicionar"). Os ids seguem a convenção
      do motor: prefixo + id original, para o abrirPopoverCor achar as amostras. */
+  /* (·449) CARACTERES ESPECIAIS — pedido do Nando com o print do "Inserir
+     caracteres especiais" do Google Docs (Símbolo ▸ Setas). O de lá tem
+     MILHARES de caracteres e uma busca; num recado de 400 letras isso é
+     peso sem uso. Aqui ficam os que alguém da agência realmente digita num
+     aviso — setas primeiro, porque foi o exemplo dele — separados em abas.
+     ⚠ SÓ CARACTERES DE TEXTO, não emojis coloridos: eles herdam a cor e o
+     negrito do texto em volta. Um "→" vermelho sai vermelho; um "➡️" de
+     emoji sairia sempre azul, ignorando a cor escolhida na barra.
+     ⚠ "R$" é o único item de dois caracteres, de propósito: é o símbolo de
+     moeda que esta agência mais escreve e o teclado não tem uma tecla só. */
+  var MR_SIMBOLOS=[
+    {id:'setas', nome:'Setas', itens:['→','←','↑','↓','↔','↕','↗','↘','↖','↙','⇒','⇐','⇑','⇓','⇔','⇕','➔','➜','➝','➞','⟶','⟵','⟷','⇄','⇆','⇅','↩','↪','↺','↻','⤴','⤵','↠','↞','⇢','⇠','▶','◀','▲','▼','►','◄']},
+    {id:'marc', nome:'Marcadores', itens:['•','◦','▪','▫','■','□','●','○','◆','◇','◉','◎','★','☆','✓','✔','✗','✘','☐','☑','☒','➤','➢','✦','✧','❖','‣','⁃','※','§','¶','†']},
+    {id:'mat', nome:'Matemática', itens:['±','×','÷','≠','≈','≤','≥','∞','√','∑','∆','π','µ','%','‰','°','½','¼','¾','¹','²','³','−','∙','≡','∴','∵','∝']},
+    {id:'moeda', nome:'Moeda e texto', itens:['R$','$','€','£','¥','¢','©','®','™','…','—','–','«','»','“','”','‘','’','¡','¿','№','℃','ª','º']},
+    {id:'div', nome:'Diversos', itens:['✈','☀','☁','☂','☎','✉','⌛','⌚','⚠','⚑','⚐','♥','♦','♣','♠','☺','☻','✂','✎','✏','☛','☞','♪','♫']}
+  ];
+  function mrSimbolosHtml(){
+    return '<div class="mr-simb-ins" id="mrSimbIns" hidden>'
+      +'<div class="mr-simb-abas">'+MR_SIMBOLOS.map(function(g,i){
+          return '<button type="button" class="mr-simb-aba'+(i===0?' on':'')+'" data-mr-simb-cat="'+g.id+'">'+mrEsc(g.nome)+'</button>';
+        }).join('')+'</div>'
+      /* todas as abas nascem desenhadas e só UMA fica visível: trocar de aba é
+         trocar uma classe, nunca redesenhar — o mesmo cuidado do painel de
+         emojis, para não apagar o que a pessoa escreveu */
+      +MR_SIMBOLOS.map(function(g,i){
+          return '<div class="mr-simb-grade" data-mr-simb-grade="'+g.id+'"'+(i===0?'':' hidden')+'>'+g.itens.map(function(c){
+            return '<button type="button" class="mr-simb-op" data-mr-simb-put="'+mrEsc(c)+'" title="Inserir '+mrEsc(c)+'">'+mrEsc(c)+'</button>';
+          }).join('')+'</div>';
+        }).join('')
+    +'</div>';
+  }
   function mrToolbarHtml(){
     return '<div class="nota-toolbar mr-toolbar" id="mrToolbar">'
       +'<button type="button" title="Negrito" data-mr-cmd="bold" style="font-weight:800">B</button>'
@@ -25568,7 +25637,9 @@ var MR_CORES=[
       +'<button type="button" title="Lista numerada" data-mr-cmd="insertOrderedList">1.</button>'
       +'<span class="ntb-sep"></span>'
       +'<button type="button" class="mr-emoji-ins-btn" title="Inserir emoji no texto" data-mr-emoji-ins="1">😊</button>'
+      +'<button type="button" class="mr-simb-ins-btn" title="Inserir símbolo / caractere especial (setas, marcadores…)" data-mr-simb-ins="1">Ω</button>'
     +'</div>'
+    +mrSimbolosHtml()
     /* o painel nasce ESCONDIDO e abre/fecha por classe, sem redesenhar o
        mural: um mrRender() aqui apagaria o que a pessoa já escreveu */
     +'<div class="mr-emoji-ins" id="mrEmojiIns" hidden>'+mrEmojis().map(function(em){
@@ -25579,6 +25650,10 @@ var MR_CORES=[
      basta o focusin: se a pessoa abre o formulário, fica no título e clica
      direto em "B", o editável ativo ainda seria o do Diretório (escondido em
      outra tela) — e o negrito iria parar numa nota que ela nem está vendo. */
+  function mrFecharPainel(id, sel){
+    var p=document.getElementById(id); if(p) p.hidden=true;
+    var b=document.querySelector('#mrToolbar '+sel); if(b) b.classList.remove('on');
+  }
   function mrMirarEditor(){
     var ed=document.getElementById('mrTxt'); if(!ed) return null;
     window.__notaEditorAtivo=ed; window.__ntbPrefixo='mr';
@@ -25767,7 +25842,34 @@ var MR_CORES=[
     if(e.target.closest('[data-mr-emoji-ins]')){
       var pn=document.getElementById('mrEmojiIns');
       if(pn){ pn.hidden=!pn.hidden; e.target.closest('[data-mr-emoji-ins]').classList.toggle('on', !pn.hidden); }
+      /* (·449) um painel de cada vez: dois abertos empurrariam o texto para
+         fora da vista num bilhete que já é estreito */
+      if(pn && !pn.hidden) mrFecharPainel('mrSimbIns','[data-mr-simb-ins]');
       return;
+    }
+    /* (·449) CARACTERES ESPECIAIS */
+    if(e.target.closest('[data-mr-simb-ins]')){
+      var ps=document.getElementById('mrSimbIns');
+      if(ps){ ps.hidden=!ps.hidden; e.target.closest('[data-mr-simb-ins]').classList.toggle('on', !ps.hidden); }
+      if(ps && !ps.hidden) mrFecharPainel('mrEmojiIns','[data-mr-emoji-ins]');
+      return;
+    }
+    var sa=e.target.closest('[data-mr-simb-cat]');
+    if(sa){
+      var cat=sa.getAttribute('data-mr-simb-cat'), caixaS=sa.closest('.mr-simb-ins');
+      if(caixaS){
+        caixaS.querySelectorAll('[data-mr-simb-cat]').forEach(function(b){ b.classList.toggle('on', b===sa); });
+        caixaS.querySelectorAll('[data-mr-simb-grade]').forEach(function(g){ g.hidden=(g.getAttribute('data-mr-simb-grade')!==cat); });
+      }
+      return;
+    }
+    var sp=e.target.closest('[data-mr-simb-put]');
+    if(sp){
+      var edS=mrMirarEditor(); if(!edS) return;
+      mrCursorNoEditor(edS);
+      /* mesmo caminho do emoji: entra no Ctrl+Z e herda cor/negrito do cursor */
+      try{ document.execCommand('insertText', false, sp.getAttribute('data-mr-simb-put')); }catch(x){}
+      return;   /* painel fica aberto: "→ → →" sem reabrir */
     }
     var ep=e.target.closest('[data-mr-emoji-put]');
     if(ep){
@@ -25868,7 +25970,7 @@ var MR_CORES=[
      Cancelar o mousedown mantém a seleção exatamente onde a pessoa a deixou.
      (O clique continua acontecendo normalmente; só o roubo de foco é evitado.) */
   document.addEventListener('mousedown', function(e){
-    if(e.target && e.target.closest && e.target.closest('#mrToolbar button, #mrEmojiIns button')) e.preventDefault();
+    if(e.target && e.target.closest && e.target.closest('#mrToolbar button, #mrEmojiIns button, #mrSimbIns button')) e.preventDefault();
   });
   /* registra o editor como alvo do motor ao receber foco — mesmo gesto do
      Minhas Tarefas (prefixo "mt") e das Notas (prefixo vazio) */
