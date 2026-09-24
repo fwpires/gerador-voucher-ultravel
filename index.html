@@ -5712,7 +5712,16 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 453; // (·453) PAINEL DE INDICADORES NAS AÇÕES COMERCIAIS. Pedido do Nando: um
+var UV_BUILD_NUM = 456; // (·456) O TEXTO DE DICA DO CAMPO DE NOVA AÇÃO: "Título do tópico (ex.:
+// Prospecção Wecann 2026)" → "Cadastre o Nome da Ação", pedido do Nando. Só o placeholder; o campo,
+// o limite de 180 caracteres e o que é gravado continuam iguais. ANTERIOR: BOTÃO "Indicadores" NO
+// ROXO DO 👥 USUÁRIOS (antes: azul do 📧
+// Alertas). Pedido do Nando. Fundo, borda e texto copiados LITERALMENTE de .ocp-users-btn, nos
+// dois temas; o teste compara com o botão Usuários de verdade na tela, não com números escritos
+// no teste. ANTERIOR: O BOTÃO "📊 Indicadores" VIROU SÓ "Indicadores" — pedido do Nando:
+// "remover o ícone ao lado do nome, deixar somente o nome". Só o texto do botão; o título DENTRO do
+// painel ("📊 Indicadores") não foi pedido e ficou. ANTERIOR: PAINEL DE INDICADORES NAS AÇÕES
+// COMERCIAIS. Pedido do Nando: um
 // botão "Indicadores" ao lado dos filtros, azul como o 📧 Alertas, que abre um painel para
 // "controlar e acompanhar a evolução dos contatos comerciais": cadastro (sem status) → ponto de
 // partida (Contato Iniciado) → meio (Em Prospecção) → meta (Prospectado); um desenho linear como
@@ -29920,11 +29929,15 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
    sessão) e acha que o livro tem só três tópicos */
 #scr-acoes .ac-filtro.on{border-color:#2ec7a5;color:#5fe0c0;background-color:rgba(46,199,165,.10)}
 #scr-acoes .ac-filtro option{background:#0F1923;color:#E6EEF3}
-/* ═══ (·453) BOTÃO INDICADORES — o azul do 📧 Alertas (.ocp-mailcfg-btn) ═══ */
-#scr-acoes .ac-ind-btn{margin-left:8px;height:30px;vertical-align:middle;background:rgba(18,176,255,.12);border:1px solid rgba(18,176,255,.4);
-  color:#7fd0ff;border-radius:9px;padding:0 12px;font-size:.8rem;font-weight:800;cursor:pointer;font-family:inherit;transition:all .15s}
-#scr-acoes .ac-ind-btn:hover{background:rgba(18,176,255,.22);border-color:#12b0ff}
-body:not(.dark) #scr-acoes .ac-ind-btn{background:#e6f5ff;border-color:#7cc8f5;color:#0a5f96}
+/* ═══ (·453) BOTÃO INDICADORES ═══
+   (·455) ROXO DO 👥 USUÁRIOS (.ocp-users-btn), pedido do Nando — antes era o
+   azul do 📧 Alertas. Os mesmos três valores de lá (fundo, borda e texto, e os
+   do tema claro), copiados literalmente: "a mesma cor" é a mesma cor, não um
+   roxo parecido. Forma e tamanho continuam os dos seletores ao lado. */
+#scr-acoes .ac-ind-btn{margin-left:8px;height:30px;vertical-align:middle;background:rgba(168,85,247,.14);border:1px solid rgba(168,85,247,.5);
+  color:#d8b4fe;border-radius:9px;padding:0 12px;font-size:.8rem;font-weight:800;cursor:pointer;font-family:inherit;transition:all .15s}
+#scr-acoes .ac-ind-btn:hover{background:rgba(168,85,247,.28);color:#ecd5ff}
+body:not(.dark) #scr-acoes .ac-ind-btn{background:#f3e8ff;border-color:#d0a8f5;color:#7e22ce}
 /* ═══ (·453) PAINEL DE INDICADORES ═══
    Tinta de texto nos textos, cor da etapa só nas marcas (bolinhas, barras,
    trilho) — o número nunca "veste" a cor da série. Grade e rótulos recessivos. */
@@ -31379,7 +31392,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     var cards=todos.filter(acPassaFiltros);   /* (·450) */
     var novo = acNovoAberto
       ? '<div class="ac-novo">'
-        +'<input type="text" id="acNovoTit" class="ac-inp" maxlength="180" placeholder="Título do tópico (ex.: Prospecção Wecann 2026)">'
+        +'<input type="text" id="acNovoTit" class="ac-inp" maxlength="180" placeholder="Cadastre o Nome da Ação">'
         +'<div class="ac-novo-acoes">'
         +'<button type="button" class="ac-btn ac-btn-ok" id="acNovoOk">Criar Ação</button>'
         +'<button type="button" class="ac-btn" id="acNovoCancel">Cancelar</button>'
@@ -31425,7 +31438,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       /* (·453) botão Indicadores logo depois dos filtros, onde o Nando marcou —
          azul do 📧 Alertas (mesmas cores do .ocp-mailcfg-btn) */
       +'<div><h2 class="ac-title">📣 Ações Comerciais'+busca+acHtmlFiltros()
-        +'<button type="button" class="ac-ind-btn" id="acIndBtn" title="Ver os indicadores: jornada, funil e desempenho por executivo">📊 Indicadores</button></h2>'
+        +'<button type="button" class="ac-ind-btn" id="acIndBtn" title="Ver os indicadores: jornada, funil e desempenho por executivo">Indicadores</button></h2>'
       /* (·450) com filtro, o subtítulo diz "3 de 12": o número sozinho faria
          parecer que os outros nove tópicos sumiram do livro */
       +'<div class="ac-sub">Livro de bordo comercial — '+(acFiltrando()?(cards.length+' de '+todos.length):todos.length)+' tópico'+((acFiltrando()?todos.length:cards.length)===1?'':'s')+(acFiltrando()?' <span class="ac-sub-filtro">· filtrado</span>':'')+(u?'':' · <b style="color:#ff9a9a">faça login para publicar</b>')+'</div></div>'
