@@ -5712,7 +5712,32 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 449; // (·449) CARACTERES ESPECIAIS NA BARRA DO MURAL (botão Ω). Pedido do Nando
+var UV_BUILD_NUM = 450; // (·450) FILTROS DE STATUS E EXECUTIVO NAS AÇÕES COMERCIAIS. Pedido do
+// Nando: dois seletores na lista — Status (Sem Status, Contato Iniciado, Em Prospecção,
+// Prospectado) e Executivo, "o nome da pessoa que criou o card".
+// ⚠️ EXECUTIVO É `c.autor` E SÓ ELE — quem criou o tópico, nunca quem escreveu por último. A linha
+// "Última: Hynaê Teston" no card é exatamente a armadilha: um filtro que olhasse a última mensagem
+// poria o card do Diego na lista da Hynaê. O teste monta esse caso de propósito.
+// ⚠️ "SEM STATUS" É UM VALOR DE VERDADE: pega o status vazio E um código que não existe mais (um
+// status renomeado no futuro). Um card nunca pode sumir de TODAS as opções do filtro.
+// ⚠️ NOMES NORMALIZADOS: "Hynaê" num PC e "Hynae" noutro viram UMA opção e casam entre si — a mesma
+// regra das listas de nomes desde o ·160.
+// ⚠️ AS OPÇÕES DE EXECUTIVO SAEM DE TODOS OS TÓPICOS, não dos filtrados: se saíssem da lista já
+// filtrada, escolher um status (ou um executivo) faria os outros nomes SUMIREM do seletor — e não
+// daria nem para trocar de executivo sem limpar antes.
+// ⚠️ ESTADO DE TELA, NÃO DE DADO: o filtro de uma pessoa não muda o que os outros onze veem. Vive
+// numa variável do módulo — sobrevive aos redesenhos da sincronização e zera ao recarregar — e
+// NUNCA vai para a nuvem (o teste confere).
+// ⚠️ O QUE MUDA NA TELA ALÉM DA LISTA: o subtítulo diz "2 de 12 · filtrado" (só "2" faria parecer
+// que dez tópicos sumiram); seletor ligado fica ACESO; aparece um ✕ para limpar; vazio por filtro
+// diz "nenhum tópico com esse filtro" em vez de "nenhum tópico ainda, crie o primeiro"; e a lupa
+// procura DENTRO do recorte filtrado.
+// ⚠️ NO CELULAR os seletores descem para uma linha própria dividindo a largura, com fonte de 16px —
+// abaixo disso o iPhone dá zoom sozinho ao tocar no campo.
+// VALIDAÇÃO: test_acoes_filtros.mjs, novo, em 26 checagens com um livro de casos de borda. 5
+// SABOTAGENS, todas pegas. Uma delas (opções saindo da lista filtrada) derrubava o teste com pilha
+// de erro em CASCATA — opção inexistente agora vira falha legível. ANTERIOR: CARACTERES ESPECIAIS
+// NA BARRA DO MURAL (botão Ω). Pedido do Nando
 // com o print do "Inserir caracteres especiais" do Google Docs: "seta pra direita, pra esquerda, pra
 // cima, pra baixo e etc.".
 // ⚠️ NÃO É O CATÁLOGO INTEIRO DO GOOGLE: lá são milhares de caracteres com busca; num recado de 400
@@ -29827,6 +29852,33 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
 #scr-acoes .ac-lupa,#scr-cartoes .ac-lupa{margin-left:10px;border:1px solid #243849;background:transparent;color:#7d93a5;font-size:.9rem;
   width:30px;height:30px;border-radius:9px;cursor:pointer;vertical-align:middle;transition:all .15s;padding:0}
 #scr-acoes .ac-lupa:hover,#scr-cartoes .ac-lupa:hover{border-color:#2ec7a5;color:#2ec7a5}
+/* (·450) FILTROS — na mesma linha do título, logo depois da lupa (onde o Nando
+   marcou). Mesma borda e mesmo raio da lupa: são controles da mesma família. */
+#scr-acoes .ac-filtros{display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px;margin-left:10px;vertical-align:middle}
+#scr-acoes .ac-filtro{height:30px;border:1px solid #243849;border-radius:9px;background:#0F1923;color:#c9d6df;
+  font-family:inherit;font-size:.8rem;font-weight:600;padding:0 26px 0 10px;cursor:pointer;outline:none;max-width:210px;
+  -webkit-appearance:none;appearance:none;
+  background-image:linear-gradient(45deg,transparent 50%,#7d93a5 50%),linear-gradient(135deg,#7d93a5 50%,transparent 50%);
+  background-position:calc(100% - 14px) 13px,calc(100% - 9px) 13px;background-size:5px 5px;background-repeat:no-repeat}
+#scr-acoes .ac-filtro:hover{border-color:#2ec7a5}
+#scr-acoes .ac-filtro:focus{border-color:#2ec7a5;box-shadow:0 0 0 2px rgba(46,199,165,.18)}
+/* filtro LIGADO fica aceso — senão alguém volta à tela no dia seguinte (mesma
+   sessão) e acha que o livro tem só três tópicos */
+#scr-acoes .ac-filtro.on{border-color:#2ec7a5;color:#5fe0c0;background-color:rgba(46,199,165,.10)}
+#scr-acoes .ac-filtro option{background:#0F1923;color:#E6EEF3}
+#scr-acoes .ac-filtro-x{height:30px;width:30px;border:1px solid #243849;border-radius:9px;background:transparent;color:#7d93a5;cursor:pointer;font-size:.8rem;padding:0}
+#scr-acoes .ac-filtro-x:hover{border-color:#ff8a8a;color:#ff8a8a}
+#scr-acoes .ac-sub-filtro{color:#5fe0c0;font-weight:700}
+body:not(.dark) #scr-acoes .ac-filtro{background-color:#fff;border-color:#dfe7ec;color:#15252F}
+body:not(.dark) #scr-acoes .ac-filtro option{background:#fff;color:#15252F}
+body:not(.dark) #scr-acoes .ac-filtro.on{border-color:#1a9c80;color:#0f6e5a;background-color:#e8f7f3}
+/* no celular os seletores descem para uma linha própria e dividem a largura;
+   16px de fonte porque abaixo disso o iPhone dá zoom sozinho ao tocar no campo */
+@media(max-width:980px){
+  #scr-acoes .ac-filtros{display:flex;width:100%;margin:8px 0 0}
+  #scr-acoes .ac-filtro{flex:1 1 0;min-width:0;max-width:none;height:38px;font-size:16px}
+  #scr-acoes .ac-filtro-x{height:38px;width:38px;flex:none}
+}
 #scr-acoes .ac-lupa.on,#scr-cartoes .ac-lupa.on{background:rgba(46,199,165,.16);border-color:#2ec7a5;color:#5fe0c0}
 /* (·438) A LUPA DOS CARTÕES USA AS MESMAS CLASSES DA DE AÇÕES COMERCIAIS —
    os seletores abaixo só ganharam `#scr-cartoes` ao lado de `#scr-acoes`, e
@@ -30715,6 +30767,68 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
      clicar em cima leva diretamente para dentro da mensagem". */
   var acBuscaAberta=false, acBuscaTxt='', acIrParaMsg='';
 
+  /* ═══════════ (·450) FILTROS: STATUS E EXECUTIVO ═══════════
+     Pedido do Nando: dois seletores na lista de tópicos — Status (Sem Status,
+     Contato Iniciado, Em Prospecção, Prospectado) e Executivo, que é SEMPRE
+     quem criou o card (`c.autor`), nunca quem escreveu por último.
+     ⚠ ESTADO DE TELA, não de dado: o filtro de uma pessoa não pode mudar o que
+     os outros onze veem, então ele vive só aqui e nunca vai para a nuvem. Fica
+     numa variável do módulo (sobrevive aos redesenhos da sincronização, que
+     acontecem a cada poucos segundos) e zera ao recarregar a página.
+     ⚠ "SEM STATUS" É UM VALOR DE VERDADE, não "todos": card sem status grava
+     `status` vazio OU um código que não existe mais (um status renomeado no
+     futuro). Os dois casos caem aqui — um card nunca pode sumir de TODAS as
+     opções do filtro. */
+  var acFiltroStatus='', acFiltroExec='';
+  var AC_SEM_STATUS='__sem__';
+  function acExecDoCard(c){ return (c && c.autor ? String(c.autor).trim() : ''); }
+  function acPassaFiltros(c){
+    if(acFiltroStatus){
+      var st=acStatusDef(c.status);
+      if(acFiltroStatus===AC_SEM_STATUS){ if(st) return false; }
+      else if(!st || st.cod!==acFiltroStatus) return false;
+    }
+    /* comparação NORMALIZADA: "Hynaê Teston" gravado num PC e "Hynae Teston"
+       noutro são a mesma pessoa — mesma regra das listas desde o ·160 */
+    if(acFiltroExec && acNorm(acExecDoCard(c))!==acNorm(acFiltroExec)) return false;
+    return true;
+  }
+  function acFiltrando(){ return !!(acFiltroStatus || acFiltroExec); }
+  /* as opções de Executivo saem de TODOS os tópicos vivos, e não só dos que
+     passam no filtro de status: se saíssem da lista filtrada, escolher um
+     status faria executivos sumirem do outro seletor — e a pessoa acharia que
+     aquele executivo não tem card nenhum. Um nome por pessoa (normalizado). */
+  function acExecutivos(){
+    var vistos={}, out=[];
+    acCardsVivos().forEach(function(c){
+      var n=acExecDoCard(c); if(!n) return;
+      var k=acNorm(n); if(vistos[k]) return; vistos[k]=1; out.push(n);
+    });
+    return out.sort(function(a,b){ return a.localeCompare(b,'pt-BR'); });
+  }
+  function acHtmlFiltros(){
+    var execs=acExecutivos();
+    /* um executivo escolhido que deixou de ter card (o card foi apagado em
+       outro PC) continua aparecendo como opção — senão o seletor mostraria
+       "Todos" enquanto a lista segue filtrada por ele, e a tela mentiria */
+    if(acFiltroExec && !execs.some(function(n){ return acNorm(n)===acNorm(acFiltroExec); })) execs.unshift(acFiltroExec);
+    var opSt='<option value="">Todos os status</option>'
+      +'<option value="'+AC_SEM_STATUS+'"'+(acFiltroStatus===AC_SEM_STATUS?' selected':'')+'>Sem Status</option>'
+      +AC_STATUS.map(function(s){ return '<option value="'+acEsc(s.cod)+'"'+(acFiltroStatus===s.cod?' selected':'')+'>'+acEsc(s.rot)+'</option>'; }).join('');
+    var opEx='<option value="">Todos os executivos</option>'
+      +execs.map(function(n){ return '<option value="'+acEsc(n)+'"'+(acNorm(acFiltroExec)===acNorm(n)&&acFiltroExec?' selected':'')+'>'+acEsc(n)+'</option>'; }).join('');
+    return '<span class="ac-filtros">'
+      +'<select id="acFiltroStatus" class="ac-filtro'+(acFiltroStatus?' on':'')+'" title="Filtrar por status" aria-label="Filtrar por status">'+opSt+'</select>'
+      +'<select id="acFiltroExec" class="ac-filtro'+(acFiltroExec?' on':'')+'" title="Filtrar por executivo (quem criou o tópico)" aria-label="Filtrar por executivo">'+opEx+'</select>'
+      +(acFiltrando()?'<button type="button" class="ac-filtro-x" id="acFiltroLimpar" title="Limpar filtros">✕</button>':'')
+      +'</span>';
+  }
+  document.addEventListener('change', function(e){
+    var t=e.target; if(!t || !t.id) return;
+    if(t.id==='acFiltroStatus'){ acFiltroStatus=t.value; window.renderAcoes(); }
+    else if(t.id==='acFiltroExec'){ acFiltroExec=t.value; window.renderAcoes(); }
+  });
+
   /* DOBRA acentos SEM MUDAR O TAMANHO da string.
      Para o "ção" precomposto de sempre, o caminho curto (normalize('NFD') +
      tirar os acentos) também preserva o tamanho — ali tanto faz. A diferença
@@ -30788,7 +30902,10 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
   function acProcurar(q){
     var termos=acTermos(q); if(!termos.length) return [];
     var hits=[];
-    acCardsVivos().forEach(function(c){
+    /* (·450) a busca procura DENTRO do que está filtrado: quem escolheu
+       "Diego · Prospectado" e digita um cliente quer achar o cliente naquele
+       recorte, não no livro inteiro */
+    acCardsVivos().filter(acPassaFiltros).forEach(function(c){
       var tituloBate = termos.every(function(t){ return acDobra(c.tit||'').indexOf(t)>=0; });
       var msgs=acMsgsVivas(c);
       msgs.forEach(function(m){
@@ -30831,7 +30948,8 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
   }
 
   function acHtmlLista(){
-    var cards=acCardsVivos(), u=acUsuario();
+    var todos=acCardsVivos(), u=acUsuario();
+    var cards=todos.filter(acPassaFiltros);   /* (·450) */
     var novo = acNovoAberto
       ? '<div class="ac-novo">'
         +'<input type="text" id="acNovoTit" class="ac-inp" maxlength="180" placeholder="Título do tópico (ex.: Prospecção Wecann 2026)">'
@@ -30856,7 +30974,12 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
         + (ult?'<div class="ac-card-ult">Última: <b>'+acEsc(ult.autor||'—')+'</b> — '+acEsc((ult.txt||'').slice(0,110))+((ult.txt||'').length>110?'…':'')+'</div>':'')
         + marc
         + '</button>';
-    }).join('') : '<div class="ac-vazio">Nenhum tópico ainda. Clique em <b>＋ Novo tópico</b> para abrir o primeiro registro da timeline.</div>';
+    }).join('') : (acFiltrando() && todos.length
+        /* (·450) vazio POR FILTRO é diferente de vazio de verdade: a mensagem
+           antiga ("nenhum tópico ainda, crie o primeiro") mentiria para quem
+           tem doze tópicos e só filtrou demais */
+        ? '<div class="ac-vazio">Nenhum tópico com esse filtro. <button type="button" class="ac-btn" id="acFiltroLimpar2">Limpar filtros</button></div>'
+        : '<div class="ac-vazio">Nenhum tópico ainda. Clique em <b>＋ Novo tópico</b> para abrir o primeiro registro da timeline.</div>');
 
     /* (·401) a lupa fica colada no título, onde o Nando marcou. Fechada, é só um
        ícone; aberta, vira o campo — abrir espaço permanente para uma barra de
@@ -30872,8 +30995,10 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       : '';
 
     return '<div class="ac-head">'
-      +'<div><h2 class="ac-title">📣 Ações Comerciais'+busca+'</h2>'
-      +'<div class="ac-sub">Livro de bordo comercial — '+cards.length+' tópico'+(cards.length===1?'':'s')+(u?'':' · <b style="color:#ff9a9a">faça login para publicar</b>')+'</div></div>'
+      +'<div><h2 class="ac-title">📣 Ações Comerciais'+busca+acHtmlFiltros()+'</h2>'
+      /* (·450) com filtro, o subtítulo diz "3 de 12": o número sozinho faria
+         parecer que os outros nove tópicos sumiram do livro */
+      +'<div class="ac-sub">Livro de bordo comercial — '+(acFiltrando()?(cards.length+' de '+todos.length):todos.length)+' tópico'+((acFiltrando()?todos.length:cards.length)===1?'':'s')+(acFiltrando()?' <span class="ac-sub-filtro">· filtrado</span>':'')+(u?'':' · <b style="color:#ff9a9a">faça login para publicar</b>')+'</div></div>'
       +(u?'<button type="button" class="ac-btn ac-btn-ok" id="acNovoBtn">＋ Novo tópico</button>':'')
       +'</div>'
       +barra
@@ -31003,6 +31128,9 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
 
     /* (·401) a lupa abre e fecha a busca. Ao fechar, limpa o termo: deixar uma
        busca ativa escondida faria a lista parecer que perdeu tópicos. */
+    if(e.target.closest('#acFiltroLimpar') || e.target.closest('#acFiltroLimpar2')){
+      acFiltroStatus=''; acFiltroExec=''; window.renderAcoes(); return;
+    }
     if(e.target.closest('#acLupa')){
       acBuscaAberta=!acBuscaAberta;
       if(!acBuscaAberta) acBuscaTxt='';
