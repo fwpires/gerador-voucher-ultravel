@@ -5712,7 +5712,28 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 450; // (·450) FILTROS DE STATUS E EXECUTIVO NAS AÇÕES COMERCIAIS. Pedido do
+var UV_BUILD_NUM = 452; // (·452) AÇÕES COMERCIAIS: "＋ Novo tópico" VIROU "＋ Ações" E "Criar
+// tópico" VIROU "Criar Ação". Pedido do Nando com os dois botões circulados. Só o TEXTO mudou —
+// ids, classes e dado gravado são os mesmos, então nada que procura esses botões deixa de achar.
+// A frase da lista vazia ("Clique em ＋ Novo tópico…") acompanhou: mandar alguém clicar num botão
+// com um nome que não existe mais na tela seria um defeito de texto. O subtítulo ("12 tópicos")
+// NÃO mudou, porque não foi pedido. ANTERIOR: FILTROS DAS AÇÕES COMERCIAIS: RÓTULOS NO SINGULAR E
+// SELETOR DE
+// STATUS NA COR DO STATUS. Pedido do Nando: "Todos os status" → "Status", "Todos os executivos" →
+// "Executivo"; e "quando selecionar o status, coloque da mesma cor correspondente — Contato
+// Iniciado laranja, Em Prospecção amarelo e assim por diante".
+// ⚠️ A COR VEM DE AC_STATUS, a MESMA tabela que acende o contorno LED dos cards. Mudar a cor de um
+// status amanhã muda os dois juntos — o filtro nunca fica de uma cor e o card de outra. O teste
+// compara com a cor do "● STATUS" desenhado no card real, não com um número escrito no teste.
+// "Sem Status" não tem cor na tabela e ganha um cinza neutro (#9FB0BD): é a ausência de status.
+// ⚠️ O FUNDO TINGIDO (14%) é calculado em JS como rgba, e não com color-mix() no CSS: color-mix só
+// chegou ao Safari 16.2, e um iPhone mais antigo mostraria o seletor sem fundo nenhum.
+// ⚠️ A REGRA NOVA VENCE O VERDE DO ·450 POR PESO (três classes + id), não por vir depois no arquivo
+// — lição de ordem do ·441/·443/·446. No TEMA CLARO o texto fica ESCURO: amarelo #FFD600 sobre
+// branco é ilegível; a cor do status fica na borda, no fundo e na setinha.
+// VALIDAÇÃO: test_acoes_filtros.mjs de 26 para 37 checagens. 4 SABOTAGENS, todas pegas (sem a
+// classe de cor, com peso menor, texto amarelo no tema claro, rótulo de volta ao plural).
+// ANTERIOR: FILTROS DE STATUS E EXECUTIVO NAS AÇÕES COMERCIAIS. Pedido do
 // Nando: dois seletores na lista — Status (Sem Status, Contato Iniciado, Em Prospecção,
 // Prospectado) e Executivo, "o nome da pessoa que criou o card".
 // ⚠️ EXECUTIVO É `c.autor` E SÓ ELE — quem criou o tópico, nunca quem escreveu por último. A linha
@@ -29866,12 +29887,23 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
    sessão) e acha que o livro tem só três tópicos */
 #scr-acoes .ac-filtro.on{border-color:#2ec7a5;color:#5fe0c0;background-color:rgba(46,199,165,.10)}
 #scr-acoes .ac-filtro option{background:#0F1923;color:#E6EEF3}
+/* (·451) status escolhido = cor do próprio status (laranja, amarelo, azul…).
+   ⚠ Três classes + id: vence o `.ac-filtro.on` verde por PESO, e não por vir
+   depois no arquivo — a lição de ordem do ·441/·443/·446. */
+#scr-acoes .ac-filtro.on.st-cor{border-color:var(--ac-st-cor);color:var(--ac-st-cor);
+  background-color:var(--ac-st-fundo);box-shadow:0 0 8px var(--ac-st-brilho);
+  background-image:linear-gradient(45deg,transparent 50%,var(--ac-st-cor) 50%),linear-gradient(135deg,var(--ac-st-cor) 50%,transparent 50%)}
 #scr-acoes .ac-filtro-x{height:30px;width:30px;border:1px solid #243849;border-radius:9px;background:transparent;color:#7d93a5;cursor:pointer;font-size:.8rem;padding:0}
 #scr-acoes .ac-filtro-x:hover{border-color:#ff8a8a;color:#ff8a8a}
 #scr-acoes .ac-sub-filtro{color:#5fe0c0;font-weight:700}
 body:not(.dark) #scr-acoes .ac-filtro{background-color:#fff;border-color:#dfe7ec;color:#15252F}
 body:not(.dark) #scr-acoes .ac-filtro option{background:#fff;color:#15252F}
 body:not(.dark) #scr-acoes .ac-filtro.on{border-color:#1a9c80;color:#0f6e5a;background-color:#e8f7f3}
+/* ⚠ no tema claro o TEXTO fica escuro: amarelo #FFD600 sobre fundo branco é
+   ilegível. A cor do status continua na borda, no fundo e na setinha. E precisa
+   do `body:not(.dark)` também, senão a regra verde acima (mais pesada) venceria. */
+body:not(.dark) #scr-acoes .ac-filtro.on.st-cor{border-color:var(--ac-st-cor);color:#15252F;
+  background-color:var(--ac-st-fundo);box-shadow:none}
 /* no celular os seletores descem para uma linha própria e dividem a largura;
    16px de fonte porque abaixo disso o iPhone dá zoom sozinho ao tocar no campo */
 @media(max-width:980px){
@@ -30806,19 +30838,45 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
     });
     return out.sort(function(a,b){ return a.localeCompare(b,'pt-BR'); });
   }
+  /* (·451) O SELETOR DE STATUS VESTE A COR DO STATUS ESCOLHIDO — pedido do
+     Nando: "Contato Iniciado fica laranja, Em Prospecção amarelo e assim por
+     diante". A cor vem de AC_STATUS, a MESMA tabela que acende o contorno LED
+     dos cards: mudar a cor de um status amanhã muda os dois juntos, e o filtro
+     nunca fica de uma cor e o card de outra.
+     "Sem Status" não tem cor na tabela — ganha um cinza neutro, porque é
+     justamente a ausência de status.
+     ⚠ O FUNDO É A MESMA COR EM 14%, calculado aqui em rgba, e não com
+     color-mix() no CSS: color-mix só chegou ao Safari 16.2, e um iPhone mais
+     antigo mostraria o seletor sem fundo nenhum. */
+  var AC_COR_SEM_STATUS='#9FB0BD';
+  function acHexRgba(hex, a){
+    var h=String(hex||'').replace('#','');
+    if(h.length===3) h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+    var n=parseInt(h,16); if(isNaN(n)) return 'transparent';
+    return 'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+','+a+')';
+  }
+  function acCorDoFiltroStatus(){
+    if(!acFiltroStatus) return '';
+    var st=acStatusDef(acFiltroStatus);
+    var cor = (acFiltroStatus===AC_SEM_STATUS) ? AC_COR_SEM_STATUS : (st ? st.cor : '');
+    if(!cor) return '';
+    return ' style="--ac-st-cor:'+cor+';--ac-st-fundo:'+acHexRgba(cor,.14)+';--ac-st-brilho:'+acHexRgba(cor,.35)+'"';
+  }
   function acHtmlFiltros(){
     var execs=acExecutivos();
     /* um executivo escolhido que deixou de ter card (o card foi apagado em
        outro PC) continua aparecendo como opção — senão o seletor mostraria
        "Todos" enquanto a lista segue filtrada por ele, e a tela mentiria */
     if(acFiltroExec && !execs.some(function(n){ return acNorm(n)===acNorm(acFiltroExec); })) execs.unshift(acFiltroExec);
-    var opSt='<option value="">Todos os status</option>'
+    /* (·451) rótulos no SINGULAR, pedido do Nando: "Status" e "Executivo". Com
+       nada escolhido, o próprio nome do seletor já diz o que ele filtra. */
+    var opSt='<option value="">Status</option>'
       +'<option value="'+AC_SEM_STATUS+'"'+(acFiltroStatus===AC_SEM_STATUS?' selected':'')+'>Sem Status</option>'
       +AC_STATUS.map(function(s){ return '<option value="'+acEsc(s.cod)+'"'+(acFiltroStatus===s.cod?' selected':'')+'>'+acEsc(s.rot)+'</option>'; }).join('');
-    var opEx='<option value="">Todos os executivos</option>'
+    var opEx='<option value="">Executivo</option>'
       +execs.map(function(n){ return '<option value="'+acEsc(n)+'"'+(acNorm(acFiltroExec)===acNorm(n)&&acFiltroExec?' selected':'')+'>'+acEsc(n)+'</option>'; }).join('');
     return '<span class="ac-filtros">'
-      +'<select id="acFiltroStatus" class="ac-filtro'+(acFiltroStatus?' on':'')+'" title="Filtrar por status" aria-label="Filtrar por status">'+opSt+'</select>'
+      +'<select id="acFiltroStatus" class="ac-filtro'+(acFiltroStatus?' on st-cor':'')+'"'+acCorDoFiltroStatus()+' title="Filtrar por status" aria-label="Filtrar por status">'+opSt+'</select>'
       +'<select id="acFiltroExec" class="ac-filtro'+(acFiltroExec?' on':'')+'" title="Filtrar por executivo (quem criou o tópico)" aria-label="Filtrar por executivo">'+opEx+'</select>'
       +(acFiltrando()?'<button type="button" class="ac-filtro-x" id="acFiltroLimpar" title="Limpar filtros">✕</button>':'')
       +'</span>';
@@ -30954,7 +31012,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       ? '<div class="ac-novo">'
         +'<input type="text" id="acNovoTit" class="ac-inp" maxlength="180" placeholder="Título do tópico (ex.: Prospecção Wecann 2026)">'
         +'<div class="ac-novo-acoes">'
-        +'<button type="button" class="ac-btn ac-btn-ok" id="acNovoOk">Criar tópico</button>'
+        +'<button type="button" class="ac-btn ac-btn-ok" id="acNovoOk">Criar Ação</button>'
         +'<button type="button" class="ac-btn" id="acNovoCancel">Cancelar</button>'
         +'</div></div>'
       : '';
@@ -30979,7 +31037,7 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
            antiga ("nenhum tópico ainda, crie o primeiro") mentiria para quem
            tem doze tópicos e só filtrou demais */
         ? '<div class="ac-vazio">Nenhum tópico com esse filtro. <button type="button" class="ac-btn" id="acFiltroLimpar2">Limpar filtros</button></div>'
-        : '<div class="ac-vazio">Nenhum tópico ainda. Clique em <b>＋ Novo tópico</b> para abrir o primeiro registro da timeline.</div>');
+        : '<div class="ac-vazio">Nenhum tópico ainda. Clique em <b>＋ Ações</b> para abrir o primeiro registro da timeline.</div>');
 
     /* (·401) a lupa fica colada no título, onde o Nando marcou. Fechada, é só um
        ícone; aberta, vira o campo — abrir espaço permanente para uma barra de
@@ -30999,7 +31057,13 @@ body:not(.dark) #scr-acoes .ac-card,body:not(.dark) #scr-acoes .ac-thread-card{b
       /* (·450) com filtro, o subtítulo diz "3 de 12": o número sozinho faria
          parecer que os outros nove tópicos sumiram do livro */
       +'<div class="ac-sub">Livro de bordo comercial — '+(acFiltrando()?(cards.length+' de '+todos.length):todos.length)+' tópico'+((acFiltrando()?todos.length:cards.length)===1?'':'s')+(acFiltrando()?' <span class="ac-sub-filtro">· filtrado</span>':'')+(u?'':' · <b style="color:#ff9a9a">faça login para publicar</b>')+'</div></div>'
-      +(u?'<button type="button" class="ac-btn ac-btn-ok" id="acNovoBtn">＋ Novo tópico</button>':'')
+      /* (·452) "＋ Novo tópico" → "＋ Ações" e "Criar tópico" → "Criar Ação", pedido
+         do Nando. Só o TEXTO dos botões mudou: ids, classes e o dado gravado são
+         os mesmos, e o subtítulo ("12 tópicos") ficou como estava, porque não
+         foi pedido. A frase do vazio acompanha o botão novo — mandar a pessoa
+         clicar em "Novo tópico" num botão que agora diz "Ações" seria procurar
+         um botão que não existe mais. */
+      +(u?'<button type="button" class="ac-btn ac-btn-ok" id="acNovoBtn">＋ Ações</button>':'')
       +'</div>'
       +barra
       /* (·402) A LISTA SÓ SAI DA TELA QUANDO HÁ TERMO DIGITADO. No ·401 abrir a
