@@ -5654,6 +5654,38 @@ async function reenviarPendentes(pendentes){
    Continua havendo uma cópia no worker.js (o servidor não lê o index) e o
    teste compara as duas, falhando se alguém mexer numa e esquecer da outra. */
 var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston'];
+/* ═══ (·457) ACESSO SÓ AO VOUCHER — pedido do Nando para a Letícia Rosa: "ela só
+   pode visualizar no login dela o Gerador de Voucher e os Vouchers Salvos".
+   Escolha dele entre três caminhos: TRAVA POR NOME (ela é cadastrada como
+   Atendente comum), sem mexer no servidor. Para restringir outra pessoa no
+   futuro, é acrescentar o nome aqui.
+   ⚠ CASA PELO NOME COMPLETO OU PELO LOGIN, normalizados (acento, caixa,
+   espaço) — e NUNCA pelo primeiro nome sozinho: "Letícia" solta prenderia
+   qualquer outra Letícia que entrar na equipe. Os logins são os que o Nando
+   digitou no cadastro (e-mail e apelido).
+   ⚠⚠ O QUE ESTA TRAVA É, E O QUE NÃO É: ela esconde o menu e impede de ABRIR
+   qualquer outra tela (toda navegação passa por hubGoScreen, que desvia para o
+   Gerador). Ela NÃO impede o servidor de mandar os dados das outras pastas para
+   o navegador dela — isso exigiria o servidor filtrar por usuário. Registrado
+   com o Nando antes de fazer: para alguém da equipe, basta; para alguém de
+   fora, o próximo passo é a proteção no servidor. */
+var UV_SO_VOUCHER=['Letícia Rosa'];
+var UV_SO_VOUCHER_LOGINS=['leticia.rosa@ultravel.com.br','leticia'];
+var UV_SO_VOUCHER_TELAS={gerador:1, vouchers:1};
+window.uvSoVoucher=function(){
+  function n(x){ return (x||'').toString().trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' '); }
+  var nome='', login='';
+  try{ nome=n(typeof window.uvAuthNome==='function'?window.uvAuthNome():''); }catch(e){}
+  try{ login=n(typeof window.uvAuthUsuario==='function'?window.uvAuthUsuario():''); }catch(e){}
+  if(!nome && !login) return false;
+  for(var i=0;i<UV_SO_VOUCHER.length;i++){ if(nome && n(UV_SO_VOUCHER[i])===nome) return true; }
+  for(var j=0;j<UV_SO_VOUCHER_LOGINS.length;j++){ if(login && n(UV_SO_VOUCHER_LOGINS[j])===login) return true; }
+  return false;
+};
+window.uvTelaPermitida=function(scr){
+  try{ if(window.uvSoVoucher()) return !!UV_SO_VOUCHER_TELAS[scr]; }catch(e){}
+  return true;
+};
 (function(){
   /* Partículas portuguesas não identificam ninguém: "Diego de Oliveira" e
      "Diego Oliveira" são a MESMA pessoa, e foi exatamente isso que barrou o
@@ -5712,7 +5744,22 @@ var UV_DIRETORIA=['Fernando Pires','Diego Oliveira','Ana Maria','Hynaê Teston']
   };
 })();
 
-var UV_BUILD_NUM = 456; // (·456) O TEXTO DE DICA DO CAMPO DE NOVA AÇÃO: "Título do tópico (ex.:
+var UV_BUILD_NUM = 457; // (·457) ACESSO SÓ AO VOUCHER PARA A LETÍCIA ROSA. Pedido do Nando: "ela só
+// pode visualizar no login dela o Gerador de Voucher e os Vouchers Salvos". Caminho escolhido por
+// ele: TRAVA POR NOME (UV_SO_VOUCHER, logo abaixo da UV_DIRETORIA), com ela cadastrada como
+// Atendente — só publicar o index.html, sem deploy do servidor.
+// ⚠️ DUAS CAMADAS: (1) o MENU esconde tudo que não seja Gerador/Vouchers Salvos (classe no body,
+// com !important para nenhuma outra regra de permissão ou do acordeão reabrir um item); (2) o
+// PORTÃO em hubGoScreen desvia QUALQUER destino proibido para o Gerador — menu, logo do topo, boot
+// com a última tela salva, botão interno. Esconder só o menu deixaria os outros caminhos abertos.
+// ⚠️ CASA pelo nome completo OU pelo login (e-mail/apelido), normalizados — nunca pelo primeiro
+// nome sozinho, que prenderia qualquer outra Letícia no futuro.
+// ⚠️⚠️ LIMITE COMBINADO COM O NANDO ANTES DE FAZER: a trava é de TELA. O servidor continua mandando
+// para o navegador dela os mesmos dados que manda para todos; alguém com conhecimento técnico
+// veria pelas ferramentas do navegador. Proteção de verdade = servidor filtrar por usuário.
+// ⚠️ ORDEM COMBINADA: publicar esta build ANTES de entregar a senha a ela — cadastrada antes da
+// trava, ela veria o Hub inteiro. ANTERIOR: O TEXTO DE DICA DO CAMPO DE NOVA AÇÃO: "Título do
+// tópico (ex.:
 // Prospecção Wecann 2026)" → "Cadastre o Nome da Ação", pedido do Nando. Só o placeholder; o campo,
 // o limite de 180 caracteres e o que é gravado continuam iguais. ANTERIOR: BOTÃO "Indicadores" NO
 // ROXO DO 👥 USUÁRIOS (antes: azul do 📧
@@ -15552,6 +15599,12 @@ init();
   }catch(e){}
 
   window.hubGoScreen=function(scr){
+    /* (·457) PORTÃO DAS TELAS: para quem só pode ver o voucher, qualquer destino
+       fora do Gerador e dos Vouchers Salvos vira o Gerador. Fica AQUI, na
+       entrada, porque todo caminho de navegação passa por esta função — menu,
+       logo do topo, boot com a última tela salva, botão interno, desvio de
+       permissão. Esconder só o menu deixaria esses outros caminhos abertos. */
+    try{ if(typeof window.uvTelaPermitida==='function' && !window.uvTelaPermitida(scr)) scr='gerador'; }catch(e){}
     // Minhas Tarefas: TRANCA automaticamente ao navegar para qualquer outra tela —
     // ninguém sai da sala deixando a gaveta aberta (·109)
     if(scr!=='tarefas'){ try{ if(typeof window.mtTrancar==='function') window.mtTrancar(true); }catch(e){} }
@@ -15903,6 +15956,19 @@ init();
   function aplicarIdentidadeNaTela(){
     var nome=(typeof uvAuthNome==='function') ? uvAuthNome() : '';
     var perfil=(typeof uvAuthPerfil==='function') ? uvAuthPerfil() : '';
+    /* (·457) ACESSO SÓ AO VOUCHER: a classe no <body> esconde o resto do menu, e
+       se a tela aberta agora for proibida (sessão ressincronizada no meio do
+       uso, ou a última tela salva de outra pessoa neste mesmo PC), sai dela na
+       hora. Este ponto roda no boot E a cada ressincronização da sessão. */
+    try{
+      var soV=(typeof window.uvSoVoucher==='function') && window.uvSoVoucher();
+      document.body.classList.toggle('uv-so-voucher', !!soV);
+      if(soV){
+        var at=document.querySelector('#hubSidebar .nav-item.active');
+        var scrAt=at?at.getAttribute('data-screen'):'';
+        if(!scrAt || !window.uvTelaPermitida(scrAt)) window.hubGoScreen('gerador');
+      }
+    }catch(e){}
     var quemSou=document.getElementById('uvLogoutQuemSou');
     if(quemSou) quemSou.textContent = nome ? ('Sair ('+nome.split(' ')[0]+')') : 'Sair';
     /* (·305) Time Insights no menu — some para quem não pode ver. Mesma regra
@@ -29929,6 +29995,13 @@ body:not(.dark) #scr-timeinsights .ti-ta{background:#fff;border-color:#dfe7ec;co
    sessão) e acha que o livro tem só três tópicos */
 #scr-acoes .ac-filtro.on{border-color:#2ec7a5;color:#5fe0c0;background-color:rgba(46,199,165,.10)}
 #scr-acoes .ac-filtro option{background:#0F1923;color:#E6EEF3}
+/* ═══ (·457) ACESSO SÓ AO VOUCHER — menu com Gerador e Vouchers Salvos, e nada mais.
+   `!important` DE PROPÓSITO: outras regras do menu mostram e escondem itens por
+   permissão (Insights, Backup) e pelo acordeão do celular; nenhuma delas pode
+   reabrir um item para quem está travado. */
+body.uv-so-voucher #hubSidebar .nav-item:not([data-screen="gerador"]):not([data-screen="vouchers"]){display:none!important}
+body.uv-so-voucher #hubSidebar [data-tree-body]:not([data-tree-body="gerador"]){display:none!important}
+body.uv-so-voucher #hubSidebar .nav-cat{display:none!important}
 /* ═══ (·453) BOTÃO INDICADORES ═══
    (·455) ROXO DO 👥 USUÁRIOS (.ocp-users-btn), pedido do Nando — antes era o
    azul do 📧 Alertas. Os mesmos três valores de lá (fundo, borda e texto, e os
