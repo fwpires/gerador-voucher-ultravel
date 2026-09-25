@@ -4397,7 +4397,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
           <button class="nav-item nav-sub" data-screen="csdi"><span>🕎 Imersão CSDI</span></button>
           <button class="nav-item nav-sub nav-add" data-screen="addgrupo"><span>＋ Adicionar grupo</span></button>
         </div>
-        <!-- (·458) LICITAÇÃO — logo depois de Grupos, visível só para a diretoria e a Maria Eduarda -->
+        <!-- (·458) LICITAÇÃO — logo depois de Grupos · (·459) visível para todos, menos quem tem acesso só ao voucher -->
         <button class="nav-item uv-auth-hidden" id="navLicitacao" data-screen="licitacao"><span class="nav-ic">🏛️</span><span>Licitação</span></button>
       </nav>
     </aside>
@@ -5691,7 +5691,7 @@ window.uvSoVoucher=function(){
 };
 window.uvTelaPermitida=function(scr){
   try{ if(window.uvSoVoucher()) return !!UV_SO_VOUCHER_TELAS[scr]; }catch(e){}
-  /* (·458) Licitação: só diretoria e Maria Eduarda. Esconder o item do menu
+  /* (·458) Licitação: portão próprio (·459: todos, menos quem só vê o voucher). Esconder o item do menu
      não basta — o boot com a última tela salva e o hubGoScreen por código
      abririam a pasta do mesmo jeito. */
   if(scr==='licitacao'){ try{ return typeof window.licPodeVer==='function' && window.licPodeVer()===true; }catch(e){ return false; } }
@@ -5755,7 +5755,12 @@ window.uvTelaPermitida=function(scr){
   };
 })();
 
-var UV_BUILD_NUM = 458; // (·458) NOVA PASTA "LICITAÇÃO" — ESPELHO DA PLANILHA DE COTAÇÃO DO AIRTABLE.
+var UV_BUILD_NUM = 461; // (·461) LICITAÇÃO: SINAL + PÁGINA DO PROCESSO COM DEMANDAS. Bolinha na coluna # (ao lado do ⤢) com menu Sem cor/Verde/Amarelo/Vermelho (campo f.sinal, união campo a campo). Clicar em qualquer ponto da linha abre a PÁGINA do processo (resumo + Demandas): ＋ Adicionar demanda (Passagem aérea ou Hotel; trecho/nome do hotel em fonte grande de título) e, em cada demanda, ＋ Adicionar pessoas (nome, nascimento, CPF com máscara e dígito verificador). r.dem entra na união (licMergeDem — sem isso a união apagava as demandas). Redesenho de fora não apaga formulário aberto. ⤢ e 'Editar dados do processo' seguem abrindo o formulário de dados. ANTERIOR: (·460) LICITAÇÃO: GRADE PROTEGIDA. Pedido do Nando: todas as colunas bloqueadas na página principal — clicar numa célula não edita, sem ＋ de anexar nem arrastar arquivo na grade; documento aberto pela grade abre só para ver (sem Remover). Editar SÓ abrindo o processo no ⤢ (formulário mantém tudo: campos, opções coloridas, anexos, remover, excluir). Aviso 🔒 no topo. ANTERIOR: (·459) PASTA LICITAÇÃO ABERTA A TODOS, MENOS À LETÍCIA ROSA. Pedido do
+// Nando, trocando a regra do ·458 (só diretoria + Maria Eduarda). A exceção reaproveita a trava do
+// ·457 (uvSoVoucher) em vez de criar outra lista com o nome dela — uma segunda cópia do mesmo fato
+// ficaria para trás no dia em que a trava do voucher mudar. O portão em hubGoScreen continua: para
+// ela, tela salva ou navegação por código continuam caindo no Gerador. ANTERIOR: NOVA PASTA
+// "LICITAÇÃO" — ESPELHO DA PLANILHA DE COTAÇÃO DO AIRTABLE.
 // Pedido do Nando: pasta no menu logo depois de Grupos, replicando a "Planilha de Cotação –
 // Processos" com as 20 colunas, tudo editável; Status (Aprovado verde, Revogado amarelo, Recusado
 // vermelho), Prioridade (Finalizado verde, Cancelado amarelo, Perdido vermelho) e Participação
@@ -40815,16 +40820,17 @@ var WD_ESCALA=[
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#d7e3ea;text-align:left;vertical-align:middle;background:#0f1a24}
 #scr-licitacao .lic-t thead th{position:sticky;top:0;z-index:3;background:#132230;color:#b9c9d4;font-weight:700;font-size:.76rem}
 #scr-licitacao .lic-t .lic-c0{position:sticky;left:0;z-index:2;text-align:center;color:#6f8797;padding:0 4px}
-#scr-licitacao .lic-t .lic-c1{position:sticky;left:52px;z-index:2;font-weight:700;color:#E6EEF3;box-shadow:2px 0 0 #1f3140}
+#scr-licitacao .lic-t .lic-c1{position:sticky;left:78px;z-index:2;font-weight:700;color:#E6EEF3;box-shadow:2px 0 0 #1f3140}
 #scr-licitacao .lic-t thead .lic-c0,#scr-licitacao .lic-t thead .lic-c1{z-index:4}
 #scr-licitacao .lic-t tbody tr:hover td{background:#132230}
-#scr-licitacao .lic-t td.lic-ed{cursor:text}
-#scr-licitacao .lic-t td.lic-ed:hover{box-shadow:inset 0 0 0 1px #2c4a60}
+/* (·460) a grade é SÓ LEITURA: nada de cursor de texto nem moldura de edição */
+#scr-licitacao .lic-t td.lic-trava{cursor:default}
+#scr-licitacao .lic-cadeado{display:inline-block;margin-left:6px;color:#8fa6b5;font-size:.72rem}
 #scr-licitacao .lic-t td.lic-editando{padding:0;box-shadow:inset 0 0 0 2px #12B0FF}
 #scr-licitacao .lic-t td.lic-editando input{width:100%;height:34px;box-sizing:border-box;border:0;outline:none;background:#0b141c;color:#fff;font-family:inherit;font-size:.82rem;padding:0 9px}
 #scr-licitacao .lic-vazia{color:#4d6474}
 #scr-licitacao .lic-num{display:flex;align-items:center;justify-content:center;gap:2px}
-#scr-licitacao .lic-exp{border:0;background:none;color:#5e7a8c;cursor:pointer;font-size:.8rem;padding:2px 3px;border-radius:5px}
+#scr-licitacao .lic-exp{border:0;background:none;color:#12B0FF;cursor:pointer;font-size:.9rem;font-weight:700;padding:2px 4px;border-radius:5px}
 #scr-licitacao .lic-exp:hover{color:#12B0FF;background:#15222d}
 /* selos das colunas de seleção */
 .lic-pill{display:inline-block;padding:2px 10px;border-radius:99px;font-size:.74rem;font-weight:700;line-height:1.5;background:var(--pf);color:var(--pt);border:1px solid var(--pb)}
@@ -40896,8 +40902,73 @@ var WD_ESCALA=[
 .lic-imp-log{max-height:260px;overflow:auto;background:#0b141c;border:1px solid #1f3140;border-radius:8px;padding:8px 10px;font-size:.78rem;line-height:1.5;color:#b9c9d4;white-space:pre-wrap}
 .lic-imp-barra{height:8px;background:#1b2b38;border-radius:99px;overflow:hidden;margin:8px 0}
 .lic-imp-barra i{display:block;height:100%;width:0;background:#12B0FF;transition:width .2s}
+/* (·461) SINAL (bolinha verde/amarelo/vermelho) + PÁGINA DO PROCESSO com DEMANDAS */
+#scr-licitacao .lic-t tbody tr{cursor:pointer}
+#scr-licitacao .lic-num{gap:5px}
+.lic-bola{flex:none;width:13px;height:13px;border-radius:50%;padding:0;cursor:pointer;border:2px dashed #3c566a;background:transparent;display:inline-block;vertical-align:middle;box-sizing:border-box}
+.lic-bola:hover{border-color:#8fa6b5}
+.lic-bola.on{border:2px solid rgba(255,255,255,.28);background:var(--bc);box-shadow:0 0 6px var(--bc)}
+.lic-pg-tit .lic-bola{width:18px;height:18px}
+#licBolaMenu{position:fixed;z-index:8600;background:#0f1a24;border:1px solid #2b4153;border-radius:10px;padding:5px;display:flex;flex-direction:column;gap:2px;box-shadow:0 10px 30px rgba(0,0,0,.5);min-width:130px}
+#licBolaMenu button{display:flex;align-items:center;gap:9px;border:0;background:none;color:#d7e3ea;font-family:inherit;font-size:.8rem;padding:7px 10px;border-radius:7px;cursor:pointer;text-align:left}
+#licBolaMenu button:hover,#licBolaMenu button.on{background:#15222d}
+#licBolaMenu button.on{font-weight:700}
+#licBolaMenu i{width:12px;height:12px;border-radius:50%;background:var(--bc);flex:none;box-sizing:border-box}
+#licBolaMenu i.vazia{background:transparent;border:2px dashed #3c566a}
+.lic-pg{max-width:1100px}
+.lic-pg-topo{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:16px}
+.lic-pg-topo .lic-esp{flex:1}
+.lic-pg-cab{background:#0d1720;border:1px solid #1f3140;border-radius:14px;padding:16px 18px;margin-bottom:18px}
+.lic-pg-tit{margin:0;font-size:1.35rem;font-weight:800;color:#E6EEF3;display:flex;align-items:center;gap:10px;word-break:break-word}
+.lic-pg-org{color:#8CA3B3;font-size:.86rem;margin-top:4px}
+.lic-pg-resumo{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.lic-pg-chip{display:inline-flex;align-items:center;gap:6px;font-size:.76rem;color:#b9c9d4;background:#0f1a24;border:1px solid #1f3140;border-radius:99px;padding:3px 10px}
+.lic-pg-chip b{color:#6f8797;font-weight:600}
+.lic-dem-cab{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+.lic-dem-cab h3{margin:0;font-size:1.05rem;color:#E6EEF3}
+.lic-dem-cab h3 span{color:#6f8797;font-weight:600;font-size:.85rem}
+.lic-dem-vazio{padding:26px 16px;text-align:center;color:#8CA3B3;border:1px dashed #2b4153;border-radius:12px;font-size:.86rem}
+.lic-dem{border:1px solid #1f3140;background:#0d1720;border-radius:14px;padding:14px 16px;margin-bottom:12px}
+.lic-dem-topo{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.lic-dem-tit{font-size:1.3rem;font-weight:800;color:#E6EEF3;display:flex;align-items:center;gap:10px;min-width:0;word-break:break-word;line-height:1.3}
+.lic-dem-acoes{display:flex;align-items:center;gap:6px;flex:none}
+.lic-dem-tipo{font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;padding:3px 9px;border-radius:99px;white-space:nowrap}
+.lic-dem-tipo.t-aereo{background:rgba(18,176,255,.14);color:#5cc8ff;border:1px solid rgba(18,176,255,.4)}
+.lic-dem-tipo.t-hotel{background:rgba(245,166,35,.14);color:#f5b95a;border:1px solid rgba(245,166,35,.4)}
+.lic-mini{border:1px solid #243849;background:#0f1a24;color:#9fb3c2;border-radius:7px;width:30px;height:30px;cursor:pointer;font-size:.85rem;padding:0}
+.lic-mini:hover{color:#fff;border-color:#12B0FF}
+.lic-mini-x:hover{border-color:#d93030;color:#ff9a9a}
+.lic-pes{margin-top:12px;border-top:1px solid #1a2a37;padding-top:10px}
+.lic-pes-cab{font-size:.72rem;font-weight:700;color:#6f8797;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.lic-pes-linha{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,.9fr) minmax(0,1fr) auto;gap:10px;align-items:center;padding:6px 10px;border-radius:8px;background:#0f1a24;border:1px solid #1a2a37;margin-bottom:5px;font-size:.82rem;color:#d7e3ea}
+.lic-pes-nome{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lic-pes-dado{color:#9fb3c2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lic-pes-dado b{color:#6f8797;font-weight:600;font-size:.72rem;margin-right:3px}
+.lic-pes-linha .lic-mini{width:26px;height:26px;font-size:.75rem}
+.lic-pes-bts{display:flex;gap:4px}
+.lic-pes-add{border:1px dashed #2b4153;background:none;color:#8fd8ff;border-radius:8px;padding:6px 12px;cursor:pointer;font-family:inherit;font-size:.78rem;font-weight:700;margin-top:4px}
+.lic-pes-add:hover{border-color:#12B0FF;color:#fff}
+.lic-pg-form{background:#0b141c;border:1px solid #12B0FF;border-radius:12px;padding:12px;margin:8px 0;display:flex;flex-direction:column;gap:10px}
+.lic-pg-form label{font-size:.72rem;font-weight:700;color:#8CA3B3;display:flex;flex-direction:column;gap:4px;min-width:0}
+.lic-pg-form input{width:100%;box-sizing:border-box;background:#0f1a24;border:1px solid #243849;border-radius:8px;color:#fff;font-family:inherit;font-size:.9rem;padding:8px 10px;outline:none;height:38px}
+.lic-pg-form input:focus{border-color:#12B0FF}
+.lic-pg-form input.lic-grande{font-size:1.1rem;font-weight:700}
+.lic-pes-campos{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,.9fr) minmax(0,1fr);gap:10px}
+.lic-tipos{display:flex;gap:8px;flex-wrap:wrap}
+.lic-tipo{border:1px solid #243849;background:#0f1a24;color:#b9c9d4;border-radius:9px;padding:8px 14px;cursor:pointer;font-family:inherit;font-weight:700;font-size:.84rem}
+.lic-tipo.on{border-color:#12B0FF;background:rgba(18,176,255,.14);color:#fff}
+.lic-form-msg{color:#ff8a8a;font-size:.78rem;min-height:0}
+.lic-form-msg:empty{display:none}
+.lic-form-bts{display:flex;justify-content:flex-end;gap:8px}
 /* tema claro */
 body:not(.dark) #scr-licitacao .lic-tit{color:#15252F}
+body:not(.dark) #scr-licitacao .lic-pg-cab,body:not(.dark) #scr-licitacao .lic-dem{background:#fff;border-color:#dfe7ec}
+body:not(.dark) #scr-licitacao .lic-pg-tit,body:not(.dark) #scr-licitacao .lic-dem-tit,body:not(.dark) #scr-licitacao .lic-dem-cab h3{color:#15252F}
+body:not(.dark) #scr-licitacao .lic-pg-chip,body:not(.dark) #scr-licitacao .lic-pes-linha,body:not(.dark) #scr-licitacao .lic-mini{background:#f6f9fb;border-color:#e0e8ed;color:#2b3d4a}
+body:not(.dark) #scr-licitacao .lic-pg-form{background:#f6f9fb}
+body:not(.dark) #scr-licitacao .lic-pg-form input,body:not(.dark) #scr-licitacao .lic-tipo{background:#fff;color:#15252F;border-color:#d5e0e7}
+body:not(.dark) #scr-licitacao .lic-tipo.on{background:rgba(18,176,255,.12);border-color:#12B0FF}
+body:not(.dark) #scr-licitacao .lic-pes-add{color:#0a5f96}
 body:not(.dark) #scr-licitacao .lic-grade{background:#fff;border-color:#dfe7ec}
 body:not(.dark) #scr-licitacao .lic-t th,body:not(.dark) #scr-licitacao .lic-t td{background:#fff;color:#2b3d4a;border-color:#e6edf1}
 body:not(.dark) #scr-licitacao .lic-t thead th{background:#f3f7f9;color:#4a5d6b}
@@ -40915,6 +40986,15 @@ body:not(.dark) .lic-link{color:#0a5f96}
   .lic-campo input,.lic-campo textarea{font-size:16px}
   .lic-viewer-palco{padding:0 6px}
   .lic-v-seta{width:36px;height:52px;font-size:1.5rem;background:rgba(0,0,0,.45)}
+  .lic-pes-linha{grid-template-columns:minmax(0,1fr) auto;gap:2px 8px}
+  .lic-pes-linha .lic-pes-nome{grid-column:1}
+  .lic-pes-linha .lic-pes-bts{grid-column:2;grid-row:1 / span 3;align-self:center}
+  .lic-pes-linha .lic-pes-dado{grid-column:1}
+  .lic-pes-campos{grid-template-columns:1fr}
+  .lic-pg-form input{font-size:16px;height:42px}
+  .lic-dem-topo{flex-direction:column}
+  .lic-dem-tit{font-size:1.15rem}
+  .lic-pg-topo .lic-btn{flex:1 1 auto}
 }
 </style>
 
@@ -40969,12 +41049,17 @@ body:not(.dark) .lic-link{color:#0a5f96}
     var tem={}; meu.forEach(function(t){ tem[t]=1; });
     return alvo.every(function(t){ return tem[t]; });
   }
+  /* (·459) ACESSO ABERTO A TODOS, MENOS À LETÍCIA ROSA — pedido do Nando, no
+     lugar da regra "diretoria + Maria Eduarda" do ·458. A exceção NÃO é uma
+     lista nova: é a MESMA trava de acesso-só-ao-voucher do ·457 (UV_SO_VOUCHER),
+     que já tira dela tudo que não seja Gerador e Vouchers Salvos. Uma lista
+     própria aqui seria a segunda cópia do mesmo nome — e no dia em que alguém
+     entrar ou sair da trava do voucher, esta pasta ficaria para trás.
+     licBate/LIC_EXTRA continuam no arquivo, sem uso, para o dia em que a pasta
+     voltar a ser restrita a um grupo de nomes. */
   window.licPodeVer=function(){
     try{ if(typeof window.uvSoVoucher==='function' && window.uvSoVoucher()) return false; }catch(e){}
-    try{ if(typeof window.uvSouDiretoria==='function' && window.uvSouDiretoria()) return true; }catch(e){}
-    var nome=''; try{ nome=(typeof window.uvAuthNome==='function'?window.uvAuthNome():'')||''; }catch(e){}
-    for(var i=0;i<LIC_EXTRA.length;i++){ if(licBate(nome, LIC_EXTRA[i])) return true; }
-    return false;
+    return true;
   };
 
   /* ---------------- colunas (mesma ordem da planilha) ---------------- */
@@ -41057,6 +41142,24 @@ body:not(.dark) .lic-link{color:#0a5f96}
   /* UNIÃO ENTRE PCs — campo a campo pelo carimbo, documento a documento pelo
      carimbo. Plugada nos DOIS pontos de sempre (carregar e salvar), senão o
      salvamento de um PC grava por cima do que o outro acabou de mudar. */
+  function licMergeDem(dx, dy){
+    dx=(dx&&typeof dx==='object')?dx:{}; dy=(dy&&typeof dy==='object')?dy:{};
+    var out={}, ks={};
+    Object.keys(dx).forEach(function(k){ ks[k]=1; }); Object.keys(dy).forEach(function(k){ ks[k]=1; });
+    Object.keys(ks).forEach(function(k){
+      var p=dx[k], q=dy[k];
+      if(!p || !q){ out[k]=JSON.parse(JSON.stringify(p||q)); return; }
+      var base=JSON.parse(JSON.stringify(((p.ts||0)>=(q.ts||0))?p:q)), px=p.pes||{}, qx=q.pes||{}, pk={};
+      base.pes={};
+      Object.keys(px).forEach(function(i){ pk[i]=1; }); Object.keys(qx).forEach(function(i){ pk[i]=1; });
+      Object.keys(pk).forEach(function(i){
+        var a=px[i], b=qx[i];
+        base.pes[i]=JSON.parse(JSON.stringify((a&&b)?(((a.ts||0)>=(b.ts||0))?a:b):(a||b)));
+      });
+      out[k]=base;
+    });
+    return out;
+  }
   window.licMergeMaps=function(a,b){
     var A=(a&&a.linhas&&typeof a.linhas==='object')?a.linhas:{}, B=(b&&b.linhas&&typeof b.linhas==='object')?b.linhas:{};
     var out={}, ids={};
@@ -41079,6 +41182,11 @@ body:not(.dark) .lic-link{color:#0a5f96}
         var p=dx[k], q=dy[k];
         r.docs[k]=JSON.parse(JSON.stringify((p&&q)?(((p.ts||0)>=(q.ts||0))?p:q):(p||q)));
       });
+      /* (·461) ⚠ DEMANDAS: esta função monta a linha campo a campo — o que não
+         for listado aqui SOME na união. Demanda a demanda pelo carimbo; as
+         pessoas de cada demanda, pessoa a pessoa (editar uma pessoa num PC e o
+         título da demanda no outro: os dois ficam). */
+      if(x.dem || y.dem) r.dem=licMergeDem(x.dem, y.dem);
       out[id]=r;
     });
     return { linhas:out };
@@ -41301,36 +41409,52 @@ body:not(.dark) .lic-link{color:#0a5f96}
   var licBusca='', licEditando=null;   /* {id, k} da célula em edição */
   function licCelula(r, c){
     var v=licVal(r, c.k), cls='', inner='';
-    if(c.t==='sel'){ inner=licPill(c.k, v); cls='lic-ed lic-sel'; }
-    else if(c.t==='data'){ inner=licEsc(licDataBR(v)); cls='lic-ed'; }
-    else if(c.t==='moeda'){ inner=licEsc(licMoeda(v)); cls='lic-ed'; }
-    else if(c.t==='link'){ inner=licLinkificar(v); cls='lic-ed'; }
+    /* (·460) GRADE PROTEGIDA: nenhuma célula é editável aqui (nem o ＋ de
+       anexar). Para mudar qualquer coisa, abre-se o processo pelo ⤢. As
+       miniaturas continuam abrindo o documento (só para ver) e os links do
+       edital continuam clicáveis. */
+    if(c.t==='sel'){ inner=licPill(c.k, v); cls='lic-trava lic-sel'; }
+    else if(c.t==='data'){ inner=licEsc(licDataBR(v)); cls='lic-trava'; }
+    else if(c.t==='moeda'){ inner=licEsc(licMoeda(v)); cls='lic-trava'; }
+    else if(c.t==='link'){ inner=licLinkificar(v); cls='lic-trava'; }
     else if(c.t==='docs'){
       var ds=licDocsVivos(r);
-      inner='<div class="lic-thumbs">'+ds.map(function(d){ return licThumbHtml(r, d, false); }).join('')
-        +'<button type="button" class="lic-th-mais" data-lic-anexar="'+licEsc(r.id)+'" title="Anexar documentos">＋</button></div>';
-      cls='lic-docs';
+      inner='<div class="lic-thumbs">'+ds.map(function(d){ return licThumbHtml(r, d, false); }).join('')+'</div>';
+      cls='lic-trava lic-docs';
     }
-    else { inner=licEsc(v); cls='lic-ed'; }
+    else { inner=licEsc(v); cls='lic-trava'; }
     return '<td class="'+cls+(c.k==='processo'?' lic-c1':'')+'" data-lic-cel="'+licEsc(r.id)+'|'+c.k+'" title="'+licEsc(c.t==='docs'?'':(c.t==='data'?licDataBR(v):c.t==='moeda'?licMoeda(v):v))+'">'+inner+'</td>';
   }
   function licFiltradas(){
     var todas=licVivas(), q=licNorm(licBusca); if(!q) return todas;
     var termos=q.split(' ');
     return todas.filter(function(r){
-      var txt=licNorm(LIC_COLS.map(function(c){ var v=licVal(r,c.k); return c.t==='moeda'?licMoeda(v):c.t==='data'?licDataBR(v):v; }).join(' ')+' '+licDocsVivos(r).map(function(d){ return d.nome; }).join(' '));
+      var txt=licNorm(LIC_COLS.map(function(c){ var v=licVal(r,c.k); return c.t==='moeda'?licMoeda(v):c.t==='data'?licDataBR(v):v; }).join(' ')+' '+licDocsVivos(r).map(function(d){ return d.nome; }).join(' ')
+        +' '+licDemVivas(r).map(function(d){ return d.titulo+' '+licPesVivas(d).map(function(x){ return x.nome; }).join(' '); }).join(' '));
       return termos.every(function(t){ return txt.indexOf(t)>=0; });
     });
   }
-  function licRender(){
+  function licRender(forcar){
     var w=document.getElementById('licWrap'); if(!w) return;
-    if(!window.licPodeVer()){ w.innerHTML='<div class="lic-vazio">Esta pasta é restrita à diretoria e à Maria Eduarda.</div>'; return; }
+    if(!window.licPodeVer()){ w.innerHTML='<div class="lic-vazio">Você não tem acesso a esta pasta.</div>'; return; }
+    /* (·461) com um processo aberto, a tela é a PÁGINA dele. Um redesenho que
+       vem de fora (outro PC salvou) não pode apagar o que está sendo digitado
+       num formulário de demanda/pessoa — só os redesenhos da própria página
+       (forcar) passam por cima. */
+    if(licPagina){
+      var rp=licStore().linhas[licPagina];
+      if(rp && !(rp.f && rp.f.__del)){
+        if(forcar!==true && document.querySelector('#licWrap .lic-pg-form')) return;
+        licRenderPagina(w, rp); return;
+      }
+      licPagina=''; licPgForm=null;
+    }
     /* uma célula em edição não pode ser atropelada por um redesenho */
     if(licEditando && document.querySelector('#licWrap td.lic-editando input')) return;
     var todas=licVivas(), linhas=licFiltradas();
     var foco=document.activeElement && document.activeElement.id==='licBusca';
     var cab='<div class="lic-cab"><div><h2 class="lic-tit">🏛️ Licitação</h2>'
-      +'<div class="lic-sub">Planilha de cotação — processos · '+todas.length+' processo'+(todas.length===1?'':'s')+(licBusca?' · '+linhas.length+' encontrado'+(linhas.length===1?'':'s'):'')+'</div></div>'
+      +'<div class="lic-sub">Planilha de cotação — processos · '+todas.length+' processo'+(todas.length===1?'':'s')+(licBusca?' · '+linhas.length+' encontrado'+(linhas.length===1?'':'s'):'')+'<span class="lic-cadeado" id="licAvisoTrava">🔒 Grade protegida — clique na linha para abrir o processo · ⤢ edita os dados</span></div></div>'
       +'<div class="lic-acoes"><input id="licBusca" class="lic-busca" placeholder="Procurar em todos os campos…" value="'+licEsc(licBusca)+'" autocomplete="off">'
       +'<button type="button" class="lic-btn" id="licImportar" title="Importar o CSV exportado do Airtable">Importar CSV</button>'
       +'<button type="button" class="lic-btn lic-btn-ok" id="licNovo">＋ Processo</button></div></div>';
@@ -41340,11 +41464,12 @@ body:not(.dark) .lic-link{color:#0a5f96}
         +'Ou comece do zero com <b>＋ Processo</b>.</div>';
       return;
     }
-    var colg='<colgroup><col style="width:52px">'+LIC_COLS.map(function(c){ return '<col style="width:'+c.w+'px">'; }).join('')+'</colgroup>';
+    var colg='<colgroup><col style="width:78px">'+LIC_COLS.map(function(c){ return '<col style="width:'+c.w+'px">'; }).join('')+'</colgroup>';
     var th='<thead><tr><th class="lic-c0">#</th>'+LIC_COLS.map(function(c){ return '<th class="'+(c.k==='processo'?'lic-c1':'')+'">'+licEsc(c.r)+'</th>'; }).join('')+'</tr></thead>';
     var tb='<tbody>'+linhas.map(function(r, i){
-      return '<tr data-lic-linha="'+licEsc(r.id)+'"><td class="lic-c0"><span class="lic-num">'+(i+1)
-        +'<button type="button" class="lic-exp" data-lic-abrir="'+licEsc(r.id)+'" title="Abrir o processo inteiro">⤢</button></span></td>'
+      return '<tr data-lic-linha="'+licEsc(r.id)+'" title="Clique para abrir o processo"><td class="lic-c0"><span class="lic-num">'+(i+1)
+        +licBolaHtml(r)
+        +'<button type="button" class="lic-exp" data-lic-abrir="'+licEsc(r.id)+'" title="Editar os dados do processo">⤢</button></span></td>'
         +LIC_COLS.map(function(c){ return licCelula(r,c); }).join('')+'</tr>';
     }).join('')+'</tbody>';
     w.innerHTML=cab+'<div class="lic-grade">'+'<table class="lic-t">'+colg+th+tb+'</table></div>'
@@ -41354,6 +41479,205 @@ body:not(.dark) .lic-link{color:#0a5f96}
     licPintarMiniaturas();
   }
   window.renderLicitacao=licRender;
+
+  /* ═════════ (·461) SINAL: bolinha verde / amarela / vermelha ═════════ */
+  var LIC_BOLAS=[{v:'',r:'Sem cor'},{v:'verde',r:'Verde',c:'#1f9d55'},{v:'amarelo',r:'Amarelo',c:'#f5c400'},{v:'vermelho',r:'Vermelho',c:'#d93030'}];
+  function licBolaDe(v){ for(var i=1;i<LIC_BOLAS.length;i++) if(LIC_BOLAS[i].v===v) return LIC_BOLAS[i]; return null; }
+  function licBolaHtml(r){
+    var o=licBolaDe(licVal(r,'sinal'));
+    return '<button type="button" class="lic-bola'+(o?' on':'')+'" data-lic-bola="'+licEsc(r.id)+'" data-cor="'+(o?o.v:'')+'"'
+      +(o?' style="--bc:'+o.c+'"':'')+' title="'+(o?'Sinal: '+o.r+' — clique para trocar':'Marcar com uma cor')+'"></button>';
+  }
+  function licFecharBola(){ var m=document.getElementById('licBolaMenu'); if(m) m.remove(); }
+  function licAbrirBola(btn, id){
+    licFecharBola();
+    var atual=licVal(licStore().linhas[id],'sinal'), m=document.createElement('div'); m.id='licBolaMenu';
+    m.innerHTML=LIC_BOLAS.map(function(o){
+      return '<button type="button" data-lic-bola-cor="'+licEsc(id)+'|'+o.v+'" class="'+(o.v===atual?'on':'')+'">'
+        +(o.v?'<i style="--bc:'+o.c+'"></i>':'<i class="vazia"></i>')+licEsc(o.r)+'</button>';
+    }).join('');
+    document.body.appendChild(m);
+    var b=btn.getBoundingClientRect(), mw=m.offsetWidth, mh=m.offsetHeight;
+    var x=Math.min(b.left, innerWidth-mw-8), y=b.bottom+4; if(y+mh>innerHeight-8) y=Math.max(8, b.top-mh-4);
+    m.style.left=Math.max(8,x)+'px'; m.style.top=y+'px';
+  }
+
+  /* ═════════ (·461) PÁGINA DO PROCESSO + DEMANDAS ═════════
+     Clicar em qualquer ponto da linha abre a página do processo. Nela ficam as
+     DEMANDAS (passagem aérea ou hotel — o trecho/nome do hotel aparece grande,
+     como título) e, dentro de cada demanda, as PESSOAS (nome, nascimento, CPF).
+     Dados: r.dem[id] = {id, tipo:'aereo'|'hotel', titulo, ord, ts, del, autor,
+                          pes:{id:{id, nome, nasc(AAAA-MM-DD), cpf(11 dígitos), ord, ts, del}}} */
+  var licPagina='', licPgForm=null;   /* {o:'dem'|'pes', dem, pes, tipo} */
+  var LIC_TIPOS={ aereo:{r:'Passagem aérea', ic:'✈️', ph:'Trecho aéreo — ex.: Florianópolis (FLN) → Brasília (BSB)'},
+                  hotel:{r:'Hotel', ic:'🏨', ph:'Nome do hotel — ex.: Hotel Nacional Brasília'} };
+  function licDemVivas(r){
+    var d=(r && r.dem && typeof r.dem==='object')?r.dem:{};
+    return Object.keys(d).map(function(k){ return d[k]; }).filter(function(x){ return x && !x.del && x.id; })
+      .sort(function(a,b){ return (a.ord||0)-(b.ord||0); });
+  }
+  function licPesVivas(d){
+    var p=(d && d.pes && typeof d.pes==='object')?d.pes:{};
+    return Object.keys(p).map(function(k){ return p[k]; }).filter(function(x){ return x && !x.del && x.id; })
+      .sort(function(a,b){ return (a.ord||0)-(b.ord||0); });
+  }
+  function licCpfDig(s){ return String(s||'').replace(/\D/g,'').slice(0,11); }
+  function licCpfFmt(s){
+    var d=licCpfDig(s);
+    if(d.length<=3) return d;
+    if(d.length<=6) return d.slice(0,3)+'.'+d.slice(3);
+    if(d.length<=9) return d.slice(0,3)+'.'+d.slice(3,6)+'.'+d.slice(6);
+    return d.slice(0,3)+'.'+d.slice(3,6)+'.'+d.slice(6,9)+'-'+d.slice(9);
+  }
+  function licCpfOk(s){
+    var d=licCpfDig(s); if(d.length!==11 || /^(\d)\1{10}$/.test(d)) return false;
+    for(var t=9;t<11;t++){ var soma=0; for(var i=0;i<t;i++) soma+=(+d[i])*(t+1-i); var dv=(soma*10)%11%10; if(dv!==+d[t]) return false; }
+    return true;
+  }
+  function licAbrirPagina(id){
+    licFecharBola(); licPagina=id; licPgForm=null; licRender(true);
+    try{ var w=document.getElementById('scr-licitacao'); if(w && w.scrollIntoView) w.scrollIntoView({block:'start'}); }catch(e){}
+  }
+  function licFormDemHtml(r, d){
+    var tipo=(licPgForm && licPgForm.tipo) || (d && d.tipo) || 'aereo', T=LIC_TIPOS[tipo];
+    return '<div class="lic-pg-form lic-dem-form" data-lic-form-dem="'+(d?licEsc(d.id):'')+'">'
+      +'<div class="lic-tipos">'+Object.keys(LIC_TIPOS).map(function(k){
+        return '<button type="button" class="lic-tipo'+(k===tipo?' on':'')+'" data-lic-tipo="'+k+'">'+LIC_TIPOS[k].ic+' '+LIC_TIPOS[k].r+'</button>'; }).join('')+'</div>'
+      +'<input id="licDemTitulo" class="lic-grande" maxlength="200" autocomplete="off" placeholder="'+licEsc(T.ph)+'" value="'+licEsc(d?d.titulo:'')+'">'
+      +'<div class="lic-form-msg" id="licDemMsg"></div>'
+      +'<div class="lic-form-bts"><button type="button" class="lic-btn" data-lic-pg-cancelar>Cancelar</button>'
+      +'<button type="button" class="lic-btn lic-btn-ok" data-lic-dem-salvar>'+(d?'Salvar':'Criar demanda')+'</button></div></div>';
+  }
+  function licFormPesHtml(d, p){
+    return '<div class="lic-pg-form lic-pes-form" data-lic-form-pes="'+licEsc(d.id)+'|'+(p?licEsc(p.id):'')+'">'
+      +'<div class="lic-pes-campos">'
+      +'<label>Nome completo<input id="licPesNome" maxlength="160" autocomplete="off" value="'+licEsc(p?p.nome:'')+'" placeholder="Como está no documento"></label>'
+      +'<label>Data de nascimento<input id="licPesNasc" type="date" value="'+licEsc(p?p.nasc:'')+'"></label>'
+      +'<label>CPF<input id="licPesCpf" inputmode="numeric" maxlength="14" autocomplete="off" placeholder="000.000.000-00" value="'+licEsc(p?licCpfFmt(p.cpf):'')+'"></label>'
+      +'</div><div class="lic-form-msg" id="licPesMsg"></div>'
+      +'<div class="lic-form-bts"><button type="button" class="lic-btn" data-lic-pg-cancelar>Cancelar</button>'
+      +'<button type="button" class="lic-btn lic-btn-ok" data-lic-pes-salvar>'+(p?'Salvar':'Adicionar')+'</button></div></div>';
+  }
+  function licRenderPagina(w, r){
+    var id=licEsc(r.id), F=licPgForm||{};
+    var chip=function(rot, html){ return html?'<span class="lic-pg-chip"><b>'+rot+'</b>'+html+'</span>':''; };
+    var envio=licVal(r,'envio')?licDataBR(licVal(r,'envio'))+(licVal(r,'horario')?' · '+licHora(licVal(r,'horario')):''):'';
+    var resumo=chip('Status', licVal(r,'status')?licPill('status',licVal(r,'status')):'')
+      +chip('Prioridade', licVal(r,'prioridade')?licPill('prioridade',licVal(r,'prioridade')):'')
+      +chip('Participação', licVal(r,'participacao')?licPill('participacao',licVal(r,'participacao')):'')
+      +chip('Valor do contrato', licVal(r,'valorContrato')!==''?licEsc(licMoeda(licVal(r,'valorContrato'))):'')
+      +chip('Envio', licEsc(envio))
+      +chip('Modalidade', licEsc(licVal(r,'modalidade')));
+    var dems=licDemVivas(r);
+    var lista=dems.map(function(d){
+      var T=LIC_TIPOS[d.tipo]||LIC_TIPOS.aereo, pes=licPesVivas(d);
+      var editandoDem = F.o==='dem' && F.dem===d.id;
+      var topo = editandoDem ? licFormDemHtml(r, d)
+        : '<div class="lic-dem-topo"><div class="lic-dem-tit"><span>'+T.ic+'</span><span class="lic-dem-nome">'+licEsc(d.titulo||'—')+'</span></div>'
+          +'<div class="lic-dem-acoes"><span class="lic-dem-tipo t-'+(d.tipo==='hotel'?'hotel':'aereo')+'">'+T.r+'</span>'
+          +'<button type="button" class="lic-mini" data-lic-dem-editar="'+licEsc(d.id)+'" title="Editar demanda">✎</button>'
+          +'<button type="button" class="lic-mini lic-mini-x" data-lic-dem-excluir="'+licEsc(d.id)+'" title="Excluir demanda">🗑</button></div></div>';
+      var linhas=pes.map(function(p){
+        if(F.o==='pes' && F.dem===d.id && F.pes===p.id) return licFormPesHtml(d, p);
+        return '<div class="lic-pes-linha" data-lic-pes="'+licEsc(d.id)+'|'+licEsc(p.id)+'">'
+          +'<span class="lic-pes-nome" title="'+licEsc(p.nome)+'">👤 '+licEsc(p.nome)+'</span>'
+          +'<span class="lic-pes-dado"><b>Nasc.</b>'+(p.nasc?licEsc(licDataBR(p.nasc)):'—')+'</span>'
+          +'<span class="lic-pes-dado"><b>CPF</b>'+(p.cpf?licEsc(licCpfFmt(p.cpf)):'—')+'</span>'
+          +'<span class="lic-pes-bts"><button type="button" class="lic-mini" data-lic-pes-editar="'+licEsc(d.id)+'|'+licEsc(p.id)+'" title="Editar pessoa">✎</button>'
+          +'<button type="button" class="lic-mini lic-mini-x" data-lic-pes-excluir="'+licEsc(d.id)+'|'+licEsc(p.id)+'" title="Remover pessoa">✕</button></span></div>';
+      }).join('');
+      var novaPes = (F.o==='pes' && F.dem===d.id && !F.pes) ? licFormPesHtml(d, null)
+        : '<button type="button" class="lic-pes-add" data-lic-pes-nova="'+licEsc(d.id)+'">＋ Adicionar pessoas</button>';
+      return '<div class="lic-dem" data-lic-dem="'+licEsc(d.id)+'">'+topo
+        +'<div class="lic-pes"><div class="lic-pes-cab">Pessoas · '+pes.length+'</div>'+linhas+novaPes+'</div></div>';
+    }).join('');
+    var novaDem = (F.o==='dem' && !F.dem) ? licFormDemHtml(r, null) : '';
+    w.innerHTML='<div class="lic-pg" data-lic-pg="'+id+'">'
+      +'<div class="lic-pg-topo"><button type="button" class="lic-btn" data-lic-voltar>← Voltar para a lista</button><span class="lic-esp"></span>'
+      +'<button type="button" class="lic-btn" data-lic-abrir="'+id+'">✏️ Editar dados do processo</button></div>'
+      +'<div class="lic-pg-cab"><h2 class="lic-pg-tit">'+licBolaHtml(r)+'<span>🏛️ '+licEsc(licVal(r,'processo')||'Processo sem número')+'</span></h2>'
+      +(licVal(r,'orgao')?'<div class="lic-pg-org">'+licEsc(licVal(r,'orgao'))+'</div>':'')
+      +(resumo?'<div class="lic-pg-resumo">'+resumo+'</div>':'')+'</div>'
+      +'<div class="lic-dem-cab"><h3>Demandas <span>· '+dems.length+'</span></h3>'
+      +'<button type="button" class="lic-btn lic-btn-ok" data-lic-dem-nova>＋ Adicionar demanda</button></div>'
+      +novaDem
+      +(dems.length?lista:(novaDem?'':'<div class="lic-dem-vazio">Nenhuma demanda neste processo ainda.<br>Use <b>＋ Adicionar demanda</b> para lançar uma passagem aérea ou um hotel.</div>'))
+      +'</div>';
+    var foco=document.querySelector('#licWrap .lic-pg-form input');
+    if(foco){ try{ foco.focus(); }catch(e){} }
+  }
+  function licPgMsg(idMsg, txt){ var m=document.getElementById(idMsg); if(m) m.textContent=txt; }
+  function licDemSalvar(){
+    var r=licStore().linhas[licPagina]; if(!r || !licPgForm) return;
+    var inp=document.getElementById('licDemTitulo'), titulo=(inp?inp.value:'').trim().replace(/\s+/g,' ');
+    if(!titulo){ licPgMsg('licDemMsg', licPgForm.tipo==='hotel'?'Escreva o nome do hotel.':'Escreva o trecho aéreo.'); if(inp) inp.focus(); return; }
+    if(!r.dem || typeof r.dem!=='object') r.dem={};
+    var t=licAgora(), tipo=licPgForm.tipo||'aereo';
+    if(licPgForm.dem && r.dem[licPgForm.dem]){ var d=r.dem[licPgForm.dem]; d.tipo=tipo; d.titulo=titulo; d.ts=t; }
+    else { var did=licId('dm'); r.dem[did]={ id:did, tipo:tipo, titulo:titulo, ord:t, ts:t, autor:licNome(), pes:{} }; }
+    licSalvar();
+    try{ if(typeof logRemoto==='function') logRemoto('licitacao','Demanda '+(licPgForm.dem?'editada':'criada')+': '+titulo+' ('+(licVal(r,'processo')||'—')+')',{area:'Licitação'}); }catch(x){}
+    licPgForm=null; licRender(true);
+  }
+  function licPesSalvar(){
+    var r=licStore().linhas[licPagina]; if(!r || !licPgForm) return;
+    var d=r.dem && r.dem[licPgForm.dem]; if(!d) return;
+    var nome=((document.getElementById('licPesNome')||{}).value||'').trim().replace(/\s+/g,' ');
+    var nasc=((document.getElementById('licPesNasc')||{}).value||'').trim();
+    var cpf=licCpfDig((document.getElementById('licPesCpf')||{}).value);
+    if(!nome){ licPgMsg('licPesMsg','Escreva o nome da pessoa.'); return; }
+    if(nasc){
+      var hoje=new Date(), iso=hoje.getFullYear()+'-'+String(hoje.getMonth()+1).padStart(2,'0')+'-'+String(hoje.getDate()).padStart(2,'0');
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(nasc) || nasc>iso || nasc<'1900-01-01'){ licPgMsg('licPesMsg','Data de nascimento inválida.'); return; }
+    }
+    if(cpf && !licCpfOk(cpf)){ licPgMsg('licPesMsg','CPF inválido — confira os números.'); return; }
+    if(!d.pes || typeof d.pes!=='object') d.pes={};
+    var t=licAgora();
+    if(licPgForm.pes && d.pes[licPgForm.pes]){ var p=d.pes[licPgForm.pes]; p.nome=nome; p.nasc=nasc; p.cpf=cpf; p.ts=t; }
+    else { var pid=licId('ps'); d.pes[pid]={ id:pid, nome:nome, nasc:nasc, cpf:cpf, ord:t, ts:t, por:licNome() }; }
+    licSalvar(); licPgForm=null; licRender(true);
+  }
+  function licPgClique(t){
+    var el, r=licStore().linhas[licPagina]; if(!r) return false;
+    if(t.closest('[data-lic-voltar]')){ licPagina=''; licPgForm=null; licRender(true); return true; }
+    if(t.closest('[data-lic-dem-nova]')){ licPgForm={o:'dem', dem:'', tipo:'aereo'}; licRender(true); return true; }
+    if((el=t.closest('[data-lic-tipo]'))){
+      if(!licPgForm) return true;
+      licPgForm.tipo=el.getAttribute('data-lic-tipo');
+      el.parentNode.querySelectorAll('.lic-tipo').forEach(function(b){ b.classList.toggle('on', b===el); });
+      var inp=document.getElementById('licDemTitulo'); if(inp){ inp.placeholder=LIC_TIPOS[licPgForm.tipo].ph; try{ inp.focus(); }catch(e){} }
+      licPgMsg('licDemMsg',''); return true;
+    }
+    if(t.closest('[data-lic-pg-cancelar]')){ licPgForm=null; licRender(true); return true; }
+    if(t.closest('[data-lic-dem-salvar]')){ licDemSalvar(); return true; }
+    if(t.closest('[data-lic-pes-salvar]')){ licPesSalvar(); return true; }
+    if((el=t.closest('[data-lic-dem-editar]'))){ var de=r.dem[el.getAttribute('data-lic-dem-editar')]; if(de){ licPgForm={o:'dem', dem:de.id, tipo:de.tipo||'aereo'}; licRender(true); } return true; }
+    if((el=t.closest('[data-lic-dem-excluir]'))){
+      var dx=r.dem[el.getAttribute('data-lic-dem-excluir')]; if(!dx) return true;
+      var np=licPesVivas(dx).length;
+      if(!window.confirm('Excluir a demanda "'+(dx.titulo||'')+'"'+(np?' e as '+np+' pessoa(s) dentro dela':'')+'?\n\nIsso vale para todos os computadores.')) return true;
+      dx.del=1; dx.ts=licAgora(); licSalvar(); licPgForm=null; licRender(true);
+      try{ if(typeof logRemoto==='function') logRemoto('licitacao','Demanda excluída: '+(dx.titulo||'')+' ('+(licVal(r,'processo')||'—')+')',{area:'Licitação'}); }catch(x){}
+      return true;
+    }
+    if((el=t.closest('[data-lic-pes-nova]'))){ licPgForm={o:'pes', dem:el.getAttribute('data-lic-pes-nova'), pes:''}; licRender(true); return true; }
+    if((el=t.closest('[data-lic-pes-editar]'))){ var pe=el.getAttribute('data-lic-pes-editar').split('|'); licPgForm={o:'pes', dem:pe[0], pes:pe[1]}; licRender(true); return true; }
+    if((el=t.closest('[data-lic-pes-excluir]'))){
+      var px=el.getAttribute('data-lic-pes-excluir').split('|'), dd=r.dem[px[0]], pp=dd&&dd.pes&&dd.pes[px[1]]; if(!pp) return true;
+      if(!window.confirm('Remover '+(pp.nome||'esta pessoa')+' da demanda "'+(dd.titulo||'')+'"?')) return true;
+      pp.del=1; pp.ts=licAgora(); licSalvar(); licRender(true); return true;
+    }
+    return false;
+  }
+  /* CPF com máscara enquanto digita; Enter salva e Esc cancela nos formulários da página */
+  document.addEventListener('input', function(e){
+    if(e.target && e.target.id==='licPesCpf'){ var f=licCpfFmt(e.target.value); if(f!==e.target.value) e.target.value=f; }
+  });
+  document.addEventListener('keydown', function(e){
+    var f=e.target && e.target.closest && e.target.closest('#licWrap .lic-pg-form'); if(!f) return;
+    if(e.key==='Enter'){ e.preventDefault(); if(f.classList.contains('lic-dem-form')) licDemSalvar(); else licPesSalvar(); }
+    else if(e.key==='Escape'){ e.preventDefault(); e.stopPropagation(); licPgForm=null; licRender(true); }
+  }, true);
 
   /* edição NA CÉLULA: texto, data, hora, moeda e link */
   function licEditarCelula(td, id, k){
@@ -41472,10 +41796,10 @@ body:not(.dark) .lic-link{color:#0a5f96}
   /* ---------------- visualizador ---------------- */
   var licVer=null;   /* {linha, idx} */
   function licFecharViewer(){ var v=document.getElementById('licViewer'); if(v) v.remove(); licVer=null; }
-  function licAbrirViewer(linhaId, docId){
+  function licAbrirViewer(linhaId, docId, soVer){
     var r=licStore().linhas[linhaId]; if(!r) return;
     var ds=licDocsVivos(r), idx=0; ds.forEach(function(d,i){ if(d.id===docId) idx=i; });
-    licVer={linha:linhaId, idx:idx}; licDesenharViewer();
+    licVer={linha:linhaId, idx:idx, ro:!!soVer}; licDesenharViewer();
   }
   function licDesenharViewer(){
     if(!licVer) return;
@@ -41485,7 +41809,7 @@ body:not(.dark) .lic-link{color:#0a5f96}
     var d=ds[licVer.idx], v=document.getElementById('licViewer');
     if(!v){ v=document.createElement('div'); v.id='licViewer'; v.className='lic-viewer'; document.body.appendChild(v); }
     v.innerHTML='<div class="lic-viewer-cab"><b>'+licEsc(d.nome||'documento')+'</b><span>'+(licVer.idx+1)+' / '+ds.length+'</span>'
-      +'<button type="button" data-lic-v-baixar>⬇ Baixar</button><button type="button" class="lic-v-rem" data-lic-v-remover>Remover</button>'
+      +'<button type="button" data-lic-v-baixar>⬇ Baixar</button>'+(licVer.ro?'':'<button type="button" class="lic-v-rem" data-lic-v-remover>Remover</button>')
       +'<button type="button" data-lic-v-fechar>✕ Fechar</button></div>'
       +'<div class="lic-viewer-palco">'+(ds.length>1?'<button type="button" class="lic-v-seta lic-v-ant" data-lic-v-ant>‹</button>':'')
       +'<div class="lic-carregando" id="licViewerCorpo">Abrindo…</div>'
@@ -41686,6 +42010,18 @@ body:not(.dark) .lic-link{color:#0a5f96}
   document.addEventListener('click', function(e){
     var t=e.target; if(!t || !t.closest) return;
     var el;
+    /* (·461) sinal: escolher a cor, abrir o menu, ou fechar clicando fora */
+    if((el=t.closest('[data-lic-bola-cor]'))){
+      var pb=el.getAttribute('data-lic-bola-cor').split('|');
+      if(String(licVal(licStore().linhas[pb[0]],'sinal'))!==pb[1]) licSet(pb[0], 'sinal', pb[1]);
+      licFecharBola(); licRender(true); return;
+    }
+    if((el=t.closest('[data-lic-bola]'))){
+      var ja=document.getElementById('licBolaMenu'), idb=el.getAttribute('data-lic-bola');
+      if(ja && ja.getAttribute('data-de')===idb){ licFecharBola(); return; }
+      licAbrirBola(el, idb); var mb=document.getElementById('licBolaMenu'); if(mb) mb.setAttribute('data-de', idb); return;
+    }
+    if(document.getElementById('licBolaMenu') && !t.closest('#licBolaMenu')) licFecharBola();
     /* menu de seleção aberto: escolher ou fechar */
     if((el=t.closest('[data-lic-escolher]'))){
       var p=el.getAttribute('data-lic-escolher').split('|');
@@ -41699,17 +42035,20 @@ body:not(.dark) .lic-link{color:#0a5f96}
       if(t.closest('[data-lic-v-prox]')){ var n2=licDocsVivos(licStore().linhas[licVer.linha]).length; licVer.idx=(licVer.idx+1)%n2; licDesenharViewer(); return; }
       if(t.closest('[data-lic-v-baixar]')){ var ds=licDocsVivos(licStore().linhas[licVer.linha]); licBaixar(ds[licVer.idx]); return; }
       if(t.closest('[data-lic-v-remover]')){
+        if(licVer.ro) return;
         var r=licStore().linhas[licVer.linha], d=licDocsVivos(r)[licVer.idx];
         if(!d || !window.confirm('Remover "'+(d.nome||'documento')+'" deste processo?\n\nIsso vale para todos os computadores.')) return;
         d.del=1; d.ts=licAgora(); licSalvar(); licRender(); licAbrirRegistroSeAberto(licVer.linha); licDesenharViewer();
         try{ if(typeof logRemoto==='function') logRemoto('licitacao','Documento removido: '+(d.nome||'')+' ('+(licVal(r,'processo')||'—')+')',{area:'Licitação'}); }catch(x){}
         return;
       }
-      if((el=t.closest('[data-lic-ver]'))){ var pv=el.getAttribute('data-lic-ver').split('|'); licAbrirViewer(pv[0], pv[1]); return; }
+      if((el=t.closest('[data-lic-ver]'))){ var pv=el.getAttribute('data-lic-ver').split('|'); licAbrirViewer(pv[0], pv[1], licVer&&licVer.ro); return; }
       return;
     }
-    if((el=t.closest('[data-lic-ver]'))){ var q=el.getAttribute('data-lic-ver').split('|'); licAbrirViewer(q[0], q[1]); return; }
-    if((el=t.closest('[data-lic-anexar]'))){ licEscolherArquivos(el.getAttribute('data-lic-anexar')); return; }
+    /* (·460) documento aberto pela GRADE abre só para ver (sem Remover);
+       aberto de dentro do processo, mantém o Remover. */
+    if((el=t.closest('[data-lic-ver]'))){ var q=el.getAttribute('data-lic-ver').split('|'); licAbrirViewer(q[0], q[1], !t.closest('#licJanela')); return; }
+    if((el=t.closest('[data-lic-anexar]')) && el.closest('#licJanela')){ licEscolherArquivos(el.getAttribute('data-lic-anexar')); return; }
     /* janelas */
     if(t.closest('#licJanela')){
       if(t.closest('[data-lic-fechar]') || t.id==='licJanela'){ licFecharJanela(); licRegAberto=''; return; }
@@ -41743,14 +42082,12 @@ body:not(.dark) .lic-link{color:#0a5f96}
     if(t.closest('#licImportar')){ licAbrirImportar(); return; }
     if((el=t.closest('[data-lic-abrir]'))){ licAbrirRegistro(el.getAttribute('data-lic-abrir')); return; }
     if(t.closest('a.lic-link')) return;              /* link abre; não edita */
-    if((el=t.closest('td[data-lic-cel]')) && !el.classList.contains('lic-editando')){
-      var attr=el.getAttribute('data-lic-cel');
-      /* ⚠ clicar numa célula enquanto OUTRA está em edição: o mousedown tira o
-         foco da outra, ela grava e a grade é redesenhada ANTES deste clique —
-         então este `td` já saiu da tela. Procura o novo pelo mesmo endereço. */
-      if(!el.isConnected){ el=document.querySelector('#licWrap td[data-lic-cel="'+attr.replace(/"/g,'\\"')+'"]'); if(!el) return; }
-      var pc=attr.split('|'); licEditarCelula(el, pc[0], pc[1]); return;
-    }
+    /* (·461) página do processo: seus próprios botões */
+    if(licPagina && t.closest('[data-lic-pg]')){ licPgClique(t); return; }
+    /* (·461) clicar em QUALQUER ponto da linha abre a página do processo */
+    if((el=t.closest('#licWrap tr[data-lic-linha]'))){ licAbrirPagina(el.getAttribute('data-lic-linha')); return; }
+    /* (·460) clicar numa célula da grade NÃO edita mais — a grade é protegida.
+       Editar só dentro do processo aberto (⤢). */
   });
   document.addEventListener('input', function(e){
     if(!e.target || e.target.id!=='licBusca') return;
@@ -41763,13 +42100,15 @@ body:not(.dark) .lic-link{color:#0a5f96}
       else if(e.key==='ArrowRight'){ var b=document.querySelector('#licViewer [data-lic-v-prox]'); if(b) b.click(); }
       return;
     }
+    if(e.key==='Escape' && document.getElementById('licBolaMenu')){ licFecharBola(); return; }
     if(e.key==='Escape' && document.getElementById('licMenu')) licFecharMenu();
     else if(e.key==='Escape' && document.getElementById('licJanela') && !(e.target && e.target.tagName==='TEXTAREA')){ licFecharJanela(); licRegAberto=''; }
   });
   /* arrastar arquivos para a célula de documentos também anexa */
-  document.addEventListener('dragover', function(e){ if(e.target && e.target.closest && e.target.closest('#licWrap td.lic-docs, #licJanela .lic-docs-grande')) e.preventDefault(); });
+  /* (·460) só dentro do processo aberto — a grade é protegida */
+  document.addEventListener('dragover', function(e){ if(e.target && e.target.closest && e.target.closest('#licJanela .lic-docs-grande')) e.preventDefault(); });
   document.addEventListener('drop', function(e){
-    var td=e.target && e.target.closest && e.target.closest('#licWrap td.lic-docs, #licJanela .lic-docs-grande'); if(!td) return;
+    var td=e.target && e.target.closest && e.target.closest('#licJanela .lic-docs-grande'); if(!td) return;
     e.preventDefault();
     var id=td.getAttribute('data-lic-cel') ? td.getAttribute('data-lic-cel').split('|')[0] : (document.querySelector('#licJanela [data-lic-reg]')||{getAttribute:function(){return '';}}).getAttribute('data-lic-reg');
     if(id && e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) licAnexar(id, e.dataTransfer.files);
