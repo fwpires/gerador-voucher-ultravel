@@ -4397,6 +4397,8 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
           <button class="nav-item nav-sub" data-screen="csdi"><span>🕎 Imersão CSDI</span></button>
           <button class="nav-item nav-sub nav-add" data-screen="addgrupo"><span>＋ Adicionar grupo</span></button>
         </div>
+        <!-- (·458) LICITAÇÃO — logo depois de Grupos, visível só para a diretoria e a Maria Eduarda -->
+        <button class="nav-item uv-auth-hidden" id="navLicitacao" data-screen="licitacao"><span class="nav-ic">🏛️</span><span>Licitação</span></button>
       </nav>
     </aside>
     <div class="hub-main" id="hubMain">
@@ -4835,6 +4837,11 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
 
       <section class="screen" id="scr-csdi">
         <div id="csdiWrap"></div>
+      </section>
+
+      <!-- (·458) Licitação — espelho da planilha de cotação do Airtable -->
+      <section class="screen" id="scr-licitacao">
+        <div id="licWrap"></div>
       </section>
 
     </div>
@@ -5684,6 +5691,10 @@ window.uvSoVoucher=function(){
 };
 window.uvTelaPermitida=function(scr){
   try{ if(window.uvSoVoucher()) return !!UV_SO_VOUCHER_TELAS[scr]; }catch(e){}
+  /* (·458) Licitação: só diretoria e Maria Eduarda. Esconder o item do menu
+     não basta — o boot com a última tela salva e o hubGoScreen por código
+     abririam a pasta do mesmo jeito. */
+  if(scr==='licitacao'){ try{ return typeof window.licPodeVer==='function' && window.licPodeVer()===true; }catch(e){ return false; } }
   return true;
 };
 (function(){
@@ -5744,7 +5755,42 @@ window.uvTelaPermitida=function(scr){
   };
 })();
 
-var UV_BUILD_NUM = 457; // (·457) ACESSO SÓ AO VOUCHER PARA A LETÍCIA ROSA. Pedido do Nando: "ela só
+var UV_BUILD_NUM = 458; // (·458) NOVA PASTA "LICITAÇÃO" — ESPELHO DA PLANILHA DE COTAÇÃO DO AIRTABLE.
+// Pedido do Nando: pasta no menu logo depois de Grupos, replicando a "Planilha de Cotação –
+// Processos" com as 20 colunas, tudo editável; Status (Aprovado verde, Revogado amarelo, Recusado
+// vermelho), Prioridade (Finalizado verde, Cancelado amarelo, Perdido vermelho) e Participação
+// (Confirmado verde, Encerrado amarelo, Revogado laranja, Sem participação vermelho) fixos;
+// Documentos para Habilitação com anexos em miniatura que abrem GRANDES dentro do Hub; Link do
+// Edital virando link ativo. Visível SÓ para a diretoria e a Maria Eduarda.
+// ⚠️ O MÓDULO MORA NO ÚLTIMO BLOCO <script> DO ARQUIVO (com o bloco de estilo licCss logo antes — escrito assim, sem a tag literal, porque a tag de estilo escrita por extenso dentro deste comentário faria o teste universal ler JavaScript como CSS) — o
+// cabeçalho dele explica as sete decisões. As mais importantes:
+// (1) CARIMBO POR CAMPO (f/ft), não por linha: a Madu mudando o Status e o Nando escrevendo a
+//     Observação da MESMA linha ao mesmo tempo não se apagam. Excluir é o campo __del.
+// (2) DOCUMENTOS SÃO UM MAPA {id:…}, não lista: dois PCs anexando ao mesmo tempo SOMAM.
+// (3) ARQUIVO NO R2 pela mesma rota /api/anexo das Ações (PDF/JPG/PNG/DOCX, 20MB) — no dado, só
+//     a etiqueta. SEM mudança no worker, SEM deploy. Efeito colateral conhecido: o log do servidor
+//     registra esses envios com a etiqueta "acoes_comerciais", que é a que a rota usa.
+// (4) MINIATURA gerada UMA vez (JPEG de 160px) e também guardada no R2 — abrir a pasta baixa os
+//     quadradinhos, não os PDFs inteiros. Anexo sem miniatura ganha uma na primeira exibição.
+// (5) PDF VIRA IMAGEM PELO pdf.js, carregado sob demanda do cdnjs. ⚠ No VISUALIZADOR o PDF também
+//     é desenhado pelo pdf.js, página por página, e não entregue ao leitor do navegador: o Safari do
+//     iPhone mostra só a PRIMEIRA página de um PDF embutido, e o Chrome sem leitor fica em branco —
+//     foi o que o print desta bancada mostrou na primeira versão. Sem pdf.js, cai no leitor.
+// (6) SEM DADOS INVENTADOS: nada é semeado dos prints (vários campos estão cortados com "…"). Os
+//     dados entram pelo IMPORTAR CSV do Airtable, que traz o texto inteiro, casa por "Processo"
+//     (importar de novo ATUALIZA, não duplica) e tenta trazer os documentos pelos links do CSV —
+//     que EXPIRAM em poucas horas; o que não vier é listado para anexar à mão.
+//     Participação é traduzida: Confirmada→Confirmado, Revogação→Revogado, Não participar→Sem
+//     participação. Valor fora das opções fixas fica em CINZA, sem sumir.
+// (7) PERMISSÃO EM DUAS CAMADAS: menu (navLicitacao) e o PORTÃO de hubGoScreen via uvTelaPermitida —
+//     a tela salva no boot e a navegação por código também são barradas. A Maria Eduarda casa pela
+//     mesma regra de nomes da diretoria (·399).
+// ⚠️ UNIÃO ENTRE PCs PLUGADA NOS DOIS PONTOS de sempre (carregar e salvar), como o Controle Geral —
+// licitações NÃO está em CAMPOS_VIVOS (isso exigiria deploy); chega aos outros PCs pelo aviso leve
+// de "config mudou" do ·306.
+// VALIDAÇÃO: test_licitacao.mjs, novo, 53 checagens com servidor de anexos simulado DE VERDADE
+// (bytes guardados e devolvidos) e o pdf.js real servido no mesmo endereço do cdnjs. 7 SABOTAGENS,
+// todas pegas. ANTERIOR: ACESSO SÓ AO VOUCHER PARA A LETÍCIA ROSA. Pedido do Nando: "ela só
 // pode visualizar no login dela o Gerador de Voucher e os Vouchers Salvos". Caminho escolhido por
 // ele: TRAVA POR NOME (UV_SO_VOUCHER, logo abaixo da UV_DIRETORIA), com ela cadastrada como
 // Atendente — só publicar o index.html, sem deploy do servidor.
@@ -9077,6 +9123,9 @@ async function carregarConfig(){
       if(typeof window.wdMergePautas==='function'){        // (·388) pautas do Welcome Day
         appConfig.wdPautas=window.wdMergePautas(local.wdPautas, c.wdPautas);
       }
+      if(typeof window.licMergeMaps==='function'){         // (·458) Licitação — campo a campo
+        appConfig.licitacoes=window.licMergeMaps(local.licitacoes, c.licitacoes);
+      }
       if(typeof window.klBoardsMergeMaps==='function'){     // (·271) Kanban Comercial
         appConfig.klBoards=window.klBoardsMergeMaps(local.klBoards, c.klBoards);
       }
@@ -9496,6 +9545,12 @@ async function salvarConfig(){
        acabou de escrever, porque o salvamento manda a config inteira. */
     if(typeof window.wdMergePautas==='function'){
       appConfig.wdPautas=window.wdMergePautas(cloud.wdPautas, appConfig.wdPautas);
+    }
+    /* (·458) Licitação — o OUTRO ponto obrigatório, pela mesma razão das pautas:
+       sem ele, o PC que muda o Status apagaria a Observação que outra pessoa
+       acabou de escrever, porque o salvamento manda a config inteira. */
+    if(typeof window.licMergeMaps==='function'){
+      appConfig.licitacoes=window.licMergeMaps(cloud.licitacoes, appConfig.licitacoes);
     }
     // PROTEÇÃO DO PAINEL DE OCUPAÇÃO (anti-perda de cliente entre PCs):
     // Antes de gravar, mesclamos o ocupacaoAtendentes local com o da nuvem via merge
@@ -15604,7 +15659,7 @@ init();
        entrada, porque todo caminho de navegação passa por esta função — menu,
        logo do topo, boot com a última tela salva, botão interno, desvio de
        permissão. Esconder só o menu deixaria esses outros caminhos abertos. */
-    try{ if(typeof window.uvTelaPermitida==='function' && !window.uvTelaPermitida(scr)) scr='gerador'; }catch(e){}
+    try{ if(typeof window.uvTelaPermitida==='function' && !window.uvTelaPermitida(scr)) scr=(typeof window.uvSoVoucher==='function' && window.uvSoVoucher())?'gerador':'controldesk'; }catch(e){}
     // Minhas Tarefas: TRANCA automaticamente ao navegar para qualquer outra tela —
     // ninguém sai da sala deixando a gaveta aberta (·109)
     if(scr!=='tarefas'){ try{ if(typeof window.mtTrancar==='function') window.mtTrancar(true); }catch(e){} }
@@ -15723,6 +15778,7 @@ init();
     if(scr==='tarefas' && typeof window.renderTarefas==='function') window.renderTarefas();
     if(scr==='backup'  && typeof window.renderBackup==='function')  window.renderBackup();
     if(scr==='csdi' && typeof window.renderCsdi==='function') window.renderCsdi();
+    if(scr==='licitacao' && typeof window.renderLicitacao==='function') window.renderLicitacao();   // (·458)
   }
   window.uvRenderDaTela=uvRenderDaTela;
   /* Qual tela está na frente AGORA. Prefere a variável (sabe qual sub-item do
@@ -15960,6 +16016,7 @@ init();
        se a tela aberta agora for proibida (sessão ressincronizada no meio do
        uso, ou a última tela salva de outra pessoa neste mesmo PC), sai dela na
        hora. Este ponto roda no boot E a cada ressincronização da sessão. */
+    try{ if(typeof window.licAtualizarMenu==='function') window.licAtualizarMenu(); }catch(e){}   // (·458)
     try{
       var soV=(typeof window.uvSoVoucher==='function') && window.uvSoVoucher();
       document.body.classList.toggle('uv-so-voucher', !!soV);
@@ -40735,6 +40792,999 @@ var WD_ESCALA=[
   else wdDesenhar();
   /* o Hub fica aberto o dia inteiro e às vezes atravessa a meia-noite */
   setInterval(wdDesenhar, 10*60*1000);
+})();
+</script>
+
+<style id="licCss">
+/* ═══════════ (·458) LICITAÇÃO — espelho da "Planilha de Cotação – Processos" do Airtable ═══════════
+   Grade no mesmo desenho da de lá: cabeçalho e primeira coluna (Processo) presos,
+   rolagem lateral, células de uma linha só com reticências, selos coloridos nas
+   colunas de seleção e miniaturas dos documentos. */
+#scr-licitacao .lic-cab{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+#scr-licitacao .lic-tit{margin:0;font-size:1.25rem;font-weight:800;color:#E6EEF3}
+#scr-licitacao .lic-sub{color:#8CA3B3;font-size:.82rem;margin-top:3px}
+#scr-licitacao .lic-acoes{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+#scr-licitacao .lic-busca{height:34px;min-width:240px;background:#0F1923;border:1px solid #243849;border-radius:9px;color:#E6EEF3;padding:0 12px;font-family:inherit;font-size:.85rem;outline:none}
+#scr-licitacao .lic-busca:focus{border-color:#2ec7a5}
+#scr-licitacao .lic-btn{height:34px;padding:0 14px;border-radius:9px;border:1px solid #243849;background:#15222d;color:#d7e3ea;font-family:inherit;font-size:.82rem;font-weight:700;cursor:pointer}
+#scr-licitacao .lic-btn:hover{border-color:#2ec7a5;color:#fff}
+#scr-licitacao .lic-btn-ok{background:rgba(46,199,165,.14);border-color:rgba(46,199,165,.55);color:#5fe0c0}
+#scr-licitacao .lic-grade{position:relative;overflow:auto;max-height:calc(100vh - 210px);border:1px solid #1f3140;border-radius:12px;background:#0d1720}
+#scr-licitacao table.lic-t{border-collapse:separate;border-spacing:0;table-layout:fixed;width:max-content;font-size:.8rem}
+#scr-licitacao .lic-t th,#scr-licitacao .lic-t td{height:36px;padding:0 10px;border-right:1px solid #1a2a37;border-bottom:1px solid #1a2a37;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#d7e3ea;text-align:left;vertical-align:middle;background:#0f1a24}
+#scr-licitacao .lic-t thead th{position:sticky;top:0;z-index:3;background:#132230;color:#b9c9d4;font-weight:700;font-size:.76rem}
+#scr-licitacao .lic-t .lic-c0{position:sticky;left:0;z-index:2;text-align:center;color:#6f8797;padding:0 4px}
+#scr-licitacao .lic-t .lic-c1{position:sticky;left:52px;z-index:2;font-weight:700;color:#E6EEF3;box-shadow:2px 0 0 #1f3140}
+#scr-licitacao .lic-t thead .lic-c0,#scr-licitacao .lic-t thead .lic-c1{z-index:4}
+#scr-licitacao .lic-t tbody tr:hover td{background:#132230}
+#scr-licitacao .lic-t td.lic-ed{cursor:text}
+#scr-licitacao .lic-t td.lic-ed:hover{box-shadow:inset 0 0 0 1px #2c4a60}
+#scr-licitacao .lic-t td.lic-editando{padding:0;box-shadow:inset 0 0 0 2px #12B0FF}
+#scr-licitacao .lic-t td.lic-editando input{width:100%;height:34px;box-sizing:border-box;border:0;outline:none;background:#0b141c;color:#fff;font-family:inherit;font-size:.82rem;padding:0 9px}
+#scr-licitacao .lic-vazia{color:#4d6474}
+#scr-licitacao .lic-num{display:flex;align-items:center;justify-content:center;gap:2px}
+#scr-licitacao .lic-exp{border:0;background:none;color:#5e7a8c;cursor:pointer;font-size:.8rem;padding:2px 3px;border-radius:5px}
+#scr-licitacao .lic-exp:hover{color:#12B0FF;background:#15222d}
+/* selos das colunas de seleção */
+.lic-pill{display:inline-block;padding:2px 10px;border-radius:99px;font-size:.74rem;font-weight:700;line-height:1.5;background:var(--pf);color:var(--pt);border:1px solid var(--pb)}
+/* documentos: miniaturas na própria linha */
+#scr-licitacao td.lic-docs{padding:0 6px}
+.lic-thumbs{display:flex;align-items:center;gap:4px;overflow:hidden}
+.lic-th{flex:none;width:24px;height:30px;border-radius:3px;border:1px solid #2b4153;background:#fff center/cover no-repeat;cursor:zoom-in;padding:0;position:relative;overflow:hidden}
+.lic-th-ic{display:flex;align-items:center;justify-content:center;font-size:.9rem;background:#1b2b38;color:#9fb3c2}
+.lic-th-ic small{position:absolute;bottom:0;left:0;right:0;font-size:.48rem;font-weight:800;text-align:center;background:rgba(0,0,0,.45);color:#fff}
+.lic-th-mais{flex:none;width:24px;height:24px;border-radius:6px;border:1px dashed #3d5b72;background:none;color:#7fd0ff;cursor:pointer;font-size:.95rem;line-height:1;padding:0}
+.lic-th-mais:hover{border-color:#12B0FF;background:#15222d}
+.lic-th-sub{flex:none;font-size:.7rem;color:#7fd0ff}
+/* links */
+.lic-link{color:#7fd0ff;text-decoration:underline;text-underline-offset:2px}
+.lic-link:hover{color:#bfe8ff}
+#scr-licitacao .lic-rodape{display:flex;justify-content:space-between;align-items:center;margin-top:8px;color:#6f8797;font-size:.76rem}
+#scr-licitacao .lic-novo-linha{border:1px dashed #2b4153;background:none;color:#8CA3B3;border-radius:8px;padding:6px 12px;cursor:pointer;font-family:inherit;font-size:.78rem}
+#scr-licitacao .lic-novo-linha:hover{border-color:#2ec7a5;color:#5fe0c0}
+#scr-licitacao .lic-vazio{padding:40px 20px;text-align:center;color:#8CA3B3;border:1px dashed #2b4153;border-radius:12px}
+#scr-licitacao .lic-vazio b{color:#E6EEF3}
+/* menu de seleção (fica no body) */
+.lic-menu{position:fixed;z-index:9000;min-width:190px;background:#0f1a24;border:1px solid #2b4153;border-radius:10px;padding:6px;box-shadow:0 12px 28px rgba(0,0,0,.5)}
+.lic-menu button{display:flex;align-items:center;gap:8px;width:100%;padding:7px 8px;border:0;border-radius:7px;background:none;color:#d7e3ea;font-family:inherit;font-size:.8rem;cursor:pointer;text-align:left}
+.lic-menu button:hover{background:#15222d}
+.lic-menu .lic-menu-limpar{color:#8CA3B3;border-top:1px solid #1f3140;border-radius:0 0 7px 7px;margin-top:4px}
+/* janelas (registro, texto longo, visualizador) */
+.lic-bg{position:fixed;inset:0;z-index:8000;background:rgba(3,8,12,.72);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:40px 16px}
+.lic-modal{width:min(760px,100%);background:#0f1a24;border:1px solid #2b4153;border-radius:14px;box-shadow:0 20px 50px rgba(0,0,0,.55);color:#d7e3ea}
+.lic-modal-cab{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 18px;border-bottom:1px solid #1f3140}
+.lic-modal-cab h3{margin:0;font-size:1rem;color:#F2F7FA}
+.lic-x{border:0;background:#15222d;color:#9fb3c2;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:1rem}
+.lic-x:hover{color:#fff;background:#1d3040}
+.lic-modal-corpo{padding:14px 18px 18px;display:grid;grid-template-columns:1fr 1fr;gap:12px 16px}
+.lic-campo{display:flex;flex-direction:column;gap:5px;min-width:0}
+.lic-campo.lic-largo{grid-column:1 / -1}
+.lic-campo label{font-size:.72rem;font-weight:700;color:#8CA3B3;text-transform:uppercase;letter-spacing:.3px}
+.lic-campo input,.lic-campo textarea{width:100%;box-sizing:border-box;background:#0b141c;border:1px solid #243849;border-radius:8px;color:#fff;font-family:inherit;font-size:.86rem;padding:8px 10px;outline:none}
+.lic-campo textarea{min-height:84px;resize:vertical;line-height:1.45}
+.lic-campo input:focus,.lic-campo textarea:focus{border-color:#12B0FF}
+.lic-ops{display:flex;flex-wrap:wrap;gap:6px}
+.lic-op{cursor:pointer;opacity:.45;border:0;background:none;padding:0}
+.lic-op.on{opacity:1;box-shadow:0 0 0 2px #0f1a24,0 0 0 4px var(--pb);border-radius:99px}
+.lic-modal-pe{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 18px;border-top:1px solid #1f3140}
+.lic-perigo{border:1px solid rgba(255,90,90,.45);background:rgba(255,90,90,.08);color:#ff9a9a;border-radius:9px;padding:0 14px;height:34px;cursor:pointer;font-family:inherit;font-weight:700;font-size:.8rem}
+.lic-docs-grande{display:flex;flex-wrap:wrap;gap:8px}
+.lic-docs-grande .lic-th{width:64px;height:82px}
+.lic-docs-grande .lic-th-mais{width:64px;height:82px;border-radius:8px;font-size:1.4rem}
+.lic-docs-grande .lic-th-nome{display:block;position:absolute;bottom:0;left:0;right:0;font-size:.55rem;background:rgba(0,0,0,.6);color:#fff;padding:1px 3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* visualizador de documento em tela cheia (dentro do Hub) */
+.lic-viewer{position:fixed;inset:0;z-index:9500;background:rgba(0,0,0,.9);display:flex;flex-direction:column}
+.lic-viewer-cab{display:flex;align-items:center;gap:10px;padding:10px 14px;color:#e6eef3;font-size:.85rem}
+.lic-viewer-cab b{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lic-viewer-cab button{height:32px;padding:0 12px;border-radius:8px;border:1px solid #3d5b72;background:#15222d;color:#e6eef3;cursor:pointer;font-family:inherit;font-size:.8rem}
+.lic-viewer-cab .lic-v-rem{border-color:rgba(255,90,90,.5);color:#ff9a9a}
+.lic-viewer-palco{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;position:relative;padding:0 60px}
+.lic-viewer-palco img{max-width:100%;max-height:100%;object-fit:contain;background:#fff;border-radius:4px}
+.lic-viewer-palco iframe{width:100%;height:100%;border:0;background:#fff;border-radius:4px}
+.lic-pdf-paginas{width:100%;height:100%;overflow:auto;display:flex;flex-direction:column;align-items:center;gap:12px;padding:4px 0 20px}
+.lic-pdf-paginas canvas{background:#fff;border-radius:3px;box-shadow:0 4px 18px rgba(0,0,0,.5);max-width:100%;height:auto}
+.lic-viewer-palco .lic-v-msg{color:#cfdbe3;text-align:center;font-size:.95rem;line-height:1.6}
+.lic-v-seta{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:64px;border:0;background:rgba(255,255,255,.06);color:#fff;font-size:2rem;cursor:pointer;border-radius:10px}
+.lic-v-seta:hover{background:rgba(255,255,255,.14)}
+.lic-v-ant{left:8px}.lic-v-prox{right:8px}
+.lic-viewer-tira{display:flex;gap:6px;justify-content:center;padding:10px;overflow-x:auto}
+.lic-viewer-tira .lic-th{width:34px;height:44px;opacity:.55}
+.lic-viewer-tira .lic-th.on{opacity:1;box-shadow:0 0 0 2px #12B0FF}
+.lic-carregando{color:#8CA3B3;font-size:.85rem}
+/* importação */
+.lic-imp-log{max-height:260px;overflow:auto;background:#0b141c;border:1px solid #1f3140;border-radius:8px;padding:8px 10px;font-size:.78rem;line-height:1.5;color:#b9c9d4;white-space:pre-wrap}
+.lic-imp-barra{height:8px;background:#1b2b38;border-radius:99px;overflow:hidden;margin:8px 0}
+.lic-imp-barra i{display:block;height:100%;width:0;background:#12B0FF;transition:width .2s}
+/* tema claro */
+body:not(.dark) #scr-licitacao .lic-tit{color:#15252F}
+body:not(.dark) #scr-licitacao .lic-grade{background:#fff;border-color:#dfe7ec}
+body:not(.dark) #scr-licitacao .lic-t th,body:not(.dark) #scr-licitacao .lic-t td{background:#fff;color:#2b3d4a;border-color:#e6edf1}
+body:not(.dark) #scr-licitacao .lic-t thead th{background:#f3f7f9;color:#4a5d6b}
+body:not(.dark) #scr-licitacao .lic-t .lic-c1{color:#15252F;box-shadow:2px 0 0 #dfe7ec}
+body:not(.dark) #scr-licitacao .lic-t tbody tr:hover td{background:#f6f9fb}
+body:not(.dark) #scr-licitacao .lic-busca,body:not(.dark) #scr-licitacao .lic-btn{background:#fff;border-color:#dfe7ec;color:#15252F}
+body:not(.dark) .lic-link{color:#0a5f96}
+/* celular: a grade continua rolando de lado; o ⤢ abre o registro inteiro num formulário */
+@media(max-width:980px){
+  #scr-licitacao .lic-busca{min-width:0;flex:1 1 100%;height:40px;font-size:16px}
+  #scr-licitacao .lic-acoes{width:100%}
+  #scr-licitacao .lic-btn{height:40px;flex:1}
+  #scr-licitacao .lic-grade{max-height:none}
+  .lic-modal-corpo{grid-template-columns:1fr}
+  .lic-campo input,.lic-campo textarea{font-size:16px}
+  .lic-viewer-palco{padding:0 6px}
+  .lic-v-seta{width:36px;height:52px;font-size:1.5rem;background:rgba(0,0,0,.45)}
+}
+</style>
+
+<script>
+/* ═════════════════════════════════════════════════════════════════════════
+   (·458) LICITAÇÃO — ESPELHO DA "PLANILHA DE COTAÇÃO – PROCESSOS" DO AIRTABLE
+   ═════════════════════════════════════════════════════════════════════════
+   Pedido do Nando: uma pasta "Licitação" no menu, logo depois de Grupos, que
+   replique a planilha do Airtable com as mesmas funções e tudo editável; Status,
+   Prioridade e Participação com opções fixas e coloridas; Documentos para
+   Habilitação com anexos em miniatura que abrem grandes DENTRO do Hub; Link do
+   Edital virando link ativo. Visível só para a DIRETORIA e a MARIA EDUARDA.
+
+   DECISÕES, e por quê:
+   (1) CADA CAMPO TEM O PRÓPRIO CARIMBO (f / ft). Duas pessoas editando a MESMA
+       linha ao mesmo tempo — a Madu o Status, o Nando a Observação — não podem
+       se apagar. Com um carimbo por linha, a última gravação levaria a linha
+       inteira e sumiria com a edição da outra pessoa. Excluir é só mais um
+       campo (__del), então a exclusão também viaja pela mesma regra.
+   (2) OS DOCUMENTOS SÃO UM MAPA, não uma lista: {id: {...}}. Dois PCs anexando
+       ao mesmo tempo precisam SOMAR os arquivos. Uma lista seria um campo só, e
+       a última gravação apagaria o anexo da outra pessoa.
+   (3) O ARQUIVO VAI PARA O R2 (a mesma rota /api/anexo das Ações Comerciais) e
+       no dado fica só a etiqueta. Um PDF dentro do appConfig estouraria o
+       localStorage de 5MB no primeiro anexo — e aí NADA mais salvaria no PC.
+   (4) A MINIATURA É GERADA UMA VEZ, NO ENVIO, e também vai para o R2 (JPEG de
+       poucos KB). Sem isso, abrir a pasta baixaria todos os PDFs inteiros só
+       para desenhar quadradinhos — dezenas de megas a cada visita. Anexo sem
+       miniatura (a geração falhou, ou veio de antes) ganha uma na primeira vez
+       que aparece na tela, e ela é gravada para os outros PCs.
+   (5) PDF VIRA MINIATURA COM O pdf.js, carregado sob demanda do cdnjs só quando
+       é preciso. Se não carregar (rede bloqueada), a miniatura vira um cartão
+       "PDF" e o documento continua abrindo normalmente no visualizador.
+   (6) O VISUALIZADOR É DO HUB: imagem em tamanho grande, PDF no leitor do
+       próprio navegador dentro de uma janela do Hub, setas para o anterior e o
+       próximo, Baixar e Remover — como o do Airtable no print.
+   (7) SEM DADOS INVENTADOS: nada é semeado a partir dos prints (vários campos
+       aparecem cortados com "…" lá). Os dados entram pelo IMPORTAR CSV, que o
+       Airtable exporta com o texto inteiro — e ele atualiza por "Processo",
+       então importar de novo não duplica nada.
+   ========================================================================= */
+(function(){
+  /* ---------------- quem vê ---------------- */
+  function licNorm(s){ return (s||'').toString().trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,' '); }
+  function licTokens(s){ return licNorm(s).split(' ').filter(function(t){ return t && ['de','da','do','das','dos','e'].indexOf(t)<0; }); }
+  /* Maria Eduarda pela MESMA regra da diretoria (·399): todos os nomes do
+     cadastro presentes no nome da sessão, e o primeiro nome em primeiro lugar */
+  var LIC_EXTRA=['Maria Eduarda'];
+  function licBate(nome, ref){
+    var meu=licTokens(nome), alvo=licTokens(ref); if(!meu.length||!alvo.length) return false;
+    if(meu[0]!==alvo[0]) return false;
+    var tem={}; meu.forEach(function(t){ tem[t]=1; });
+    return alvo.every(function(t){ return tem[t]; });
+  }
+  window.licPodeVer=function(){
+    try{ if(typeof window.uvSoVoucher==='function' && window.uvSoVoucher()) return false; }catch(e){}
+    try{ if(typeof window.uvSouDiretoria==='function' && window.uvSouDiretoria()) return true; }catch(e){}
+    var nome=''; try{ nome=(typeof window.uvAuthNome==='function'?window.uvAuthNome():'')||''; }catch(e){}
+    for(var i=0;i<LIC_EXTRA.length;i++){ if(licBate(nome, LIC_EXTRA[i])) return true; }
+    return false;
+  };
+
+  /* ---------------- colunas (mesma ordem da planilha) ---------------- */
+  var LIC_SELECTS={
+    status:[ {v:'Aprovado',c:'verde'}, {v:'Revogado',c:'amarelo'}, {v:'Recusado',c:'vermelho'} ],
+    prioridade:[ {v:'Finalizado',c:'verde'}, {v:'Cancelado',c:'amarelo'}, {v:'Perdido',c:'vermelho'} ],
+    participacao:[ {v:'Confirmado',c:'verde'}, {v:'Encerrado',c:'amarelo'}, {v:'Revogado',c:'laranja'}, {v:'Sem participação',c:'vermelho'} ]
+  };
+  /* cores dos selos: fundo, texto e borda. O texto é escuro no amarelo e
+     claro nos outros — letra branca em amarelo não se lê. */
+  var LIC_CORES={
+    verde:   {f:'#1f9d55', t:'#ffffff', b:'#27c36b'},
+    amarelo: {f:'#f5c400', t:'#2a2200', b:'#ffd84d'},
+    laranja: {f:'#e8700a', t:'#ffffff', b:'#ff9a3d'},
+    vermelho:{f:'#d93030', t:'#ffffff', b:'#ff6464'},
+    cinza:   {f:'#3a4b58', t:'#e6eef3', b:'#566b7a'}
+  };
+  var LIC_COLS=[
+    {k:'processo',     r:'Processo',                    t:'texto',  w:190},
+    {k:'orgao',        r:'Órgão',                       t:'texto',  w:320},
+    {k:'procAdm',      r:'Processo administrativo',     t:'texto',  w:230},
+    {k:'valorContrato',r:'Valor Total do Contrato',     t:'moeda',  w:180},
+    {k:'valorCotado',  r:'Valor total cotado',          t:'moeda',  w:170},
+    {k:'modalidade',   r:'Modalidade',                  t:'texto',  w:230},
+    {k:'dataReceb',    r:'Data de recebimento',         t:'data',   w:160},
+    {k:'sistema',      r:'Sistema',                     t:'texto',  w:190},
+    {k:'objeto',       r:'Objeto',                      t:'longo',  w:260},
+    {k:'conclusao',    r:'Conclusão Cotação',           t:'data',   w:160},
+    {k:'status',       r:'Status',                      t:'sel',    w:140},
+    {k:'criterio',     r:'Critério de Julgamento',      t:'texto',  w:230},
+    {k:'docs',         r:'Documentos para Habilitação', t:'docs',   w:430},
+    {k:'obs',          r:'Observações',                 t:'longo',  w:230},
+    {k:'envio',        r:'Envio da Proposta',           t:'data',   w:160},
+    {k:'horario',      r:'Horário',                     t:'hora',   w:100},
+    {k:'prioridade',   r:'Prioridade',                  t:'sel',    w:140},
+    {k:'proxAcao',     r:'Próxima Ação',                t:'longo',  w:230},
+    {k:'participacao', r:'Participação',                t:'sel',    w:170},
+    {k:'link',         r:'Link do Edital',              t:'link',   w:240}
+  ];
+  var LIC_COL={}; LIC_COLS.forEach(function(c){ LIC_COL[c.k]=c; });
+
+  /* ---------------- dados ---------------- */
+  function licStore(){
+    if(!appConfig.licitacoes || typeof appConfig.licitacoes!=='object') appConfig.licitacoes={};
+    if(!appConfig.licitacoes.linhas || typeof appConfig.licitacoes.linhas!=='object') appConfig.licitacoes.linhas={};
+    return appConfig.licitacoes;
+  }
+  function licSalvar(){ try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){} }
+  function licNome(){ try{ return (typeof window.uvAuthNome==='function'?window.uvAuthNome():'')||''; }catch(e){ return ''; } }
+  function licId(p){ return p+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+  function licEsc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function licVal(r,k){ return (r && r.f && r.f[k]!=null) ? r.f[k] : ''; }
+  /* carimbo que SEMPRE cresce, mesmo com dois cliques no mesmo milissegundo */
+  var licUltimo=0;
+  function licAgora(){ var t=Date.now(); if(t<=licUltimo) t=licUltimo+1; licUltimo=t; return t; }
+  function licSet(id, k, v){
+    var S=licStore(), r=S.linhas[id]; if(!r) return;
+    if(!r.f) r.f={}; if(!r.ft) r.ft={};
+    r.f[k]=v; r.ft[k]=licAgora();
+    licSalvar();
+  }
+  function licVivas(){
+    var S=licStore();
+    return Object.keys(S.linhas).map(function(k){ return S.linhas[k]; })
+      .filter(function(r){ return r && !(r.f && r.f.__del); })
+      .sort(function(a,b){ return (a.criado||0)-(b.criado||0) || String(a.id).localeCompare(String(b.id)); });
+  }
+  function licDocsVivos(r){
+    var d=(r && r.docs && typeof r.docs==='object')?r.docs:{};
+    return Object.keys(d).map(function(k){ return d[k]; }).filter(function(x){ return x && !x.del && x.id; })
+      .sort(function(a,b){ return (a.ord||0)-(b.ord||0); });
+  }
+  function licNovaLinha(campos){
+    var S=licStore(), id=licId('lc'), t=licAgora();
+    S.linhas[id]={ id:id, criado:t, autor:licNome(), f:{}, ft:{}, docs:{} };
+    Object.keys(campos||{}).forEach(function(k){ S.linhas[id].f[k]=campos[k]; S.linhas[id].ft[k]=t; });
+    return id;
+  }
+
+  /* UNIÃO ENTRE PCs — campo a campo pelo carimbo, documento a documento pelo
+     carimbo. Plugada nos DOIS pontos de sempre (carregar e salvar), senão o
+     salvamento de um PC grava por cima do que o outro acabou de mudar. */
+  window.licMergeMaps=function(a,b){
+    var A=(a&&a.linhas&&typeof a.linhas==='object')?a.linhas:{}, B=(b&&b.linhas&&typeof b.linhas==='object')?b.linhas:{};
+    var out={}, ids={};
+    Object.keys(A).forEach(function(k){ ids[k]=1; }); Object.keys(B).forEach(function(k){ ids[k]=1; });
+    Object.keys(ids).forEach(function(id){
+      var x=A[id], y=B[id];
+      if(!x || !y){ out[id]=JSON.parse(JSON.stringify(x||y)); return; }
+      var r={ id:id, criado:Math.min(x.criado||Infinity, y.criado||Infinity), autor:x.autor||y.autor||'', f:{}, ft:{}, docs:{} };
+      if(r.criado===Infinity) r.criado=0;
+      var fx=x.f||{}, fy=y.f||{}, tx=x.ft||{}, ty=y.ft||{}, ks={};
+      Object.keys(fx).forEach(function(k){ ks[k]=1; }); Object.keys(fy).forEach(function(k){ ks[k]=1; });
+      Object.keys(ks).forEach(function(k){
+        var vx=Object.prototype.hasOwnProperty.call(fx,k), vy=Object.prototype.hasOwnProperty.call(fy,k);
+        var usaX = !vy || (vx && (tx[k]||0) >= (ty[k]||0));
+        r.f[k]=usaX?fx[k]:fy[k]; r.ft[k]=usaX?(tx[k]||0):(ty[k]||0);
+      });
+      var dx=x.docs||{}, dy=y.docs||{}, dk={};
+      Object.keys(dx).forEach(function(k){ dk[k]=1; }); Object.keys(dy).forEach(function(k){ dk[k]=1; });
+      Object.keys(dk).forEach(function(k){
+        var p=dx[k], q=dy[k];
+        r.docs[k]=JSON.parse(JSON.stringify((p&&q)?(((p.ts||0)>=(q.ts||0))?p:q):(p||q)));
+      });
+      out[id]=r;
+    });
+    return { linhas:out };
+  };
+
+  /* ---------------- formatos ---------------- */
+  function licDataBR(iso){
+    var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(iso||''); return m ? (m[3]+'/'+m[2]+'/'+m[1]) : (iso||'');
+  }
+  /* aceita 15/7/2026, 02/07/2026, 2026-07-02 — datas desta planilha são dia/mês */
+  function licDataISO(s){
+    s=(s||'').toString().trim(); if(!s) return '';
+    var m=/^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(s);
+    if(m) return m[1]+'-'+('0'+m[2]).slice(-2)+'-'+('0'+m[3]).slice(-2);
+    m=/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2,4})/.exec(s);
+    if(m){ var y=m[3].length===2?('20'+m[3]):m[3]; return y+'-'+('0'+m[2]).slice(-2)+'-'+('0'+m[1]).slice(-2); }
+    return '';
+  }
+  function licMoeda(n){
+    if(n===''||n==null||isNaN(n)) return '';
+    return 'R$ '+Number(n).toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+  /* "R$ 206.671,21", "206671,21", "206671.21" e "1.980.132,30" viram número */
+  function licNumero(s){
+    s=(s==null?'':String(s)).replace(/[R$\s]/g,''); if(!s) return '';
+    if(s.indexOf(',')>=0){ s=s.replace(/\./g,'').replace(',','.'); }
+    else if((s.match(/\./g)||[]).length>1){ s=s.replace(/\./g,''); }
+    var n=parseFloat(s); return isNaN(n)?'':Math.round(n*100)/100;
+  }
+  /* no campo de edição o valor aparece como a pessoa escreve: 206.671,21 */
+  function licMoedaCampo(n){
+    if(n===''||n==null||isNaN(n)) return '';
+    return Number(n).toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+  function licHora(s){
+    var m=/^(\d{1,2})[:h;.](\d{2})/.exec((s||'').toString().trim()); if(!m) return (s||'').toString().trim();
+    return ('0'+m[1]).slice(-2)+':'+m[2];
+  }
+  /* LINK ATIVO: tudo que for site vira link; e-mail vira mailto. O resto do
+     texto fica escapado — o link é montado pedaço a pedaço, nunca colando HTML. */
+  function licLinkificar(txt){
+    txt=(txt||'').toString(); if(!txt) return '';
+    var re=/((?:https?:\/\/|www\.)[^\s<>"']+|[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}|\b[a-z0-9\-]+(?:\.[a-z0-9\-]+)*\.(?:gov\.br|com\.br|org\.br|net\.br|com|org|net|br)(?:\/[^\s<>"']*)?)/gi;
+    var out='', ult=0, m;
+    while((m=re.exec(txt))){
+      out+=licEsc(txt.slice(ult, m.index));
+      var s=m[0].replace(/[.,;:)]+$/,''); var sobra=m[0].slice(s.length);
+      var href = /@/.test(s) && !/^https?:/i.test(s) ? 'mailto:'+s : (/^https?:\/\//i.test(s) ? s : 'https://'+s);
+      out+='<a class="lic-link" href="'+licEsc(href)+'" target="_blank" rel="noopener noreferrer">'+licEsc(s)+'</a>'+licEsc(sobra);
+      ult=m.index+m[0].length;
+    }
+    return out+licEsc(txt.slice(ult));
+  }
+  function licPill(campo, v){
+    if(!v) return '';
+    var op=(LIC_SELECTS[campo]||[]).filter(function(o){ return o.v===v; })[0];
+    var c=LIC_CORES[op?op.c:'cinza'];
+    return '<span class="lic-pill" style="--pf:'+c.f+';--pt:'+c.t+';--pb:'+c.b+'"'+(op?'':' title="Valor antigo, fora das opções — escolha uma das opções fixas"')+'>'+licEsc(v)+'</span>';
+  }
+
+  /* ---------------- anexos (R2) ---------------- */
+  var LIC_TIPOS={'application/pdf':'PDF','image/jpeg':'JPG','image/png':'PNG',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document':'DOCX'};
+  var LIC_POR_EXT={pdf:'application/pdf',jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png',
+    docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'};
+  function licTipoDe(nome, tipo){
+    tipo=(tipo||'').toLowerCase(); if(LIC_TIPOS[tipo]) return tipo;
+    var n=(nome||'').toLowerCase(), p=n.lastIndexOf('.'); return LIC_POR_EXT[p>=0?n.slice(p+1):'']||'';
+  }
+  function licBase(){ try{ return (typeof getWorkerUrl==='function')?(getWorkerUrl()||''):''; }catch(e){ return ''; } }
+  function licTok(){ try{ return (typeof uvAuthToken==='function')?(uvAuthToken()||''):(localStorage.getItem('uv_auth_token')||''); }catch(e){ return ''; } }
+  function licHdr(){ var h={}, t=licTok(); if(t) h['Authorization']='Bearer '+t; return h; }
+  function licEnviarBlob(blob, nome, tipo){
+    var base=licBase(); if(!base) return Promise.reject(new Error('sem conexão com o servidor'));
+    return fetch(base+'/api/anexo?tipo='+encodeURIComponent(tipo)+'&nome='+encodeURIComponent(nome||'arquivo'),
+      {method:'POST', headers:licHdr(), body:blob})
+      .then(function(r){ return r.json().then(function(d){ if(!r.ok||!d||!d.id) throw new Error((d&&d.error)||('HTTP '+r.status)); return d; }); });
+  }
+  /* cache em memória: id → blob URL. Baixa cada arquivo uma vez por sessão. */
+  var licBlobs={}, licBaixando={};
+  function licBlobUrl(id){
+    if(licBlobs[id]) return Promise.resolve(licBlobs[id]);
+    if(licBaixando[id]) return licBaixando[id];
+    var base=licBase(); if(!base) return Promise.reject(new Error('sem conexão'));
+    licBaixando[id]=fetch(base+'/api/anexo/'+encodeURIComponent(id), {headers:licHdr()})
+      .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.blob(); })
+      .then(function(b){ licBlobs[id]=URL.createObjectURL(b); delete licBaixando[id]; return licBlobs[id]; },
+            function(e){ delete licBaixando[id]; throw e; });
+    return licBaixando[id];
+  }
+
+  /* pdf.js SOB DEMANDA — só quando há PDF sem miniatura. O "worker" dele é
+     baixado e vira um blob local: navegador não aceita Worker de outro domínio. */
+  var LIC_PDFJS='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+  var LIC_PDFJS_W='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  var licPdfJsP=null;
+  function licPdfJs(){
+    if(window.pdfjsLib && window.pdfjsLib.getDocument) return Promise.resolve(window.pdfjsLib);
+    if(licPdfJsP) return licPdfJsP;
+    licPdfJsP=new Promise(function(ok, falha){
+      var s=document.createElement('script'); s.src=LIC_PDFJS; s.async=true;
+      s.onload=function(){
+        if(!window.pdfjsLib){ falha(new Error('pdf.js não carregou')); return; }
+        fetch(LIC_PDFJS_W).then(function(r){ return r.text(); }).then(function(code){
+          window.pdfjsLib.GlobalWorkerOptions.workerSrc=URL.createObjectURL(new Blob([code],{type:'text/javascript'}));
+          ok(window.pdfjsLib);
+        }).catch(function(){ ok(window.pdfjsLib); });
+      };
+      s.onerror=function(){ licPdfJsP=null; falha(new Error('pdf.js indisponível')); };
+      document.head.appendChild(s);
+    });
+    return licPdfJsP;
+  }
+  /* miniatura: JPEG de ~160px de largura. Imagem pelo canvas; PDF pela 1ª página. */
+  function licGerarMiniatura(blobUrl, tipo){
+    function doCanvas(desenhar, w, h){
+      var W=160, H=Math.round(W*h/w), c=document.createElement('canvas'); c.width=W; c.height=H;
+      var g=c.getContext('2d'); g.fillStyle='#fff'; g.fillRect(0,0,W,H);
+      return Promise.resolve(desenhar(g, W, H)).then(function(){
+        return new Promise(function(ok){ c.toBlob(function(b){ ok(b); }, 'image/jpeg', 0.72); });
+      });
+    }
+    if(tipo==='image/jpeg'||tipo==='image/png'){
+      return new Promise(function(ok, falha){
+        var im=new Image(); im.onload=function(){ doCanvas(function(g,W,H){ g.drawImage(im,0,0,W,H); }, im.naturalWidth||1, im.naturalHeight||1).then(ok, falha); };
+        im.onerror=function(){ falha(new Error('imagem inválida')); }; im.src=blobUrl;
+      });
+    }
+    if(tipo==='application/pdf'){
+      return licPdfJs().then(function(pdfjs){
+        return pdfjs.getDocument({url:blobUrl}).promise.then(function(doc){ return doc.getPage(1); }).then(function(pg){
+          var vp=pg.getViewport({scale:1});
+          var c=document.createElement('canvas'), esc=160/vp.width; c.width=160; c.height=Math.round(vp.height*esc);
+          var g=c.getContext('2d'); g.fillStyle='#fff'; g.fillRect(0,0,c.width,c.height);
+          return pg.render({canvasContext:g, viewport:pg.getViewport({scale:esc})}).promise.then(function(){
+            return new Promise(function(ok){ c.toBlob(function(b){ ok(b); }, 'image/jpeg', 0.72); });
+          });
+        });
+      });
+    }
+    return Promise.reject(new Error('sem miniatura para este tipo'));
+  }
+  /* fila de miniaturas faltando — uma de cada vez, para não baixar tudo junto */
+  var licFilaMini=[], licFilaAtiva=false, licMiniTentou={};
+  function licPedirMiniatura(linhaId, d){
+    if(!d || d.th || licMiniTentou[d.id]) return;
+    if(d.tipo!=='application/pdf' && d.tipo!=='image/jpeg' && d.tipo!=='image/png') return;
+    licMiniTentou[d.id]=1; licFilaMini.push([linhaId, d.id]); licRodarFila();
+  }
+  function licRodarFila(){
+    if(licFilaAtiva) return; var job=licFilaMini.shift(); if(!job) return;
+    licFilaAtiva=true;
+    var S=licStore(), r=S.linhas[job[0]], d=r&&r.docs&&r.docs[job[1]];
+    var fim=function(){ licFilaAtiva=false; setTimeout(licRodarFila, 50); };
+    if(!d || d.th){ fim(); return; }
+    licBlobUrl(d.id).then(function(u){ return licGerarMiniatura(u, d.tipo); })
+      .then(function(b){ return licEnviarBlob(b, 'mini-'+(d.nome||'doc')+'.jpg', 'image/jpeg'); })
+      .then(function(res){
+        var S2=licStore(), r2=S2.linhas[job[0]], d2=r2&&r2.docs&&r2.docs[job[1]];
+        if(d2 && !d2.th){ d2.th=res.id; d2.ts=licAgora(); licSalvar(); licPintarMiniaturas(); }
+      })
+      .catch(function(){ /* fica o cartão com o tipo; o documento abre do mesmo jeito */ })
+      .then(fim);
+  }
+  /* troca o fundo das miniaturas que já estão na tela, sem redesenhar a grade */
+  function licPintarMiniaturas(){
+    document.querySelectorAll('[data-lic-th]').forEach(function(el){
+      var th=el.getAttribute('data-lic-th'); if(!th || el.getAttribute('data-lic-pintado')) return;
+      el.setAttribute('data-lic-pintado','1');
+      licBlobUrl(th).then(function(u){ el.style.backgroundImage='url("'+u+'")'; el.classList.remove('lic-th-ic'); el.innerHTML=el.querySelector('.lic-th-nome')?el.querySelector('.lic-th-nome').outerHTML:''; })
+        .catch(function(){ el.removeAttribute('data-lic-pintado'); });
+    });
+    /* e sobe na fila quem ainda não tem miniatura */
+    licVivas().forEach(function(r){ licDocsVivos(r).forEach(function(d){ if(!d.th) licPedirMiniatura(r.id, d); }); });
+  }
+  function licThumbHtml(r, d, grande){
+    var rot=LIC_TIPOS[d.tipo]||'ARQ';
+    return '<button type="button" class="lic-th'+(d.th?'':' lic-th-ic')+'" data-lic-ver="'+licEsc(r.id)+'|'+licEsc(d.id)+'"'
+      +(d.th?' data-lic-th="'+licEsc(d.th)+'"':'')+' title="'+licEsc(d.nome||'documento')+'">'
+      +(d.th?'':(rot==='PDF'?'📕':rot==='DOCX'?'📘':'🖼')+'<small>'+rot+'</small>')
+      +(grande?'<span class="lic-th-nome">'+licEsc(d.nome||'')+'</span>':'')
+      +'</button>';
+  }
+  /* ENVIAR ARQUIVOS a uma linha — vários de uma vez, um depois do outro */
+  function licAnexar(linhaId, files){
+    files=[].slice.call(files||[]); if(!files.length) return;
+    var ok=0, erros=[];
+    try{ if(typeof toast==='function') toast('Enviando '+files.length+' arquivo'+(files.length>1?'s':'')+'…','info'); }catch(e){}
+    var seq=Promise.resolve();
+    files.forEach(function(file){
+      seq=seq.then(function(){
+        var tipo=licTipoDe(file.name, file.type);
+        if(!tipo){ erros.push(file.name+': formato não aceito (PDF, JPG, PNG ou DOCX)'); return; }
+        if(file.size>20*1024*1024){ erros.push(file.name+': acima de 20MB'); return; }
+        return licEnviarBlob(file, file.name, tipo).then(function(res){
+          var S=licStore(), r=S.linhas[linhaId]; if(!r) return;
+          if(!r.docs) r.docs={};
+          var t=licAgora();
+          r.docs[res.id]={ id:res.id, nome:String(file.name||'arquivo').slice(0,180), tipo:tipo, tam:res.tam||file.size||0, ord:t, ts:t, por:licNome() };
+          ok++; licSalvar(); licRender(); licAbrirRegistroSeAberto(linhaId);
+        }).catch(function(e){ erros.push(file.name+': '+(e&&e.message||e)); });
+      });
+    });
+    seq.then(function(){
+      try{
+        if(ok) toast(ok+' documento'+(ok>1?'s':'')+' anexado'+(ok>1?'s':''),'ok');
+        if(erros.length) toast('Não anexados: '+erros.join(' · '),'err');
+      }catch(e){}
+      try{ if(ok && typeof logRemoto==='function') logRemoto('licitacao', ok+' documento(s) anexado(s) ao processo '+(licVal(licStore().linhas[linhaId],'processo')||'—'), {area:'Licitação'}); }catch(e){}
+    });
+  }
+  function licEscolherArquivos(linhaId){
+    var inp=document.createElement('input'); inp.type='file'; inp.multiple=true;
+    inp.accept='.pdf,.jpg,.jpeg,.png,.docx,application/pdf,image/jpeg,image/png';
+    inp.onchange=function(){ licAnexar(linhaId, inp.files); };
+    inp.click();
+  }
+
+  /* ---------------- tela ---------------- */
+  var licBusca='', licEditando=null;   /* {id, k} da célula em edição */
+  function licCelula(r, c){
+    var v=licVal(r, c.k), cls='', inner='';
+    if(c.t==='sel'){ inner=licPill(c.k, v); cls='lic-ed lic-sel'; }
+    else if(c.t==='data'){ inner=licEsc(licDataBR(v)); cls='lic-ed'; }
+    else if(c.t==='moeda'){ inner=licEsc(licMoeda(v)); cls='lic-ed'; }
+    else if(c.t==='link'){ inner=licLinkificar(v); cls='lic-ed'; }
+    else if(c.t==='docs'){
+      var ds=licDocsVivos(r);
+      inner='<div class="lic-thumbs">'+ds.map(function(d){ return licThumbHtml(r, d, false); }).join('')
+        +'<button type="button" class="lic-th-mais" data-lic-anexar="'+licEsc(r.id)+'" title="Anexar documentos">＋</button></div>';
+      cls='lic-docs';
+    }
+    else { inner=licEsc(v); cls='lic-ed'; }
+    return '<td class="'+cls+(c.k==='processo'?' lic-c1':'')+'" data-lic-cel="'+licEsc(r.id)+'|'+c.k+'" title="'+licEsc(c.t==='docs'?'':(c.t==='data'?licDataBR(v):c.t==='moeda'?licMoeda(v):v))+'">'+inner+'</td>';
+  }
+  function licFiltradas(){
+    var todas=licVivas(), q=licNorm(licBusca); if(!q) return todas;
+    var termos=q.split(' ');
+    return todas.filter(function(r){
+      var txt=licNorm(LIC_COLS.map(function(c){ var v=licVal(r,c.k); return c.t==='moeda'?licMoeda(v):c.t==='data'?licDataBR(v):v; }).join(' ')+' '+licDocsVivos(r).map(function(d){ return d.nome; }).join(' '));
+      return termos.every(function(t){ return txt.indexOf(t)>=0; });
+    });
+  }
+  function licRender(){
+    var w=document.getElementById('licWrap'); if(!w) return;
+    if(!window.licPodeVer()){ w.innerHTML='<div class="lic-vazio">Esta pasta é restrita à diretoria e à Maria Eduarda.</div>'; return; }
+    /* uma célula em edição não pode ser atropelada por um redesenho */
+    if(licEditando && document.querySelector('#licWrap td.lic-editando input')) return;
+    var todas=licVivas(), linhas=licFiltradas();
+    var foco=document.activeElement && document.activeElement.id==='licBusca';
+    var cab='<div class="lic-cab"><div><h2 class="lic-tit">🏛️ Licitação</h2>'
+      +'<div class="lic-sub">Planilha de cotação — processos · '+todas.length+' processo'+(todas.length===1?'':'s')+(licBusca?' · '+linhas.length+' encontrado'+(linhas.length===1?'':'s'):'')+'</div></div>'
+      +'<div class="lic-acoes"><input id="licBusca" class="lic-busca" placeholder="Procurar em todos os campos…" value="'+licEsc(licBusca)+'" autocomplete="off">'
+      +'<button type="button" class="lic-btn" id="licImportar" title="Importar o CSV exportado do Airtable">Importar CSV</button>'
+      +'<button type="button" class="lic-btn lic-btn-ok" id="licNovo">＋ Processo</button></div></div>';
+    if(!todas.length){
+      w.innerHTML=cab+'<div class="lic-vazio"><b>Nenhum processo ainda.</b><br><br>'
+        +'Para trazer a planilha do Airtable: lá, no menu da visão (▾ ao lado de "Grid view"), use <b>Download CSV</b> e depois clique em <b>Importar CSV</b> aqui.<br>'
+        +'Ou comece do zero com <b>＋ Processo</b>.</div>';
+      return;
+    }
+    var colg='<colgroup><col style="width:52px">'+LIC_COLS.map(function(c){ return '<col style="width:'+c.w+'px">'; }).join('')+'</colgroup>';
+    var th='<thead><tr><th class="lic-c0">#</th>'+LIC_COLS.map(function(c){ return '<th class="'+(c.k==='processo'?'lic-c1':'')+'">'+licEsc(c.r)+'</th>'; }).join('')+'</tr></thead>';
+    var tb='<tbody>'+linhas.map(function(r, i){
+      return '<tr data-lic-linha="'+licEsc(r.id)+'"><td class="lic-c0"><span class="lic-num">'+(i+1)
+        +'<button type="button" class="lic-exp" data-lic-abrir="'+licEsc(r.id)+'" title="Abrir o processo inteiro">⤢</button></span></td>'
+        +LIC_COLS.map(function(c){ return licCelula(r,c); }).join('')+'</tr>';
+    }).join('')+'</tbody>';
+    w.innerHTML=cab+'<div class="lic-grade">'+'<table class="lic-t">'+colg+th+tb+'</table></div>'
+      +'<div class="lic-rodape"><span>'+linhas.length+' registro'+(linhas.length===1?'':'s')+'</span>'
+      +'<button type="button" class="lic-novo-linha" id="licNovo2">＋ Adicionar processo</button></div>';
+    if(foco){ var b=document.getElementById('licBusca'); if(b){ try{ b.focus(); b.setSelectionRange(b.value.length,b.value.length); }catch(e){} } }
+    licPintarMiniaturas();
+  }
+  window.renderLicitacao=licRender;
+
+  /* edição NA CÉLULA: texto, data, hora, moeda e link */
+  function licEditarCelula(td, id, k){
+    var c=LIC_COL[k], r=licStore().linhas[id]; if(!c||!r) return;
+    if(c.t==='longo'){ licAbrirTexto(id, k); return; }
+    if(c.t==='sel'){ licAbrirMenu(td, id, k); return; }
+    if(c.t==='docs') return;
+    licEditando={id:id, k:k};
+    var v=licVal(r,k), tipo='text', val=v;
+    if(c.t==='data'){ tipo='date'; }
+    if(c.t==='hora'){ tipo='time'; val=licHora(v); }
+    if(c.t==='moeda'){ val=licMoedaCampo(v); }
+    td.classList.add('lic-editando');
+    td.innerHTML='<input type="'+tipo+'" value="'+licEsc(val)+'"'+(c.t==='moeda'?' inputmode="decimal" placeholder="0,00"':'')+'>';
+    var inp=td.querySelector('input'); try{ inp.focus(); if(tipo==='text') inp.select(); }catch(e){}
+    var feito=false;
+    function fim(gravar){
+      if(feito) return; feito=true;
+      if(gravar){
+        var nv=inp.value;
+        if(c.t==='moeda') nv=licNumero(nv);
+        else if(c.t==='hora') nv=licHora(nv);
+        else nv=(nv||'').trim();
+        if(String(nv)!==String(v)) licSet(id, k, nv);
+      }
+      licEditando=null; licRender();
+    }
+    inp.addEventListener('keydown', function(e){
+      if(e.key==='Enter'){ e.preventDefault(); fim(true); }
+      else if(e.key==='Escape'){ e.preventDefault(); fim(false); }
+    });
+    inp.addEventListener('blur', function(){ fim(true); });
+  }
+
+  /* menu das colunas de seleção */
+  function licFecharMenu(){ var m=document.getElementById('licMenu'); if(m) m.remove(); }
+  function licAbrirMenu(ancora, id, k){
+    licFecharMenu();
+    var m=document.createElement('div'); m.className='lic-menu'; m.id='licMenu';
+    var atual=licVal(licStore().linhas[id], k);
+    m.innerHTML=(LIC_SELECTS[k]||[]).map(function(o){
+      return '<button type="button" data-lic-escolher="'+licEsc(id)+'|'+k+'|'+licEsc(o.v)+'">'+licPill(k,o.v)+(o.v===atual?' ✓':'')+'</button>';
+    }).join('')+'<button type="button" class="lic-menu-limpar" data-lic-escolher="'+licEsc(id)+'|'+k+'|">Limpar</button>';
+    document.body.appendChild(m);
+    var rc=ancora.getBoundingClientRect(), h=m.offsetHeight, top=rc.bottom+4;
+    if(top+h>window.innerHeight-8) top=Math.max(8, rc.top-h-4);
+    m.style.top=top+'px'; m.style.left=Math.max(8, Math.min(window.innerWidth-m.offsetWidth-8, rc.left))+'px';
+  }
+
+  /* texto longo (Objeto, Observações, Próxima Ação) — janela com caixa grande */
+  function licFecharJanela(){ var j=document.getElementById('licJanela'); if(j) j.remove(); }
+  function licAbrirTexto(id, k){
+    var r=licStore().linhas[id], c=LIC_COL[k]; if(!r||!c) return;
+    licFecharJanela();
+    var bg=document.createElement('div'); bg.className='lic-bg'; bg.id='licJanela';
+    bg.innerHTML='<div class="lic-modal" role="dialog"><div class="lic-modal-cab"><h3>'+licEsc(c.r)+' — '+licEsc(licVal(r,'processo')||'processo')+'</h3><button type="button" class="lic-x" data-lic-fechar>✕</button></div>'
+      +'<div class="lic-modal-corpo"><div class="lic-campo lic-largo"><textarea id="licTextoLongo" style="min-height:220px">'+licEsc(licVal(r,k))+'</textarea></div></div>'
+      +'<div class="lic-modal-pe"><span></span><span style="display:flex;gap:8px"><button type="button" class="lic-btn" data-lic-fechar>Cancelar</button>'
+      +'<button type="button" class="lic-btn lic-btn-ok" data-lic-salvar-texto="'+licEsc(id)+'|'+k+'">Salvar</button></span></div></div>';
+    document.body.appendChild(bg);
+    var ta=document.getElementById('licTextoLongo'); try{ ta.focus(); }catch(e){}
+  }
+
+  /* REGISTRO INTEIRO num formulário — é o jeito confortável de editar no
+     celular, e o único lugar em que dá para excluir o processo */
+  var licRegAberto='';
+  function licCampoForm(r, c){
+    var v=licVal(r, c.k), id=licEsc(r.id), nm='data-lic-f="'+c.k+'"';
+    if(c.t==='sel') return '<div class="lic-campo"><label>'+licEsc(c.r)+'</label><div class="lic-ops">'
+      +(LIC_SELECTS[c.k]||[]).map(function(o){ return '<button type="button" class="lic-op'+(o.v===v?' on':'')+'" data-lic-op="'+id+'|'+c.k+'|'+licEsc(o.v)+'" style="--pb:'+LIC_CORES[o.c].b+'">'+licPill(c.k,o.v)+'</button>'; }).join('')
+      +'</div></div>';
+    if(c.t==='docs') return '<div class="lic-campo lic-largo"><label>'+licEsc(c.r)+'</label><div class="lic-docs-grande">'
+      +licDocsVivos(r).map(function(d){ return licThumbHtml(r,d,true); }).join('')
+      +'<button type="button" class="lic-th-mais" data-lic-anexar="'+id+'" title="Anexar documentos">＋</button></div></div>';
+    if(c.t==='longo') return '<div class="lic-campo lic-largo"><label>'+licEsc(c.r)+'</label><textarea '+nm+'>'+licEsc(v)+'</textarea></div>';
+    var tipo='text', val=v, extra='';
+    if(c.t==='data') tipo='date';
+    if(c.t==='hora'){ tipo='time'; val=licHora(v); }
+    if(c.t==='moeda'){ val=licMoedaCampo(v); extra=' inputmode="decimal" placeholder="0,00"'; }
+    var larg=(c.k==='orgao'||c.k==='link'||c.k==='processo')?' lic-largo':'';
+    return '<div class="lic-campo'+larg+'"><label>'+licEsc(c.r)+'</label><input type="'+tipo+'" '+nm+' value="'+licEsc(val)+'"'+extra+'>'
+      +(c.t==='link' && v?'<div style="font-size:.8rem;margin-top:3px">'+licLinkificar(v)+'</div>':'')+'</div>';
+  }
+  function licAbrirRegistro(id){
+    var r=licStore().linhas[id]; if(!r) return;
+    licFecharJanela(); licRegAberto=id;
+    var bg=document.createElement('div'); bg.className='lic-bg'; bg.id='licJanela';
+    bg.innerHTML='<div class="lic-modal" role="dialog"><div class="lic-modal-cab"><h3>🏛️ '+licEsc(licVal(r,'processo')||'Novo processo')+'</h3><button type="button" class="lic-x" data-lic-fechar>✕</button></div>'
+      +'<div class="lic-modal-corpo" data-lic-reg="'+licEsc(id)+'">'+LIC_COLS.map(function(c){ return licCampoForm(r,c); }).join('')+'</div>'
+      +'<div class="lic-modal-pe"><button type="button" class="lic-perigo" data-lic-excluir="'+licEsc(id)+'">Excluir processo</button>'
+      +'<span style="display:flex;gap:8px"><button type="button" class="lic-btn" data-lic-fechar>Fechar</button><button type="button" class="lic-btn lic-btn-ok" data-lic-salvar-reg="'+licEsc(id)+'">Salvar</button></span></div></div>';
+    document.body.appendChild(bg);
+    licPintarMiniaturas();
+  }
+  /* depois de anexar pelo formulário, o formulário se atualiza — sem perder o
+     que já foi digitado nos outros campos */
+  function licAbrirRegistroSeAberto(id){
+    if(licRegAberto!==id || !document.querySelector('#licJanela [data-lic-reg="'+id+'"]')) return;
+    var digitado={};
+    document.querySelectorAll('#licJanela [data-lic-f]').forEach(function(el){ digitado[el.getAttribute('data-lic-f')]=el.value; });
+    licAbrirRegistro(id);
+    Object.keys(digitado).forEach(function(k){ var el=document.querySelector('#licJanela [data-lic-f="'+k+'"]'); if(el) el.value=digitado[k]; });
+  }
+  function licSalvarRegistro(id){
+    var r=licStore().linhas[id]; if(!r) return;
+    var mudou=0;
+    document.querySelectorAll('#licJanela [data-lic-f]').forEach(function(el){
+      var k=el.getAttribute('data-lic-f'), c=LIC_COL[k], nv=el.value;
+      if(c.t==='moeda') nv=licNumero(nv); else if(c.t==='hora') nv=licHora(nv); else nv=(nv||'').trim();
+      if(String(nv)!==String(licVal(r,k))){ if(!r.f) r.f={}; if(!r.ft) r.ft={}; r.f[k]=nv; r.ft[k]=licAgora(); mudou++; }
+    });
+    if(mudou) licSalvar();
+    licFecharJanela(); licRegAberto=''; licRender();
+  }
+
+  /* ---------------- visualizador ---------------- */
+  var licVer=null;   /* {linha, idx} */
+  function licFecharViewer(){ var v=document.getElementById('licViewer'); if(v) v.remove(); licVer=null; }
+  function licAbrirViewer(linhaId, docId){
+    var r=licStore().linhas[linhaId]; if(!r) return;
+    var ds=licDocsVivos(r), idx=0; ds.forEach(function(d,i){ if(d.id===docId) idx=i; });
+    licVer={linha:linhaId, idx:idx}; licDesenharViewer();
+  }
+  function licDesenharViewer(){
+    if(!licVer) return;
+    var r=licStore().linhas[licVer.linha], ds=r?licDocsVivos(r):[];
+    if(!ds.length){ licFecharViewer(); return; }
+    if(licVer.idx>=ds.length) licVer.idx=ds.length-1;
+    var d=ds[licVer.idx], v=document.getElementById('licViewer');
+    if(!v){ v=document.createElement('div'); v.id='licViewer'; v.className='lic-viewer'; document.body.appendChild(v); }
+    v.innerHTML='<div class="lic-viewer-cab"><b>'+licEsc(d.nome||'documento')+'</b><span>'+(licVer.idx+1)+' / '+ds.length+'</span>'
+      +'<button type="button" data-lic-v-baixar>⬇ Baixar</button><button type="button" class="lic-v-rem" data-lic-v-remover>Remover</button>'
+      +'<button type="button" data-lic-v-fechar>✕ Fechar</button></div>'
+      +'<div class="lic-viewer-palco">'+(ds.length>1?'<button type="button" class="lic-v-seta lic-v-ant" data-lic-v-ant>‹</button>':'')
+      +'<div class="lic-carregando" id="licViewerCorpo">Abrindo…</div>'
+      +(ds.length>1?'<button type="button" class="lic-v-seta lic-v-prox" data-lic-v-prox>›</button>':'')+'</div>'
+      +'<div class="lic-viewer-tira">'+ds.map(function(x,i){ return licThumbHtml(r,x,false).replace('class="lic-th','class="lic-th'+(i===licVer.idx?' on':'')); }).join('')+'</div>';
+    licPintarMiniaturas();
+    var alvo=licVer.idx;
+    licBlobUrl(d.id).then(function(u){
+      if(!licVer || licVer.idx!==alvo) return;
+      var corpo=document.getElementById('licViewerCorpo'); if(!corpo) return;
+      if(d.tipo==='image/jpeg'||d.tipo==='image/png') corpo.outerHTML='<img src="'+u+'" alt="'+licEsc(d.nome||'')+'">';
+      else if(d.tipo==='application/pdf') licMostrarPdf(corpo, u, d, alvo);
+      else corpo.outerHTML='<div class="lic-v-msg">📘 '+licEsc(d.nome||'')+'<br>Este formato não tem pré-visualização no navegador.<br>Use <b>Baixar</b> para abrir no Word.</div>';
+    }).catch(function(e){
+      var corpo=document.getElementById('licViewerCorpo'); if(corpo) corpo.outerHTML='<div class="lic-v-msg">Não consegui abrir o documento ('+licEsc(e&&e.message||e)+').</div>';
+    });
+  }
+  /* PDF NO VISUALIZADOR: as páginas são desenhadas pelo pdf.js, uma embaixo da
+     outra, com rolagem. ⚠ Não é o leitor embutido do navegador DE PROPÓSITO: o
+     Safari do iPhone mostra só a PRIMEIRA página de um PDF dentro de uma janela
+     da página, e o Chrome sem leitor instalado mostra uma tela vazia. Desenhando
+     aqui, o documento abre igual em qualquer aparelho. Se o pdf.js não carregar,
+     aí sim cai no leitor do navegador — melhor que não mostrar nada. */
+  var LIC_PDF_MAX_PAGS=40;
+  function licMostrarPdf(corpo, u, d, alvo){
+    licPdfJs().then(function(pdfjs){ return pdfjs.getDocument({url:u}).promise; }).then(function(doc){
+      if(!licVer || licVer.idx!==alvo) return;
+      var box=document.createElement('div'); box.className='lic-pdf-paginas'; box.id='licViewerCorpo';
+      corpo.replaceWith(box);
+      var total=doc.numPages, n=Math.min(total, LIC_PDF_MAX_PAGS);
+      var larg=Math.min(900, (box.clientWidth||900)-10);
+      var seq=Promise.resolve();
+      for(var i=1;i<=n;i++){ (function(i){ seq=seq.then(function(){
+        if(!licVer || licVer.idx!==alvo) return;
+        return doc.getPage(i).then(function(pg){
+          var vp1=pg.getViewport({scale:1}), esc=(larg/vp1.width)*(window.devicePixelRatio||1);
+          var vp=pg.getViewport({scale:esc}), c=document.createElement('canvas');
+          c.width=Math.floor(vp.width); c.height=Math.floor(vp.height); c.style.width=larg+'px';
+          c.setAttribute('aria-label','Página '+i+' de '+total);
+          box.appendChild(c);
+          return pg.render({canvasContext:c.getContext('2d'), viewport:vp}).promise;
+        });
+      }); })(i); }
+      return seq.then(function(){
+        if(total>n){ var m=document.createElement('div'); m.className='lic-v-msg'; m.textContent='Mostrando '+n+' de '+total+' páginas — use Baixar para ver o documento inteiro.'; box.appendChild(m); }
+      });
+    }).catch(function(){
+      if(!licVer || licVer.idx!==alvo) return;
+      var c2=document.getElementById('licViewerCorpo');
+      if(c2) c2.outerHTML='<iframe src="'+u+'" title="'+licEsc(d.nome||'')+'"></iframe>';
+    });
+  }
+  function licBaixar(d){
+    licBlobUrl(d.id).then(function(u){
+      var a=document.createElement('a'); a.href=u; a.download=d.nome||'documento'; document.body.appendChild(a); a.click();
+      setTimeout(function(){ try{ a.remove(); }catch(e){} }, 800);
+    }).catch(function(e){ try{ toast('Não consegui baixar: '+(e&&e.message||e),'err'); }catch(x){} });
+  }
+
+  /* ---------------- importar CSV do Airtable ---------------- */
+  /* leitor de CSV de verdade: aspas, vírgula e QUEBRA DE LINHA dentro do campo
+     (as Observações têm parágrafos) */
+  function licLerCsv(txt){
+    txt=String(txt||'').replace(/^﻿/,'');
+    var linhas=[], campo='', linha=[], aspas=false;
+    for(var i=0;i<txt.length;i++){
+      var ch=txt[i];
+      if(aspas){
+        if(ch==='"'){ if(txt[i+1]==='"'){ campo+='"'; i++; } else aspas=false; }
+        else campo+=ch;
+      } else {
+        if(ch==='"') aspas=true;
+        else if(ch===','){ linha.push(campo); campo=''; }
+        else if(ch==='\n'||ch==='\r'){ if(ch==='\r'&&txt[i+1]==='\n') i++; linha.push(campo); campo=''; linhas.push(linha); linha=[]; }
+        else campo+=ch;
+      }
+    }
+    if(campo!==''||linha.length){ linha.push(campo); linhas.push(linha); }
+    return linhas.filter(function(l){ return l.some(function(c){ return String(c).trim()!==''; }); });
+  }
+  /* cabeçalho do Airtable → campo daqui (sem acento, sem caixa) */
+  var LIC_CAB={}; LIC_COLS.forEach(function(c){ LIC_CAB[licNorm(c.r)]=c.k; });
+  /* os nomes que mudaram nas opções fixas — "Confirmada" lá é "Confirmado" aqui */
+  var LIC_MAPA_SEL={
+    participacao:{ 'confirmada':'Confirmado','confirmado':'Confirmado','encerrado':'Encerrado','revogacao':'Revogado','revogado':'Revogado',
+                   'nao participar':'Sem participação','sem participacao':'Sem participação' },
+    status:{ 'aprovado':'Aprovado','revogado':'Revogado','recusado':'Recusado' },
+    prioridade:{ 'finalizado':'Finalizado','cancelado':'Cancelado','perdido':'Perdido' }
+  };
+  /* "Cadastur.pdf (https://…),Certidão.pdf (https://…)" */
+  function licLerAnexosCsv(s){
+    var out=[], re=/([^,(]+?)\s*\((https?:\/\/[^)\s]+)\)/g, m;
+    while((m=re.exec(s||''))){ out.push({nome:m[1].trim(), url:m[2]}); }
+    return out;
+  }
+  function licImportarCsv(texto){
+    var L=licLerCsv(texto); if(L.length<2) return {erro:'O arquivo não tem linhas de dados.'};
+    var cab=L[0].map(function(h){ return LIC_CAB[licNorm(h)]||''; });
+    if(cab.indexOf('processo')<0) return {erro:'Não achei a coluna "Processo" — este CSV não parece ser o da planilha de cotação.'};
+    var ignoradas=L[0].filter(function(h,i){ return !cab[i] && String(h).trim(); });
+    var S=licStore(), porProc={};
+    licVivas().forEach(function(r){ var p=licNorm(licVal(r,'processo')); if(p) porProc[p]=r.id; });
+    var novas=0, atualizadas=0, anexosPend=[], avisos=[];
+    L.slice(1).forEach(function(cols){
+      var dados={}, anexos=[];
+      cab.forEach(function(k,i){
+        if(!k) return; var v=(cols[i]==null?'':String(cols[i])).trim(), c=LIC_COL[k];
+        if(c.t==='docs'){ anexos=licLerAnexosCsv(v); return; }
+        if(c.t==='data') v=licDataISO(v);
+        else if(c.t==='moeda') v=licNumero(v);
+        else if(c.t==='hora') v=licHora(v);
+        else if(c.t==='sel' && v){
+          var mp=LIC_MAPA_SEL[k]&&LIC_MAPA_SEL[k][licNorm(v)];
+          if(mp) v=mp; else avisos.push('"'+v+'" em '+c.r+' não é uma das opções fixas — ficou em cinza para você escolher');
+        }
+        dados[k]=v;
+      });
+      if(!dados.processo && !Object.keys(dados).some(function(k){ return dados[k]!==''; })) return;
+      var chave=licNorm(dados.processo), id=chave && porProc[chave];
+      var t=licAgora();
+      if(id){
+        var r=S.linhas[id];
+        Object.keys(dados).forEach(function(k){ if(String(dados[k])!==String(licVal(r,k))){ r.f[k]=dados[k]; r.ft[k]=t; } });
+        atualizadas++;
+      } else {
+        id=licNovaLinha(dados); if(chave) porProc[chave]=id; novas++;
+      }
+      /* anexo já trazido antes (mesmo nome na mesma linha) não vem de novo */
+      var jaTem={}; licDocsVivos(S.linhas[id]).forEach(function(d){ jaTem[licNorm(d.nome)]=1; });
+      anexos.forEach(function(a){ if(!jaTem[licNorm(a.nome)]) anexosPend.push({linha:id, nome:a.nome, url:a.url}); });
+    });
+    licSalvar(); licRender();
+    return {novas:novas, atualizadas:atualizadas, anexos:anexosPend, ignoradas:ignoradas, avisos:avisos};
+  }
+  /* TRAZER OS ANEXOS: baixa de cada link do Airtable e sobe para o R2 daqui.
+     ⚠ Os links que o Airtable põe no CSV EXPIRAM em poucas horas — importar
+     logo depois de exportar. E o Airtable pode recusar o download vindo de
+     outro site; nesse caso o relatório diz quais faltaram, para anexar à mão. */
+  function licTrazerAnexos(lista, aoProgresso){
+    var ok=0, falhas=[];
+    var seq=Promise.resolve();
+    lista.forEach(function(a, i){
+      seq=seq.then(function(){
+        var tipo=licTipoDe(a.nome, '');
+        if(!tipo){ falhas.push(a.nome+' (formato não aceito)'); aoProgresso(i+1, lista.length); return; }
+        return fetch(a.url).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.blob(); })
+          .then(function(b){ return licEnviarBlob(b, a.nome, tipo).then(function(res){
+            var r=licStore().linhas[a.linha]; if(!r) return;
+            if(!r.docs) r.docs={}; var t=licAgora();
+            r.docs[res.id]={ id:res.id, nome:a.nome.slice(0,180), tipo:tipo, tam:res.tam||b.size||0, ord:t, ts:t, por:licNome() };
+            ok++;
+          }); })
+          .catch(function(e){ falhas.push(a.nome+' ('+(e&&e.message||e)+')'); })
+          .then(function(){ aoProgresso(i+1, lista.length); });
+      });
+    });
+    return seq.then(function(){ if(ok) licSalvar(); licRender(); return {ok:ok, falhas:falhas}; });
+  }
+  function licAbrirImportar(){
+    licFecharJanela();
+    var bg=document.createElement('div'); bg.className='lic-bg'; bg.id='licJanela';
+    bg.innerHTML='<div class="lic-modal" role="dialog"><div class="lic-modal-cab"><h3>Importar CSV do Airtable</h3><button type="button" class="lic-x" data-lic-fechar>✕</button></div>'
+      +'<div class="lic-modal-corpo"><div class="lic-campo lic-largo" style="font-size:.84rem;line-height:1.55;color:#b9c9d4">'
+      +'<div>1. No Airtable, na visão <b>Grid view</b>, abra o menu ▾ e escolha <b>Download CSV</b>.</div>'
+      +'<div>2. Escolha o arquivo aqui embaixo. Os processos entram pelo <b>número do Processo</b>: o que já existe é atualizado, o que não existe é criado. Importar de novo não duplica.</div>'
+      +'<div>3. Os documentos anexados também são trazidos. ⚠ Os links do Airtable no CSV <b>expiram em poucas horas</b> — importe logo depois de baixar.</div>'
+      +'</div><div class="lic-campo lic-largo"><input type="file" id="licCsvArq" accept=".csv,text/csv"></div>'
+      +'<div class="lic-campo lic-largo"><div class="lic-imp-barra" id="licImpBarra" hidden><i></i></div><div class="lic-imp-log" id="licImpLog" hidden></div></div></div>'
+      +'<div class="lic-modal-pe"><span></span><button type="button" class="lic-btn" data-lic-fechar>Fechar</button></div></div>';
+    document.body.appendChild(bg);
+    document.getElementById('licCsvArq').addEventListener('change', function(){
+      var f=this.files&&this.files[0]; if(!f) return;
+      var log=document.getElementById('licImpLog'), barra=document.getElementById('licImpBarra');
+      log.hidden=false; log.textContent='Lendo '+f.name+'…';
+      var rd=new FileReader();
+      rd.onload=function(){
+        var res=licImportarCsv(rd.result);
+        if(res.erro){ log.textContent='⚠ '+res.erro; return; }
+        var msg='✔ '+res.novas+' processo(s) novo(s) · '+res.atualizadas+' atualizado(s).';
+        if(res.ignoradas.length) msg+='\nColunas do CSV que não existem aqui (ignoradas): '+res.ignoradas.join(', ')+'.';
+        if(res.avisos.length) msg+='\n'+res.avisos.join('\n');
+        try{ if(typeof logRemoto==='function') logRemoto('licitacao','Importação de CSV: '+res.novas+' novo(s), '+res.atualizadas+' atualizado(s)',{area:'Licitação'}); }catch(e){}
+        if(!res.anexos.length){ log.textContent=msg+'\nNenhum documento novo para trazer.'; return; }
+        log.textContent=msg+'\nTrazendo '+res.anexos.length+' documento(s) do Airtable…';
+        barra.hidden=false;
+        licTrazerAnexos(res.anexos, function(i,n){ barra.firstChild.style.width=Math.round(i*100/n)+'%'; })
+          .then(function(r2){
+            var m2=msg+'\n📎 '+r2.ok+' documento(s) trazido(s).';
+            if(r2.falhas.length) m2+='\n⚠ '+r2.falhas.length+' não vieram — anexe estes à mão pelo ＋ da linha:\n  · '+r2.falhas.join('\n  · ');
+            log.textContent=m2;
+          });
+      };
+      rd.readAsText(f, 'utf-8');
+    });
+  }
+
+  /* ---------------- cliques ---------------- */
+  document.addEventListener('click', function(e){
+    var t=e.target; if(!t || !t.closest) return;
+    var el;
+    /* menu de seleção aberto: escolher ou fechar */
+    if((el=t.closest('[data-lic-escolher]'))){
+      var p=el.getAttribute('data-lic-escolher').split('|');
+      licSet(p[0], p[1], p.slice(2).join('|')); licFecharMenu(); licRender(); return;
+    }
+    if(document.getElementById('licMenu') && !t.closest('#licMenu')) licFecharMenu();
+    /* visualizador */
+    if(t.closest('#licViewer')){
+      if(t.closest('[data-lic-v-fechar]')){ licFecharViewer(); return; }
+      if(t.closest('[data-lic-v-ant]')){ var n=licDocsVivos(licStore().linhas[licVer.linha]).length; licVer.idx=(licVer.idx-1+n)%n; licDesenharViewer(); return; }
+      if(t.closest('[data-lic-v-prox]')){ var n2=licDocsVivos(licStore().linhas[licVer.linha]).length; licVer.idx=(licVer.idx+1)%n2; licDesenharViewer(); return; }
+      if(t.closest('[data-lic-v-baixar]')){ var ds=licDocsVivos(licStore().linhas[licVer.linha]); licBaixar(ds[licVer.idx]); return; }
+      if(t.closest('[data-lic-v-remover]')){
+        var r=licStore().linhas[licVer.linha], d=licDocsVivos(r)[licVer.idx];
+        if(!d || !window.confirm('Remover "'+(d.nome||'documento')+'" deste processo?\n\nIsso vale para todos os computadores.')) return;
+        d.del=1; d.ts=licAgora(); licSalvar(); licRender(); licAbrirRegistroSeAberto(licVer.linha); licDesenharViewer();
+        try{ if(typeof logRemoto==='function') logRemoto('licitacao','Documento removido: '+(d.nome||'')+' ('+(licVal(r,'processo')||'—')+')',{area:'Licitação'}); }catch(x){}
+        return;
+      }
+      if((el=t.closest('[data-lic-ver]'))){ var pv=el.getAttribute('data-lic-ver').split('|'); licAbrirViewer(pv[0], pv[1]); return; }
+      return;
+    }
+    if((el=t.closest('[data-lic-ver]'))){ var q=el.getAttribute('data-lic-ver').split('|'); licAbrirViewer(q[0], q[1]); return; }
+    if((el=t.closest('[data-lic-anexar]'))){ licEscolherArquivos(el.getAttribute('data-lic-anexar')); return; }
+    /* janelas */
+    if(t.closest('#licJanela')){
+      if(t.closest('[data-lic-fechar]') || t.id==='licJanela'){ licFecharJanela(); licRegAberto=''; return; }
+      if((el=t.closest('[data-lic-salvar-texto]'))){
+        var ps=el.getAttribute('data-lic-salvar-texto').split('|'), ta=document.getElementById('licTextoLongo');
+        var nv=(ta?ta.value:'').trim(); if(nv!==String(licVal(licStore().linhas[ps[0]],ps[1]))) licSet(ps[0], ps[1], nv);
+        licFecharJanela(); licRender(); return;
+      }
+      if((el=t.closest('[data-lic-op]'))){
+        var po=el.getAttribute('data-lic-op').split('|'), atual=licVal(licStore().linhas[po[0]], po[1]), escolha=po.slice(2).join('|');
+        licSet(po[0], po[1], atual===escolha?'':escolha);   /* clicar no escolhido tira a escolha */
+        el.parentNode.querySelectorAll('.lic-op').forEach(function(b){ b.classList.toggle('on', b===el && atual!==escolha); });
+        licRender(); return;
+      }
+      if((el=t.closest('[data-lic-salvar-reg]'))){ licSalvarRegistro(el.getAttribute('data-lic-salvar-reg')); return; }
+      if((el=t.closest('[data-lic-excluir]'))){
+        var ie=el.getAttribute('data-lic-excluir'), re=licStore().linhas[ie];
+        if(!window.confirm('Excluir o processo "'+(licVal(re,'processo')||'sem número')+'"?\n\nIsso vale para todos os computadores.')) return;
+        licSet(ie, '__del', 1); licFecharJanela(); licRegAberto=''; licRender();
+        try{ if(typeof logRemoto==='function') logRemoto('licitacao','Processo excluído: '+(licVal(re,'processo')||'—'),{area:'Licitação'}); }catch(x){}
+        return;
+      }
+      return;
+    }
+    if(!t.closest('#licWrap')) return;
+    if(t.closest('#licNovo') || t.closest('#licNovo2')){
+      var idn=licNovaLinha({}); licSalvar(); licRender(); licAbrirRegistro(idn);
+      try{ if(typeof logRemoto==='function') logRemoto('licitacao','Processo novo criado',{area:'Licitação'}); }catch(x){}
+      return;
+    }
+    if(t.closest('#licImportar')){ licAbrirImportar(); return; }
+    if((el=t.closest('[data-lic-abrir]'))){ licAbrirRegistro(el.getAttribute('data-lic-abrir')); return; }
+    if(t.closest('a.lic-link')) return;              /* link abre; não edita */
+    if((el=t.closest('td[data-lic-cel]')) && !el.classList.contains('lic-editando')){
+      var attr=el.getAttribute('data-lic-cel');
+      /* ⚠ clicar numa célula enquanto OUTRA está em edição: o mousedown tira o
+         foco da outra, ela grava e a grade é redesenhada ANTES deste clique —
+         então este `td` já saiu da tela. Procura o novo pelo mesmo endereço. */
+      if(!el.isConnected){ el=document.querySelector('#licWrap td[data-lic-cel="'+attr.replace(/"/g,'\\"')+'"]'); if(!el) return; }
+      var pc=attr.split('|'); licEditarCelula(el, pc[0], pc[1]); return;
+    }
+  });
+  document.addEventListener('input', function(e){
+    if(!e.target || e.target.id!=='licBusca') return;
+    licBusca=e.target.value; licRender();
+  });
+  document.addEventListener('keydown', function(e){
+    if(document.getElementById('licViewer')){
+      if(e.key==='Escape'){ licFecharViewer(); e.preventDefault(); }
+      else if(e.key==='ArrowLeft'){ var a=document.querySelector('#licViewer [data-lic-v-ant]'); if(a) a.click(); }
+      else if(e.key==='ArrowRight'){ var b=document.querySelector('#licViewer [data-lic-v-prox]'); if(b) b.click(); }
+      return;
+    }
+    if(e.key==='Escape' && document.getElementById('licMenu')) licFecharMenu();
+    else if(e.key==='Escape' && document.getElementById('licJanela') && !(e.target && e.target.tagName==='TEXTAREA')){ licFecharJanela(); licRegAberto=''; }
+  });
+  /* arrastar arquivos para a célula de documentos também anexa */
+  document.addEventListener('dragover', function(e){ if(e.target && e.target.closest && e.target.closest('#licWrap td.lic-docs, #licJanela .lic-docs-grande')) e.preventDefault(); });
+  document.addEventListener('drop', function(e){
+    var td=e.target && e.target.closest && e.target.closest('#licWrap td.lic-docs, #licJanela .lic-docs-grande'); if(!td) return;
+    e.preventDefault();
+    var id=td.getAttribute('data-lic-cel') ? td.getAttribute('data-lic-cel').split('|')[0] : (document.querySelector('#licJanela [data-lic-reg]')||{getAttribute:function(){return '';}}).getAttribute('data-lic-reg');
+    if(id && e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) licAnexar(id, e.dataTransfer.files);
+  });
+
+  /* o menu some para quem não pode ver — reaplicado no boot e a cada sessão */
+  function licMenu(){
+    var n=document.getElementById('navLicitacao'); if(!n) return;
+    if(window.licPodeVer()) n.classList.remove('uv-auth-hidden'); else n.classList.add('uv-auth-hidden');
+  }
+  window.licAtualizarMenu=licMenu;
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', licMenu); else licMenu();
+
+  /* só para os testes automatizados: expõe peças puras, sem estado */
+  window.__licTeste={ lerCsv:licLerCsv, numero:licNumero, dataISO:licDataISO, linkificar:licLinkificar, importar:licImportarCsv, hora:licHora };
 })();
 </script>
 
