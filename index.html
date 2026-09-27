@@ -2907,18 +2907,28 @@ body:not(.dark) .termo-nome{color:#5a7085}
   body.uv-trilha-on.uv-acoplado #hubSidebar .nav-children.uv-fixa-filhos{
     position:sticky;top:var(--uv-cab-h,var(--uv-mae-h,0px));z-index:29;box-shadow:0 6px 14px rgba(0,0,0,.4);
   }
-  /* entrar deslizando de cima; sair deslizando para cima */
+  /* (·469) SEM TREMOR: TODO MOVIMENTO É `transform` (feito pela placa de vídeo,
+     sem recalcular a página) e o layout muda só UMA vez por aparição/sumiço,
+     no mesmo quadro em que um transform igual e contrário o compensa — então a
+     troca é invisível e a animação é que move as coisas.
+     ENTRAR: a margem do conteúdo vira H de uma vez, e o conteúdo nasce com
+     translateY(−H) (onde já estava) e desliza até o lugar; a trilha desce de
+     cima ao mesmo tempo.
+     SAIR: trilha e conteúdo deslizam H para cima; no fim, margem 0 e transform
+     zero no mesmo quadro. */
   @keyframes uvTrilhaEntra{ from{transform:translateY(calc(-1 * var(--uv-trilha-h,300px) - 12px))} to{transform:none} }
+  @keyframes uvConteudoDesce{ from{transform:translateY(calc(-1 * var(--uv-desloca,0px)))} to{transform:none} }
   body.uv-trilha-entrando #hubSidebar .uv-trilha-cab,
-  body.uv-trilha-entrando #hubSidebar .nav-children.uv-fixa-filhos{animation:uvTrilhaEntra .2s ease-out}
+  body.uv-trilha-entrando #hubSidebar .nav-children.uv-fixa-filhos{animation:uvTrilhaEntra .22s ease-out}
+  body.uv-trilha-entrando .hub-main{animation:uvConteudoDesce .22s ease-out}
   body.uv-trilha-saindo #hubSidebar .uv-trilha-cab,
   body.uv-trilha-saindo #hubSidebar .nav-children.uv-fixa-filhos{
     transform:translateY(calc(-1 * var(--uv-trilha-h,300px) - 12px));transition:transform .2s ease-in;
   }
+  body.uv-trilha-saindo .hub-main{transform:translateY(calc(-1 * var(--uv-desloca,0px)));transition:transform .2s ease-in}
   /* o conteúdo desce o quanto a trilha ocupa por cima dele */
   body.uv-acoplado .hub-main{margin-top:calc(8px + var(--uv-empurra,0px))}
   body.uv-acoplado #hubSidebar .nav-item.active + .hub-main{margin-top:calc(10px + var(--uv-empurra,0px))}
-  body.uv-trilha-anim .hub-main{transition:margin-top .2s ease}
   /* ⚠ o navegador "segura" a rolagem quando algo acima cresce (scroll
      anchoring) — aqui isso anularia o empurrão, então fica desligado */
   html{overflow-anchor:none}
@@ -5842,7 +5852,7 @@ window.uvTelaPermitida=function(scr){
   };
 })();
 
-var UV_BUILD_NUM = 468; // (·468) CELULAR: TRILHA MÓVEL. Nada fica mais grudado o tempo todo: rolando para baixo (arrastar para cima) a barra do topo, a pasta e as sub-pastas saem da tela junto com a página; rolando para cima (arrastar para baixo) a pasta e as sub-pastas voltam na hora, grudadas no topo, EMPURRANDO o conteúdo (margem --uv-empurra) em vez de cobri-lo. Desktop intocado. ANTERIOR: (·467) MENU DESKTOP: Gerador de Voucher e Equipe (pastas com tela própria E sub-pastas) agora recolhem as sub-pastas no segundo clique, como Comercial/Matriz/Eventos/Grupos. Pasta EM USO (a tela dela ou uma sub-pasta dela aberta) com a árvore aberta → fecha sem navegar; nos outros casos → abre e navega. Celular intocado. ANTERIOR: (·466) MENU. (1) Todo NOVO acesso (aba/janela nova, navegador reaberto, depois de sair) abre no Control Desk; só o F5 na mesma aba devolve a tela (tela guardada no sessionStorage da aba, uv_hub_screen_aba; o localStorage uv_hub_screen não decide mais o boot). (2) Desktop: TODAS as pastas fechadas no 1º acesso do dia na máquina; depois o que se abriu/fechou persiste, inclusive no F5 (localStorage uv_menu_arvores com o dia). (3) Desktop: contorno branco discreto nas pastas principais (não nas sub-pastas). (4) Desktop: com sub-pasta aberta, a pasta principal fica AZUL e a sub-pasta LARANJA bem transparente. Celular intocado. ANTERIOR: (·465) MURAL: LIXEIRA PAGINADA. Pedido: na lista de excluídos, só os 5 mais recentes na primeira tela; o resto em páginas 1, 2, 3… (‹ › + números; só aparece com mais de 5). Abrir a lixeira volta sempre para a página 1; devolver o último recado de uma página não a deixa vazia. ANTERIOR: (·464) MURAL: LIXEIRA SÓ DO NANDO. Pedido: devolver recado excluído é função exclusiva do administrador (Fernando Pires), não da diretoria. mrPodeRestaurar compara o NOME COMPLETO normalizado (não a regra tolerante de mrMesmaPessoa, que aceitaria 'Fernando' sozinho). Excluir (✕) continua com a diretoria. ANTERIOR: (·463) MURAL: LIXEIRA — DEVOLVER RECADO EXCLUÍDO. Pedido do Nando: como admin, devolver ao mural um recado já excluído. A exclusão sempre foi suave (del=1); agora a diretoria (mesma porta do ✕) tem o botão '🗑 Excluídos (N)' no canto do quadro → lista dos excluídos (autor, data, quem excluiu) com '↩ Devolver ao mural'. Devolver = del:0 + mts novo (vence a cópia excluída de outro PC na união). Excluir passou a carimbar mts/delEm/delPor em vez de sobrescrever ts — o recado devolvido volta no mesmo lugar e com a data original. + Ocupação: badge do plantonista (noite/fim de semana) com nome comprido vazava a tela entre ~1000–1024px → pode encolher/quebrar (achado rodando a regressão num domingo). ANTERIOR: (·462) LICITAÇÃO — DEMANDA AÉREA COMPLETA + DATAS DIGITADAS. Passagem aérea agora tem Trecho + Data e hora de ida + Data e hora de volta (dd/mm/aaaa hh:mm, só números, formata sozinho, hora opcional, data impossível e volta antes da ida recusadas) + Cia aérea; Hotel esconde esses campos. Nascimento virou campo digitado dd/mm/aaaa (não calendário). CORREÇÃO: no ·461 a tabela de tipos da demanda se chamava LIC_TIPOS e sobrescrevia a de tipos de ANEXO (miniatura sem imagem dizia ARQ) — renomeada para LIC_DEM_TIPOS. ANTERIOR: (·461) LICITAÇÃO: SINAL + PÁGINA DO PROCESSO COM DEMANDAS. Bolinha na coluna # (ao lado do ⤢) com menu Sem cor/Verde/Amarelo/Vermelho (campo f.sinal, união campo a campo). Clicar em qualquer ponto da linha abre a PÁGINA do processo (resumo + Demandas): ＋ Adicionar demanda (Passagem aérea ou Hotel; trecho/nome do hotel em fonte grande de título) e, em cada demanda, ＋ Adicionar pessoas (nome, nascimento, CPF com máscara e dígito verificador). r.dem entra na união (licMergeDem — sem isso a união apagava as demandas). Redesenho de fora não apaga formulário aberto. ⤢ e 'Editar dados do processo' seguem abrindo o formulário de dados. ANTERIOR: (·460) LICITAÇÃO: GRADE PROTEGIDA. Pedido do Nando: todas as colunas bloqueadas na página principal — clicar numa célula não edita, sem ＋ de anexar nem arrastar arquivo na grade; documento aberto pela grade abre só para ver (sem Remover). Editar SÓ abrindo o processo no ⤢ (formulário mantém tudo: campos, opções coloridas, anexos, remover, excluir). Aviso 🔒 no topo. ANTERIOR: (·459) PASTA LICITAÇÃO ABERTA A TODOS, MENOS À LETÍCIA ROSA. Pedido do
+var UV_BUILD_NUM = 469; // (·469) CELULAR: TRILHA MÓVEL SEM TREMOR. (1) a margem do conteúdo não muda mais a cada quadro de rolagem: muda uma vez por aparição/sumiço, compensada por transform (o movimento é só transform); (2) resize só de altura (barra do Safari ao rolar) não reacopla nem zera a trilha; (3) folga 24px na mesma direção e nada liga enquanto a trilha aparece no lugar natural; ao voltar a essa faixa ela pousa com troca compensada. ANTERIOR: (·468) CELULAR: TRILHA MÓVEL. Nada fica mais grudado o tempo todo: rolando para baixo (arrastar para cima) a barra do topo, a pasta e as sub-pastas saem da tela junto com a página; rolando para cima (arrastar para baixo) a pasta e as sub-pastas voltam na hora, grudadas no topo, EMPURRANDO o conteúdo (margem --uv-empurra) em vez de cobri-lo. Desktop intocado. ANTERIOR: (·467) MENU DESKTOP: Gerador de Voucher e Equipe (pastas com tela própria E sub-pastas) agora recolhem as sub-pastas no segundo clique, como Comercial/Matriz/Eventos/Grupos. Pasta EM USO (a tela dela ou uma sub-pasta dela aberta) com a árvore aberta → fecha sem navegar; nos outros casos → abre e navega. Celular intocado. ANTERIOR: (·466) MENU. (1) Todo NOVO acesso (aba/janela nova, navegador reaberto, depois de sair) abre no Control Desk; só o F5 na mesma aba devolve a tela (tela guardada no sessionStorage da aba, uv_hub_screen_aba; o localStorage uv_hub_screen não decide mais o boot). (2) Desktop: TODAS as pastas fechadas no 1º acesso do dia na máquina; depois o que se abriu/fechou persiste, inclusive no F5 (localStorage uv_menu_arvores com o dia). (3) Desktop: contorno branco discreto nas pastas principais (não nas sub-pastas). (4) Desktop: com sub-pasta aberta, a pasta principal fica AZUL e a sub-pasta LARANJA bem transparente. Celular intocado. ANTERIOR: (·465) MURAL: LIXEIRA PAGINADA. Pedido: na lista de excluídos, só os 5 mais recentes na primeira tela; o resto em páginas 1, 2, 3… (‹ › + números; só aparece com mais de 5). Abrir a lixeira volta sempre para a página 1; devolver o último recado de uma página não a deixa vazia. ANTERIOR: (·464) MURAL: LIXEIRA SÓ DO NANDO. Pedido: devolver recado excluído é função exclusiva do administrador (Fernando Pires), não da diretoria. mrPodeRestaurar compara o NOME COMPLETO normalizado (não a regra tolerante de mrMesmaPessoa, que aceitaria 'Fernando' sozinho). Excluir (✕) continua com a diretoria. ANTERIOR: (·463) MURAL: LIXEIRA — DEVOLVER RECADO EXCLUÍDO. Pedido do Nando: como admin, devolver ao mural um recado já excluído. A exclusão sempre foi suave (del=1); agora a diretoria (mesma porta do ✕) tem o botão '🗑 Excluídos (N)' no canto do quadro → lista dos excluídos (autor, data, quem excluiu) com '↩ Devolver ao mural'. Devolver = del:0 + mts novo (vence a cópia excluída de outro PC na união). Excluir passou a carimbar mts/delEm/delPor em vez de sobrescrever ts — o recado devolvido volta no mesmo lugar e com a data original. + Ocupação: badge do plantonista (noite/fim de semana) com nome comprido vazava a tela entre ~1000–1024px → pode encolher/quebrar (achado rodando a regressão num domingo). ANTERIOR: (·462) LICITAÇÃO — DEMANDA AÉREA COMPLETA + DATAS DIGITADAS. Passagem aérea agora tem Trecho + Data e hora de ida + Data e hora de volta (dd/mm/aaaa hh:mm, só números, formata sozinho, hora opcional, data impossível e volta antes da ida recusadas) + Cia aérea; Hotel esconde esses campos. Nascimento virou campo digitado dd/mm/aaaa (não calendário). CORREÇÃO: no ·461 a tabela de tipos da demanda se chamava LIC_TIPOS e sobrescrevia a de tipos de ANEXO (miniatura sem imagem dizia ARQ) — renomeada para LIC_DEM_TIPOS. ANTERIOR: (·461) LICITAÇÃO: SINAL + PÁGINA DO PROCESSO COM DEMANDAS. Bolinha na coluna # (ao lado do ⤢) com menu Sem cor/Verde/Amarelo/Vermelho (campo f.sinal, união campo a campo). Clicar em qualquer ponto da linha abre a PÁGINA do processo (resumo + Demandas): ＋ Adicionar demanda (Passagem aérea ou Hotel; trecho/nome do hotel em fonte grande de título) e, em cada demanda, ＋ Adicionar pessoas (nome, nascimento, CPF com máscara e dígito verificador). r.dem entra na união (licMergeDem — sem isso a união apagava as demandas). Redesenho de fora não apaga formulário aberto. ⤢ e 'Editar dados do processo' seguem abrindo o formulário de dados. ANTERIOR: (·460) LICITAÇÃO: GRADE PROTEGIDA. Pedido do Nando: todas as colunas bloqueadas na página principal — clicar numa célula não edita, sem ＋ de anexar nem arrastar arquivo na grade; documento aberto pela grade abre só para ver (sem Remover). Editar SÓ abrindo o processo no ⤢ (formulário mantém tudo: campos, opções coloridas, anexos, remover, excluir). Aviso 🔒 no topo. ANTERIOR: (·459) PASTA LICITAÇÃO ABERTA A TODOS, MENOS À LETÍCIA ROSA. Pedido do
 // Nando, trocando a regra do ·458 (só diretoria + Maria Eduarda). A exceção reaproveita a trava do
 // ·457 (uvSoVoucher) em vez de criar outra lista com o nome dela — uma segunda cópia do mesmo fato
 // ficaria para trás no dia em que a trava do voucher mudar. O portão em hubGoScreen continua: para
@@ -15555,8 +15565,8 @@ init();
     try{
       var raiz=document.documentElement;
       document.querySelectorAll('#hubSidebar .uv-fixa-mae').forEach(function(e){ e.classList.remove('uv-fixa-mae'); });
+      var cabAnt=document.querySelector('#hubSidebar .uv-trilha-cab');
       document.querySelectorAll('#hubSidebar .uv-trilha-cab').forEach(function(e){ e.classList.remove('uv-trilha-cab'); });
-      try{ uvTrilhaReset(); }catch(e){}
       document.querySelectorAll('#hubSidebar .uv-fixa-filhos').forEach(function(e){ e.classList.remove('uv-fixa-filhos'); });
       raiz.style.setProperty('--uv-mae-h','0px');
       raiz.style.setProperty('--uv-ativa-h','0px');
@@ -15592,18 +15602,32 @@ init();
          grudado, a sub-pasta ativa vai junto e a trilha se mantém. */
       filhos.classList.add('uv-fixa-filhos');
     }catch(e){}
+    finally{
+      /* (·469) só recomeça a trilha se a PASTA mudou — remarcar a mesma pasta
+         (tempo real, acoplamento repetido) não pode desfazer o empurrão */
+      try{ var cabNova=document.querySelector('#hubSidebar .uv-trilha-cab'); if(cabNova!==cabAnt) uvTrilhaReset(); }catch(e){}
+    }
   }
-  /* ═════ (·468) MOTOR DA TRILHA MÓVEL (celular) ═════
+  /* ═════ (·468/·469) MOTOR DA TRILHA MÓVEL (celular) ═════
      Lê a DIREÇÃO da rolagem: descendo a página (arrastar para cima) a trilha
      fica no fluxo e sai da tela junto com tudo; subindo (arrastar para baixo)
-     ela volta na hora, grudada no topo, e o conteúdo desce o quanto ela ocupa
-     por cima dele. T0 = onde a trilha começa no fluxo; H = altura dela.
-     Enquanto a trilha ainda está no lugar natural (y <= T0) não há nada a
-     fazer; entre T0 e T0+H o empurrão acompanha a rolagem pixel a pixel
-     (min(y−T0, H)) — é isso que faz a volta ao lugar natural ser contínua,
-     sem pulo. ⚠ Uma pequena folga (UV_TR_FOLGA) antes de trocar de estado:
-     sem ela, o tremor do dedo parado ligaria e desligaria a trilha sem parar. */
-  var UV_TR_FOLGA=10, uvTr={on:false, y:-1, acum:0, t:null};
+     ela volta, grudada no topo, e o conteúdo desce H (a altura dela).
+     ⚠ (·469) A TELA TREMIA, e eram três causas, todas corrigidas aqui:
+     (1) o ·468 recalculava a margem do conteúdo A CADA QUADRO de rolagem na
+         faixa em que a trilha está parcialmente no lugar — layout mudando
+         enquanto o dedo rola é tremor na certa. Agora a margem muda UMA vez
+         por aparição/sumiço, e o movimento é só `transform`.
+     (2) no iPhone a barra do Safari aparece/some ao rolar e isso dispara
+         `resize`; o resize chamava o acoplamento, que ZERAVA a trilha — o
+         conteúdo pulava H pixels no meio do gesto. Agora resize só de altura
+         não mexe em nada (ver o ouvinte de resize).
+     (3) folga de 10px era pouca: o tremor natural do dedo ligava e desligava
+         a trilha. Agora 24px NA MESMA DIREÇÃO, e nada liga enquanto a trilha
+         ainda aparece no lugar natural (y ≤ T0+H) — ali quem manda é a
+         rolagem normal. Ao voltar para essa faixa com a trilha grudada, ela
+         "pousa" no lugar natural numa troca compensada (margem −H e rolagem
+         −H no mesmo quadro): o desenho na tela não muda. */
+  var UV_TR_FOLGA=24, uvTr={on:false, y:-1, acum:0, t:null, H:0, T0:0, desloca:0};
   function uvTrPecas(){
     var cab=document.querySelector('#hubSidebar .uv-trilha-cab');
     var fil=document.querySelector('#hubSidebar .nav-children.uv-fixa-filhos');
@@ -15622,51 +15646,84 @@ init();
     var H=P.cab.offsetHeight + (parseFloat(cs.marginBottom)||0);
     if(P.fil){ var cf=getComputedStyle(P.fil); H+= (parseFloat(cf.marginTop)||0) + P.fil.offsetHeight; }
     var T0=uvTrMarco(P.cab).getBoundingClientRect().top + window.scrollY;
-    /* as sub-pastas grudam logo abaixo da pasta COM o respiro entre as duas —
-       o mesmo desenho de quando estão no lugar natural, sem pulo de 7px */
     document.documentElement.style.setProperty('--uv-cab-h', Math.round(P.cab.offsetHeight + (parseFloat(cs.marginBottom)||0))+'px');
     return {T0:T0, H:Math.round(H)};
   }
   function uvTrEmpurra(px){ document.documentElement.style.setProperty('--uv-empurra', Math.max(0,Math.round(px))+'px'); }
-  function uvTrAnim(){ var b=document.body; b.classList.add('uv-trilha-anim'); clearTimeout(uvTr.ta); uvTr.ta=setTimeout(function(){ b.classList.remove('uv-trilha-anim'); },230); }
+  function uvTrRolarPara(y){ try{ window.scrollTo({top:y, left:window.scrollX, behavior:'instant'}); }catch(e){ window.scrollTo(window.scrollX, y); } }
   function uvTrilhaReset(){
     var b=document.body; clearTimeout(uvTr.t);
-    b.classList.remove('uv-trilha-on','uv-trilha-entrando','uv-trilha-saindo','uv-trilha-anim');
+    b.classList.remove('uv-trilha-on','uv-trilha-entrando','uv-trilha-saindo');
     uvTr.on=false; uvTr.acum=0; uvTr.y=window.scrollY; uvTrEmpurra(0);
   }
   window.uvTrilhaReset=uvTrilhaReset;
-  function uvTrLigar(M, y){
+  function uvTrLigar(M){
     var b=document.body; clearTimeout(uvTr.t);
-    document.documentElement.style.setProperty('--uv-trilha-h', M.H+'px');
-    var jaSaindo=b.classList.contains('uv-trilha-saindo');
+    var root=document.documentElement;
+    root.style.setProperty('--uv-trilha-h', M.H+'px');
     b.classList.remove('uv-trilha-saindo');
-    b.classList.add('uv-trilha-on');
-    if(!jaSaindo){ b.classList.add('uv-trilha-entrando'); uvTr.t=setTimeout(function(){ b.classList.remove('uv-trilha-entrando'); },220); }
-    uvTrAnim(); uvTrEmpurra(Math.min(M.H, y-M.T0));
+    uvTr.H=M.H; uvTr.T0=M.T0;
+    /* layout: UMA vez. ⚠ E O DESLOCAMENTO É MEDIDO, não suposto: a margem do
+       conteúdo "funde" com a margem de cima do primeiro elemento da tela
+       (margin collapsing do CSS) — com um título de margem 40px, pôr 305 de
+       margem movia só 265, a trilha cobria 40px do conteúdo e a compensação
+       errava por 40 (um tranco). Mede quanto andou e completa a diferença. */
+    var main=document.getElementById('hubMain'), t0=main?main.getBoundingClientRect().top:0;
+    uvTrEmpurra(M.H);
+    var andou=main?main.getBoundingClientRect().top-t0:M.H;
+    if(main && andou < M.H-0.5){ uvTrEmpurra(M.H + (M.H-andou)); andou=main.getBoundingClientRect().top-t0; }
+    uvTr.desloca=Math.round(andou);
+    root.style.setProperty('--uv-desloca', uvTr.desloca+'px');
+    b.classList.add('uv-trilha-on','uv-trilha-entrando');   /* e o conteúdo nasce em −H: nada salta */
     uvTr.on=true;
+    uvTr.t=setTimeout(function(){ b.classList.remove('uv-trilha-entrando'); },240);
   }
   function uvTrDesligar(){
     var b=document.body; clearTimeout(uvTr.t);
     b.classList.remove('uv-trilha-entrando');
-    b.classList.add('uv-trilha-saindo'); uvTrAnim(); uvTrEmpurra(0);
+    b.classList.add('uv-trilha-saindo');     /* só transform */
     uvTr.on=false;
-    uvTr.t=setTimeout(function(){ b.classList.remove('uv-trilha-on','uv-trilha-saindo'); },210);
+    uvTr.t=setTimeout(function(){
+      /* fim: margem 0 e transform zero no MESMO quadro — nada se mexe */
+      b.classList.remove('uv-trilha-on','uv-trilha-saindo'); uvTrEmpurra(0);
+    },210);
+  }
+  /* a trilha grudada chegou à faixa em que ela apareceria sozinha: pousa no
+     lugar natural com a troca compensada (o desenho na tela fica igual) */
+  function uvTrPousar(){
+    var b=document.body; clearTimeout(uvTr.t);
+    var y=window.scrollY, emp=b.classList.contains('uv-trilha-on') ? (uvTr.desloca||0) : 0;
+    b.classList.remove('uv-trilha-on','uv-trilha-entrando','uv-trilha-saindo');
+    uvTrEmpurra(0);
+    if(emp) uvTrRolarPara(Math.max(0, y-emp));
+    uvTr.on=false; uvTr.acum=0; uvTr.y=window.scrollY;
   }
   function uvTrRolou(){
     try{
-      if(!uvMobEhCelular() || document.body.classList.contains('uv-recolhido')){ if(uvTr.on) uvTrilhaReset(); return; }
+      var b=document.body;
+      if(!uvMobEhCelular() || b.classList.contains('uv-recolhido')){ if(uvTr.on || b.classList.contains('uv-trilha-on')) uvTrilhaReset(); return; }
       var y=window.scrollY, d=(uvTr.y<0)?0:y-uvTr.y; uvTr.y=y;
       if(!d) return;
       uvTr.acum = (uvTr.acum && (uvTr.acum>0)===(d>0)) ? uvTr.acum+d : d;
+      var grudada=b.classList.contains('uv-trilha-on');
+      if(grudada && !b.classList.contains('uv-trilha-saindo')){
+        /* com a trilha grudada, o lugar natural dela está H mais para baixo */
+        if(y <= uvTr.T0 + uvTr.H){ uvTrPousar(); return; }
+        if(uvTr.acum>=UV_TR_FOLGA) uvTrDesligar();
+        return;
+      }
+      if(b.classList.contains('uv-trilha-saindo')){
+        if(uvTr.acum<=-UV_TR_FOLGA){ var M1=uvTrMedidas(); if(M1 && y > M1.T0+M1.H) uvTrLigar(M1); }
+        return;
+      }
+      if(uvTr.acum > -UV_TR_FOLGA) return;
       var M=uvTrMedidas(); if(!M) return;
-      /* a trilha ainda está (ou já voltou) ao lugar dela: nada grudado */
-      if(y<=M.T0){ if(uvTr.on || document.body.classList.contains('uv-trilha-on')) uvTrilhaReset(); return; }
+      /* a trilha ainda aparece (inteira ou em parte) no lugar natural: rolagem normal */
+      if(y <= M.T0 + M.H) return;
       /* iOS: o "elástico" do fim da página rola ao contrário sozinho */
       var max=document.documentElement.scrollHeight-window.innerHeight;
-      if(y>=max-2 && d<0 && uvTr.acum>-40) return;
-      if(!uvTr.on && uvTr.acum<=-UV_TR_FOLGA) uvTrLigar(M, y);
-      else if(uvTr.on && uvTr.acum>=UV_TR_FOLGA) uvTrDesligar();
-      else if(uvTr.on) uvTrEmpurra(Math.min(M.H, y-M.T0));
+      if(y>=max-2) return;
+      uvTrLigar(M);
     }catch(e){}
   }
   var uvTrQuadro=0;
@@ -15833,7 +15890,13 @@ init();
      Ficam logo antes de hubGoScreen de propósito: é o ponto em que todas as
      funções que eles chamam já existem. */
   try{
-    window.addEventListener('resize', function(){ try{ window.uvMobAcoplar(); }catch(e){} });
+    /* (·469) no iPhone a barra do Safari entra e sai ao ROLAR e dispara resize
+       só de altura — reacoplar ali zerava a trilha no meio do gesto (a tela
+       tremia). Só largura mudada (girar, janela) reacopla. */
+    var uvLargAnt=window.innerWidth;
+    window.addEventListener('resize', function(){
+      try{ if(window.innerWidth===uvLargAnt) return; uvLargAnt=window.innerWidth; window.uvMobAcoplar(); }catch(e){}
+    });
     window.addEventListener('orientationchange', function(){ setTimeout(function(){ try{ window.uvMobAcoplar(); }catch(e){} },120); });
   }catch(e){}
 
