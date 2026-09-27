@@ -313,6 +313,26 @@ body.dark .hub-sidebar .nav-cat{color:rgba(255,255,255,.55)}
 body.dark .hub-sidebar .nav-children{border-left-color:rgba(255,255,255,.14)}
 body.dark .hub-sidebar .nav-item:hover{background:rgba(255,255,255,.08);color:#fff}
 body.dark .hub-sidebar .nav-item.active{background:var(--azul);color:#fff}
+/* ═════ (·466) MENU DO DESKTOP — contorno nas pastas principais + cores da trilha ═════
+   Só no DESKTOP (`body:not(.uv-acoplado)`): o celular tem caixa própria em
+   cada pasta desde o ·430 e a trilha grudada do ·431 — mexer lá seria mudança
+   que ninguém pediu (a lição do ·443).
+   Pasta principal = filho DIRETO do <nav>; as sub-pastas moram dentro de
+   .nav-children e ficam sem contorno. O contorno é `box-shadow inset`, não
+   `border`: borda soma 2px de altura em cada item e empurraria o menu todo. */
+body:not(.uv-acoplado) #hubSidebar nav > .nav-item{box-shadow:inset 0 0 0 1px rgba(0,0,0,.10);margin-bottom:5px}
+body.dark:not(.uv-acoplado) #hubSidebar nav > .nav-item{box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
+body:not(.uv-acoplado) #hubSidebar nav > .nav-item.active,
+body:not(.uv-acoplado) #hubSidebar nav > .nav-item.uv-mae-ativa{box-shadow:none}
+/* a pasta principal que CONTÉM a tela aberta fica azul, igual à ativa */
+body:not(.uv-acoplado) #hubSidebar .nav-item.uv-mae-ativa,
+body:not(.uv-acoplado) #hubSidebar .nav-item.uv-mae-ativa:hover{background:var(--azul);color:#fff}
+body:not(.uv-acoplado) #hubSidebar .nav-item.uv-mae-ativa .nav-ic{filter:none}
+/* a sub-pasta aberta: laranja bem transparente, sutil */
+body:not(.uv-acoplado) #hubSidebar .nav-children .nav-item.active,
+body:not(.uv-acoplado) #hubSidebar .nav-children .nav-item.active:hover{background:rgba(255,140,30,.16);color:var(--texto);box-shadow:inset 0 0 0 1px rgba(255,140,30,.30)}
+body.dark:not(.uv-acoplado) #hubSidebar .nav-children .nav-item.active,
+body.dark:not(.uv-acoplado) #hubSidebar .nav-children .nav-item.active:hover{background:rgba(255,140,30,.16);color:#fff}
 body.dark .hub-sidebar .nav-add{color:var(--verde)}
 .nav-csv{flex-shrink:0;font-size:10px;font-weight:700;letter-spacing:.4px;color:#fff;background:var(--verde);border:none;border-radius:8px;padding:7px 9px;cursor:pointer;font-family:inherit;white-space:nowrap}
 .nav-csv:hover{background:var(--verde-escuro)}
@@ -4123,6 +4143,8 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
     }catch(e){}
   }
   function limparSessao(){
+    /* (·466) sair e entrar de novo é NOVO ACESSO: volta ao Control Desk */
+    try{ sessionStorage.removeItem('uv_hub_screen_aba'); }catch(e){}
     try{
       localStorage.removeItem('uv_auth_token'); localStorage.removeItem('uv_auth_perfil');
       localStorage.removeItem('uv_auth_nome'); localStorage.removeItem('uv_auth_usuario');
@@ -5781,7 +5803,7 @@ window.uvTelaPermitida=function(scr){
   };
 })();
 
-var UV_BUILD_NUM = 465; // (·465) MURAL: LIXEIRA PAGINADA. Pedido: na lista de excluídos, só os 5 mais recentes na primeira tela; o resto em páginas 1, 2, 3… (‹ › + números; só aparece com mais de 5). Abrir a lixeira volta sempre para a página 1; devolver o último recado de uma página não a deixa vazia. ANTERIOR: (·464) MURAL: LIXEIRA SÓ DO NANDO. Pedido: devolver recado excluído é função exclusiva do administrador (Fernando Pires), não da diretoria. mrPodeRestaurar compara o NOME COMPLETO normalizado (não a regra tolerante de mrMesmaPessoa, que aceitaria 'Fernando' sozinho). Excluir (✕) continua com a diretoria. ANTERIOR: (·463) MURAL: LIXEIRA — DEVOLVER RECADO EXCLUÍDO. Pedido do Nando: como admin, devolver ao mural um recado já excluído. A exclusão sempre foi suave (del=1); agora a diretoria (mesma porta do ✕) tem o botão '🗑 Excluídos (N)' no canto do quadro → lista dos excluídos (autor, data, quem excluiu) com '↩ Devolver ao mural'. Devolver = del:0 + mts novo (vence a cópia excluída de outro PC na união). Excluir passou a carimbar mts/delEm/delPor em vez de sobrescrever ts — o recado devolvido volta no mesmo lugar e com a data original. + Ocupação: badge do plantonista (noite/fim de semana) com nome comprido vazava a tela entre ~1000–1024px → pode encolher/quebrar (achado rodando a regressão num domingo). ANTERIOR: (·462) LICITAÇÃO — DEMANDA AÉREA COMPLETA + DATAS DIGITADAS. Passagem aérea agora tem Trecho + Data e hora de ida + Data e hora de volta (dd/mm/aaaa hh:mm, só números, formata sozinho, hora opcional, data impossível e volta antes da ida recusadas) + Cia aérea; Hotel esconde esses campos. Nascimento virou campo digitado dd/mm/aaaa (não calendário). CORREÇÃO: no ·461 a tabela de tipos da demanda se chamava LIC_TIPOS e sobrescrevia a de tipos de ANEXO (miniatura sem imagem dizia ARQ) — renomeada para LIC_DEM_TIPOS. ANTERIOR: (·461) LICITAÇÃO: SINAL + PÁGINA DO PROCESSO COM DEMANDAS. Bolinha na coluna # (ao lado do ⤢) com menu Sem cor/Verde/Amarelo/Vermelho (campo f.sinal, união campo a campo). Clicar em qualquer ponto da linha abre a PÁGINA do processo (resumo + Demandas): ＋ Adicionar demanda (Passagem aérea ou Hotel; trecho/nome do hotel em fonte grande de título) e, em cada demanda, ＋ Adicionar pessoas (nome, nascimento, CPF com máscara e dígito verificador). r.dem entra na união (licMergeDem — sem isso a união apagava as demandas). Redesenho de fora não apaga formulário aberto. ⤢ e 'Editar dados do processo' seguem abrindo o formulário de dados. ANTERIOR: (·460) LICITAÇÃO: GRADE PROTEGIDA. Pedido do Nando: todas as colunas bloqueadas na página principal — clicar numa célula não edita, sem ＋ de anexar nem arrastar arquivo na grade; documento aberto pela grade abre só para ver (sem Remover). Editar SÓ abrindo o processo no ⤢ (formulário mantém tudo: campos, opções coloridas, anexos, remover, excluir). Aviso 🔒 no topo. ANTERIOR: (·459) PASTA LICITAÇÃO ABERTA A TODOS, MENOS À LETÍCIA ROSA. Pedido do
+var UV_BUILD_NUM = 466; // (·466) MENU. (1) Todo NOVO acesso (aba/janela nova, navegador reaberto, depois de sair) abre no Control Desk; só o F5 na mesma aba devolve a tela (tela guardada no sessionStorage da aba, uv_hub_screen_aba; o localStorage uv_hub_screen não decide mais o boot). (2) Desktop: TODAS as pastas fechadas no 1º acesso do dia na máquina; depois o que se abriu/fechou persiste, inclusive no F5 (localStorage uv_menu_arvores com o dia). (3) Desktop: contorno branco discreto nas pastas principais (não nas sub-pastas). (4) Desktop: com sub-pasta aberta, a pasta principal fica AZUL e a sub-pasta LARANJA bem transparente. Celular intocado. ANTERIOR: (·465) MURAL: LIXEIRA PAGINADA. Pedido: na lista de excluídos, só os 5 mais recentes na primeira tela; o resto em páginas 1, 2, 3… (‹ › + números; só aparece com mais de 5). Abrir a lixeira volta sempre para a página 1; devolver o último recado de uma página não a deixa vazia. ANTERIOR: (·464) MURAL: LIXEIRA SÓ DO NANDO. Pedido: devolver recado excluído é função exclusiva do administrador (Fernando Pires), não da diretoria. mrPodeRestaurar compara o NOME COMPLETO normalizado (não a regra tolerante de mrMesmaPessoa, que aceitaria 'Fernando' sozinho). Excluir (✕) continua com a diretoria. ANTERIOR: (·463) MURAL: LIXEIRA — DEVOLVER RECADO EXCLUÍDO. Pedido do Nando: como admin, devolver ao mural um recado já excluído. A exclusão sempre foi suave (del=1); agora a diretoria (mesma porta do ✕) tem o botão '🗑 Excluídos (N)' no canto do quadro → lista dos excluídos (autor, data, quem excluiu) com '↩ Devolver ao mural'. Devolver = del:0 + mts novo (vence a cópia excluída de outro PC na união). Excluir passou a carimbar mts/delEm/delPor em vez de sobrescrever ts — o recado devolvido volta no mesmo lugar e com a data original. + Ocupação: badge do plantonista (noite/fim de semana) com nome comprido vazava a tela entre ~1000–1024px → pode encolher/quebrar (achado rodando a regressão num domingo). ANTERIOR: (·462) LICITAÇÃO — DEMANDA AÉREA COMPLETA + DATAS DIGITADAS. Passagem aérea agora tem Trecho + Data e hora de ida + Data e hora de volta (dd/mm/aaaa hh:mm, só números, formata sozinho, hora opcional, data impossível e volta antes da ida recusadas) + Cia aérea; Hotel esconde esses campos. Nascimento virou campo digitado dd/mm/aaaa (não calendário). CORREÇÃO: no ·461 a tabela de tipos da demanda se chamava LIC_TIPOS e sobrescrevia a de tipos de ANEXO (miniatura sem imagem dizia ARQ) — renomeada para LIC_DEM_TIPOS. ANTERIOR: (·461) LICITAÇÃO: SINAL + PÁGINA DO PROCESSO COM DEMANDAS. Bolinha na coluna # (ao lado do ⤢) com menu Sem cor/Verde/Amarelo/Vermelho (campo f.sinal, união campo a campo). Clicar em qualquer ponto da linha abre a PÁGINA do processo (resumo + Demandas): ＋ Adicionar demanda (Passagem aérea ou Hotel; trecho/nome do hotel em fonte grande de título) e, em cada demanda, ＋ Adicionar pessoas (nome, nascimento, CPF com máscara e dígito verificador). r.dem entra na união (licMergeDem — sem isso a união apagava as demandas). Redesenho de fora não apaga formulário aberto. ⤢ e 'Editar dados do processo' seguem abrindo o formulário de dados. ANTERIOR: (·460) LICITAÇÃO: GRADE PROTEGIDA. Pedido do Nando: todas as colunas bloqueadas na página principal — clicar numa célula não edita, sem ＋ de anexar nem arrastar arquivo na grade; documento aberto pela grade abre só para ver (sem Remover). Editar SÓ abrindo o processo no ⤢ (formulário mantém tudo: campos, opções coloridas, anexos, remover, excluir). Aviso 🔒 no topo. ANTERIOR: (·459) PASTA LICITAÇÃO ABERTA A TODOS, MENOS À LETÍCIA ROSA. Pedido do
 // Nando, trocando a regra do ·458 (só diretoria + Maria Eduarda). A exceção reaproveita a trava do
 // ·457 (uvSoVoucher) em vez de criar outra lista com o nome dela — uma segunda cópia do mesmo fato
 // ficaria para trás no dia em que a trava do voucher mudar. O portão em hubGoScreen continua: para
@@ -15684,6 +15706,62 @@ init();
     window.addEventListener('orientationchange', function(){ setTimeout(function(){ try{ window.uvMobAcoplar(); }catch(e){} },120); });
   }catch(e){}
 
+  /* ═════ (·466) MENU DO DESKTOP: PASTAS FECHADAS NO 1º ACESSO DO DIA ═════
+     Pedido do Nando: o Hub abre com TODAS as pastas fechadas só no primeiro
+     acesso do dia naquela máquina; depois disso, o que a pessoa abriu/fechou
+     fica como está — inclusive ao atualizar a página.
+     O estado mora no localStorage (é da MÁQUINA, vale para todas as abas) com o
+     DIA junto: dia diferente = primeiro acesso do dia = fecha tudo.
+     ⚠ Só no desktop. O celular já tem a regra própria (·431: só a árvore da
+     tela em uso aberta) e não pode nem ler nem gravar este estado — senão um
+     toque no celular reescreveria o menu do computador e vice-versa. */
+  var UV_MENU_CHAVE='uv_menu_arvores';
+  function uvHojeLocal(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+  var uvMenuPronto=false;   /* ⚠ só grava DEPOIS de aplicar o do dia: uma navegação no boot
+                              anterior a isso gravaria o HTML de fábrica (tudo aberto) com a
+                              data de hoje, e o "fechar tudo do 1º acesso" nunca aconteceria */
+  function uvMenuGravar(){
+    try{
+      if(!uvMenuPronto || uvMobEhCelular()) return;
+      var ab={};
+      document.querySelectorAll('#hubSidebar [data-tree-body]').forEach(function(cx){ if(cx.classList.contains('show')) ab[cx.getAttribute('data-tree-body')]=1; });
+      localStorage.setItem(UV_MENU_CHAVE, JSON.stringify({dia:uvHojeLocal(), abertas:ab}));
+    }catch(e){}
+  }
+  window.uvMenuGravar=uvMenuGravar;
+  function uvMenuAplicarDoDia(){
+    try{
+      if(uvMobEhCelular()) return;
+      var st=null; try{ st=JSON.parse(localStorage.getItem(UV_MENU_CHAVE)||'null'); }catch(e){ st=null; }
+      var primeiro=!(st && st.dia===uvHojeLocal() && st.abertas && typeof st.abertas==='object');
+      document.querySelectorAll('#hubSidebar [data-tree-body]').forEach(function(cx){
+        var k=cx.getAttribute('data-tree-body'), abre=!primeiro && !!st.abertas[k];
+        cx.classList.toggle('show', abre);
+        var cab=document.querySelector('#hubSidebar [data-tree="'+k+'"]');
+        if(cab) cab.classList.toggle('open', abre);
+      });
+      uvMenuPronto=true;
+      if(primeiro) uvMenuGravar();
+    }catch(e){ uvMenuPronto=true; }
+  }
+  /* (·466) A PASTA PRINCIPAL DA TELA ABERTA. Com uma sub-pasta aberta, quem fica
+     azul é a pasta principal que a contém (a de fora de todas, mesmo com árvore
+     dentro de árvore: Eventos ▸ WeCann ▸ Kanban pinta Eventos), e a sub-pasta
+     fica num laranja bem transparente. A cor é do CSS; aqui só se marca quem. */
+  function uvMarcarMaeAtiva(){
+    try{
+      document.querySelectorAll('#hubSidebar .uv-mae-ativa').forEach(function(e){ e.classList.remove('uv-mae-ativa'); });
+      var el=document.querySelector('#hubSidebar .nav-item.active'), mae=null;
+      while(el){
+        var cx=el.closest ? el.closest('.nav-children[data-tree-body]') : null;
+        if(!cx) break;
+        mae=document.querySelector('#hubSidebar [data-tree="'+cx.getAttribute('data-tree-body')+'"]');
+        el=cx.parentElement;
+      }
+      if(mae) mae.classList.add('uv-mae-ativa');
+    }catch(e){}
+  }
+
   window.hubGoScreen=function(scr){
     /* (·457) PORTÃO DAS TELAS: para quem só pode ver o voucher, qualquer destino
        fora do Gerador e dos Vouchers Salvos vira o Gerador. Fica AQUI, na
@@ -15741,6 +15819,9 @@ init();
        pessoa deixou aberto continua aberto. */
     try{ uvAbrirArvoreDaTela(scr); }catch(e){}
     try{ localStorage.setItem('uv_hub_screen',scr); }catch(e){}
+    /* (·466) a tela desta ABA — é ela que o F5 devolve (ver init) */
+    try{ sessionStorage.setItem('uv_hub_screen_aba',scr); }catch(e){}
+    try{ uvMarcarMaeAtiva(); uvMenuGravar(); }catch(e){}
     /* (·429) DEPOIS de marcar o item e abrir a árvore, nunca antes: o encaixe
        depende de saber QUAL pasta está ativa e se a árvore dela está aberta.
        Fica no FUNIL, não no clique do menu — navegar por botão interno, pelo
@@ -16010,6 +16091,8 @@ init();
         }catch(e){}
       }
       if(scr) window.hubGoScreen(scr);
+      /* (·466) guarda o que a pessoa abriu/fechou — o F5 devolve igual */
+      try{ uvMenuGravar(); }catch(e){}
     });
     // (·281) CORREÇÃO — "navegação reseta ao atualizar página". O Hub já
     // GRAVAVA a tela atual em localStorage a cada navegação (uv_hub_screen,
@@ -16022,8 +16105,18 @@ init();
     // atualização futura não deixa ninguém preso numa tela fantasma; nesse
     // caso (ou no 1º acesso, sem nada salvo ainda) cai no Control Desk,
     // exatamente como antes.
+    /* (·466) TODO NOVO ACESSO ABRE NO CONTROL DESK. Pedido do Nando, e ele
+       reforçou: "todo novo acesso, mesmo na mesma máquina". Novo acesso = aba
+       nova, janela nova, navegador reaberto, ou depois de sair e entrar (o
+       logout apaga a marca). O que continua devolvendo a tela é só o F5 NA
+       MESMA ABA — o ·281 nasceu justamente de "atualizei e perdi onde estava".
+       A diferença entre os dois vem do sessionStorage, que é da ABA e morre
+       com ela; o localStorage (uv_hub_screen) é da máquina inteira e por isso
+       não serve mais para decidir a tela do boot: era ele que fazia uma aba
+       nova abrir na última pasta usada em OUTRA aba. */
+    try{ uvMenuAplicarDoDia(); }catch(e){}
     var scrSalva=null;
-    try{ scrSalva=localStorage.getItem('uv_hub_screen'); }catch(e){}
+    try{ scrSalva=sessionStorage.getItem('uv_hub_screen_aba'); }catch(e){}
     if(scrSalva && (scrSalva in WEC || document.getElementById('scr-'+scrSalva))){
       window.hubGoScreen(scrSalva);
     } else {
