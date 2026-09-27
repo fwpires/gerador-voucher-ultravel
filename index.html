@@ -2884,6 +2884,45 @@ body:not(.dark) .termo-nome{color:#5a7085}
     padding-top:6px;box-shadow:0 6px 14px rgba(0,0,0,.4);
   }
 
+  /* ═════ (·468) A TRILHA MÓVEL — NADA FICA MAIS GRUDADO O TEMPO TODO ═════
+     Pedido do Nando: ao arrastar a página para cima, a barra do topo, a pasta
+     e as sub-pastas sobem JUNTO e saem da tela (a página inteira aparece); ao
+     arrastar para baixo, a pasta e as sub-pastas voltam NA HORA — e voltam
+     EMPURRANDO o conteúdo para baixo, nunca por cima dele (escolha dele).
+     COMO: por padrão tudo volta ao fluxo normal (relative, sem grudar). Quando
+     a pessoa rola para cima, o JS liga `uv-trilha-on`: a cabeça da trilha
+     (a pasta) e o bloco de sub-pastas viram sticky no topo, e o conteúdo desce
+     exatamente o que a trilha ocuparia por cima dele (`--uv-empurra`, margem
+     no #hubMain) — então nada fica escondido embaixo de nada.
+     ⚠ A regra do ·431 acima (sticky) continua escrita, mas estas vencem por
+     especificidade (body. na frente) — não por ordem no arquivo. */
+  body.uv-acoplado .topbar{position:relative;top:auto}
+  body.uv-acoplado #hubSidebar .nav-item.active,
+  body.uv-acoplado #hubSidebar .nav-item.uv-fixa-mae,
+  body.uv-acoplado #hubSidebar .nav-children.uv-fixa-filhos{position:relative;top:auto;box-shadow:none}
+  body.uv-acoplado #hubSidebar .nav-item.active{z-index:30}
+  body.uv-trilha-on.uv-acoplado #hubSidebar .nav-item.uv-trilha-cab{
+    position:sticky;top:0;z-index:31;box-shadow:0 6px 16px rgba(0,0,0,.45);
+  }
+  body.uv-trilha-on.uv-acoplado #hubSidebar .nav-children.uv-fixa-filhos{
+    position:sticky;top:var(--uv-cab-h,var(--uv-mae-h,0px));z-index:29;box-shadow:0 6px 14px rgba(0,0,0,.4);
+  }
+  /* entrar deslizando de cima; sair deslizando para cima */
+  @keyframes uvTrilhaEntra{ from{transform:translateY(calc(-1 * var(--uv-trilha-h,300px) - 12px))} to{transform:none} }
+  body.uv-trilha-entrando #hubSidebar .uv-trilha-cab,
+  body.uv-trilha-entrando #hubSidebar .nav-children.uv-fixa-filhos{animation:uvTrilhaEntra .2s ease-out}
+  body.uv-trilha-saindo #hubSidebar .uv-trilha-cab,
+  body.uv-trilha-saindo #hubSidebar .nav-children.uv-fixa-filhos{
+    transform:translateY(calc(-1 * var(--uv-trilha-h,300px) - 12px));transition:transform .2s ease-in;
+  }
+  /* o conteúdo desce o quanto a trilha ocupa por cima dele */
+  body.uv-acoplado .hub-main{margin-top:calc(8px + var(--uv-empurra,0px))}
+  body.uv-acoplado #hubSidebar .nav-item.active + .hub-main{margin-top:calc(10px + var(--uv-empurra,0px))}
+  body.uv-trilha-anim .hub-main{transition:margin-top .2s ease}
+  /* ⚠ o navegador "segura" a rolagem quando algo acima cresce (scroll
+     anchoring) — aqui isso anularia o empurrão, então fica desligado */
+  html{overflow-anchor:none}
+
   /* ======= (·436) O CABEÇALHO NO CELULAR: LOGO CENTRADA E BOTÕES IGUAIS =======
      Pedido do Nando, com o print circulando o topo: "deixe todos eles com o
      mesmo tamanho padronizado e distribuídos de forma que ocupe todo o espaço
@@ -5803,7 +5842,7 @@ window.uvTelaPermitida=function(scr){
   };
 })();
 
-var UV_BUILD_NUM = 467; // (·467) MENU DESKTOP: Gerador de Voucher e Equipe (pastas com tela própria E sub-pastas) agora recolhem as sub-pastas no segundo clique, como Comercial/Matriz/Eventos/Grupos. Pasta EM USO (a tela dela ou uma sub-pasta dela aberta) com a árvore aberta → fecha sem navegar; nos outros casos → abre e navega. Celular intocado. ANTERIOR: (·466) MENU. (1) Todo NOVO acesso (aba/janela nova, navegador reaberto, depois de sair) abre no Control Desk; só o F5 na mesma aba devolve a tela (tela guardada no sessionStorage da aba, uv_hub_screen_aba; o localStorage uv_hub_screen não decide mais o boot). (2) Desktop: TODAS as pastas fechadas no 1º acesso do dia na máquina; depois o que se abriu/fechou persiste, inclusive no F5 (localStorage uv_menu_arvores com o dia). (3) Desktop: contorno branco discreto nas pastas principais (não nas sub-pastas). (4) Desktop: com sub-pasta aberta, a pasta principal fica AZUL e a sub-pasta LARANJA bem transparente. Celular intocado. ANTERIOR: (·465) MURAL: LIXEIRA PAGINADA. Pedido: na lista de excluídos, só os 5 mais recentes na primeira tela; o resto em páginas 1, 2, 3… (‹ › + números; só aparece com mais de 5). Abrir a lixeira volta sempre para a página 1; devolver o último recado de uma página não a deixa vazia. ANTERIOR: (·464) MURAL: LIXEIRA SÓ DO NANDO. Pedido: devolver recado excluído é função exclusiva do administrador (Fernando Pires), não da diretoria. mrPodeRestaurar compara o NOME COMPLETO normalizado (não a regra tolerante de mrMesmaPessoa, que aceitaria 'Fernando' sozinho). Excluir (✕) continua com a diretoria. ANTERIOR: (·463) MURAL: LIXEIRA — DEVOLVER RECADO EXCLUÍDO. Pedido do Nando: como admin, devolver ao mural um recado já excluído. A exclusão sempre foi suave (del=1); agora a diretoria (mesma porta do ✕) tem o botão '🗑 Excluídos (N)' no canto do quadro → lista dos excluídos (autor, data, quem excluiu) com '↩ Devolver ao mural'. Devolver = del:0 + mts novo (vence a cópia excluída de outro PC na união). Excluir passou a carimbar mts/delEm/delPor em vez de sobrescrever ts — o recado devolvido volta no mesmo lugar e com a data original. + Ocupação: badge do plantonista (noite/fim de semana) com nome comprido vazava a tela entre ~1000–1024px → pode encolher/quebrar (achado rodando a regressão num domingo). ANTERIOR: (·462) LICITAÇÃO — DEMANDA AÉREA COMPLETA + DATAS DIGITADAS. Passagem aérea agora tem Trecho + Data e hora de ida + Data e hora de volta (dd/mm/aaaa hh:mm, só números, formata sozinho, hora opcional, data impossível e volta antes da ida recusadas) + Cia aérea; Hotel esconde esses campos. Nascimento virou campo digitado dd/mm/aaaa (não calendário). CORREÇÃO: no ·461 a tabela de tipos da demanda se chamava LIC_TIPOS e sobrescrevia a de tipos de ANEXO (miniatura sem imagem dizia ARQ) — renomeada para LIC_DEM_TIPOS. ANTERIOR: (·461) LICITAÇÃO: SINAL + PÁGINA DO PROCESSO COM DEMANDAS. Bolinha na coluna # (ao lado do ⤢) com menu Sem cor/Verde/Amarelo/Vermelho (campo f.sinal, união campo a campo). Clicar em qualquer ponto da linha abre a PÁGINA do processo (resumo + Demandas): ＋ Adicionar demanda (Passagem aérea ou Hotel; trecho/nome do hotel em fonte grande de título) e, em cada demanda, ＋ Adicionar pessoas (nome, nascimento, CPF com máscara e dígito verificador). r.dem entra na união (licMergeDem — sem isso a união apagava as demandas). Redesenho de fora não apaga formulário aberto. ⤢ e 'Editar dados do processo' seguem abrindo o formulário de dados. ANTERIOR: (·460) LICITAÇÃO: GRADE PROTEGIDA. Pedido do Nando: todas as colunas bloqueadas na página principal — clicar numa célula não edita, sem ＋ de anexar nem arrastar arquivo na grade; documento aberto pela grade abre só para ver (sem Remover). Editar SÓ abrindo o processo no ⤢ (formulário mantém tudo: campos, opções coloridas, anexos, remover, excluir). Aviso 🔒 no topo. ANTERIOR: (·459) PASTA LICITAÇÃO ABERTA A TODOS, MENOS À LETÍCIA ROSA. Pedido do
+var UV_BUILD_NUM = 468; // (·468) CELULAR: TRILHA MÓVEL. Nada fica mais grudado o tempo todo: rolando para baixo (arrastar para cima) a barra do topo, a pasta e as sub-pastas saem da tela junto com a página; rolando para cima (arrastar para baixo) a pasta e as sub-pastas voltam na hora, grudadas no topo, EMPURRANDO o conteúdo (margem --uv-empurra) em vez de cobri-lo. Desktop intocado. ANTERIOR: (·467) MENU DESKTOP: Gerador de Voucher e Equipe (pastas com tela própria E sub-pastas) agora recolhem as sub-pastas no segundo clique, como Comercial/Matriz/Eventos/Grupos. Pasta EM USO (a tela dela ou uma sub-pasta dela aberta) com a árvore aberta → fecha sem navegar; nos outros casos → abre e navega. Celular intocado. ANTERIOR: (·466) MENU. (1) Todo NOVO acesso (aba/janela nova, navegador reaberto, depois de sair) abre no Control Desk; só o F5 na mesma aba devolve a tela (tela guardada no sessionStorage da aba, uv_hub_screen_aba; o localStorage uv_hub_screen não decide mais o boot). (2) Desktop: TODAS as pastas fechadas no 1º acesso do dia na máquina; depois o que se abriu/fechou persiste, inclusive no F5 (localStorage uv_menu_arvores com o dia). (3) Desktop: contorno branco discreto nas pastas principais (não nas sub-pastas). (4) Desktop: com sub-pasta aberta, a pasta principal fica AZUL e a sub-pasta LARANJA bem transparente. Celular intocado. ANTERIOR: (·465) MURAL: LIXEIRA PAGINADA. Pedido: na lista de excluídos, só os 5 mais recentes na primeira tela; o resto em páginas 1, 2, 3… (‹ › + números; só aparece com mais de 5). Abrir a lixeira volta sempre para a página 1; devolver o último recado de uma página não a deixa vazia. ANTERIOR: (·464) MURAL: LIXEIRA SÓ DO NANDO. Pedido: devolver recado excluído é função exclusiva do administrador (Fernando Pires), não da diretoria. mrPodeRestaurar compara o NOME COMPLETO normalizado (não a regra tolerante de mrMesmaPessoa, que aceitaria 'Fernando' sozinho). Excluir (✕) continua com a diretoria. ANTERIOR: (·463) MURAL: LIXEIRA — DEVOLVER RECADO EXCLUÍDO. Pedido do Nando: como admin, devolver ao mural um recado já excluído. A exclusão sempre foi suave (del=1); agora a diretoria (mesma porta do ✕) tem o botão '🗑 Excluídos (N)' no canto do quadro → lista dos excluídos (autor, data, quem excluiu) com '↩ Devolver ao mural'. Devolver = del:0 + mts novo (vence a cópia excluída de outro PC na união). Excluir passou a carimbar mts/delEm/delPor em vez de sobrescrever ts — o recado devolvido volta no mesmo lugar e com a data original. + Ocupação: badge do plantonista (noite/fim de semana) com nome comprido vazava a tela entre ~1000–1024px → pode encolher/quebrar (achado rodando a regressão num domingo). ANTERIOR: (·462) LICITAÇÃO — DEMANDA AÉREA COMPLETA + DATAS DIGITADAS. Passagem aérea agora tem Trecho + Data e hora de ida + Data e hora de volta (dd/mm/aaaa hh:mm, só números, formata sozinho, hora opcional, data impossível e volta antes da ida recusadas) + Cia aérea; Hotel esconde esses campos. Nascimento virou campo digitado dd/mm/aaaa (não calendário). CORREÇÃO: no ·461 a tabela de tipos da demanda se chamava LIC_TIPOS e sobrescrevia a de tipos de ANEXO (miniatura sem imagem dizia ARQ) — renomeada para LIC_DEM_TIPOS. ANTERIOR: (·461) LICITAÇÃO: SINAL + PÁGINA DO PROCESSO COM DEMANDAS. Bolinha na coluna # (ao lado do ⤢) com menu Sem cor/Verde/Amarelo/Vermelho (campo f.sinal, união campo a campo). Clicar em qualquer ponto da linha abre a PÁGINA do processo (resumo + Demandas): ＋ Adicionar demanda (Passagem aérea ou Hotel; trecho/nome do hotel em fonte grande de título) e, em cada demanda, ＋ Adicionar pessoas (nome, nascimento, CPF com máscara e dígito verificador). r.dem entra na união (licMergeDem — sem isso a união apagava as demandas). Redesenho de fora não apaga formulário aberto. ⤢ e 'Editar dados do processo' seguem abrindo o formulário de dados. ANTERIOR: (·460) LICITAÇÃO: GRADE PROTEGIDA. Pedido do Nando: todas as colunas bloqueadas na página principal — clicar numa célula não edita, sem ＋ de anexar nem arrastar arquivo na grade; documento aberto pela grade abre só para ver (sem Remover). Editar SÓ abrindo o processo no ⤢ (formulário mantém tudo: campos, opções coloridas, anexos, remover, excluir). Aviso 🔒 no topo. ANTERIOR: (·459) PASTA LICITAÇÃO ABERTA A TODOS, MENOS À LETÍCIA ROSA. Pedido do
 // Nando, trocando a regra do ·458 (só diretoria + Maria Eduarda). A exceção reaproveita a trava do
 // ·457 (uvSoVoucher) em vez de criar outra lista com o nome dela — uma segunda cópia do mesmo fato
 // ficaria para trás no dia em que a trava do voucher mudar. O portão em hubGoScreen continua: para
@@ -15516,6 +15555,8 @@ init();
     try{
       var raiz=document.documentElement;
       document.querySelectorAll('#hubSidebar .uv-fixa-mae').forEach(function(e){ e.classList.remove('uv-fixa-mae'); });
+      document.querySelectorAll('#hubSidebar .uv-trilha-cab').forEach(function(e){ e.classList.remove('uv-trilha-cab'); });
+      try{ uvTrilhaReset(); }catch(e){}
       document.querySelectorAll('#hubSidebar .uv-fixa-filhos').forEach(function(e){ e.classList.remove('uv-fixa-filhos'); });
       raiz.style.setProperty('--uv-mae-h','0px');
       raiz.style.setProperty('--uv-ativa-h','0px');
@@ -15523,6 +15564,10 @@ init();
       var btn=document.querySelector('#hubSidebar .nav-item.active'); if(!btn) return;
       raiz.style.setProperty('--uv-ativa-h', Math.round(btn.getBoundingClientRect().height)+'px');
       var arv=btn.getAttribute('data-tree'), mae=null, filhos=null;
+      /* (·468) a cabeça da trilha móvel: a própria pasta ativa (casos A e sem
+         árvore) — no caso B é trocada pela mãe logo abaixo */
+      btn.classList.add('uv-trilha-cab');
+      raiz.style.setProperty('--uv-mae-h', Math.round(btn.getBoundingClientRect().height)+'px');
       if(arv){
         /* CASO A — a pasta-mãe é a que está aberta */
         mae=btn;
@@ -15533,7 +15578,7 @@ init();
         if(caixa){
           mae=document.querySelector('#hubSidebar [data-tree="'+caixa.getAttribute('data-tree-body')+'"]');
           filhos=caixa;
-          if(mae) mae.classList.add('uv-fixa-mae');
+          if(mae){ mae.classList.add('uv-fixa-mae'); btn.classList.remove('uv-trilha-cab'); mae.classList.add('uv-trilha-cab'); }
         }
       }
       if(!mae || !filhos || filhos.offsetParent===null) return;
@@ -15548,6 +15593,88 @@ init();
       filhos.classList.add('uv-fixa-filhos');
     }catch(e){}
   }
+  /* ═════ (·468) MOTOR DA TRILHA MÓVEL (celular) ═════
+     Lê a DIREÇÃO da rolagem: descendo a página (arrastar para cima) a trilha
+     fica no fluxo e sai da tela junto com tudo; subindo (arrastar para baixo)
+     ela volta na hora, grudada no topo, e o conteúdo desce o quanto ela ocupa
+     por cima dele. T0 = onde a trilha começa no fluxo; H = altura dela.
+     Enquanto a trilha ainda está no lugar natural (y <= T0) não há nada a
+     fazer; entre T0 e T0+H o empurrão acompanha a rolagem pixel a pixel
+     (min(y−T0, H)) — é isso que faz a volta ao lugar natural ser contínua,
+     sem pulo. ⚠ Uma pequena folga (UV_TR_FOLGA) antes de trocar de estado:
+     sem ela, o tremor do dedo parado ligaria e desligaria a trilha sem parar. */
+  var UV_TR_FOLGA=10, uvTr={on:false, y:-1, acum:0, t:null};
+  function uvTrPecas(){
+    var cab=document.querySelector('#hubSidebar .uv-trilha-cab');
+    var fil=document.querySelector('#hubSidebar .nav-children.uv-fixa-filhos');
+    if(fil && fil.offsetParent===null) fil=null;
+    return {cab:cab, fil:fil};
+  }
+  function uvTrMarco(cab){
+    var m=document.getElementById('uvTrilhaMarco');
+    if(!m){ m=document.createElement('i'); m.id='uvTrilhaMarco'; m.setAttribute('aria-hidden','true'); m.style.cssText='display:block;height:0;margin:0;padding:0'; }
+    if(m.nextElementSibling!==cab && cab.parentNode) cab.parentNode.insertBefore(m, cab);
+    return m;
+  }
+  function uvTrMedidas(){
+    var P=uvTrPecas(); if(!P.cab) return null;
+    var cs=getComputedStyle(P.cab);
+    var H=P.cab.offsetHeight + (parseFloat(cs.marginBottom)||0);
+    if(P.fil){ var cf=getComputedStyle(P.fil); H+= (parseFloat(cf.marginTop)||0) + P.fil.offsetHeight; }
+    var T0=uvTrMarco(P.cab).getBoundingClientRect().top + window.scrollY;
+    /* as sub-pastas grudam logo abaixo da pasta COM o respiro entre as duas —
+       o mesmo desenho de quando estão no lugar natural, sem pulo de 7px */
+    document.documentElement.style.setProperty('--uv-cab-h', Math.round(P.cab.offsetHeight + (parseFloat(cs.marginBottom)||0))+'px');
+    return {T0:T0, H:Math.round(H)};
+  }
+  function uvTrEmpurra(px){ document.documentElement.style.setProperty('--uv-empurra', Math.max(0,Math.round(px))+'px'); }
+  function uvTrAnim(){ var b=document.body; b.classList.add('uv-trilha-anim'); clearTimeout(uvTr.ta); uvTr.ta=setTimeout(function(){ b.classList.remove('uv-trilha-anim'); },230); }
+  function uvTrilhaReset(){
+    var b=document.body; clearTimeout(uvTr.t);
+    b.classList.remove('uv-trilha-on','uv-trilha-entrando','uv-trilha-saindo','uv-trilha-anim');
+    uvTr.on=false; uvTr.acum=0; uvTr.y=window.scrollY; uvTrEmpurra(0);
+  }
+  window.uvTrilhaReset=uvTrilhaReset;
+  function uvTrLigar(M, y){
+    var b=document.body; clearTimeout(uvTr.t);
+    document.documentElement.style.setProperty('--uv-trilha-h', M.H+'px');
+    var jaSaindo=b.classList.contains('uv-trilha-saindo');
+    b.classList.remove('uv-trilha-saindo');
+    b.classList.add('uv-trilha-on');
+    if(!jaSaindo){ b.classList.add('uv-trilha-entrando'); uvTr.t=setTimeout(function(){ b.classList.remove('uv-trilha-entrando'); },220); }
+    uvTrAnim(); uvTrEmpurra(Math.min(M.H, y-M.T0));
+    uvTr.on=true;
+  }
+  function uvTrDesligar(){
+    var b=document.body; clearTimeout(uvTr.t);
+    b.classList.remove('uv-trilha-entrando');
+    b.classList.add('uv-trilha-saindo'); uvTrAnim(); uvTrEmpurra(0);
+    uvTr.on=false;
+    uvTr.t=setTimeout(function(){ b.classList.remove('uv-trilha-on','uv-trilha-saindo'); },210);
+  }
+  function uvTrRolou(){
+    try{
+      if(!uvMobEhCelular() || document.body.classList.contains('uv-recolhido')){ if(uvTr.on) uvTrilhaReset(); return; }
+      var y=window.scrollY, d=(uvTr.y<0)?0:y-uvTr.y; uvTr.y=y;
+      if(!d) return;
+      uvTr.acum = (uvTr.acum && (uvTr.acum>0)===(d>0)) ? uvTr.acum+d : d;
+      var M=uvTrMedidas(); if(!M) return;
+      /* a trilha ainda está (ou já voltou) ao lugar dela: nada grudado */
+      if(y<=M.T0){ if(uvTr.on || document.body.classList.contains('uv-trilha-on')) uvTrilhaReset(); return; }
+      /* iOS: o "elástico" do fim da página rola ao contrário sozinho */
+      var max=document.documentElement.scrollHeight-window.innerHeight;
+      if(y>=max-2 && d<0 && uvTr.acum>-40) return;
+      if(!uvTr.on && uvTr.acum<=-UV_TR_FOLGA) uvTrLigar(M, y);
+      else if(uvTr.on && uvTr.acum>=UV_TR_FOLGA) uvTrDesligar();
+      else if(uvTr.on) uvTrEmpurra(Math.min(M.H, y-M.T0));
+    }catch(e){}
+  }
+  var uvTrQuadro=0;
+  window.addEventListener('scroll', function(){
+    if(uvTrQuadro) return;
+    uvTrQuadro=requestAnimationFrame(function(){ uvTrQuadro=0; uvTrRolou(); });
+  }, {passive:true});
+
   window.uvMobAcoplar=function(){
     try{
       var main=document.getElementById('hubMain'); if(!main) return;
@@ -15617,10 +15744,14 @@ init();
         var mae=document.querySelector('#hubSidebar .nav-item.uv-fixa-mae');
         var filhas=document.querySelector('#hubSidebar .nav-children.uv-fixa-filhos');
         var cabeca = mae || btn;                       /* mãe grudada, ou a própria pasta */
-        var alt=(t?t.getBoundingClientRect().height:0)
-              + (cabeca?cabeca.getBoundingClientRect().height:0)
-              + (filhas?filhas.getBoundingClientRect().height:0)
-              + 8;
+        /* (·468) a barra do topo não gruda mais no celular: não entra na conta.
+           A trilha fica no lugar natural dela, logo acima do conteúdo. */
+        /* (·468) com a trilha no fluxo, a distância da PASTA até o começo do
+           conteúdo é medida direto (inclui os respiros entre as caixas, que a
+           soma das alturas esquecia: a pasta nascia 7px cortada no topo) */
+        try{ uvTrilhaReset(); }catch(x){}
+        var cabT=document.querySelector('#hubSidebar .uv-trilha-cab') || cabeca;
+        var alt=cabT ? Math.max(0, Math.round(main.getBoundingClientRect().top - cabT.getBoundingClientRect().top)) : 8;
         /* ⚠ scroll-margin + scrollIntoView, e NÃO uma conta de scrollY: medido,
            a conta manual errava ~20px e o começo do conteúdo nascia por baixo
            da pasta grudada. Motivo: entre calcular e rolar, a tela termina de
