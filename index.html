@@ -1650,6 +1650,12 @@ body.dark .mx-cal-btn{color:#2ee0b8}
 .mr-post.mr-post-lixo:hover{ opacity:1; filter:none; }
 .mr-lixo-info{ margin-top:10px; padding-top:8px; border-top:1px solid rgba(90,74,48,.18); font-family:'Inter',sans-serif; font-size:11px; line-height:1.55; color:#6b5e48; }
 .mr-lixo-volta{ margin-top:10px; width:100%; }
+.mr-lixo-pags{ display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:6px; margin-top:16px; font-family:'Inter',sans-serif; }
+.mr-pag{ min-width:34px; height:34px; padding:0 10px; border-radius:8px; border:1px solid rgba(90,74,48,.3); background:rgba(255,255,255,.75); color:#3c3222; font-weight:700; font-size:13px; cursor:pointer; }
+.mr-pag:hover:not([disabled]){ border-color:#5a4a30; }
+.mr-pag.on{ background:#5a4a30; border-color:#5a4a30; color:#fff; }
+.mr-pag[disabled]{ opacity:.35; cursor:default; }
+.mr-lixo-pags-info{ margin-left:8px; font-size:11.5px; color:#8a7d66; }
 
 /* O CABEÇALHO, centralizado como no quadro da foto. Serifada no título e
    caixa-alta espaçada no subtítulo — é o contraste que faz aquilo parecer um
@@ -5775,7 +5781,7 @@ window.uvTelaPermitida=function(scr){
   };
 })();
 
-var UV_BUILD_NUM = 464; // (·464) MURAL: LIXEIRA SÓ DO NANDO. Pedido: devolver recado excluído é função exclusiva do administrador (Fernando Pires), não da diretoria. mrPodeRestaurar compara o NOME COMPLETO normalizado (não a regra tolerante de mrMesmaPessoa, que aceitaria 'Fernando' sozinho). Excluir (✕) continua com a diretoria. ANTERIOR: (·463) MURAL: LIXEIRA — DEVOLVER RECADO EXCLUÍDO. Pedido do Nando: como admin, devolver ao mural um recado já excluído. A exclusão sempre foi suave (del=1); agora a diretoria (mesma porta do ✕) tem o botão '🗑 Excluídos (N)' no canto do quadro → lista dos excluídos (autor, data, quem excluiu) com '↩ Devolver ao mural'. Devolver = del:0 + mts novo (vence a cópia excluída de outro PC na união). Excluir passou a carimbar mts/delEm/delPor em vez de sobrescrever ts — o recado devolvido volta no mesmo lugar e com a data original. + Ocupação: badge do plantonista (noite/fim de semana) com nome comprido vazava a tela entre ~1000–1024px → pode encolher/quebrar (achado rodando a regressão num domingo). ANTERIOR: (·462) LICITAÇÃO — DEMANDA AÉREA COMPLETA + DATAS DIGITADAS. Passagem aérea agora tem Trecho + Data e hora de ida + Data e hora de volta (dd/mm/aaaa hh:mm, só números, formata sozinho, hora opcional, data impossível e volta antes da ida recusadas) + Cia aérea; Hotel esconde esses campos. Nascimento virou campo digitado dd/mm/aaaa (não calendário). CORREÇÃO: no ·461 a tabela de tipos da demanda se chamava LIC_TIPOS e sobrescrevia a de tipos de ANEXO (miniatura sem imagem dizia ARQ) — renomeada para LIC_DEM_TIPOS. ANTERIOR: (·461) LICITAÇÃO: SINAL + PÁGINA DO PROCESSO COM DEMANDAS. Bolinha na coluna # (ao lado do ⤢) com menu Sem cor/Verde/Amarelo/Vermelho (campo f.sinal, união campo a campo). Clicar em qualquer ponto da linha abre a PÁGINA do processo (resumo + Demandas): ＋ Adicionar demanda (Passagem aérea ou Hotel; trecho/nome do hotel em fonte grande de título) e, em cada demanda, ＋ Adicionar pessoas (nome, nascimento, CPF com máscara e dígito verificador). r.dem entra na união (licMergeDem — sem isso a união apagava as demandas). Redesenho de fora não apaga formulário aberto. ⤢ e 'Editar dados do processo' seguem abrindo o formulário de dados. ANTERIOR: (·460) LICITAÇÃO: GRADE PROTEGIDA. Pedido do Nando: todas as colunas bloqueadas na página principal — clicar numa célula não edita, sem ＋ de anexar nem arrastar arquivo na grade; documento aberto pela grade abre só para ver (sem Remover). Editar SÓ abrindo o processo no ⤢ (formulário mantém tudo: campos, opções coloridas, anexos, remover, excluir). Aviso 🔒 no topo. ANTERIOR: (·459) PASTA LICITAÇÃO ABERTA A TODOS, MENOS À LETÍCIA ROSA. Pedido do
+var UV_BUILD_NUM = 465; // (·465) MURAL: LIXEIRA PAGINADA. Pedido: na lista de excluídos, só os 5 mais recentes na primeira tela; o resto em páginas 1, 2, 3… (‹ › + números; só aparece com mais de 5). Abrir a lixeira volta sempre para a página 1; devolver o último recado de uma página não a deixa vazia. ANTERIOR: (·464) MURAL: LIXEIRA SÓ DO NANDO. Pedido: devolver recado excluído é função exclusiva do administrador (Fernando Pires), não da diretoria. mrPodeRestaurar compara o NOME COMPLETO normalizado (não a regra tolerante de mrMesmaPessoa, que aceitaria 'Fernando' sozinho). Excluir (✕) continua com a diretoria. ANTERIOR: (·463) MURAL: LIXEIRA — DEVOLVER RECADO EXCLUÍDO. Pedido do Nando: como admin, devolver ao mural um recado já excluído. A exclusão sempre foi suave (del=1); agora a diretoria (mesma porta do ✕) tem o botão '🗑 Excluídos (N)' no canto do quadro → lista dos excluídos (autor, data, quem excluiu) com '↩ Devolver ao mural'. Devolver = del:0 + mts novo (vence a cópia excluída de outro PC na união). Excluir passou a carimbar mts/delEm/delPor em vez de sobrescrever ts — o recado devolvido volta no mesmo lugar e com a data original. + Ocupação: badge do plantonista (noite/fim de semana) com nome comprido vazava a tela entre ~1000–1024px → pode encolher/quebrar (achado rodando a regressão num domingo). ANTERIOR: (·462) LICITAÇÃO — DEMANDA AÉREA COMPLETA + DATAS DIGITADAS. Passagem aérea agora tem Trecho + Data e hora de ida + Data e hora de volta (dd/mm/aaaa hh:mm, só números, formata sozinho, hora opcional, data impossível e volta antes da ida recusadas) + Cia aérea; Hotel esconde esses campos. Nascimento virou campo digitado dd/mm/aaaa (não calendário). CORREÇÃO: no ·461 a tabela de tipos da demanda se chamava LIC_TIPOS e sobrescrevia a de tipos de ANEXO (miniatura sem imagem dizia ARQ) — renomeada para LIC_DEM_TIPOS. ANTERIOR: (·461) LICITAÇÃO: SINAL + PÁGINA DO PROCESSO COM DEMANDAS. Bolinha na coluna # (ao lado do ⤢) com menu Sem cor/Verde/Amarelo/Vermelho (campo f.sinal, união campo a campo). Clicar em qualquer ponto da linha abre a PÁGINA do processo (resumo + Demandas): ＋ Adicionar demanda (Passagem aérea ou Hotel; trecho/nome do hotel em fonte grande de título) e, em cada demanda, ＋ Adicionar pessoas (nome, nascimento, CPF com máscara e dígito verificador). r.dem entra na união (licMergeDem — sem isso a união apagava as demandas). Redesenho de fora não apaga formulário aberto. ⤢ e 'Editar dados do processo' seguem abrindo o formulário de dados. ANTERIOR: (·460) LICITAÇÃO: GRADE PROTEGIDA. Pedido do Nando: todas as colunas bloqueadas na página principal — clicar numa célula não edita, sem ＋ de anexar nem arrastar arquivo na grade; documento aberto pela grade abre só para ver (sem Remover). Editar SÓ abrindo o processo no ⤢ (formulário mantém tudo: campos, opções coloridas, anexos, remover, excluir). Aviso 🔒 no topo. ANTERIOR: (·459) PASTA LICITAÇÃO ABERTA A TODOS, MENOS À LETÍCIA ROSA. Pedido do
 // Nando, trocando a regra do ·458 (só diretoria + Maria Eduarda). A exceção reaproveita a trava do
 // ·457 (uvSoVoucher) em vez de criar outra lista com o nome dela — uma segunda cópia do mesmo fato
 // ficaria para trás no dia em que a trava do voucher mudar. O portão em hubGoScreen continua: para
@@ -25714,6 +25720,15 @@ var MR_CORES=[
                                             autor:r.autor||'', ts:r.ts||0, delEm:r.delEm||0, delPor:r.delPor||''}; })
       .sort(function(a,b){ return (b.delEm||b.ts)-(a.delEm||a.ts); });   /* excluído mais recente primeiro */
   }
+  /* (·465) barra de páginas da lixeira: ‹ 1 2 3 … › — só aparece com mais de 5 */
+  function mrLixoPaginas(n){
+    var tot=Math.ceil(n/MR_LIXO_POR_PAG); if(tot<=1) return '';
+    var h='<nav class="mr-lixo-pags" aria-label="Páginas dos recados excluídos">'
+      +'<button type="button" class="mr-pag" data-mr-lixo-pag="'+(mrLixoPag-1)+'"'+(mrLixoPag<=1?' disabled':'')+' aria-label="Página anterior">‹</button>';
+    for(var i=1;i<=tot;i++) h+='<button type="button" class="mr-pag'+(i===mrLixoPag?' on':'')+'" data-mr-lixo-pag="'+i+'"'+(i===mrLixoPag?' aria-current="page"':'')+'>'+i+'</button>';
+    return h+'<button type="button" class="mr-pag" data-mr-lixo-pag="'+(mrLixoPag+1)+'"'+(mrLixoPag>=tot?' disabled':'')+' aria-label="Próxima página">›</button>'
+      +'<span class="mr-lixo-pags-info">'+n+' excluído'+(n===1?'':'s')+'</span></nav>';
+  }
   function mrRestaurar(id){
     if(!mrPodeRestaurar()) return false;
     var S=mrStore(), r=S[id]; if(!r || !r.del) return false;
@@ -25963,6 +25978,8 @@ var MR_CORES=[
   var mrCorSel='amarelo';
   var mrPicker='';           /* (·411) id do recado com o seletor de emoji aberto */
   var mrLixeira=false;       /* (·463) painel de recados excluídos aberto? */
+  var mrLixoPag=1;           /* (·465) página da lixeira — 5 por página, mais recentes na 1 */
+  var MR_LIXO_POR_PAG=5;
 
   function mrFormHtml(r){
     var editando=!!r;
@@ -26044,7 +26061,14 @@ var MR_CORES=[
     var lixo = (podeLixo && mrLixeira) ? '<section class="mr-lixo" id="mrLixo">'
         +'<div class="mr-lixo-cab"><div><b>Recados excluídos</b><span>Só você (administrador) vê esta lista. <b>Devolver</b> coloca o recado de volta no mural, para todos, com a data original.</span></div>'
         +'<button type="button" class="mr-bt" data-mr-lixo-fechar="1">Fechar</button></div>'
-        +(apag.length ? '<div class="mr-lixo-grade">'+apag.map(function(r){
+        +(apag.length ? '<div class="mr-lixo-grade">'+(function(){
+            /* (·465) PAGINAÇÃO: 5 por página, os excluídos mais recentes na 1.
+               A página é CORRIGIDA aqui (e não só no clique): devolver o último
+               recado da última página a deixaria vazia. */
+            var tot=Math.max(1, Math.ceil(apag.length/MR_LIXO_POR_PAG));
+            if(mrLixoPag>tot) mrLixoPag=tot; if(mrLixoPag<1) mrLixoPag=1;
+            return apag.slice((mrLixoPag-1)*MR_LIXO_POR_PAG, mrLixoPag*MR_LIXO_POR_PAG);
+          })().map(function(r){
             return '<article class="mr-post mr-post-lixo c-'+mrEsc(r.cor)+'" data-mr-lixo-item="'+mrEsc(r.id)+'">'
               +(r.tit?'<h4 class="mr-post-tit">'+mrEsc(r.tit)+'</h4>':'')
               +((r.txt||r.html)?'<div class="mr-post-txt'+(r.html?' mr-rico':'')+'">'+mrCorpoHtml(r)+'</div>':'')
@@ -26052,7 +26076,7 @@ var MR_CORES=[
               +'<br>🗑 Excluído '+mrEsc(mrData(r.delEm||r.ts))+(r.delPor?' por '+mrEsc(r.delPor):'')+'</div>'
               +'<button type="button" class="mr-bt pri mr-lixo-volta" data-mr-restaurar="'+mrEsc(r.id)+'">↩ Devolver ao mural</button>'
               +'</article>';
-          }).join('')+'</div>'
+          }).join('')+'</div>'+mrLixoPaginas(apag.length)
           : '<div class="mr-vazio">Nenhum recado excluído.</div>')
       +'</section>' : '';
 
@@ -26179,7 +26203,9 @@ var MR_CORES=[
       return;   /* painel fica aberto: dá para pôr vários seguidos */
     }
     /* (·463) lixeira */
-    if(e.target.closest('#mrLixeiraBt')){ mrLixeira=!mrLixeira; mrRender(); return; }
+    if(e.target.closest('#mrLixeiraBt')){ mrLixeira=!mrLixeira; mrLixoPag=1; mrRender(); return; }
+    var pg=e.target.closest('[data-mr-lixo-pag]');
+    if(pg){ if(pg.disabled) return; mrLixoPag=parseInt(pg.getAttribute('data-mr-lixo-pag'),10)||1; mrRender(); return; }
     if(e.target.closest('[data-mr-lixo-fechar]')){ mrLixeira=false; mrRender(); return; }
     var rs=e.target.closest('[data-mr-restaurar]');
     if(rs){
