@@ -4496,6 +4496,8 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
         </div>
         <!-- (·458) LICITAÇÃO — logo depois de Grupos · (·459) visível para todos, menos quem tem acesso só ao voucher -->
         <button class="nav-item uv-auth-hidden" id="navLicitacao" data-screen="licitacao"><span class="nav-ic">🏛️</span><span>Licitação</span></button>
+        <!-- (·470) NÚCLEO DE COBRANÇA — logo abaixo de Licitação · só diretoria + Ruth Alves (quem revela é cobAtualizarMenu) -->
+        <button class="nav-item uv-auth-hidden" id="navCobranca" data-screen="cobranca"><span class="nav-ic">💰</span><span>Núcleo de Cobrança</span></button>
       </nav>
     </aside>
     <div class="hub-main" id="hubMain">
@@ -4939,6 +4941,10 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
       <!-- (·458) Licitação — espelho da planilha de cotação do Airtable -->
       <section class="screen" id="scr-licitacao">
         <div id="licWrap"></div>
+      </section>
+      <!-- (·470) Núcleo de Cobrança -->
+      <section class="screen" id="scr-cobranca">
+        <div id="cobWrap"></div>
       </section>
 
     </div>
@@ -5792,6 +5798,7 @@ window.uvTelaPermitida=function(scr){
      não basta — o boot com a última tela salva e o hubGoScreen por código
      abririam a pasta do mesmo jeito. */
   if(scr==='licitacao'){ try{ return typeof window.licPodeVer==='function' && window.licPodeVer()===true; }catch(e){ return false; } }
+  if(scr==='cobranca'){ try{ return typeof window.cobPodeVer==='function' && window.cobPodeVer()===true; }catch(e){ return false; } }   /* (·470) */
   return true;
 };
 (function(){
@@ -5852,7 +5859,7 @@ window.uvTelaPermitida=function(scr){
   };
 })();
 
-var UV_BUILD_NUM = 469; // (·469) CELULAR: TRILHA MÓVEL SEM TREMOR. (1) a margem do conteúdo não muda mais a cada quadro de rolagem: muda uma vez por aparição/sumiço, compensada por transform (o movimento é só transform); (2) resize só de altura (barra do Safari ao rolar) não reacopla nem zera a trilha; (3) folga 24px na mesma direção e nada liga enquanto a trilha aparece no lugar natural; ao voltar a essa faixa ela pousa com troca compensada. ANTERIOR: (·468) CELULAR: TRILHA MÓVEL. Nada fica mais grudado o tempo todo: rolando para baixo (arrastar para cima) a barra do topo, a pasta e as sub-pastas saem da tela junto com a página; rolando para cima (arrastar para baixo) a pasta e as sub-pastas voltam na hora, grudadas no topo, EMPURRANDO o conteúdo (margem --uv-empurra) em vez de cobri-lo. Desktop intocado. ANTERIOR: (·467) MENU DESKTOP: Gerador de Voucher e Equipe (pastas com tela própria E sub-pastas) agora recolhem as sub-pastas no segundo clique, como Comercial/Matriz/Eventos/Grupos. Pasta EM USO (a tela dela ou uma sub-pasta dela aberta) com a árvore aberta → fecha sem navegar; nos outros casos → abre e navega. Celular intocado. ANTERIOR: (·466) MENU. (1) Todo NOVO acesso (aba/janela nova, navegador reaberto, depois de sair) abre no Control Desk; só o F5 na mesma aba devolve a tela (tela guardada no sessionStorage da aba, uv_hub_screen_aba; o localStorage uv_hub_screen não decide mais o boot). (2) Desktop: TODAS as pastas fechadas no 1º acesso do dia na máquina; depois o que se abriu/fechou persiste, inclusive no F5 (localStorage uv_menu_arvores com o dia). (3) Desktop: contorno branco discreto nas pastas principais (não nas sub-pastas). (4) Desktop: com sub-pasta aberta, a pasta principal fica AZUL e a sub-pasta LARANJA bem transparente. Celular intocado. ANTERIOR: (·465) MURAL: LIXEIRA PAGINADA. Pedido: na lista de excluídos, só os 5 mais recentes na primeira tela; o resto em páginas 1, 2, 3… (‹ › + números; só aparece com mais de 5). Abrir a lixeira volta sempre para a página 1; devolver o último recado de uma página não a deixa vazia. ANTERIOR: (·464) MURAL: LIXEIRA SÓ DO NANDO. Pedido: devolver recado excluído é função exclusiva do administrador (Fernando Pires), não da diretoria. mrPodeRestaurar compara o NOME COMPLETO normalizado (não a regra tolerante de mrMesmaPessoa, que aceitaria 'Fernando' sozinho). Excluir (✕) continua com a diretoria. ANTERIOR: (·463) MURAL: LIXEIRA — DEVOLVER RECADO EXCLUÍDO. Pedido do Nando: como admin, devolver ao mural um recado já excluído. A exclusão sempre foi suave (del=1); agora a diretoria (mesma porta do ✕) tem o botão '🗑 Excluídos (N)' no canto do quadro → lista dos excluídos (autor, data, quem excluiu) com '↩ Devolver ao mural'. Devolver = del:0 + mts novo (vence a cópia excluída de outro PC na união). Excluir passou a carimbar mts/delEm/delPor em vez de sobrescrever ts — o recado devolvido volta no mesmo lugar e com a data original. + Ocupação: badge do plantonista (noite/fim de semana) com nome comprido vazava a tela entre ~1000–1024px → pode encolher/quebrar (achado rodando a regressão num domingo). ANTERIOR: (·462) LICITAÇÃO — DEMANDA AÉREA COMPLETA + DATAS DIGITADAS. Passagem aérea agora tem Trecho + Data e hora de ida + Data e hora de volta (dd/mm/aaaa hh:mm, só números, formata sozinho, hora opcional, data impossível e volta antes da ida recusadas) + Cia aérea; Hotel esconde esses campos. Nascimento virou campo digitado dd/mm/aaaa (não calendário). CORREÇÃO: no ·461 a tabela de tipos da demanda se chamava LIC_TIPOS e sobrescrevia a de tipos de ANEXO (miniatura sem imagem dizia ARQ) — renomeada para LIC_DEM_TIPOS. ANTERIOR: (·461) LICITAÇÃO: SINAL + PÁGINA DO PROCESSO COM DEMANDAS. Bolinha na coluna # (ao lado do ⤢) com menu Sem cor/Verde/Amarelo/Vermelho (campo f.sinal, união campo a campo). Clicar em qualquer ponto da linha abre a PÁGINA do processo (resumo + Demandas): ＋ Adicionar demanda (Passagem aérea ou Hotel; trecho/nome do hotel em fonte grande de título) e, em cada demanda, ＋ Adicionar pessoas (nome, nascimento, CPF com máscara e dígito verificador). r.dem entra na união (licMergeDem — sem isso a união apagava as demandas). Redesenho de fora não apaga formulário aberto. ⤢ e 'Editar dados do processo' seguem abrindo o formulário de dados. ANTERIOR: (·460) LICITAÇÃO: GRADE PROTEGIDA. Pedido do Nando: todas as colunas bloqueadas na página principal — clicar numa célula não edita, sem ＋ de anexar nem arrastar arquivo na grade; documento aberto pela grade abre só para ver (sem Remover). Editar SÓ abrindo o processo no ⤢ (formulário mantém tudo: campos, opções coloridas, anexos, remover, excluir). Aviso 🔒 no topo. ANTERIOR: (·459) PASTA LICITAÇÃO ABERTA A TODOS, MENOS À LETÍCIA ROSA. Pedido do
+var UV_BUILD_NUM = 470; // (·470) NOVA PASTA 'NÚCLEO DE COBRANÇA' (logo abaixo de Licitação), só para a diretoria + Ruth Alves. Tabela de casos (status coloridos, prioridade, responsável, vencimento, dias de atraso, total/recebido/saldo, barra de evolução, próxima ação, faturas), KPIs, gráfico de recebido por mês, distribuição por status, saldo por faixa de atraso, filtros/busca/ordenação, exportar CSV. Página do caso: dados editáveis, 8 status coloridos, recebimentos (quitado/parcial automático), faturas anexadas com visualizador (PDF página a página), linha do tempo com anotações/contatos, mensagem de cobrança pronta e WhatsApp. União entre PCs campo a campo / item a item. ANTERIOR: (·469) CELULAR: TRILHA MÓVEL SEM TREMOR. (1) a margem do conteúdo não muda mais a cada quadro de rolagem: muda uma vez por aparição/sumiço, compensada por transform (o movimento é só transform); (2) resize só de altura (barra do Safari ao rolar) não reacopla nem zera a trilha; (3) folga 24px na mesma direção e nada liga enquanto a trilha aparece no lugar natural; ao voltar a essa faixa ela pousa com troca compensada. ANTERIOR: (·468) CELULAR: TRILHA MÓVEL. Nada fica mais grudado o tempo todo: rolando para baixo (arrastar para cima) a barra do topo, a pasta e as sub-pastas saem da tela junto com a página; rolando para cima (arrastar para baixo) a pasta e as sub-pastas voltam na hora, grudadas no topo, EMPURRANDO o conteúdo (margem --uv-empurra) em vez de cobri-lo. Desktop intocado. ANTERIOR: (·467) MENU DESKTOP: Gerador de Voucher e Equipe (pastas com tela própria E sub-pastas) agora recolhem as sub-pastas no segundo clique, como Comercial/Matriz/Eventos/Grupos. Pasta EM USO (a tela dela ou uma sub-pasta dela aberta) com a árvore aberta → fecha sem navegar; nos outros casos → abre e navega. Celular intocado. ANTERIOR: (·466) MENU. (1) Todo NOVO acesso (aba/janela nova, navegador reaberto, depois de sair) abre no Control Desk; só o F5 na mesma aba devolve a tela (tela guardada no sessionStorage da aba, uv_hub_screen_aba; o localStorage uv_hub_screen não decide mais o boot). (2) Desktop: TODAS as pastas fechadas no 1º acesso do dia na máquina; depois o que se abriu/fechou persiste, inclusive no F5 (localStorage uv_menu_arvores com o dia). (3) Desktop: contorno branco discreto nas pastas principais (não nas sub-pastas). (4) Desktop: com sub-pasta aberta, a pasta principal fica AZUL e a sub-pasta LARANJA bem transparente. Celular intocado. ANTERIOR: (·465) MURAL: LIXEIRA PAGINADA. Pedido: na lista de excluídos, só os 5 mais recentes na primeira tela; o resto em páginas 1, 2, 3… (‹ › + números; só aparece com mais de 5). Abrir a lixeira volta sempre para a página 1; devolver o último recado de uma página não a deixa vazia. ANTERIOR: (·464) MURAL: LIXEIRA SÓ DO NANDO. Pedido: devolver recado excluído é função exclusiva do administrador (Fernando Pires), não da diretoria. mrPodeRestaurar compara o NOME COMPLETO normalizado (não a regra tolerante de mrMesmaPessoa, que aceitaria 'Fernando' sozinho). Excluir (✕) continua com a diretoria. ANTERIOR: (·463) MURAL: LIXEIRA — DEVOLVER RECADO EXCLUÍDO. Pedido do Nando: como admin, devolver ao mural um recado já excluído. A exclusão sempre foi suave (del=1); agora a diretoria (mesma porta do ✕) tem o botão '🗑 Excluídos (N)' no canto do quadro → lista dos excluídos (autor, data, quem excluiu) com '↩ Devolver ao mural'. Devolver = del:0 + mts novo (vence a cópia excluída de outro PC na união). Excluir passou a carimbar mts/delEm/delPor em vez de sobrescrever ts — o recado devolvido volta no mesmo lugar e com a data original. + Ocupação: badge do plantonista (noite/fim de semana) com nome comprido vazava a tela entre ~1000–1024px → pode encolher/quebrar (achado rodando a regressão num domingo). ANTERIOR: (·462) LICITAÇÃO — DEMANDA AÉREA COMPLETA + DATAS DIGITADAS. Passagem aérea agora tem Trecho + Data e hora de ida + Data e hora de volta (dd/mm/aaaa hh:mm, só números, formata sozinho, hora opcional, data impossível e volta antes da ida recusadas) + Cia aérea; Hotel esconde esses campos. Nascimento virou campo digitado dd/mm/aaaa (não calendário). CORREÇÃO: no ·461 a tabela de tipos da demanda se chamava LIC_TIPOS e sobrescrevia a de tipos de ANEXO (miniatura sem imagem dizia ARQ) — renomeada para LIC_DEM_TIPOS. ANTERIOR: (·461) LICITAÇÃO: SINAL + PÁGINA DO PROCESSO COM DEMANDAS. Bolinha na coluna # (ao lado do ⤢) com menu Sem cor/Verde/Amarelo/Vermelho (campo f.sinal, união campo a campo). Clicar em qualquer ponto da linha abre a PÁGINA do processo (resumo + Demandas): ＋ Adicionar demanda (Passagem aérea ou Hotel; trecho/nome do hotel em fonte grande de título) e, em cada demanda, ＋ Adicionar pessoas (nome, nascimento, CPF com máscara e dígito verificador). r.dem entra na união (licMergeDem — sem isso a união apagava as demandas). Redesenho de fora não apaga formulário aberto. ⤢ e 'Editar dados do processo' seguem abrindo o formulário de dados. ANTERIOR: (·460) LICITAÇÃO: GRADE PROTEGIDA. Pedido do Nando: todas as colunas bloqueadas na página principal — clicar numa célula não edita, sem ＋ de anexar nem arrastar arquivo na grade; documento aberto pela grade abre só para ver (sem Remover). Editar SÓ abrindo o processo no ⤢ (formulário mantém tudo: campos, opções coloridas, anexos, remover, excluir). Aviso 🔒 no topo. ANTERIOR: (·459) PASTA LICITAÇÃO ABERTA A TODOS, MENOS À LETÍCIA ROSA. Pedido do
 // Nando, trocando a regra do ·458 (só diretoria + Maria Eduarda). A exceção reaproveita a trava do
 // ·457 (uvSoVoucher) em vez de criar outra lista com o nome dela — uma segunda cópia do mesmo fato
 // ficaria para trás no dia em que a trava do voucher mudar. O portão em hubGoScreen continua: para
@@ -9228,6 +9235,9 @@ async function carregarConfig(){
       if(typeof window.licMergeMaps==='function'){         // (·458) Licitação — campo a campo
         appConfig.licitacoes=window.licMergeMaps(local.licitacoes, c.licitacoes);
       }
+      if(typeof window.cobMergeMaps==='function'){         // (·470) Núcleo de Cobrança — campo a campo
+        appConfig.cobranca=window.cobMergeMaps(local.cobranca, c.cobranca);
+      }
       if(typeof window.klBoardsMergeMaps==='function'){     // (·271) Kanban Comercial
         appConfig.klBoards=window.klBoardsMergeMaps(local.klBoards, c.klBoards);
       }
@@ -9653,6 +9663,9 @@ async function salvarConfig(){
        acabou de escrever, porque o salvamento manda a config inteira. */
     if(typeof window.licMergeMaps==='function'){
       appConfig.licitacoes=window.licMergeMaps(cloud.licitacoes, appConfig.licitacoes);
+    }
+    if(typeof window.cobMergeMaps==='function'){          // (·470) Núcleo de Cobrança
+      appConfig.cobranca=window.cobMergeMaps(cloud.cobranca, appConfig.cobranca);
     }
     // PROTEÇÃO DO PAINEL DE OCUPAÇÃO (anti-perda de cliente entre PCs):
     // Antes de gravar, mesclamos o ocupacaoAtendentes local com o da nuvem via merge
@@ -16085,6 +16098,7 @@ init();
     if(scr==='backup'  && typeof window.renderBackup==='function')  window.renderBackup();
     if(scr==='csdi' && typeof window.renderCsdi==='function') window.renderCsdi();
     if(scr==='licitacao' && typeof window.renderLicitacao==='function') window.renderLicitacao();   // (·458)
+    if(scr==='cobranca' && typeof window.renderCobranca==='function') window.renderCobranca();      // (·470)
   }
   window.uvRenderDaTela=uvRenderDaTela;
   /* Qual tela está na frente AGORA. Prefere a variável (sabe qual sub-item do
@@ -16353,6 +16367,7 @@ init();
        uso, ou a última tela salva de outra pessoa neste mesmo PC), sai dela na
        hora. Este ponto roda no boot E a cada ressincronização da sessão. */
     try{ if(typeof window.licAtualizarMenu==='function') window.licAtualizarMenu(); }catch(e){}   // (·458)
+    try{ if(typeof window.cobAtualizarMenu==='function') window.cobAtualizarMenu(); }catch(e){}   // (·470)
     try{
       var soV=(typeof window.uvSoVoucher==='function') && window.uvSoVoucher();
       document.body.classList.toggle('uv-so-voucher', !!soV);
@@ -42624,6 +42639,822 @@ body:not(.dark) .lic-link{color:#0a5f96}
 
   /* só para os testes automatizados: expõe peças puras, sem estado */
   window.__licTeste={ lerCsv:licLerCsv, numero:licNumero, dataISO:licDataISO, linkificar:licLinkificar, importar:licImportarCsv, hora:licHora };
+})();
+</script>
+
+<style id="cobCss">
+/* ═════════════════════════════════════════════════════════════════════════
+   (·470) NÚCLEO DE COBRANÇA — estilos (tela #scr-cobranca)
+   ═════════════════════════════════════════════════════════════════════════ */
+#scr-cobranca{color:#d7e3ea}
+#scr-cobranca .cob-cab{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
+#scr-cobranca .cob-tit{margin:0;font-size:1.3rem;font-weight:800;color:#E6EEF3}
+#scr-cobranca .cob-sub{color:#8CA3B3;font-size:.8rem;margin-top:3px}
+#scr-cobranca .cob-acoes{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.cob-btn{text-decoration:none;height:34px;padding:0 14px;border-radius:9px;border:1px solid #2b4153;background:#0f1a24;color:#d7e3ea;font-family:inherit;font-weight:700;font-size:.8rem;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.cob-btn:hover{border-color:#12B0FF;color:#fff}
+.cob-btn-ok{background:rgba(46,199,165,.14);border-color:rgba(46,199,165,.55);color:#5fe0c0}
+.cob-btn-pri{background:#005DAA;border-color:#005DAA;color:#fff}
+.cob-btn-pri:hover{background:#0a6fc4}
+.cob-btn-perigo{border-color:rgba(255,90,90,.45);background:rgba(255,90,90,.08);color:#ff9a9a}
+.cob-btn-perigo:hover{border-color:#d93030;color:#fff}
+.cob-btn-zap{background:rgba(37,211,102,.14);border-color:rgba(37,211,102,.5);color:#6fe39b}
+/* KPIs */
+.cob-kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.cob-kpi{background:#0d1720;border:1px solid #1f3140;border-radius:12px;padding:12px 14px;min-width:0}
+.cob-kpi b{display:block;font-size:.68rem;font-weight:700;color:#8CA3B3;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.cob-kpi span{display:block;font-size:1.15rem;font-weight:800;color:#E6EEF3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cob-kpi small{display:block;font-size:.7rem;color:#6f8797;margin-top:3px}
+.cob-kpi.k-verde span{color:#4ade80}.cob-kpi.k-verm span{color:#f87171}.cob-kpi.k-amar span{color:#fbbf24}.cob-kpi.k-azul span{color:#5cc8ff}
+.cob-barra{height:8px;border-radius:99px;background:#1b2b38;overflow:hidden;margin-top:6px}
+.cob-barra i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#16a34a,#4ade80)}
+/* painéis de evolução */
+.cob-paineis{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(0,1fr);gap:10px;margin-bottom:14px}
+.cob-painel{background:#0d1720;border:1px solid #1f3140;border-radius:12px;padding:12px 14px;min-width:0}
+.cob-painel h4{margin:0 0 10px;font-size:.78rem;font-weight:800;color:#b9c9d4;text-transform:uppercase;letter-spacing:.04em}
+.cob-painel svg{display:block;width:100%;height:auto}
+.cob-dist{display:flex;height:14px;border-radius:99px;overflow:hidden;background:#1b2b38;margin-bottom:10px}
+.cob-dist i{display:block;height:100%}
+.cob-leg{display:flex;flex-direction:column;gap:4px;font-size:.74rem}
+.cob-leg div{display:flex;align-items:center;gap:7px;min-width:0}
+.cob-leg em{width:9px;height:9px;border-radius:50%;flex:none}
+.cob-leg span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#b9c9d4}
+.cob-leg b{color:#E6EEF3;font-weight:700;white-space:nowrap}
+.cob-aging{display:flex;flex-direction:column;gap:7px}
+.cob-aging div{display:grid;grid-template-columns:70px minmax(0,1fr) auto;gap:8px;align-items:center;font-size:.74rem;color:#b9c9d4}
+.cob-aging .ag-b{height:10px;border-radius:99px;background:#1b2b38;overflow:hidden}
+.cob-aging .ag-b i{display:block;height:100%;border-radius:99px}
+.cob-aging b{color:#E6EEF3;white-space:nowrap}
+/* avisos de ação */
+.cob-alerta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.45);color:#fcd34d;border-radius:10px;padding:9px 12px;font-size:.8rem;margin-bottom:12px}
+.cob-alerta.verm{background:rgba(220,38,38,.1);border-color:rgba(220,38,38,.45);color:#fca5a5}
+/* filtros */
+.cob-filtros{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.cob-busca{height:34px;min-width:230px;flex:1 1 230px;border-radius:9px;border:1px solid #2b4153;background:#0b141c;color:#fff;font-family:inherit;font-size:.82rem;padding:0 11px;outline:none}
+.cob-busca:focus{border-color:#12B0FF}
+.cob-sel{height:34px;border-radius:9px;border:1px solid #2b4153;background:#0b141c;color:#d7e3ea;font-family:inherit;font-size:.8rem;padding:0 8px}
+.cob-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.cob-chip{border:1px solid #2b4153;background:#0f1a24;color:#b9c9d4;border-radius:99px;padding:4px 11px;font-size:.74rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:inherit}
+.cob-chip em{width:8px;height:8px;border-radius:50%;background:var(--c)}
+.cob-chip.on{background:var(--c);border-color:var(--c);color:#fff}
+.cob-chip.on em{background:#fff}
+.cob-chip small{opacity:.75;font-weight:600}
+.cob-chip.cob-toggle.on{background:#b45309;border-color:#b45309}
+/* tabela */
+.cob-grade{overflow:auto;border:1px solid #1f3140;border-radius:12px;background:#0d1720;max-height:calc(100vh - 230px)}
+table.cob-t{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%;font-size:.8rem}
+.cob-t th,.cob-t td{height:40px;padding:0 11px;border-bottom:1px solid #1a2a37;white-space:nowrap;text-align:left;vertical-align:middle;background:#0f1a24;color:#d7e3ea}
+.cob-t thead th{position:sticky;top:0;z-index:2;background:#132230;color:#b9c9d4;font-weight:700;font-size:.72rem;text-transform:uppercase;letter-spacing:.03em}
+.cob-t td.num,.cob-t th.num{text-align:right;font-variant-numeric:tabular-nums}
+.cob-t tbody tr{cursor:pointer}
+.cob-t tbody tr:hover td{background:#132230}
+.cob-t .cob-cli{font-weight:800;color:#E6EEF3;max-width:240px;overflow:hidden;text-overflow:ellipsis}
+.cob-t .cob-cli small{display:block;font-weight:500;color:#6f8797;font-size:.68rem}
+.cob-t td.c0{position:sticky;left:0;z-index:1;box-shadow:2px 0 0 #1f3140}
+.cob-t thead th.c0{z-index:3}
+.cob-pill{display:inline-block;padding:3px 10px;border-radius:99px;font-size:.72rem;font-weight:800;line-height:1.4;background:var(--c);color:#fff;white-space:nowrap}
+.cob-pri{display:inline-flex;align-items:center;gap:5px;font-size:.72rem;font-weight:700;color:#b9c9d4}
+.cob-pri em{width:8px;height:8px;border-radius:50%;background:var(--c)}
+.cob-atraso{font-weight:800}
+.cob-atraso.a0{color:#6f8797;font-weight:600}.cob-atraso.a1{color:#fbbf24}.cob-atraso.a2{color:#fb923c}.cob-atraso.a3{color:#f87171}
+.cob-prog{display:flex;align-items:center;gap:7px;min-width:110px}
+.cob-prog .cob-barra{flex:1;margin:0}
+.cob-prog b{font-size:.72rem;color:#b9c9d4;min-width:34px;text-align:right}
+.cob-venc{color:#f87171;font-weight:700}
+.cob-hoje{color:#fbbf24;font-weight:700}
+.cob-vazio{padding:40px 20px;text-align:center;color:#8CA3B3;border:1px dashed #2b4153;border-radius:12px}
+.cob-rod{display:flex;justify-content:space-between;align-items:center;margin-top:8px;color:#6f8797;font-size:.76rem;flex-wrap:wrap;gap:8px}
+.cob-rod b{color:#d7e3ea}
+/* página do caso */
+.cob-pg{max-width:1200px}
+.cob-pg-topo{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:14px}
+.cob-pg-topo .cob-esp{flex:1}
+.cob-hero{background:#0d1720;border:1px solid #1f3140;border-radius:14px;padding:16px 18px;margin-bottom:14px}
+.cob-hero-l1{display:flex;flex-wrap:wrap;align-items:center;gap:10px;justify-content:space-between}
+.cob-hero h2{margin:0;font-size:1.4rem;font-weight:800;color:#E6EEF3;word-break:break-word}
+.cob-hero .cob-doc{color:#8CA3B3;font-size:.82rem;margin-top:3px}
+.cob-money{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}
+.cob-money div{background:#0f1a24;border:1px solid #1a2a37;border-radius:10px;padding:10px 12px}
+.cob-money b{display:block;font-size:.68rem;color:#8CA3B3;text-transform:uppercase;letter-spacing:.05em;font-weight:700}
+.cob-money span{display:block;font-size:1.2rem;font-weight:800;margin-top:4px;color:#E6EEF3}
+.cob-money .m-rec span{color:#4ade80}.cob-money .m-sal span{color:#f87171}
+.cob-hero-prog{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:.78rem;color:#b9c9d4}
+.cob-hero-prog .cob-barra{flex:1;height:10px;margin:0}
+.cob-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.cob-tag{display:inline-flex;align-items:center;gap:6px;font-size:.75rem;color:#b9c9d4;background:#0f1a24;border:1px solid #1f3140;border-radius:99px;padding:3px 10px}
+.cob-tag.verm{color:#fca5a5;border-color:rgba(220,38,38,.5)}
+.cob-tag.amar{color:#fcd34d;border-color:rgba(245,158,11,.5)}
+.cob-status-sel{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.cob-st{border:1px solid color-mix(in srgb,var(--c) 60%,transparent);background:color-mix(in srgb,var(--c) 14%,transparent);color:#d7e3ea;border-radius:99px;padding:5px 12px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:inherit}
+.cob-st:hover{background:color-mix(in srgb,var(--c) 30%,transparent)}
+.cob-st.on{background:var(--c);border-color:var(--c);color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.18)}
+.cob-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start}
+.cob-box{background:#0d1720;border:1px solid #1f3140;border-radius:14px;padding:14px 16px;margin-bottom:14px;min-width:0}
+.cob-box h3{margin:0 0 12px;font-size:.92rem;font-weight:800;color:#E6EEF3;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.cob-box h3 small{color:#6f8797;font-weight:600;font-size:.74rem}
+.cob-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.cob-form label{display:flex;flex-direction:column;gap:4px;font-size:.7rem;font-weight:700;color:#8CA3B3;min-width:0}
+.cob-form label.largo{grid-column:1/-1}
+.cob-form input,.cob-form select,.cob-form textarea,.cob-mini-form input,.cob-mini-form select,.cob-mini-form textarea{width:100%;box-sizing:border-box;background:#0b141c;border:1px solid #243849;border-radius:8px;color:#fff;font-family:inherit;font-size:.86rem;padding:8px 10px;outline:none}
+.cob-form textarea,.cob-mini-form textarea{min-height:70px;resize:vertical}
+.cob-form input:focus,.cob-form select:focus,.cob-form textarea:focus,.cob-mini-form input:focus,.cob-mini-form select:focus,.cob-mini-form textarea:focus{border-color:#12B0FF}
+.cob-form-pe{display:flex;justify-content:flex-end;gap:8px;margin-top:12px;align-items:center}
+.cob-form-pe .cob-msg{flex:1;color:#ff8a8a;font-size:.76rem}
+.cob-form-pe .cob-msg.ok{color:#4ade80}
+.cob-mini-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;background:#0b141c;border:1px solid #12B0FF;border-radius:10px;padding:10px;margin-bottom:10px}
+.cob-mini-form label{display:flex;flex-direction:column;gap:4px;font-size:.68rem;font-weight:700;color:#8CA3B3;min-width:0}
+.cob-mini-form label.largo{grid-column:1/-1}
+.cob-mini-form .cob-form-pe{grid-column:1/-1;margin-top:2px}
+.cob-lista{display:flex;flex-direction:column;gap:6px}
+.cob-item{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;background:#0f1a24;border:1px solid #1a2a37;border-radius:9px;padding:8px 10px;font-size:.8rem}
+.cob-item .ci-ic{font-size:1.1rem}
+.cob-item .ci-t{min-width:0}
+.cob-item .ci-t b{display:block;color:#E6EEF3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cob-item .ci-t small{display:block;color:#6f8797;font-size:.7rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cob-item .ci-v{font-weight:800;color:#4ade80;white-space:nowrap}
+.cob-item .ci-bts{display:flex;gap:4px}
+.cob-x{border:1px solid #243849;background:#0b141c;color:#9fb3c2;border-radius:7px;width:28px;height:28px;cursor:pointer;font-size:.75rem;padding:0}
+.cob-x:hover{border-color:#d93030;color:#ff9a9a}
+.cob-arq{cursor:pointer}
+.cob-arq:hover{border-color:#12B0FF}
+.cob-drop{border:1px dashed #2b4153;border-radius:10px;padding:14px;text-align:center;color:#8CA3B3;font-size:.8rem;cursor:pointer;margin-bottom:10px}
+.cob-drop:hover,.cob-drop.sobre{border-color:#12B0FF;color:#fff;background:rgba(18,176,255,.06)}
+.cob-vazio-mini{color:#6f8797;font-size:.78rem;padding:6px 2px}
+.cob-tl{position:relative;display:flex;flex-direction:column;gap:10px;padding-left:18px}
+.cob-tl:before{content:'';position:absolute;left:6px;top:4px;bottom:4px;width:2px;background:#1f3140}
+.cob-ev{position:relative;font-size:.8rem;color:#d7e3ea}
+.cob-ev:before{content:'';position:absolute;left:-16px;top:5px;width:10px;height:10px;border-radius:50%;background:var(--c,#2b4153);box-shadow:0 0 0 3px #0d1720}
+.cob-ev small{display:block;color:#6f8797;font-size:.7rem;margin-bottom:2px}
+.cob-ev p{margin:0;white-space:pre-wrap;word-break:break-word}
+.cob-ev .cob-x{position:absolute;right:0;top:0;width:22px;height:22px;font-size:.65rem;opacity:.6}
+.cob-ev .cob-x:hover{opacity:1}
+/* visualizador */
+.cob-viewer{position:fixed;inset:0;z-index:9000;background:rgba(3,8,12,.92);display:flex;flex-direction:column}
+.cob-viewer-cab{display:flex;align-items:center;gap:10px;padding:10px 14px;color:#fff;font-size:.85rem}
+.cob-viewer-cab b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cob-viewer-palco{flex:1;overflow:auto;display:flex;justify-content:center;align-items:flex-start;padding:10px}
+.cob-viewer-palco img{max-width:100%;height:auto;background:#fff}
+.cob-viewer-palco canvas{display:block;max-width:100%;height:auto;background:#fff;margin:0 auto 10px}
+/* tema claro */
+body:not(.dark) #scr-cobranca{color:#2b3d4a}
+body:not(.dark) #scr-cobranca .cob-tit,body:not(.dark) #scr-cobranca .cob-hero h2,body:not(.dark) #scr-cobranca .cob-box h3{color:#15252F}
+body:not(.dark) #scr-cobranca .cob-kpi,body:not(.dark) #scr-cobranca .cob-painel,body:not(.dark) #scr-cobranca .cob-hero,body:not(.dark) #scr-cobranca .cob-box,body:not(.dark) #scr-cobranca .cob-grade{background:#fff;border-color:#dfe7ec}
+body:not(.dark) #scr-cobranca .cob-kpi span,body:not(.dark) #scr-cobranca .cob-money span,body:not(.dark) #scr-cobranca .cob-leg b,body:not(.dark) #scr-cobranca .cob-aging b{color:#15252F}
+body:not(.dark) #scr-cobranca .cob-t th,body:not(.dark) #scr-cobranca .cob-t td{background:#fff;color:#2b3d4a;border-color:#e6edf1}
+body:not(.dark) #scr-cobranca .cob-t thead th{background:#f3f7f9;color:#4a5d6b}
+body:not(.dark) #scr-cobranca .cob-t tbody tr:hover td{background:#f6f9fb}
+body:not(.dark) #scr-cobranca .cob-t .cob-cli{color:#15252F}
+body:not(.dark) #scr-cobranca .cob-money div,body:not(.dark) #scr-cobranca .cob-item,body:not(.dark) #scr-cobranca .cob-tag{background:#f6f9fb;border-color:#e0e8ed;color:#2b3d4a}
+body:not(.dark) #scr-cobranca .cob-item .ci-t b{color:#15252F}
+body:not(.dark) #scr-cobranca .cob-btn,body:not(.dark) #scr-cobranca .cob-busca,body:not(.dark) #scr-cobranca .cob-sel,body:not(.dark) #scr-cobranca .cob-chip{background:#fff;border-color:#d5e0e7;color:#15252F}
+body:not(.dark) #scr-cobranca .cob-btn-pri{background:#005DAA;color:#fff}
+body:not(.dark) #scr-cobranca .cob-form input,body:not(.dark) #scr-cobranca .cob-form select,body:not(.dark) #scr-cobranca .cob-form textarea,body:not(.dark) #scr-cobranca .cob-mini-form input,body:not(.dark) #scr-cobranca .cob-mini-form select,body:not(.dark) #scr-cobranca .cob-mini-form textarea{background:#fff;color:#15252F;border-color:#d5e0e7}
+body:not(.dark) #scr-cobranca .cob-mini-form{background:#f6f9fb}
+body:not(.dark) #scr-cobranca .cob-st{color:#15252F}
+body:not(.dark) #scr-cobranca .cob-st.on{color:#fff}
+/* celular */
+@media(max-width:980px){
+  .cob-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .cob-paineis{grid-template-columns:minmax(0,1fr)}
+  .cob-cols{grid-template-columns:minmax(0,1fr)}
+  .cob-form{grid-template-columns:minmax(0,1fr)}
+  .cob-mini-form{grid-template-columns:minmax(0,1fr)}
+  .cob-money{grid-template-columns:minmax(0,1fr)}
+  .cob-busca{min-width:0;flex:1 1 100%;height:40px;font-size:16px}
+  .cob-sel{height:40px;font-size:16px;flex:1 1 45%}
+  .cob-grade{max-height:none}
+  .cob-form input,.cob-form select,.cob-form textarea,.cob-mini-form input,.cob-mini-form select,.cob-mini-form textarea{font-size:16px}
+  #scr-cobranca .cob-acoes{width:100%}
+  #scr-cobranca .cob-acoes .cob-btn{flex:1 1 auto;justify-content:center;height:40px}
+  .cob-pg-topo .cob-btn{flex:1 1 auto;justify-content:center}
+}
+</style>
+
+<script>
+/* ═════════════════════════════════════════════════════════════════════════
+   (·470) NÚCLEO DE COBRANÇA — controle e acompanhamento da cobrança dos
+   clientes inadimplentes. Pedido do Nando: tabela com faturas anexadas,
+   textos, detalhes ao clicar, status coloridos, evolução, valor total e
+   recebido — "seja criativo". Só diretoria + Ruth Alves veem.
+   Dados em appConfig.cobranca.casos[id] = {
+     id, criado, autor,
+     f:{cliente, doc, contato, fone, email, resp, status, prio, valor, venc,
+        faturas, prox, proxTxt, acordo, obs, __del},  ft:{carimbo por campo},
+     docs:{id:{id,nome,tipo,tam,ts,del,por}},          faturas anexadas (R2)
+     pag:{id:{id,data,valor,forma,obs,ts,del,por}},    recebimentos
+     hist:{id:{id,ts,por,tipo,txt,del}} }              linha do tempo
+   União entre PCs campo a campo (f/ft) e item a item (docs/pag/hist, pelo ts)
+   — plugada nos DOIS pontos de sempre (carregar e salvar), como a Licitação.
+   ⚠ A trava de quem vê é de TELA (menu + portão do hubGoScreen + o próprio
+   desenho). Os dados viajam na configuração geral do Hub, como todo o resto. */
+(function(){
+  var COB_STATUS=[
+    {v:'aberto',     r:'Em aberto',       c:'#64748b'},
+    {v:'contato',    r:'Em contato',      c:'#0a84d6'},
+    {v:'negociando', r:'Negociando',      c:'#8b5cf6'},
+    {v:'acordo',     r:'Acordo firmado',  c:'#d97706'},
+    {v:'parcial',    r:'Pago parcial',    c:'#0891b2'},
+    {v:'quitado',    r:'Quitado',         c:'#16a34a'},
+    {v:'juridico',   r:'Jurídico',        c:'#dc2626'},
+    {v:'incobravel', r:'Incobrável',      c:'#3f3f46'}
+  ];
+  var COB_ST={}; COB_STATUS.forEach(function(s){ COB_ST[s.v]=s; });
+  var COB_ATIVOS={aberto:1,contato:1,negociando:1,acordo:1,parcial:1,juridico:1};
+  var COB_PRIO=[{v:'alta',r:'Alta',c:'#dc2626'},{v:'media',r:'Média',c:'#f59e0b'},{v:'baixa',r:'Baixa',c:'#16a34a'}];
+  var COB_PR={}; COB_PRIO.forEach(function(p){ COB_PR[p.v]=p; });
+  var COB_TIPOS_HIST=[{v:'nota',r:'📝 Anotação'},{v:'ligacao',r:'📞 Ligação'},{v:'whatsapp',r:'💬 WhatsApp'},{v:'email',r:'✉️ E-mail'},{v:'visita',r:'🤝 Reunião/visita'},{v:'promessa',r:'🤞 Promessa de pagamento'}];
+  var COB_TH={}; COB_TIPOS_HIST.forEach(function(t){ COB_TH[t.v]=t; });
+  var COB_FORMAS=['PIX','Transferência','Boleto','Cartão','Dinheiro','Cheque','Outro'];
+
+  /* ---------------- permissão ---------------- */
+  function cobNorm(s){ return (s||'').toString().trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,' '); }
+  function cobNome(){ try{ return (typeof window.uvAuthNome==='function'?window.uvAuthNome():'')||''; }catch(e){ return ''; } }
+  window.cobPodeVer=function(){
+    try{ if(typeof window.uvSoVoucher==='function' && window.uvSoVoucher()) return false; }catch(e){}
+    try{ if(typeof window.uvSouDiretoria==='function' && window.uvSouDiretoria()===true) return true; }catch(e){}
+    /* Ruth Alves: nome e sobrenome, os dois (não basta "Ruth") */
+    var t=cobNorm(cobNome()).split(' ');
+    return t[0]==='ruth' && t.indexOf('alves')>0;
+  };
+
+  /* ---------------- dados ---------------- */
+  function cobStore(){
+    if(!appConfig.cobranca || typeof appConfig.cobranca!=='object') appConfig.cobranca={};
+    if(!appConfig.cobranca.casos || typeof appConfig.cobranca.casos!=='object') appConfig.cobranca.casos={};
+    return appConfig.cobranca;
+  }
+  function cobSalvar(){ try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){} }
+  function cobId(p){ return p+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+  function cobEsc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  var cobUlt=0;
+  function cobAgora(){ var t=Date.now(); if(t<=cobUlt) t=cobUlt+1; cobUlt=t; return t; }
+  function cobVal(r,k){ return (r && r.f && r.f[k]!=null) ? r.f[k] : ''; }
+  function cobSet(id,k,v){
+    var r=cobStore().casos[id]; if(!r) return;
+    if(!r.f) r.f={}; if(!r.ft) r.ft={};
+    r.f[k]=v; r.ft[k]=cobAgora();
+  }
+  function cobMapa(r,k){ if(!r[k] || typeof r[k]!=='object') r[k]={}; return r[k]; }
+  function cobVivos(m){ m=(m&&typeof m==='object')?m:{}; return Object.keys(m).map(function(k){ return m[k]; }).filter(function(x){ return x && x.id && !x.del; }); }
+  function cobCasos(){
+    var S=cobStore();
+    return Object.keys(S.casos).map(function(k){ return S.casos[k]; }).filter(function(r){ return r && !(r.f && r.f.__del); });
+  }
+  function cobHist(r, tipo, txt){
+    var h=cobMapa(r,'hist'), id=cobId('ch');
+    h[id]={id:id, ts:cobAgora(), por:cobNome(), tipo:tipo, txt:txt};
+  }
+  function cobRecebido(r){ return cobVivos(r.pag).reduce(function(s,p){ return s+(Number(p.valor)||0); },0); }
+  function cobTotal(r){ return Number(cobVal(r,'valor'))||0; }
+  function cobSaldo(r){ return Math.max(0, cobTotal(r)-cobRecebido(r)); }
+  function cobPct(r){ var t=cobTotal(r); return t>0 ? Math.min(100, Math.round(cobRecebido(r)/t*100)) : 0; }
+  function cobHojeISO(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+  function cobDias(iso){ /* dias desde a data (positivo = no passado) */
+    var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(iso||''); if(!m) return null;
+    var a=new Date(+m[1],+m[2]-1,+m[3]), h=new Date(); h.setHours(0,0,0,0);
+    return Math.round((h-a)/86400000);
+  }
+  function cobAtraso(r){
+    if(!COB_ATIVOS[cobVal(r,'status')||'aberto'] || cobSaldo(r)<=0) return 0;
+    var d=cobDias(cobVal(r,'venc')); return (d!=null && d>0) ? d : 0;
+  }
+  function cobProxEstado(r){ /* 'atrasada' | 'hoje' | '' */
+    var p=cobVal(r,'prox'); if(!p || !COB_ATIVOS[cobVal(r,'status')||'aberto']) return '';
+    var d=cobDias(p); if(d==null) return ''; return d>0?'atrasada':(d===0?'hoje':'');
+  }
+
+  window.cobMergeMaps=function(a,b){
+    var A=(a&&a.casos&&typeof a.casos==='object')?a.casos:{}, B=(b&&b.casos&&typeof b.casos==='object')?b.casos:{};
+    var out={}, ids={};
+    Object.keys(A).forEach(function(k){ ids[k]=1; }); Object.keys(B).forEach(function(k){ ids[k]=1; });
+    function itens(x,y){
+      x=(x&&typeof x==='object')?x:{}; y=(y&&typeof y==='object')?y:{};
+      var o={}, ks={}; Object.keys(x).forEach(function(k){ ks[k]=1; }); Object.keys(y).forEach(function(k){ ks[k]=1; });
+      Object.keys(ks).forEach(function(k){ var p=x[k], q=y[k]; o[k]=JSON.parse(JSON.stringify((p&&q)?(((p.ts||0)>=(q.ts||0))?p:q):(p||q))); });
+      return o;
+    }
+    Object.keys(ids).forEach(function(id){
+      var x=A[id], y=B[id];
+      if(!x || !y){ out[id]=JSON.parse(JSON.stringify(x||y)); return; }
+      var r={ id:id, criado:Math.min(x.criado||Infinity, y.criado||Infinity), autor:x.autor||y.autor||'', f:{}, ft:{} };
+      if(r.criado===Infinity) r.criado=0;
+      var fx=x.f||{}, fy=y.f||{}, tx=x.ft||{}, ty=y.ft||{}, ks={};
+      Object.keys(fx).forEach(function(k){ ks[k]=1; }); Object.keys(fy).forEach(function(k){ ks[k]=1; });
+      Object.keys(ks).forEach(function(k){
+        var vx=Object.prototype.hasOwnProperty.call(fx,k), vy=Object.prototype.hasOwnProperty.call(fy,k);
+        var usaX=!vy || (vx && (tx[k]||0)>=(ty[k]||0));
+        r.f[k]=usaX?fx[k]:fy[k]; r.ft[k]=usaX?(tx[k]||0):(ty[k]||0);
+      });
+      /* ⚠ tudo que não for listado aqui SOME na união — a armadilha da lista fixa */
+      r.docs=itens(x.docs,y.docs); r.pag=itens(x.pag,y.pag); r.hist=itens(x.hist,y.hist);
+      out[id]=r;
+    });
+    return { casos:out };
+  };
+
+  /* ---------------- formatos ---------------- */
+  function cobMoeda(n){ n=Number(n)||0; return 'R$ '+n.toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2}); }
+  function cobMoedaCurta(n){ n=Number(n)||0; if(Math.abs(n)>=1e6) return 'R$ '+(n/1e6).toLocaleString('pt-BR',{maximumFractionDigits:1})+' mi'; if(Math.abs(n)>=1e4) return 'R$ '+(n/1e3).toLocaleString('pt-BR',{maximumFractionDigits:1})+' mil'; return cobMoeda(n); }
+  function cobNumero(s){
+    if(typeof s==='number') return s;
+    s=(s||'').toString().replace(/[^\d,.\-]/g,''); if(!s) return 0;
+    if(s.indexOf(',')>=0) s=s.replace(/\./g,'').replace(',','.');
+    else if((s.match(/\./g)||[]).length>1) s=s.replace(/\./g,'');
+    var n=parseFloat(s); return isNaN(n)?0:Math.round(n*100)/100;
+  }
+  function cobMoedaCampo(n){ n=Number(n)||0; return n ? n.toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2}) : ''; }
+  function cobDataBR(iso){ var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(iso||''); return m?(m[3]+'/'+m[2]+'/'+m[1]):''; }
+  function cobMascData(s){ var d=String(s||'').replace(/\D/g,'').slice(0,8); if(d.length<=2) return d; if(d.length<=4) return d.slice(0,2)+'/'+d.slice(2); return d.slice(0,2)+'/'+d.slice(2,4)+'/'+d.slice(4); }
+  function cobLerData(s){ /* '' | null (inválida) | ISO */
+    var d=String(s||'').replace(/\D/g,''); if(!d) return ''; if(d.length!==8) return null;
+    var dd=+d.slice(0,2), mm=+d.slice(2,4), aa=+d.slice(4); var x=new Date(aa,mm-1,dd);
+    if(aa<1990||aa>2100||x.getFullYear()!==aa||x.getMonth()!==mm-1||x.getDate()!==dd) return null;
+    return d.slice(4)+'-'+d.slice(2,4)+'-'+d.slice(0,2);
+  }
+  function cobQuando(ts){
+    if(!ts) return ''; var d=new Date(ts);
+    return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear()+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  }
+  function cobFoneDig(s){ var d=String(s||'').replace(/\D/g,''); if(!d) return ''; if(d.length<=11) d='55'+d; return d; }
+  function cobPill(v){ var s=COB_ST[v]||COB_ST.aberto; return '<span class="cob-pill" style="--c:'+s.c+'">'+cobEsc(s.r)+'</span>'; }
+  function cobPriHtml(v){ var p=COB_PR[v]; return p?'<span class="cob-pri" style="--c:'+p.c+'"><em></em>'+p.r+'</span>':'<span class="cob-pri">—</span>'; }
+  function cobAtrasoHtml(d){ var c=d<=0?'a0':(d<=30?'a1':(d<=90?'a2':'a3')); return '<span class="cob-atraso '+c+'">'+(d>0?d+' dia'+(d===1?'':'s'):'—')+'</span>'; }
+  function cobBarra(p){ return '<div class="cob-barra"><i style="width:'+Math.max(0,Math.min(100,p))+'%"></i></div>'; }
+
+  /* ---------------- anexos (mesmo servidor de arquivos da Licitação) ---------------- */
+  var COB_TIPOS={'application/pdf':'PDF','image/jpeg':'JPG','image/png':'PNG','application/vnd.openxmlformats-officedocument.wordprocessingml.document':'DOCX'};
+  var COB_EXT={pdf:'application/pdf',jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png',docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'};
+  function cobTipoDe(nome,tipo){ tipo=(tipo||'').toLowerCase(); if(COB_TIPOS[tipo]) return tipo; var n=(nome||'').toLowerCase(), p=n.lastIndexOf('.'); return COB_EXT[p>=0?n.slice(p+1):'']||''; }
+  function cobBase(){ try{ return (typeof getWorkerUrl==='function')?(getWorkerUrl()||''):''; }catch(e){ return ''; } }
+  function cobHdr(){ var h={}; try{ var t=(typeof uvAuthToken==='function')?(uvAuthToken()||''):(localStorage.getItem('uv_auth_token')||''); if(t) h['Authorization']='Bearer '+t; }catch(e){} return h; }
+  function cobEnviar(file){
+    var tipo=cobTipoDe(file.name, file.type);
+    if(!tipo) return Promise.reject(new Error('"'+file.name+'": só PDF, JPG, PNG ou DOCX'));
+    if(file.size>20*1024*1024) return Promise.reject(new Error('"'+file.name+'": maior que 20 MB'));
+    var base=cobBase(); if(!base) return Promise.reject(new Error('sem conexão com o servidor'));
+    return fetch(base+'/api/anexo?tipo='+encodeURIComponent(tipo)+'&nome='+encodeURIComponent(file.name||'fatura'), {method:'POST', headers:cobHdr(), body:file})
+      .then(function(r){ return r.json().then(function(d){ if(!r.ok||!d||!d.id) throw new Error((d&&d.error)||('HTTP '+r.status)); d.tipo=tipo; d.nome=file.name; return d; }); });
+  }
+  var cobBlobs={};
+  function cobBlobUrl(id){
+    if(cobBlobs[id]) return Promise.resolve(cobBlobs[id]);
+    var base=cobBase(); if(!base) return Promise.reject(new Error('sem conexão'));
+    return fetch(base+'/api/anexo/'+encodeURIComponent(id), {headers:cobHdr()})
+      .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.blob(); })
+      .then(function(b){ cobBlobs[id]=URL.createObjectURL(b); return cobBlobs[id]; });
+  }
+  function cobAnexar(id, files){
+    var r=cobStore().casos[id]; if(!r || !files || !files.length) return;
+    var lista=[].slice.call(files), ok=0, erros=[];
+    cobMsgArq('Enviando '+lista.length+' arquivo(s)…', false);
+    var seq=Promise.resolve();
+    lista.forEach(function(f){
+      seq=seq.then(function(){ return cobEnviar(f).then(function(d){
+        var rr=cobStore().casos[id]; if(!rr) return; var t=cobAgora();
+        cobMapa(rr,'docs')[d.id]={id:d.id, nome:(d.nome||'fatura').slice(0,180), tipo:d.tipo, tam:d.tam||f.size||0, ts:t, por:cobNome()};
+        ok++;
+      }, function(e){ erros.push(e.message||String(e)); }); });
+    });
+    seq.then(function(){
+      var rr=cobStore().casos[id];
+      if(ok && rr){ cobHist(rr,'anexo', ok+' fatura(s)/documento(s) anexado(s)'); cobSalvar(); }
+      cobRender(true);
+      cobMsgArq(erros.length ? ('⚠ '+erros.join(' · ')) : (ok+' arquivo(s) anexado(s)'), !erros.length);
+      try{ if(ok && typeof logRemoto==='function') logRemoto('cobranca', ok+' fatura(s) anexada(s) — '+(cobVal(rr,'cliente')||'caso de cobrança'), {area:'Núcleo de Cobrança'}); }catch(e){}
+    });
+  }
+  function cobMsgArq(t, ok){ var m=document.getElementById('cobMsgArq'); if(m){ m.textContent=t; m.className='cob-vazio-mini'+(ok?'':''); m.style.color=ok?'#4ade80':''; } }
+  function cobEscolher(id){
+    var inp=document.createElement('input'); inp.type='file'; inp.multiple=true;
+    inp.accept='.pdf,.jpg,.jpeg,.png,.docx,application/pdf,image/jpeg,image/png';
+    inp.onchange=function(){ cobAnexar(id, inp.files); };
+    inp.click();
+  }
+  /* visualizador: imagem direto; PDF página a página pelo pdf.js (o mesmo da Licitação) */
+  var COB_PDFJS='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+  var COB_PDFJS_W='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  var cobPdfP=null;
+  function cobPdfJs(){
+    if(window.pdfjsLib && window.pdfjsLib.getDocument) return Promise.resolve(window.pdfjsLib);
+    if(cobPdfP) return cobPdfP;
+    cobPdfP=new Promise(function(ok,falha){
+      var s=document.createElement('script'); s.src=COB_PDFJS; s.async=true;
+      s.onload=function(){ if(!window.pdfjsLib){ falha(new Error('pdf.js não carregou')); return; }
+        fetch(COB_PDFJS_W).then(function(r){ return r.text(); }).then(function(code){ window.pdfjsLib.GlobalWorkerOptions.workerSrc=URL.createObjectURL(new Blob([code],{type:'text/javascript'})); ok(window.pdfjsLib); }).catch(function(){ ok(window.pdfjsLib); }); };
+      s.onerror=function(){ cobPdfP=null; falha(new Error('pdf.js indisponível')); };
+      document.head.appendChild(s);
+    });
+    return cobPdfP;
+  }
+  function cobFecharViewer(){ var v=document.getElementById('cobViewer'); if(v) v.remove(); }
+  function cobAbrirViewer(casoId, docId){
+    var r=cobStore().casos[casoId]; if(!r) return; var d=(r.docs||{})[docId]; if(!d) return;
+    cobFecharViewer();
+    var v=document.createElement('div'); v.id='cobViewer'; v.className='cob-viewer';
+    v.innerHTML='<div class="cob-viewer-cab"><b>'+cobEsc(d.nome||'documento')+'</b><button type="button" class="cob-btn" data-cob-v-baixar="'+cobEsc(casoId)+'|'+cobEsc(docId)+'">⬇ Baixar</button><button type="button" class="cob-btn" data-cob-v-fechar>✕ Fechar</button></div>'
+      +'<div class="cob-viewer-palco" id="cobViewerPalco"><div class="cob-vazio-mini">Abrindo…</div></div>';
+    document.body.appendChild(v);
+    cobBlobUrl(d.id).then(function(u){
+      var palco=document.getElementById('cobViewerPalco'); if(!palco) return;
+      if(d.tipo==='image/jpeg'||d.tipo==='image/png'){ palco.innerHTML='<img src="'+u+'" alt="'+cobEsc(d.nome||'')+'">'; return; }
+      if(d.tipo!=='application/pdf'){ palco.innerHTML='<div class="cob-vazio-mini">Este formato não tem pré-visualização. Use <b>Baixar</b>.</div>'; return; }
+      return cobPdfJs().then(function(pdfjs){ return pdfjs.getDocument({url:u}).promise; }).then(function(doc){
+        palco.innerHTML=''; var n=Math.min(doc.numPages,40), seq=Promise.resolve(), larg=Math.min(900,(palco.clientWidth||900)-10);
+        for(var i=1;i<=n;i++)(function(i){ seq=seq.then(function(){ return doc.getPage(i).then(function(pg){
+          if(!document.getElementById('cobViewerPalco')) return;
+          var vp0=pg.getViewport({scale:1}), esc=larg/vp0.width*(window.devicePixelRatio||1), vp=pg.getViewport({scale:esc});
+          var c=document.createElement('canvas'); c.width=vp.width; c.height=vp.height; c.style.width=larg+'px'; palco.appendChild(c);
+          return pg.render({canvasContext:c.getContext('2d'), viewport:vp}).promise;
+        }); }); })(i);
+        return seq;
+      }).catch(function(){ palco.innerHTML='<iframe src="'+u+'" style="width:100%;height:80vh;border:0;background:#fff"></iframe>'; });
+    }).catch(function(e){ var palco=document.getElementById('cobViewerPalco'); if(palco) palco.innerHTML='<div class="cob-vazio-mini">Não consegui abrir ('+cobEsc(e&&e.message||e)+').</div>'; });
+  }
+  function cobBaixar(casoId, docId){
+    var r=cobStore().casos[casoId], d=r&&(r.docs||{})[docId]; if(!d) return;
+    cobBlobUrl(d.id).then(function(u){ var a=document.createElement('a'); a.href=u; a.download=d.nome||'fatura'; document.body.appendChild(a); a.click(); a.remove(); });
+  }
+
+  /* ---------------- estado da tela ---------------- */
+  var cobSemRascunho=false;
+  var cobPag='', cobBusca='', cobFiltroSt='', cobFiltroResp='', cobSoAtrasadas=false, cobOrdem='saldo', cobForm='';   /* cobForm: 'pag' | 'hist' */
+
+  function cobFiltrados(){
+    var q=cobNorm(cobBusca), termos=q?q.split(' '):[];
+    var lista=cobCasos().filter(function(r){
+      var st=cobVal(r,'status')||'aberto';
+      if(cobFiltroSt==='ativos' && !COB_ATIVOS[st]) return false;
+      if(cobFiltroSt && cobFiltroSt!=='ativos' && st!==cobFiltroSt) return false;
+      if(cobFiltroResp && cobVal(r,'resp')!==cobFiltroResp) return false;
+      if(cobSoAtrasadas && cobProxEstado(r)!=='atrasada' && cobProxEstado(r)!=='hoje') return false;
+      if(termos.length){
+        var txt=cobNorm(['cliente','doc','contato','fone','email','resp','faturas','obs','acordo','proxTxt'].map(function(k){ return cobVal(r,k); }).join(' ')+' '+(COB_ST[st]||{}).r+' '+cobVivos(r.docs).map(function(d){ return d.nome; }).join(' '));
+        if(!termos.every(function(t){ return txt.indexOf(t)>=0; })) return false;
+      }
+      return true;
+    });
+    var ord={
+      saldo:function(a,b){ return cobSaldo(b)-cobSaldo(a); },
+      atraso:function(a,b){ return cobAtraso(b)-cobAtraso(a); },
+      prox:function(a,b){ var x=cobVal(a,'prox')||'9999', y=cobVal(b,'prox')||'9999'; return x<y?-1:x>y?1:0; },
+      recente:function(a,b){ return (b.criado||0)-(a.criado||0); },
+      cliente:function(a,b){ return cobNorm(cobVal(a,'cliente')).localeCompare(cobNorm(cobVal(b,'cliente'))); }
+    };
+    return lista.sort(ord[cobOrdem]||ord.saldo);
+  }
+  function cobResponsaveis(){ var m={}; cobCasos().forEach(function(r){ var v=cobVal(r,'resp'); if(v) m[v]=1; }); return Object.keys(m).sort(); }
+
+  /* evolução: recebido por mês (últimos 6 meses) */
+  function cobGraficoMeses(casos){
+    var h=new Date(), meses=[];
+    for(var i=5;i>=0;i--){ var d=new Date(h.getFullYear(), h.getMonth()-i, 1); meses.push({k:d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'), r:['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][d.getMonth()], v:0}); }
+    var idx={}; meses.forEach(function(m,i){ idx[m.k]=i; });
+    casos.forEach(function(r){ cobVivos(r.pag).forEach(function(p){ var k=(p.data||'').slice(0,7); if(idx[k]!=null) meses[idx[k]].v+=Number(p.valor)||0; }); });
+    var max=Math.max.apply(null, meses.map(function(m){ return m.v; }).concat([1]));
+    var W=320, H=130, bw=34, gap=(W-bw*6)/6;
+    var svg='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Recebido por mês">';
+    meses.forEach(function(m,i){
+      var x=gap/2+i*(bw+gap), alt=Math.round((H-38)*m.v/max), y=H-20-alt;
+      svg+='<rect x="'+x+'" y="'+y+'" width="'+bw+'" height="'+Math.max(alt,1)+'" rx="4" fill="'+(m.v?'#16a34a':'#1f3140')+'"><title>'+m.r+': '+cobMoeda(m.v)+'</title></rect>';
+      if(m.v) svg+='<text x="'+(x+bw/2)+'" y="'+(y-4)+'" text-anchor="middle" font-size="9" fill="#9fb3c2">'+cobEsc(cobMoedaCurta(m.v).replace('R$ ',''))+'</text>';
+      svg+='<text x="'+(x+bw/2)+'" y="'+(H-6)+'" text-anchor="middle" font-size="10" fill="#8CA3B3">'+m.r+'</text>';
+    });
+    return svg+'</svg>';
+  }
+
+  function cobRender(forcar){
+    var w=document.getElementById('cobWrap'); if(!w) return;
+    if(!window.cobPodeVer()){ w.innerHTML='<div class="cob-vazio">Você não tem acesso a esta pasta.</div>'; return; }
+    /* formulário aberto na página do caso: um redesenho vindo de fora (outro
+       PC salvou) não pode apagar o que está sendo digitado */
+    if(forcar!==true && document.querySelector('#cobWrap [data-cob-digitando]')){
+      var ativo=document.activeElement;
+      if(ativo && ativo.closest && ativo.closest('#cobWrap') && /INPUT|TEXTAREA|SELECT/.test(ativo.tagName)) return;
+    }
+    if(cobPag){
+      var rp=cobStore().casos[cobPag];
+      if(rp && !(rp.f && rp.f.__del)){ cobRenderCaso(w, rp); return; }
+      cobPag=''; cobForm='';
+    }
+    var todos=cobCasos(), lista=cobFiltrados(), foco=document.activeElement && document.activeElement.id==='cobBusca';
+    var ativos=todos.filter(function(r){ return COB_ATIVOS[cobVal(r,'status')||'aberto']; });
+    var tot=0, rec=0; todos.forEach(function(r){ if(cobVal(r,'status')!=='incobravel'){ tot+=cobTotal(r); rec+=cobRecebido(r); } });
+    var saldo=ativos.reduce(function(s,r){ return s+cobSaldo(r); },0);
+    var perdido=todos.filter(function(r){ return cobVal(r,'status')==='incobravel'; }).reduce(function(s,r){ return s+cobSaldo(r); },0);
+    var pct=tot>0?Math.round(rec/tot*100):0;
+    var atrasos=ativos.map(cobAtraso).filter(function(d){ return d>0; });
+    var medio=atrasos.length?Math.round(atrasos.reduce(function(a,b){ return a+b; },0)/atrasos.length):0;
+    var acAtr=ativos.filter(function(r){ return cobProxEstado(r)==='atrasada'; }).length, acHoje=ativos.filter(function(r){ return cobProxEstado(r)==='hoje'; }).length;
+
+    var cab='<div class="cob-cab"><div><h2 class="cob-tit">💰 Núcleo de Cobrança</h2>'
+      +'<div class="cob-sub">Controle e acompanhamento dos clientes inadimplentes · '+todos.length+' caso'+(todos.length===1?'':'s')+' · '+ativos.length+' em andamento</div></div>'
+      +'<div class="cob-acoes"><button type="button" class="cob-btn" id="cobExportar" title="Baixar a lista filtrada em planilha (CSV)">⬇ Exportar</button>'
+      +'<button type="button" class="cob-btn cob-btn-pri" id="cobNovo">＋ Novo caso</button></div></div>';
+    if(!todos.length){
+      w.innerHTML=cab+'<div class="cob-vazio"><b>Nenhum caso de cobrança ainda.</b><br><br>Clique em <b>＋ Novo caso</b> para cadastrar o primeiro cliente inadimplente: valor, vencimento, faturas, contatos e cada passo da negociação ficam registrados aqui.</div>';
+      return;
+    }
+    var kpis='<div class="cob-kpis">'
+      +'<div class="cob-kpi"><b>Total cobrado</b><span title="'+cobMoeda(tot)+'">'+cobMoedaCurta(tot)+'</span><small>todos os casos (sem os incobráveis)</small></div>'
+      +'<div class="cob-kpi k-verde"><b>Recebido</b><span title="'+cobMoeda(rec)+'">'+cobMoedaCurta(rec)+'</span>'+cobBarra(pct)+'</div>'
+      +'<div class="cob-kpi k-verm"><b>A receber</b><span title="'+cobMoeda(saldo)+'">'+cobMoedaCurta(saldo)+'</span><small>saldo dos casos em andamento</small></div>'
+      +'<div class="cob-kpi k-azul"><b>% recuperado</b><span>'+pct+'%</span><small>'+(perdido?'incobrável: '+cobMoedaCurta(perdido):'nada dado como perdido')+'</small></div>'
+      +'<div class="cob-kpi k-amar"><b>Atraso médio</b><span>'+medio+' dia'+(medio===1?'':'s')+'</span><small>dos casos vencidos</small></div>'
+      +'<div class="cob-kpi"><b>Próximas ações</b><span>'+(acAtr+acHoje)+'</span><small>'+acHoje+' hoje · '+acAtr+' atrasada'+(acAtr===1?'':'s')+'</small></div>'
+      +'</div>';
+    /* distribuição por status + envelhecimento do saldo */
+    var porSt={}; todos.forEach(function(r){ var s=cobVal(r,'status')||'aberto'; if(!porSt[s]) porSt[s]={n:0,v:0}; porSt[s].n++; porSt[s].v+=cobSaldo(r); });
+    var dist='<div class="cob-dist">'+COB_STATUS.filter(function(s){ return porSt[s.v]; }).map(function(s){ return '<i style="background:'+s.c+';width:'+(porSt[s.v].n/todos.length*100)+'%" title="'+cobEsc(s.r)+': '+porSt[s.v].n+'"></i>'; }).join('')+'</div>'
+      +'<div class="cob-leg">'+COB_STATUS.filter(function(s){ return porSt[s.v]; }).map(function(s){ return '<div><em style="background:'+s.c+'"></em><span>'+cobEsc(s.r)+' · '+porSt[s.v].n+'</span><b>'+cobMoedaCurta(porSt[s.v].v)+'</b></div>'; }).join('')+'</div>';
+    var faixas=[{r:'A vencer',c:'#64748b',v:0},{r:'1–30 dias',c:'#fbbf24',v:0},{r:'31–60 dias',c:'#fb923c',v:0},{r:'61–90 dias',c:'#f87171',v:0},{r:'+90 dias',c:'#dc2626',v:0}];
+    ativos.forEach(function(r){ var d=cobAtraso(r), s=cobSaldo(r); faixas[d<=0?0:d<=30?1:d<=60?2:d<=90?3:4].v+=s; });
+    var maxF=Math.max.apply(null, faixas.map(function(f){ return f.v; }).concat([1]));
+    var aging='<div class="cob-aging">'+faixas.map(function(f){ return '<div><span>'+f.r+'</span><div class="ag-b"><i style="background:'+f.c+';width:'+(f.v/maxF*100)+'%"></i></div><b>'+cobMoedaCurta(f.v)+'</b></div>'; }).join('')+'</div>';
+    var paineis='<div class="cob-paineis">'
+      +'<div class="cob-painel"><h4>📈 Evolução — recebido por mês</h4>'+cobGraficoMeses(todos)+'</div>'
+      +'<div class="cob-painel"><h4>🎯 Casos por status</h4>'+dist+'</div>'
+      +'<div class="cob-painel"><h4>⏳ Saldo por tempo de atraso</h4>'+aging+'</div></div>';
+    var alerta=(acAtr||acHoje) ? '<div class="cob-alerta'+(acAtr?' verm':'')+'">⏰ <span>'+(acAtr?'<b>'+acAtr+'</b> próxima'+(acAtr===1?' ação atrasada':'s ações atrasadas'):'')+(acAtr&&acHoje?' · ':'')+(acHoje?'<b>'+acHoje+'</b> para hoje':'')+'</span><button type="button" class="cob-btn" data-cob-so-atrasadas>'+(cobSoAtrasadas?'Mostrar todos':'Ver só esses')+'</button></div>' : '';
+    var resps=cobResponsaveis();
+    var filtros='<div class="cob-filtros"><input id="cobBusca" class="cob-busca" placeholder="Procurar cliente, CNPJ, fatura, anotação…" value="'+cobEsc(cobBusca)+'" autocomplete="off">'
+      +'<select class="cob-sel" id="cobResp"><option value="">Responsável: todos</option>'+resps.map(function(p){ return '<option value="'+cobEsc(p)+'"'+(p===cobFiltroResp?' selected':'')+'>'+cobEsc(p)+'</option>'; }).join('')+'</select>'
+      +'<select class="cob-sel" id="cobOrdem">'+[['saldo','Maior saldo'],['atraso','Maior atraso'],['prox','Próxima ação'],['recente','Mais recentes'],['cliente','Cliente (A–Z)']].map(function(o){ return '<option value="'+o[0]+'"'+(o[0]===cobOrdem?' selected':'')+'>Ordenar: '+o[1]+'</option>'; }).join('')+'</select></div>';
+    var chips='<div class="cob-chips"><button type="button" class="cob-chip'+(!cobFiltroSt?' on':'')+'" style="--c:#005DAA" data-cob-fst="">Todos <small>'+todos.length+'</small></button>'
+      +'<button type="button" class="cob-chip'+(cobFiltroSt==='ativos'?' on':'')+'" style="--c:#005DAA" data-cob-fst="ativos">Em andamento <small>'+ativos.length+'</small></button>'
+      +COB_STATUS.map(function(s){ var n=(porSt[s.v]||{}).n||0; return '<button type="button" class="cob-chip'+(cobFiltroSt===s.v?' on':'')+'" style="--c:'+s.c+'" data-cob-fst="'+s.v+'"><em></em>'+cobEsc(s.r)+' <small>'+n+'</small></button>'; }).join('')+'</div>';
+    var linhas=lista.map(function(r){
+      var st=cobVal(r,'status')||'aberto', pe=cobProxEstado(r), nd=cobVivos(r.docs).length;
+      var prox=cobVal(r,'prox') ? '<span class="'+(pe==='atrasada'?'cob-venc':pe==='hoje'?'cob-hoje':'')+'" title="'+cobEsc(cobVal(r,'proxTxt'))+'">'+cobDataBR(cobVal(r,'prox'))+(pe==='atrasada'?' ⚠':pe==='hoje'?' • hoje':'')+'</span>' : '<span style="color:#6f8797">—</span>';
+      return '<tr data-cob-caso="'+cobEsc(r.id)+'" title="Clique para abrir o caso">'
+        +'<td class="c0"><div class="cob-cli">'+cobEsc(cobVal(r,'cliente')||'Sem nome')+'<small>'+cobEsc(cobVal(r,'doc')||cobVal(r,'contato')||'')+'</small></div></td>'
+        +'<td>'+cobPill(st)+'</td><td>'+cobPriHtml(cobVal(r,'prio'))+'</td>'
+        +'<td>'+cobEsc(cobVal(r,'resp')||'—')+'</td>'
+        +'<td>'+(cobDataBR(cobVal(r,'venc'))||'—')+'</td><td>'+cobAtrasoHtml(cobAtraso(r))+'</td>'
+        +'<td class="num">'+cobMoeda(cobTotal(r))+'</td><td class="num" style="color:#4ade80">'+cobMoeda(cobRecebido(r))+'</td><td class="num" style="color:#f87171;font-weight:800">'+cobMoeda(cobSaldo(r))+'</td>'
+        +'<td><div class="cob-prog">'+cobBarra(cobPct(r))+'<b>'+cobPct(r)+'%</b></div></td>'
+        +'<td>'+prox+'</td><td>'+(nd?'📎 '+nd:'<span style="color:#6f8797">—</span>')+'</td></tr>';
+    }).join('');
+    var tabela = lista.length
+      ? '<div class="cob-grade"><table class="cob-t"><thead><tr><th class="c0">Cliente</th><th>Status</th><th>Prioridade</th><th>Responsável</th><th>Vencimento</th><th>Atraso</th><th class="num">Valor total</th><th class="num">Recebido</th><th class="num">Saldo</th><th>Evolução</th><th>Próx. ação</th><th>Faturas</th></tr></thead><tbody>'+linhas+'</tbody></table></div>'
+      : '<div class="cob-vazio">Nenhum caso com esses filtros.</div>';
+    var sT=0,sR=0,sS=0; lista.forEach(function(r){ sT+=cobTotal(r); sR+=cobRecebido(r); sS+=cobSaldo(r); });
+    var rod='<div class="cob-rod"><span>'+lista.length+' caso'+(lista.length===1?'':'s')+' na lista</span><span>Total <b>'+cobMoeda(sT)+'</b> · Recebido <b style="color:#4ade80">'+cobMoeda(sR)+'</b> · Saldo <b style="color:#f87171">'+cobMoeda(sS)+'</b></span></div>';
+    w.innerHTML=cab+kpis+paineis+alerta+filtros+chips+tabela+rod;
+    if(foco){ var b=document.getElementById('cobBusca'); if(b){ try{ b.focus(); b.setSelectionRange(b.value.length,b.value.length); }catch(e){} } }
+  }
+  window.renderCobranca=cobRender;
+
+  /* ---------------- página do caso ---------------- */
+  function cobCampo(k, rot, val, extra, largo){
+    return '<label'+(largo?' class="largo"':'')+'>'+rot+'<input data-cob-f="'+k+'" value="'+cobEsc(val)+'"'+(extra||'')+'></label>';
+  }
+  function cobRenderCaso(w, r){
+    var id=cobEsc(r.id), st=cobVal(r,'status')||'aberto', tot=cobTotal(r), rec=cobRecebido(r), sal=cobSaldo(r), pct=cobPct(r), atr=cobAtraso(r), pe=cobProxEstado(r);
+    var tags='';
+    if(atr>0) tags+='<span class="cob-tag verm">⏳ '+atr+' dia'+(atr===1?'':'s')+' em atraso</span>';
+    if(cobVal(r,'venc')) tags+='<span class="cob-tag">📅 Vencimento '+cobDataBR(cobVal(r,'venc'))+'</span>';
+    if(cobVal(r,'prox')) tags+='<span class="cob-tag'+(pe==='atrasada'?' verm':pe==='hoje'?' amar':'')+'">⏰ Próxima ação '+cobDataBR(cobVal(r,'prox'))+(cobVal(r,'proxTxt')?': '+cobEsc(cobVal(r,'proxTxt')):'')+'</span>';
+    if(cobVal(r,'resp')) tags+='<span class="cob-tag">👤 '+cobEsc(cobVal(r,'resp'))+'</span>';
+    if(cobVal(r,'prio')) tags+='<span class="cob-tag">'+cobPriHtml(cobVal(r,'prio'))+'</span>';
+    var fone=cobFoneDig(cobVal(r,'fone'));
+    var topo='<div class="cob-pg-topo"><button type="button" class="cob-btn" data-cob-voltar>← Voltar para a lista</button><span class="cob-esp"></span>'
+      +'<button type="button" class="cob-btn" data-cob-copiar-msg title="Copia um texto de cobrança pronto, com o saldo e as faturas">📋 Copiar mensagem</button>'
+      +(fone?'<a class="cob-btn cob-btn-zap" data-cob-zap href="https://wa.me/'+fone+'?text='+encodeURIComponent(cobMensagem(r))+'" target="_blank" rel="noopener">💬 WhatsApp</a>':'')
+      +'<button type="button" class="cob-btn cob-btn-perigo" data-cob-excluir>🗑 Excluir caso</button></div>';
+    var hero='<div class="cob-hero"><div class="cob-hero-l1"><div><h2>'+cobEsc(cobVal(r,'cliente')||'Novo caso de cobrança')+'</h2>'
+      +'<div class="cob-doc">'+cobEsc([cobVal(r,'doc'), cobVal(r,'contato'), cobVal(r,'fone'), cobVal(r,'email')].filter(Boolean).join(' · ')||'Preencha os dados do cliente abaixo')+'</div></div>'+cobPill(st)+'</div>'
+      +'<div class="cob-money"><div><b>Valor total</b><span>'+cobMoeda(tot)+'</span></div><div class="m-rec"><b>Recebido</b><span>'+cobMoeda(rec)+'</span></div><div class="m-sal"><b>Saldo em aberto</b><span>'+cobMoeda(sal)+'</span></div></div>'
+      +'<div class="cob-hero-prog">'+cobBarra(pct)+'<b>'+pct+'% recuperado</b></div>'
+      +(tags?'<div class="cob-tags">'+tags+'</div>':'')
+      +'<div class="cob-status-sel">'+COB_STATUS.map(function(s){ return '<button type="button" class="cob-st'+(s.v===st?' on':'')+'" style="--c:'+s.c+'" data-cob-status="'+s.v+'">'+cobEsc(s.r)+'</button>'; }).join('')+'</div></div>';
+    var dados='<div class="cob-box" data-cob-digitando><h3>🧾 Dados do caso <small>editáveis</small></h3><div class="cob-form">'
+      +cobCampo('cliente','Cliente (empresa ou pessoa)',cobVal(r,'cliente'),' maxlength="140" placeholder="Nome do cliente"',true)
+      +cobCampo('doc','CNPJ / CPF',cobVal(r,'doc'),' maxlength="30"')
+      +cobCampo('contato','Contato (quem responde)',cobVal(r,'contato'),' maxlength="80"')
+      +cobCampo('fone','Telefone / WhatsApp',cobVal(r,'fone'),' inputmode="tel" maxlength="30" placeholder="(48) 99999-9999"')
+      +cobCampo('email','E-mail',cobVal(r,'email'),' type="email" maxlength="120"')
+      +cobCampo('valor','Valor total em cobrança (R$)',cobMoedaCampo(cobVal(r,'valor')),' inputmode="decimal" placeholder="0,00"')
+      +cobCampo('venc','Vencimento original',cobDataBR(cobVal(r,'venc')),' inputmode="numeric" maxlength="10" placeholder="dd/mm/aaaa" data-cob-data')
+      +cobCampo('faturas','Nº das faturas / referências',cobVal(r,'faturas'),' maxlength="200" placeholder="ex.: FAT 1234, 1240"',true)
+      +cobCampo('resp','Responsável pela cobrança',cobVal(r,'resp'),' maxlength="80" list="cobRespLista"')
+      +'<label>Prioridade<select data-cob-f="prio"><option value="">—</option>'+COB_PRIO.map(function(p){ return '<option value="'+p.v+'"'+(p.v===cobVal(r,'prio')?' selected':'')+'>'+p.r+'</option>'; }).join('')+'</select></label>'
+      +cobCampo('prox','Próxima ação em',cobDataBR(cobVal(r,'prox')),' inputmode="numeric" maxlength="10" placeholder="dd/mm/aaaa" data-cob-data')
+      +cobCampo('proxTxt','O que fazer',cobVal(r,'proxTxt'),' maxlength="140" placeholder="ex.: ligar para o financeiro"')
+      +'<label class="largo">Condições do acordo<textarea data-cob-f="acordo" maxlength="2000" placeholder="Parcelas, datas, descontos combinados…">'+cobEsc(cobVal(r,'acordo'))+'</textarea></label>'
+      +'<label class="largo">Observações<textarea data-cob-f="obs" maxlength="4000">'+cobEsc(cobVal(r,'obs'))+'</textarea></label>'
+      +'</div><datalist id="cobRespLista">'+cobResponsaveis().concat([cobNome()]).filter(function(v,i,a){ return v && a.indexOf(v)===i; }).map(function(p){ return '<option value="'+cobEsc(p)+'">'; }).join('')+'</datalist>'
+      +'<div class="cob-form-pe"><span class="cob-msg" id="cobMsgDados"></span><button type="button" class="cob-btn cob-btn-ok" data-cob-salvar>Salvar dados</button></div></div>';
+    var pags=cobVivos(r.pag).sort(function(a,b){ return (b.data||'').localeCompare(a.data||'') || (b.ts||0)-(a.ts||0); });
+    var recebs='<div class="cob-box"><h3>💵 Recebimentos <small>'+pags.length+' · '+cobMoeda(rec)+'</small></h3>'
+      +(cobForm==='pag' ? '<div class="cob-mini-form" data-cob-digitando>'
+          +'<label>Data<input id="cobPagData" inputmode="numeric" maxlength="10" placeholder="dd/mm/aaaa" data-cob-data value="'+cobDataBR(cobHojeISO())+'"></label>'
+          +'<label>Valor (R$)<input id="cobPagValor" inputmode="decimal" placeholder="0,00" value="'+(sal?cobMoedaCampo(sal):'')+'"></label>'
+          +'<label>Forma<select id="cobPagForma">'+COB_FORMAS.map(function(f){ return '<option>'+f+'</option>'; }).join('')+'</select></label>'
+          +'<label class="largo">Observação<input id="cobPagObs" maxlength="200" placeholder="ex.: 1ª parcela do acordo"></label>'
+          +'<div class="cob-form-pe"><span class="cob-msg" id="cobMsgPag"></span><button type="button" class="cob-btn" data-cob-form-fechar>Cancelar</button><button type="button" class="cob-btn cob-btn-ok" data-cob-pag-salvar>Registrar recebimento</button></div></div>'
+        : '<button type="button" class="cob-btn cob-btn-ok" data-cob-pag-novo style="margin-bottom:10px">＋ Registrar recebimento</button>')
+      +'<div class="cob-lista">'+(pags.length?pags.map(function(p){
+          return '<div class="cob-item"><span class="ci-ic">✅</span><div class="ci-t"><b>'+cobDataBR(p.data)+' · '+cobEsc(p.forma||'')+'</b><small>'+cobEsc(p.obs||'')+(p.por?' — '+cobEsc(p.por):'')+'</small></div>'
+            +'<div class="ci-bts"><span class="ci-v">'+cobMoeda(p.valor)+'</span><button type="button" class="cob-x" data-cob-pag-del="'+cobEsc(p.id)+'" title="Remover recebimento">✕</button></div></div>';
+        }).join(''):'<div class="cob-vazio-mini">Nenhum recebimento registrado.</div>')+'</div></div>';
+    var docs=cobVivos(r.docs).sort(function(a,b){ return (a.ts||0)-(b.ts||0); });
+    var faturas='<div class="cob-box"><h3>📎 Faturas e documentos <small>'+docs.length+'</small></h3>'
+      +'<div class="cob-drop" data-cob-anexar>⬆ Clique ou arraste aqui as faturas (PDF, JPG, PNG, DOCX)</div><div id="cobMsgArq"></div>'
+      +'<div class="cob-lista">'+(docs.length?docs.map(function(d){
+          var ic=d.tipo==='application/pdf'?'📕':(/image/.test(d.tipo)?'🖼':'📘');
+          return '<div class="cob-item cob-arq" data-cob-ver="'+cobEsc(d.id)+'"><span class="ci-ic">'+ic+'</span><div class="ci-t"><b>'+cobEsc(d.nome||'documento')+'</b><small>'+(COB_TIPOS[d.tipo]||'ARQ')+(d.tam?' · '+Math.max(1,Math.round(d.tam/1024))+' KB':'')+(d.ts?' · '+cobQuando(d.ts):'')+'</small></div>'
+            +'<div class="ci-bts"><button type="button" class="cob-x" data-cob-doc-del="'+cobEsc(d.id)+'" title="Remover arquivo">✕</button></div></div>';
+        }).join(''):'<div class="cob-vazio-mini">Nenhuma fatura anexada.</div>')+'</div></div>';
+    var hist=cobVivos(r.hist).sort(function(a,b){ return (b.ts||0)-(a.ts||0); });
+    var CORH={status:'#8b5cf6',pag:'#16a34a',anexo:'#0a84d6',criado:'#64748b',nota:'#f59e0b',ligacao:'#0891b2',whatsapp:'#22c55e',email:'#3b82f6',visita:'#d97706',promessa:'#ec4899'};
+    var linha='<div class="cob-box"><h3>🕓 Linha do tempo <small>'+hist.length+' registro'+(hist.length===1?'':'s')+'</small></h3>'
+      +(cobForm==='hist' ? '<div class="cob-mini-form" data-cob-digitando>'
+          +'<label>Tipo<select id="cobHistTipo">'+COB_TIPOS_HIST.map(function(t){ return '<option value="'+t.v+'">'+t.r+'</option>'; }).join('')+'</select></label>'
+          +'<label class="largo">Texto<textarea id="cobHistTxt" maxlength="3000" placeholder="O que foi conversado, combinado ou prometido…"></textarea></label>'
+          +'<div class="cob-form-pe"><span class="cob-msg" id="cobMsgHist"></span><button type="button" class="cob-btn" data-cob-form-fechar>Cancelar</button><button type="button" class="cob-btn cob-btn-ok" data-cob-hist-salvar>Adicionar</button></div></div>'
+        : '<button type="button" class="cob-btn" data-cob-hist-novo style="margin-bottom:12px">＋ Adicionar anotação / contato</button>')
+      +(hist.length?'<div class="cob-tl">'+hist.map(function(h){
+          var manual=!!COB_TH[h.tipo];
+          return '<div class="cob-ev" style="--c:'+(CORH[h.tipo]||'#2b4153')+'"><small>'+cobQuando(h.ts)+(h.por?' · '+cobEsc(h.por):'')+(manual?' · '+cobEsc(COB_TH[h.tipo].r):'')+'</small><p>'+cobEsc(h.txt||'')+'</p>'
+            +(manual?'<button type="button" class="cob-x" data-cob-hist-del="'+cobEsc(h.id)+'" title="Apagar registro">✕</button>':'')+'</div>';
+        }).join('')+'</div>':'<div class="cob-vazio-mini">Sem registros ainda.</div>')+'</div>';
+    /* RASCUNHO DOS DADOS SOBREVIVE AO REDESENHO: trocar o status, anexar ou
+       registrar um recebimento redesenha a página — o que já foi digitado nos
+       dados (e ainda não salvo) volta para os campos. */
+    var rasc={};
+    if(!cobSemRascunho){ try{ document.querySelectorAll('#cobWrap [data-cob-pg="'+r.id+'"] [data-cob-f][data-sujo]').forEach(function(el){ rasc[el.getAttribute('data-cob-f')]=el.value; }); }catch(e){} }
+    cobSemRascunho=false;
+    w.innerHTML='<div class="cob-pg" data-cob-pg="'+id+'">'+topo+hero
+      +'<div class="cob-cols"><div>'+dados+faturas+'</div><div>'+recebs+linha+'</div></div></div>';
+    Object.keys(rasc).forEach(function(k){ var el=document.querySelector('#cobWrap [data-cob-f="'+k+'"]'); if(el){ el.value=rasc[k]; el.setAttribute('data-sujo','1'); } });
+    var foco=document.querySelector('#cobWrap .cob-mini-form input, #cobWrap .cob-mini-form textarea');
+    if(foco){ try{ foco.focus(); }catch(e){} }
+  }
+  function cobMensagem(r){
+    var quem=(cobVal(r,'contato')||cobVal(r,'cliente')||'').split(' ')[0];
+    var ref=cobVal(r,'faturas');
+    return 'Olá'+(quem?', '+quem:'')+'! Tudo bem?\n\n'
+      +'Aqui é da Ultravel Viagens. Consta em nosso sistema um saldo em aberto de *'+cobMoeda(cobSaldo(r))+'*'
+      +(ref?' referente '+(/,|\s/.test(ref.trim())?'às faturas ':'à fatura ')+ref:'')
+      +(cobVal(r,'venc')?', com vencimento em '+cobDataBR(cobVal(r,'venc')):'')+'.\n\n'
+      +'Podemos ajudar a regularizar? Se o pagamento já foi feito, por favor desconsidere esta mensagem e nos envie o comprovante.\n\n'
+      +'Obrigado!';
+  }
+  window.__cobTeste={ numero:cobNumero, mensagem:function(id){ return cobMensagem(cobStore().casos[id]); }, lerData:cobLerData };
+  function cobAbrir(id){ cobPag=id; cobForm=''; cobRender(true); try{ var s=document.getElementById('scr-cobranca'); if(s && s.scrollIntoView) s.scrollIntoView({block:'start'}); }catch(e){} }
+  function cobNovo(){
+    var S=cobStore(), id=cobId('cb'), t=cobAgora();
+    S.casos[id]={id:id, criado:t, autor:cobNome(), f:{status:'aberto', resp:cobNome()}, ft:{status:t, resp:t}, docs:{}, pag:{}, hist:{}};
+    cobHist(S.casos[id],'criado','Caso aberto'); cobSalvar(); cobAbrir(id);
+    try{ var c=document.querySelector('#cobWrap input[data-cob-f="cliente"]'); if(c) c.focus(); }catch(e){}
+  }
+  function cobSalvarDados(id){
+    var r=cobStore().casos[id]; if(!r) return;
+    var msg=document.getElementById('cobMsgDados'), erro='', mud=0;
+    document.querySelectorAll('#cobWrap [data-cob-f]').forEach(function(el){
+      var k=el.getAttribute('data-cob-f'), v=el.value;
+      if(k==='valor') v=cobNumero(v);
+      else if(k==='venc' || k==='prox'){ var d=cobLerData(v); if(d===null){ erro='Data inválida em "'+(k==='venc'?'Vencimento':'Próxima ação')+'" — use dd/mm/aaaa.'; return; } v=d; }
+      else v=(v||'').trim();
+      if(String(v)!==String(cobVal(r,k))){ cobSet(id,k,v); mud++; }
+    });
+    if(erro){ if(msg){ msg.className='cob-msg'; msg.textContent=erro; } return; }
+    cobSemRascunho=true;
+    if(mud){ cobSalvar(); try{ if(typeof logRemoto==='function') logRemoto('cobranca','Caso de cobrança atualizado — '+(cobVal(r,'cliente')||'sem nome'),{area:'Núcleo de Cobrança'}); }catch(e){} }
+    cobRender(true);
+    var m2=document.getElementById('cobMsgDados'); if(m2){ m2.className='cob-msg ok'; m2.textContent=mud?'✓ Salvo':'Nada mudou'; }
+  }
+  function cobMudarStatus(id, v){
+    var r=cobStore().casos[id]; if(!r || !COB_ST[v]) return;
+    var ant=cobVal(r,'status')||'aberto'; if(ant===v) return;
+    cobSet(id,'status',v); cobHist(r,'status','Status: '+COB_ST[ant].r+' → '+COB_ST[v].r); cobSalvar(); cobRender(true);
+  }
+  function cobSalvarPag(id){
+    var r=cobStore().casos[id]; if(!r) return;
+    var data=cobLerData((document.getElementById('cobPagData')||{}).value), valor=cobNumero((document.getElementById('cobPagValor')||{}).value);
+    var forma=(document.getElementById('cobPagForma')||{}).value||'', obs=((document.getElementById('cobPagObs')||{}).value||'').trim();
+    var msg=document.getElementById('cobMsgPag');
+    if(!data){ if(msg) msg.textContent='Data inválida — use dd/mm/aaaa.'; return; }
+    if(!(valor>0)){ if(msg) msg.textContent='Informe o valor recebido.'; return; }
+    var pid=cobId('cp'), t=cobAgora();
+    cobMapa(r,'pag')[pid]={id:pid, data:data, valor:valor, forma:forma, obs:obs, ts:t, por:cobNome()};
+    cobHist(r,'pag','Recebido '+cobMoeda(valor)+' ('+forma+') em '+cobDataBR(data)+(obs?' — '+obs:''));
+    /* recebeu tudo: vira Quitado sozinho; recebeu parte: Pago parcial (se ainda não há acordo/jurídico) */
+    var st=cobVal(r,'status')||'aberto';
+    if(cobTotal(r)>0 && cobSaldo(r)<=0 && st!=='quitado'){ cobSet(id,'status','quitado'); cobHist(r,'status','Status: '+COB_ST[st].r+' → Quitado (saldo zerado)'); }
+    else if(cobSaldo(r)>0 && (st==='aberto'||st==='contato'||st==='negociando')){ cobSet(id,'status','parcial'); cobHist(r,'status','Status: '+COB_ST[st].r+' → Pago parcial'); }
+    cobForm=''; cobSalvar(); cobRender(true);
+    try{ if(typeof logRemoto==='function') logRemoto('cobranca','Recebimento registrado — '+(cobVal(r,'cliente')||'sem nome'),{area:'Núcleo de Cobrança'}); }catch(e){}
+  }
+  function cobSalvarHist(id){
+    var r=cobStore().casos[id]; if(!r) return;
+    var tipo=(document.getElementById('cobHistTipo')||{}).value||'nota', txt=((document.getElementById('cobHistTxt')||{}).value||'').trim();
+    if(!txt){ var m=document.getElementById('cobMsgHist'); if(m) m.textContent='Escreva o texto.'; return; }
+    cobHist(r, COB_TH[tipo]?tipo:'nota', txt); cobForm=''; cobSalvar(); cobRender(true);
+  }
+  function cobExportar(){
+    var lista=cobFiltrados(), sep=';';
+    var col=['Cliente','CNPJ/CPF','Contato','Telefone','E-mail','Status','Prioridade','Responsável','Vencimento','Dias de atraso','Valor total','Recebido','Saldo','% recuperado','Faturas','Próxima ação','O que fazer','Acordo','Observações'];
+    function q(v){ v=(v==null?'':String(v)); return /[;"\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }
+    function n(v){ return (Number(v)||0).toFixed(2).replace('.',','); }
+    var linhas=[col.join(sep)].concat(lista.map(function(r){
+      return [cobVal(r,'cliente'),cobVal(r,'doc'),cobVal(r,'contato'),cobVal(r,'fone'),cobVal(r,'email'),(COB_ST[cobVal(r,'status')||'aberto']||{}).r,(COB_PR[cobVal(r,'prio')]||{}).r||'',cobVal(r,'resp'),cobDataBR(cobVal(r,'venc')),cobAtraso(r),n(cobTotal(r)),n(cobRecebido(r)),n(cobSaldo(r)),cobPct(r)+'%',cobVal(r,'faturas'),cobDataBR(cobVal(r,'prox')),cobVal(r,'proxTxt'),cobVal(r,'acordo'),cobVal(r,'obs')].map(q).join(sep);
+    }));
+    var blob=new Blob(['﻿'+linhas.join('\r\n')],{type:'text/csv;charset=utf-8'}), a=document.createElement('a');
+    a.href=URL.createObjectURL(blob); a.download='nucleo-de-cobranca-'+cobHojeISO()+'.csv'; document.body.appendChild(a); a.click(); a.remove();
+  }
+  function cobToast(t,tp){ try{ if(typeof toast==='function') toast(t,tp||'ok'); }catch(e){} }
+
+  /* ---------------- eventos ---------------- */
+  document.addEventListener('click', function(e){
+    var t=e.target; if(!t || !t.closest) return; var el;
+    if(t.closest('#cobViewer')){
+      if(t.closest('[data-cob-v-fechar]')){ cobFecharViewer(); return; }
+      if((el=t.closest('[data-cob-v-baixar]'))){ var pb=el.getAttribute('data-cob-v-baixar').split('|'); cobBaixar(pb[0], pb[1]); }
+      return;
+    }
+    if(!t.closest('#cobWrap')) return;
+    if(!window.cobPodeVer()) return;
+    if(t.closest('#cobNovo')){ cobNovo(); return; }
+    if(t.closest('#cobExportar')){ cobExportar(); return; }
+    if((el=t.closest('[data-cob-fst]'))){ cobFiltroSt=el.getAttribute('data-cob-fst'); cobRender(true); return; }
+    if(t.closest('[data-cob-so-atrasadas]')){ cobSoAtrasadas=!cobSoAtrasadas; cobRender(true); return; }
+    if((el=t.closest('tr[data-cob-caso]'))){ cobAbrir(el.getAttribute('data-cob-caso')); return; }
+    var pg=t.closest('[data-cob-pg]'); if(!pg) return;
+    var id=pg.getAttribute('data-cob-pg'), r=cobStore().casos[id]; if(!r) return;
+    if(t.closest('[data-cob-voltar]')){ cobPag=''; cobForm=''; cobSemRascunho=true; cobRender(true); return; }
+    if((el=t.closest('[data-cob-status]'))){ cobMudarStatus(id, el.getAttribute('data-cob-status')); return; }
+    if(t.closest('[data-cob-salvar]')){ cobSalvarDados(id); return; }
+    if(t.closest('[data-cob-pag-novo]')){ cobForm='pag'; cobRender(true); return; }
+    if(t.closest('[data-cob-hist-novo]')){ cobForm='hist'; cobRender(true); return; }
+    if(t.closest('[data-cob-form-fechar]')){ cobForm=''; cobRender(true); return; }
+    if(t.closest('[data-cob-pag-salvar]')){ cobSalvarPag(id); return; }
+    if(t.closest('[data-cob-hist-salvar]')){ cobSalvarHist(id); return; }
+    if((el=t.closest('[data-cob-pag-del]'))){
+      var p=(r.pag||{})[el.getAttribute('data-cob-pag-del')]; if(!p) return;
+      if(!window.confirm('Remover o recebimento de '+cobMoeda(p.valor)+' ('+cobDataBR(p.data)+')?')) return;
+      p.del=1; p.ts=cobAgora(); cobHist(r,'pag','Recebimento de '+cobMoeda(p.valor)+' removido');
+      /* estava Quitado e voltou a ter saldo: não pode continuar dizendo "quitado" */
+      if((cobVal(r,'status')||'')==='quitado' && cobSaldo(r)>0){ cobSet(id,'status','parcial'); cobHist(r,'status','Status: Quitado → Pago parcial (voltou a ter saldo)'); }
+      cobSalvar(); cobRender(true); return;
+    }
+    if((el=t.closest('[data-cob-doc-del]'))){
+      e.stopPropagation();
+      var d=(r.docs||{})[el.getAttribute('data-cob-doc-del')]; if(!d) return;
+      if(!window.confirm('Remover "'+(d.nome||'arquivo')+'" deste caso?')) return;
+      d.del=1; d.ts=cobAgora(); cobHist(r,'anexo','Arquivo removido: '+(d.nome||'')); cobSalvar(); cobRender(true); return;
+    }
+    if((el=t.closest('[data-cob-hist-del]'))){
+      var h=(r.hist||{})[el.getAttribute('data-cob-hist-del')]; if(!h) return;
+      if(!window.confirm('Apagar este registro da linha do tempo?')) return;
+      h.del=1; h.ts=cobAgora(); cobSalvar(); cobRender(true); return;
+    }
+    if((el=t.closest('[data-cob-ver]'))){ cobAbrirViewer(id, el.getAttribute('data-cob-ver')); return; }
+    if(t.closest('[data-cob-anexar]')){ cobEscolher(id); return; }
+    if(t.closest('[data-cob-copiar-msg]')){
+      var txt=cobMensagem(r);
+      var feito=function(){ cobToast('Mensagem de cobrança copiada'); };
+      try{ navigator.clipboard.writeText(txt).then(feito, function(){ window.prompt('Copie a mensagem:', txt); }); }catch(x){ window.prompt('Copie a mensagem:', txt); }
+      return;
+    }
+    if(t.closest('[data-cob-zap]')){ cobHist(r,'whatsapp','Mensagem de cobrança aberta no WhatsApp'); cobSalvar(); setTimeout(function(){ cobRender(true); },50); return; }
+    if(t.closest('[data-cob-excluir]')){
+      if(!window.confirm('Excluir o caso de cobrança de "'+(cobVal(r,'cliente')||'sem nome')+'"?\n\nIsso vale para todos os computadores.')) return;
+      cobSet(id,'__del',1); cobSalvar(); cobPag=''; cobRender(true);
+      try{ if(typeof logRemoto==='function') logRemoto('cobranca','Caso de cobrança excluído — '+(cobVal(r,'cliente')||'sem nome'),{area:'Núcleo de Cobrança'}); }catch(x){}
+      return;
+    }
+  });
+  document.addEventListener('input', function(e){
+    var t=e.target; if(!t) return;
+    if(t.id==='cobBusca'){ cobBusca=t.value; cobRender(true); return; }
+    if(t.hasAttribute && t.hasAttribute('data-cob-data') && t.closest && t.closest('#cobWrap')){ var m=cobMascData(t.value); if(m!==t.value) t.value=m; }
+    if(t.hasAttribute && t.hasAttribute('data-cob-f')) t.setAttribute('data-sujo','1');
+  });
+  document.addEventListener('change', function(e){
+    var t=e.target; if(!t) return;
+    if(t.id==='cobResp'){ cobFiltroResp=t.value; cobRender(true); }
+    if(t.id==='cobOrdem'){ cobOrdem=t.value; cobRender(true); }
+    if(t.hasAttribute && t.hasAttribute('data-cob-f')) t.setAttribute('data-sujo','1');
+  });
+  document.addEventListener('keydown', function(e){
+    if(document.getElementById('cobViewer') && e.key==='Escape'){ cobFecharViewer(); e.preventDefault(); }
+  });
+  document.addEventListener('dragover', function(e){ var z=e.target&&e.target.closest&&e.target.closest('#cobWrap [data-cob-anexar]'); if(z){ e.preventDefault(); z.classList.add('sobre'); } });
+  document.addEventListener('dragleave', function(e){ var z=e.target&&e.target.closest&&e.target.closest('#cobWrap [data-cob-anexar]'); if(z) z.classList.remove('sobre'); });
+  document.addEventListener('drop', function(e){
+    var z=e.target&&e.target.closest&&e.target.closest('#cobWrap [data-cob-anexar]'); if(!z) return;
+    e.preventDefault(); z.classList.remove('sobre');
+    var pg=z.closest('[data-cob-pg]'); if(pg && e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) cobAnexar(pg.getAttribute('data-cob-pg'), e.dataTransfer.files);
+  });
+
+  /* menu: some para quem não pode ver — reaplicado no boot e a cada sessão */
+  function cobMenu(){
+    var n=document.getElementById('navCobranca'); if(!n) return;
+    if(window.cobPodeVer()) n.classList.remove('uv-auth-hidden'); else n.classList.add('uv-auth-hidden');
+  }
+  window.cobAtualizarMenu=cobMenu;
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', cobMenu); else cobMenu();
 })();
 </script>
 
