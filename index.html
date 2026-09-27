@@ -1636,6 +1636,20 @@ body.dark .mx-cal-btn{color:#2ee0b8}
    fica discreto e fora do caminho do título */
 .mr-novo{ position:absolute; top:14px; right:16px; z-index:3; }
 .mr-login{ position:absolute; top:18px; right:18px; font-size:11px; color:#8a7d66; font-style:italic; }
+/* (·463) lixeira: no canto oposto ao "Novo recado", discreta */
+.mr-lixo-bt{ position:absolute; top:14px; left:16px; z-index:3; }
+.mr-lixo-bt.on{ background:#5a4a30; color:#fff; border-color:#5a4a30; }
+.mr-lixo-n{ display:inline-block; min-width:18px; padding:0 5px; margin-left:4px; border-radius:99px; background:#b3261e; color:#fff; font-size:10.5px; line-height:18px; text-align:center; font-weight:700; }
+.mr-lixo{ margin:0 0 18px; padding:14px; border:1px dashed rgba(90,74,48,.45); border-radius:10px; background:rgba(255,255,255,.35); }
+.mr-lixo-cab{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px; font-family:'Inter',sans-serif; color:#3c3222; }
+.mr-lixo-cab b{ font-size:14px; }
+.mr-lixo-cab span{ display:block; font-size:11.5px; color:#8a7d66; margin-top:3px; }
+.mr-lixo-cab span b{ font-size:inherit; color:#5a4a30; }
+.mr-lixo-grade{ display:grid; grid-template-columns:repeat(auto-fill,minmax(min(230px,100%),1fr)); gap:16px; }
+.mr-post.mr-post-lixo{ transform:none; opacity:.9; filter:saturate(.55); }
+.mr-post.mr-post-lixo:hover{ opacity:1; filter:none; }
+.mr-lixo-info{ margin-top:10px; padding-top:8px; border-top:1px solid rgba(90,74,48,.18); font-family:'Inter',sans-serif; font-size:11px; line-height:1.55; color:#6b5e48; }
+.mr-lixo-volta{ margin-top:10px; width:100%; }
 
 /* O CABEÇALHO, centralizado como no quadro da foto. Serifada no título e
    caixa-alta espaçada no subtítulo — é o contraste que faz aquilo parecer um
@@ -1654,6 +1668,8 @@ body.dark .mx-cal-btn{color:#2ee0b8}
   .mr-tit{ font-size:22px; }
   .mr-sub{ letter-spacing:3px; }
   .mr-novo{ position:static; display:block; width:100%; margin-bottom:12px; }
+  .mr-lixo-bt{ position:static; display:block; width:100%; margin-bottom:12px; }
+  .mr-lixo-cab{ flex-direction:column; }
 }
 /* A GRADE: colunas que se acomodam sozinhas à largura — o mural tem de caber no
    Mac de 13" do Nando sem posição fixa (a lição do ·392). */
@@ -1944,6 +1960,10 @@ button.mr-chip:hover{ transform:scale(1.18); }
 .ocp-vez-nome{color:#FFC400;font-size:12px;letter-spacing:.3px;animation:ocpVezGlow 1.6s ease-in-out infinite}
 .ocp-plantao{display:flex;align-items:center;gap:6px;background:rgba(0,120,192,.14);border:1px solid rgba(0,150,230,.45);border-radius:8px;padding:5px 11px;font-size:13px;font-weight:700;color:#cfe6f7}
 .ocp-plantao-btn{cursor:pointer;transition:all .15s}
+/* (·463) no plantão (noite e FIM DE SEMANA) o badge traz o nome do plantonista: com nome
+   comprido ele vazava a tela entre ~1000 e 1024px. Pode encolher e quebrar a linha. */
+.ocp-plantao{max-width:100%;min-width:0;box-sizing:border-box;flex-wrap:wrap}
+.ocp-plantao-nome{overflow-wrap:anywhere;min-width:0}
 .ocp-plantao-so-icone{padding:6px 11px;font-size:16px;line-height:1}
 .ocp-plantao-btn:hover{background:rgba(0,150,230,.28);border-color:rgba(0,180,255,.7);box-shadow:0 0 12px rgba(0,160,255,.4)}
 .ocp-plantao-mais{color:#4db6ff;font-weight:900;font-size:16px;line-height:1}
@@ -5755,7 +5775,7 @@ window.uvTelaPermitida=function(scr){
   };
 })();
 
-var UV_BUILD_NUM = 462; // (·462) LICITAÇÃO — DEMANDA AÉREA COMPLETA + DATAS DIGITADAS. Passagem aérea agora tem Trecho + Data e hora de ida + Data e hora de volta (dd/mm/aaaa hh:mm, só números, formata sozinho, hora opcional, data impossível e volta antes da ida recusadas) + Cia aérea; Hotel esconde esses campos. Nascimento virou campo digitado dd/mm/aaaa (não calendário). CORREÇÃO: no ·461 a tabela de tipos da demanda se chamava LIC_TIPOS e sobrescrevia a de tipos de ANEXO (miniatura sem imagem dizia ARQ) — renomeada para LIC_DEM_TIPOS. ANTERIOR: (·461) LICITAÇÃO: SINAL + PÁGINA DO PROCESSO COM DEMANDAS. Bolinha na coluna # (ao lado do ⤢) com menu Sem cor/Verde/Amarelo/Vermelho (campo f.sinal, união campo a campo). Clicar em qualquer ponto da linha abre a PÁGINA do processo (resumo + Demandas): ＋ Adicionar demanda (Passagem aérea ou Hotel; trecho/nome do hotel em fonte grande de título) e, em cada demanda, ＋ Adicionar pessoas (nome, nascimento, CPF com máscara e dígito verificador). r.dem entra na união (licMergeDem — sem isso a união apagava as demandas). Redesenho de fora não apaga formulário aberto. ⤢ e 'Editar dados do processo' seguem abrindo o formulário de dados. ANTERIOR: (·460) LICITAÇÃO: GRADE PROTEGIDA. Pedido do Nando: todas as colunas bloqueadas na página principal — clicar numa célula não edita, sem ＋ de anexar nem arrastar arquivo na grade; documento aberto pela grade abre só para ver (sem Remover). Editar SÓ abrindo o processo no ⤢ (formulário mantém tudo: campos, opções coloridas, anexos, remover, excluir). Aviso 🔒 no topo. ANTERIOR: (·459) PASTA LICITAÇÃO ABERTA A TODOS, MENOS À LETÍCIA ROSA. Pedido do
+var UV_BUILD_NUM = 463; // (·463) MURAL: LIXEIRA — DEVOLVER RECADO EXCLUÍDO. Pedido do Nando: como admin, devolver ao mural um recado já excluído. A exclusão sempre foi suave (del=1); agora a diretoria (mesma porta do ✕) tem o botão '🗑 Excluídos (N)' no canto do quadro → lista dos excluídos (autor, data, quem excluiu) com '↩ Devolver ao mural'. Devolver = del:0 + mts novo (vence a cópia excluída de outro PC na união). Excluir passou a carimbar mts/delEm/delPor em vez de sobrescrever ts — o recado devolvido volta no mesmo lugar e com a data original. + Ocupação: badge do plantonista (noite/fim de semana) com nome comprido vazava a tela entre ~1000–1024px → pode encolher/quebrar (achado rodando a regressão num domingo). ANTERIOR: (·462) LICITAÇÃO — DEMANDA AÉREA COMPLETA + DATAS DIGITADAS. Passagem aérea agora tem Trecho + Data e hora de ida + Data e hora de volta (dd/mm/aaaa hh:mm, só números, formata sozinho, hora opcional, data impossível e volta antes da ida recusadas) + Cia aérea; Hotel esconde esses campos. Nascimento virou campo digitado dd/mm/aaaa (não calendário). CORREÇÃO: no ·461 a tabela de tipos da demanda se chamava LIC_TIPOS e sobrescrevia a de tipos de ANEXO (miniatura sem imagem dizia ARQ) — renomeada para LIC_DEM_TIPOS. ANTERIOR: (·461) LICITAÇÃO: SINAL + PÁGINA DO PROCESSO COM DEMANDAS. Bolinha na coluna # (ao lado do ⤢) com menu Sem cor/Verde/Amarelo/Vermelho (campo f.sinal, união campo a campo). Clicar em qualquer ponto da linha abre a PÁGINA do processo (resumo + Demandas): ＋ Adicionar demanda (Passagem aérea ou Hotel; trecho/nome do hotel em fonte grande de título) e, em cada demanda, ＋ Adicionar pessoas (nome, nascimento, CPF com máscara e dígito verificador). r.dem entra na união (licMergeDem — sem isso a união apagava as demandas). Redesenho de fora não apaga formulário aberto. ⤢ e 'Editar dados do processo' seguem abrindo o formulário de dados. ANTERIOR: (·460) LICITAÇÃO: GRADE PROTEGIDA. Pedido do Nando: todas as colunas bloqueadas na página principal — clicar numa célula não edita, sem ＋ de anexar nem arrastar arquivo na grade; documento aberto pela grade abre só para ver (sem Remover). Editar SÓ abrindo o processo no ⤢ (formulário mantém tudo: campos, opções coloridas, anexos, remover, excluir). Aviso 🔒 no topo. ANTERIOR: (·459) PASTA LICITAÇÃO ABERTA A TODOS, MENOS À LETÍCIA ROSA. Pedido do
 // Nando, trocando a regra do ·458 (só diretoria + Maria Eduarda). A exceção reaproveita a trava do
 // ·457 (uvSoVoucher) em vez de criar outra lista com o nome dela — uma segunda cópia do mesmo fato
 // ficaria para trás no dia em que a trava do voucher mudar. O portão em hubGoScreen continua: para
@@ -25657,12 +25677,40 @@ var MR_CORES=[
     var S=mrStore(), r=S[id]; if(!r) return false;
     var _t=r.tit||'(sem título)';
     /* exclusão SOFT: o registro fica com del=1. É o que faz a união entre PCs
-       respeitar a exclusão em vez de ressuscitar o recado vindo do outro lado. */
-    r.del=1; r.ts=mrAgora();
+       respeitar a exclusão em vez de ressuscitar o recado vindo do outro lado.
+       (·463) o carimbo da exclusão vai em `mts` (a união olha o maior de ts e
+       mts), e NÃO mais em `ts`: `ts` é a data em que o recado foi ESCRITO —
+       gravar a hora da exclusão nele fazia o recado, ao ser devolvido pela
+       lixeira, voltar dizendo que foi publicado no dia em que foi apagado. */
+    var _ag=mrAgora();
+    r.del=1; r.mts=_ag; r.delEm=_ag; r.delPor=mrNome();
     mrSalvar();
     try{ if(typeof logRemoto==='function') logRemoto('mural_excluido','Recado removido do mural: '+_t,{area:'Mural de Recados'}); }catch(e){}
     return true;
   }
+
+  /* ───────── (·463) LIXEIRA: DEVOLVER UM RECADO EXCLUÍDO ─────────
+     A exclusão sempre foi "suave" (del=1) — o recado nunca saiu dos dados, só
+     do mural. Devolver é desligar o del. Quem pode: quem pode apagar (a
+     diretoria) — mesma porta, nos dois sentidos. O carimbo novo vai em `mts`,
+     então a devolução vence a exclusão na união entre PCs, e o recado volta
+     no MESMO lugar e com a MESMA data de quando foi escrito. */
+  function mrApagados(){
+    var S=mrStore();
+    return Object.keys(S).filter(function(k){ return S[k] && S[k].del; })
+      .map(function(k){ var r=S[k]; return {id:k, tit:r.tit||'', txt:r.txt||'', html:(typeof r.html==='string'?r.html:''), cor:r.cor||'amarelo',
+                                            autor:r.autor||'', ts:r.ts||0, delEm:r.delEm||0, delPor:r.delPor||''}; })
+      .sort(function(a,b){ return (b.delEm||b.ts)-(a.delEm||a.ts); });   /* excluído mais recente primeiro */
+  }
+  function mrRestaurar(id){
+    if(!mrPodeApagar()) return false;
+    var S=mrStore(), r=S[id]; if(!r || !r.del) return false;
+    r.del=0; r.mts=mrAgora(); r.restEm=r.mts; r.restPor=mrNome();
+    mrSalvar();
+    try{ if(typeof logRemoto==='function') logRemoto('mural_restaurado','Recado devolvido ao mural: '+(r.tit||'(sem título)'),{area:'Mural de Recados'}); }catch(e){}
+    return true;
+  }
+  window.mrRestaurar=mrRestaurar;
 
   /* ───────── (·411) REAGIR COM EMOJIS ───────── */
   function mrUsuario(){ try{ return (typeof window.uvAuthUsuario==='function'?window.uvAuthUsuario():'')||''; }catch(e){ return ''; } }
@@ -25902,6 +25950,7 @@ var MR_CORES=[
   var mrEditando='';         /* id em edição */
   var mrCorSel='amarelo';
   var mrPicker='';           /* (·411) id do recado com o seletor de emoji aberto */
+  var mrLixeira=false;       /* (·463) painel de recados excluídos aberto? */
 
   function mrFormHtml(r){
     var editando=!!r;
@@ -25976,6 +26025,25 @@ var MR_CORES=[
       +'</article>';
     }).join('') : '';
 
+    /* (·463) LIXEIRA — só aparece para quem pode apagar/devolver */
+    var podeLixo=!!(u && mrPodeApagar()), apag=podeLixo?mrApagados():[];
+    if(!podeLixo) mrLixeira=false;
+    var lixoBt = podeLixo ? '<button type="button" class="mr-bt mr-lixo-bt'+(mrLixeira?' on':'')+'" id="mrLixeiraBt" title="Recados excluídos — devolver ao mural">🗑 Excluídos'+(apag.length?' <span class="mr-lixo-n">'+apag.length+'</span>':'')+'</button>' : '';
+    var lixo = (podeLixo && mrLixeira) ? '<section class="mr-lixo" id="mrLixo">'
+        +'<div class="mr-lixo-cab"><div><b>Recados excluídos</b><span>Só a diretoria vê esta lista. <b>Devolver</b> coloca o recado de volta no mural, para todos, com a data original.</span></div>'
+        +'<button type="button" class="mr-bt" data-mr-lixo-fechar="1">Fechar</button></div>'
+        +(apag.length ? '<div class="mr-lixo-grade">'+apag.map(function(r){
+            return '<article class="mr-post mr-post-lixo c-'+mrEsc(r.cor)+'" data-mr-lixo-item="'+mrEsc(r.id)+'">'
+              +(r.tit?'<h4 class="mr-post-tit">'+mrEsc(r.tit)+'</h4>':'')
+              +((r.txt||r.html)?'<div class="mr-post-txt'+(r.html?' mr-rico':'')+'">'+mrCorpoHtml(r)+'</div>':'')
+              +'<div class="mr-lixo-info">✍️ '+mrEsc(r.autor||'—')+(r.ts&&r.delEm?' · '+mrEsc(mrData(r.ts)):'')
+              +'<br>🗑 Excluído '+mrEsc(mrData(r.delEm||r.ts))+(r.delPor?' por '+mrEsc(r.delPor):'')+'</div>'
+              +'<button type="button" class="mr-bt pri mr-lixo-volta" data-mr-restaurar="'+mrEsc(r.id)+'">↩ Devolver ao mural</button>'
+              +'</article>';
+          }).join('')+'</div>'
+          : '<div class="mr-vazio">Nenhum recado excluído.</div>')
+      +'</section>' : '';
+
     var vazio = '<div class="mr-vazio">Nenhum recado no mural.'+(u?' Clique em <b>＋ Novo recado</b> para fixar o primeiro.':'')+'</div>';
 
     /* (·407) a moldura é uma casca em volta: .cd-mural virou a MADEIRA e
@@ -25986,10 +26054,12 @@ var MR_CORES=[
       '<div class="mr-quadro">'
         +(u?'<button type="button" class="mr-bt pri mr-novo" id="mrNovo">＋ Novo recado</button>'
            :'<span class="mr-login">faça login para publicar</span>')
+        +lixoBt
         +'<header class="mr-cab">'
           +'<h3 class="mr-tit">Mural de Recados</h3>'
           +'<div class="mr-sub">informação que conecta</div>'
         +'</header>'
+        +lixo
         +(mrForm && !mrEditando ? mrFormHtml(null) : '')
         +'<div class="mr-grade">'+(itens||(mrForm?'':vazio))+'</div>'
         +'<div class="mr-rodape">aqui circulam boas ideias</div>'
@@ -26095,6 +26165,23 @@ var MR_CORES=[
          estiver ativa no cursor — o emoji sai em negrito se o texto estiver */
       try{ document.execCommand('insertText', false, ep.getAttribute('data-mr-emoji-put')); }catch(x){}
       return;   /* painel fica aberto: dá para pôr vários seguidos */
+    }
+    /* (·463) lixeira */
+    if(e.target.closest('#mrLixeiraBt')){ mrLixeira=!mrLixeira; mrRender(); return; }
+    if(e.target.closest('[data-mr-lixo-fechar]')){ mrLixeira=false; mrRender(); return; }
+    var rs=e.target.closest('[data-mr-restaurar]');
+    if(rs){
+      /* confere DE NOVO no clique — esconder o botão não é proteger a ação */
+      if(!mrPodeApagar()){
+        try{ if(typeof toast==='function') toast('Somente a diretoria pode devolver recados','erro'); }catch(x){}
+        return;
+      }
+      var idV=rs.getAttribute('data-mr-restaurar'), rv=mrStore()[idV];
+      if(mrRestaurar(idV)){
+        mrRender();
+        try{ if(typeof toast==='function') toast('Recado devolvido ao mural'+(rv&&rv.tit?': '+rv.tit:''),'ok'); }catch(x){}
+      }
+      return;
     }
     if(e.target.closest('#mrNovo')){ mrForm=true; mrEditando=''; mrCorSel='amarelo'; mrRender(); return; }
     if(e.target.closest('[data-mr-cancelar]')){ mrForm=false; mrEditando=''; mrRender(); return; }
