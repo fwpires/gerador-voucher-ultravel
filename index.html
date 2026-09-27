@@ -2884,6 +2884,22 @@ body:not(.dark) .termo-nome{color:#5a7085}
     padding-top:6px;box-shadow:0 6px 14px rgba(0,0,0,.4);
   }
 
+  /* ═════ (·473) CELULAR COM AS MESMAS CORES DO DESKTOP (·466) ═════
+     Sub-pasta aberta: laranja bem transparente; a pasta principal que a
+     contém: azul. ⚠ A mãe no celular tinha o fundo do cartão por causa da
+     trilha grudada (·431) — estas regras têm `nav` a mais no seletor para
+     vencer aquela por especificidade, não por ordem no arquivo. O bloco de
+     sub-pastas continua com fundo opaco, então o laranja translúcido nunca
+     deixa o conteúdo aparecer por baixo quando a trilha gruda. */
+  body.uv-acoplado #hubSidebar nav .nav-children .nav-item.active,
+  body.dark.uv-acoplado #hubSidebar nav .nav-children .nav-item.active{
+    background:rgba(255,140,30,.16);color:var(--texto);border-color:rgba(255,140,30,.45);box-shadow:none;
+  }
+  body.dark.uv-acoplado #hubSidebar nav .nav-children .nav-item.active{color:#fff}
+  body.uv-acoplado #hubSidebar nav .nav-item.uv-mae-ativa,
+  body.dark.uv-acoplado #hubSidebar nav .nav-item.uv-mae-ativa{background:var(--azul);color:#fff;border-color:transparent}
+  body.uv-acoplado #hubSidebar nav .nav-item.uv-mae-ativa .nav-ic{filter:none}
+
   /* ═════ (·468) A TRILHA MÓVEL — NADA FICA MAIS GRUDADO O TEMPO TODO ═════
      Pedido do Nando: ao arrastar a página para cima, a barra do topo, a pasta
      e as sub-pastas sobem JUNTO e saem da tela (a página inteira aparece); ao
@@ -4497,7 +4513,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
         <!-- (·458) LICITAÇÃO — logo depois de Grupos · (·459) visível para todos, menos quem tem acesso só ao voucher -->
         <button class="nav-item uv-auth-hidden" id="navLicitacao" data-screen="licitacao"><span class="nav-ic">🏛️</span><span>Licitação</span></button>
         <!-- (·470) NÚCLEO DE COBRANÇA — logo abaixo de Licitação · só diretoria + Ruth Alves (quem revela é cobAtualizarMenu) -->
-        <button class="nav-item uv-auth-hidden" id="navCobranca" data-screen="cobranca"><span class="nav-ic">💰</span><span>Núcleo de Cobrança</span></button>
+        <button class="nav-item uv-auth-hidden" id="navCobranca" data-screen="cobranca"><span class="nav-ic">💰</span><span>Núcleo Cobrança</span></button>
       </nav>
     </aside>
     <div class="hub-main" id="hubMain">
@@ -5859,7 +5875,7 @@ window.uvTelaPermitida=function(scr){
   };
 })();
 
-var UV_BUILD_NUM = 471; // (·471) NÚCLEO DE COBRANÇA: responsável vira lista (Ruth Alves, Diego Oliveira, Ana Maria, Hynaê Teston); CNPJ/CPF com pontos, barra e traço automáticos ao digitar; valor total (e o do recebimento) com máscara de moeda R$ 3.000,00 enquanto digita. ANTERIOR: (·470) NOVA PASTA 'NÚCLEO DE COBRANÇA' (logo abaixo de Licitação), só para a diretoria + Ruth Alves. Tabela de casos (status coloridos, prioridade, responsável, vencimento, dias de atraso, total/recebido/saldo, barra de evolução, próxima ação, faturas), KPIs, gráfico de recebido por mês, distribuição por status, saldo por faixa de atraso, filtros/busca/ordenação, exportar CSV. Página do caso: dados editáveis, 8 status coloridos, recebimentos (quitado/parcial automático), faturas anexadas com visualizador (PDF página a página), linha do tempo com anotações/contatos, mensagem de cobrança pronta e WhatsApp. União entre PCs campo a campo / item a item. ANTERIOR: (·469) CELULAR: TRILHA MÓVEL SEM TREMOR. (1) a margem do conteúdo não muda mais a cada quadro de rolagem: muda uma vez por aparição/sumiço, compensada por transform (o movimento é só transform); (2) resize só de altura (barra do Safari ao rolar) não reacopla nem zera a trilha; (3) folga 24px na mesma direção e nada liga enquanto a trilha aparece no lugar natural; ao voltar a essa faixa ela pousa com troca compensada. ANTERIOR: (·468) CELULAR: TRILHA MÓVEL. Nada fica mais grudado o tempo todo: rolando para baixo (arrastar para cima) a barra do topo, a pasta e as sub-pastas saem da tela junto com a página; rolando para cima (arrastar para baixo) a pasta e as sub-pastas voltam na hora, grudadas no topo, EMPURRANDO o conteúdo (margem --uv-empurra) em vez de cobri-lo. Desktop intocado. ANTERIOR: (·467) MENU DESKTOP: Gerador de Voucher e Equipe (pastas com tela própria E sub-pastas) agora recolhem as sub-pastas no segundo clique, como Comercial/Matriz/Eventos/Grupos. Pasta EM USO (a tela dela ou uma sub-pasta dela aberta) com a árvore aberta → fecha sem navegar; nos outros casos → abre e navega. Celular intocado. ANTERIOR: (·466) MENU. (1) Todo NOVO acesso (aba/janela nova, navegador reaberto, depois de sair) abre no Control Desk; só o F5 na mesma aba devolve a tela (tela guardada no sessionStorage da aba, uv_hub_screen_aba; o localStorage uv_hub_screen não decide mais o boot). (2) Desktop: TODAS as pastas fechadas no 1º acesso do dia na máquina; depois o que se abriu/fechou persiste, inclusive no F5 (localStorage uv_menu_arvores com o dia). (3) Desktop: contorno branco discreto nas pastas principais (não nas sub-pastas). (4) Desktop: com sub-pasta aberta, a pasta principal fica AZUL e a sub-pasta LARANJA bem transparente. Celular intocado. ANTERIOR: (·465) MURAL: LIXEIRA PAGINADA. Pedido: na lista de excluídos, só os 5 mais recentes na primeira tela; o resto em páginas 1, 2, 3… (‹ › + números; só aparece com mais de 5). Abrir a lixeira volta sempre para a página 1; devolver o último recado de uma página não a deixa vazia. ANTERIOR: (·464) MURAL: LIXEIRA SÓ DO NANDO. Pedido: devolver recado excluído é função exclusiva do administrador (Fernando Pires), não da diretoria. mrPodeRestaurar compara o NOME COMPLETO normalizado (não a regra tolerante de mrMesmaPessoa, que aceitaria 'Fernando' sozinho). Excluir (✕) continua com a diretoria. ANTERIOR: (·463) MURAL: LIXEIRA — DEVOLVER RECADO EXCLUÍDO. Pedido do Nando: como admin, devolver ao mural um recado já excluído. A exclusão sempre foi suave (del=1); agora a diretoria (mesma porta do ✕) tem o botão '🗑 Excluídos (N)' no canto do quadro → lista dos excluídos (autor, data, quem excluiu) com '↩ Devolver ao mural'. Devolver = del:0 + mts novo (vence a cópia excluída de outro PC na união). Excluir passou a carimbar mts/delEm/delPor em vez de sobrescrever ts — o recado devolvido volta no mesmo lugar e com a data original. + Ocupação: badge do plantonista (noite/fim de semana) com nome comprido vazava a tela entre ~1000–1024px → pode encolher/quebrar (achado rodando a regressão num domingo). ANTERIOR: (·462) LICITAÇÃO — DEMANDA AÉREA COMPLETA + DATAS DIGITADAS. Passagem aérea agora tem Trecho + Data e hora de ida + Data e hora de volta (dd/mm/aaaa hh:mm, só números, formata sozinho, hora opcional, data impossível e volta antes da ida recusadas) + Cia aérea; Hotel esconde esses campos. Nascimento virou campo digitado dd/mm/aaaa (não calendário). CORREÇÃO: no ·461 a tabela de tipos da demanda se chamava LIC_TIPOS e sobrescrevia a de tipos de ANEXO (miniatura sem imagem dizia ARQ) — renomeada para LIC_DEM_TIPOS. ANTERIOR: (·461) LICITAÇÃO: SINAL + PÁGINA DO PROCESSO COM DEMANDAS. Bolinha na coluna # (ao lado do ⤢) com menu Sem cor/Verde/Amarelo/Vermelho (campo f.sinal, união campo a campo). Clicar em qualquer ponto da linha abre a PÁGINA do processo (resumo + Demandas): ＋ Adicionar demanda (Passagem aérea ou Hotel; trecho/nome do hotel em fonte grande de título) e, em cada demanda, ＋ Adicionar pessoas (nome, nascimento, CPF com máscara e dígito verificador). r.dem entra na união (licMergeDem — sem isso a união apagava as demandas). Redesenho de fora não apaga formulário aberto. ⤢ e 'Editar dados do processo' seguem abrindo o formulário de dados. ANTERIOR: (·460) LICITAÇÃO: GRADE PROTEGIDA. Pedido do Nando: todas as colunas bloqueadas na página principal — clicar numa célula não edita, sem ＋ de anexar nem arrastar arquivo na grade; documento aberto pela grade abre só para ver (sem Remover). Editar SÓ abrindo o processo no ⤢ (formulário mantém tudo: campos, opções coloridas, anexos, remover, excluir). Aviso 🔒 no topo. ANTERIOR: (·459) PASTA LICITAÇÃO ABERTA A TODOS, MENOS À LETÍCIA ROSA. Pedido do
+var UV_BUILD_NUM = 473; // (·473) (1) CPF/CNPJ: selo ao lado do rótulo reconhece CPF (11 números, 048.545.379-73) ou CNPJ (14, 13.387.342/0001-58) e confere os dígitos (✓ / inválido); valor salvo antigo aparece formatado. (2) 'Núcleo de Cobrança' → 'Núcleo Cobrança'. (3) Celular: sub-pasta aberta laranja translúcido e a pasta principal azul, iguais ao desktop. ANTERIOR: (·472) MÁSCARAS QUE RESPEITAM O CURSOR: corrigir um dígito no meio do CNPJ jogava o cursor para o fim e embaralhava o número (13.387.342/0015-8); agora o cursor volta para depois do mesmo dígito (Cobrança e Licitação). + Telefone com máscara (48) 98429-9758 (fixo: (48) 3333-4444). ANTERIOR: (·471) NÚCLEO DE COBRANÇA: responsável vira lista (Ruth Alves, Diego Oliveira, Ana Maria, Hynaê Teston); CNPJ/CPF com pontos, barra e traço automáticos ao digitar; valor total (e o do recebimento) com máscara de moeda R$ 3.000,00 enquanto digita. ANTERIOR: (·470) NOVA PASTA 'NÚCLEO DE COBRANÇA' (logo abaixo de Licitação), só para a diretoria + Ruth Alves. Tabela de casos (status coloridos, prioridade, responsável, vencimento, dias de atraso, total/recebido/saldo, barra de evolução, próxima ação, faturas), KPIs, gráfico de recebido por mês, distribuição por status, saldo por faixa de atraso, filtros/busca/ordenação, exportar CSV. Página do caso: dados editáveis, 8 status coloridos, recebimentos (quitado/parcial automático), faturas anexadas com visualizador (PDF página a página), linha do tempo com anotações/contatos, mensagem de cobrança pronta e WhatsApp. União entre PCs campo a campo / item a item. ANTERIOR: (·469) CELULAR: TRILHA MÓVEL SEM TREMOR. (1) a margem do conteúdo não muda mais a cada quadro de rolagem: muda uma vez por aparição/sumiço, compensada por transform (o movimento é só transform); (2) resize só de altura (barra do Safari ao rolar) não reacopla nem zera a trilha; (3) folga 24px na mesma direção e nada liga enquanto a trilha aparece no lugar natural; ao voltar a essa faixa ela pousa com troca compensada. ANTERIOR: (·468) CELULAR: TRILHA MÓVEL. Nada fica mais grudado o tempo todo: rolando para baixo (arrastar para cima) a barra do topo, a pasta e as sub-pastas saem da tela junto com a página; rolando para cima (arrastar para baixo) a pasta e as sub-pastas voltam na hora, grudadas no topo, EMPURRANDO o conteúdo (margem --uv-empurra) em vez de cobri-lo. Desktop intocado. ANTERIOR: (·467) MENU DESKTOP: Gerador de Voucher e Equipe (pastas com tela própria E sub-pastas) agora recolhem as sub-pastas no segundo clique, como Comercial/Matriz/Eventos/Grupos. Pasta EM USO (a tela dela ou uma sub-pasta dela aberta) com a árvore aberta → fecha sem navegar; nos outros casos → abre e navega. Celular intocado. ANTERIOR: (·466) MENU. (1) Todo NOVO acesso (aba/janela nova, navegador reaberto, depois de sair) abre no Control Desk; só o F5 na mesma aba devolve a tela (tela guardada no sessionStorage da aba, uv_hub_screen_aba; o localStorage uv_hub_screen não decide mais o boot). (2) Desktop: TODAS as pastas fechadas no 1º acesso do dia na máquina; depois o que se abriu/fechou persiste, inclusive no F5 (localStorage uv_menu_arvores com o dia). (3) Desktop: contorno branco discreto nas pastas principais (não nas sub-pastas). (4) Desktop: com sub-pasta aberta, a pasta principal fica AZUL e a sub-pasta LARANJA bem transparente. Celular intocado. ANTERIOR: (·465) MURAL: LIXEIRA PAGINADA. Pedido: na lista de excluídos, só os 5 mais recentes na primeira tela; o resto em páginas 1, 2, 3… (‹ › + números; só aparece com mais de 5). Abrir a lixeira volta sempre para a página 1; devolver o último recado de uma página não a deixa vazia. ANTERIOR: (·464) MURAL: LIXEIRA SÓ DO NANDO. Pedido: devolver recado excluído é função exclusiva do administrador (Fernando Pires), não da diretoria. mrPodeRestaurar compara o NOME COMPLETO normalizado (não a regra tolerante de mrMesmaPessoa, que aceitaria 'Fernando' sozinho). Excluir (✕) continua com a diretoria. ANTERIOR: (·463) MURAL: LIXEIRA — DEVOLVER RECADO EXCLUÍDO. Pedido do Nando: como admin, devolver ao mural um recado já excluído. A exclusão sempre foi suave (del=1); agora a diretoria (mesma porta do ✕) tem o botão '🗑 Excluídos (N)' no canto do quadro → lista dos excluídos (autor, data, quem excluiu) com '↩ Devolver ao mural'. Devolver = del:0 + mts novo (vence a cópia excluída de outro PC na união). Excluir passou a carimbar mts/delEm/delPor em vez de sobrescrever ts — o recado devolvido volta no mesmo lugar e com a data original. + Ocupação: badge do plantonista (noite/fim de semana) com nome comprido vazava a tela entre ~1000–1024px → pode encolher/quebrar (achado rodando a regressão num domingo). ANTERIOR: (·462) LICITAÇÃO — DEMANDA AÉREA COMPLETA + DATAS DIGITADAS. Passagem aérea agora tem Trecho + Data e hora de ida + Data e hora de volta (dd/mm/aaaa hh:mm, só números, formata sozinho, hora opcional, data impossível e volta antes da ida recusadas) + Cia aérea; Hotel esconde esses campos. Nascimento virou campo digitado dd/mm/aaaa (não calendário). CORREÇÃO: no ·461 a tabela de tipos da demanda se chamava LIC_TIPOS e sobrescrevia a de tipos de ANEXO (miniatura sem imagem dizia ARQ) — renomeada para LIC_DEM_TIPOS. ANTERIOR: (·461) LICITAÇÃO: SINAL + PÁGINA DO PROCESSO COM DEMANDAS. Bolinha na coluna # (ao lado do ⤢) com menu Sem cor/Verde/Amarelo/Vermelho (campo f.sinal, união campo a campo). Clicar em qualquer ponto da linha abre a PÁGINA do processo (resumo + Demandas): ＋ Adicionar demanda (Passagem aérea ou Hotel; trecho/nome do hotel em fonte grande de título) e, em cada demanda, ＋ Adicionar pessoas (nome, nascimento, CPF com máscara e dígito verificador). r.dem entra na união (licMergeDem — sem isso a união apagava as demandas). Redesenho de fora não apaga formulário aberto. ⤢ e 'Editar dados do processo' seguem abrindo o formulário de dados. ANTERIOR: (·460) LICITAÇÃO: GRADE PROTEGIDA. Pedido do Nando: todas as colunas bloqueadas na página principal — clicar numa célula não edita, sem ＋ de anexar nem arrastar arquivo na grade; documento aberto pela grade abre só para ver (sem Remover). Editar SÓ abrindo o processo no ⤢ (formulário mantém tudo: campos, opções coloridas, anexos, remover, excluir). Aviso 🔒 no topo. ANTERIOR: (·459) PASTA LICITAÇÃO ABERTA A TODOS, MENOS À LETÍCIA ROSA. Pedido do
 // Nando, trocando a regra do ·458 (só diretoria + Maria Eduarda). A exceção reaproveita a trava do
 // ·457 (uvSoVoucher) em vez de criar outra lista com o nome dela — uma segunda cópia do mesmo fato
 // ficaria para trás no dia em que a trava do voucher mudar. O portão em hubGoScreen continua: para
@@ -41978,6 +41994,20 @@ body:not(.dark) .lic-link{color:#0a5f96}
   /* (·462) DATAS DIGITADAS: só números, e a barra/espaço/dois-pontos entram
      sozinhos. O separador só aparece quando vem número depois dele — assim o
      Backspace apaga normalmente (não "trava" na barra). */
+
+  /* (·472) MÁSCARA QUE RESPEITA O CURSOR. Trocar o valor do campo joga o cursor
+     para o FIM — então corrigir um dígito no MEIO (apagar e redigitar) mandava
+     o número novo para o final e embaralhava tudo: foi o "13.387.342/0015-8"
+     do print. Agora conta quantos DÍGITOS havia antes do cursor e devolve o
+     cursor logo depois do mesmo dígito no texto já formatado. */
+  function licMascCursor(el, fn){
+    var raw=el.value, pos=(el.selectionStart==null)?raw.length:el.selectionStart;
+    var nd=raw.slice(0,pos).replace(/\D/g,'').length, out=fn(raw);
+    if(out===raw) return;
+    el.value=out;
+    var i=0, c=0; while(i<out.length && c<nd){ if(/\d/.test(out.charAt(i))) c++; i++; }
+    try{ el.setSelectionRange(i,i); }catch(e){}
+  }
   function licMascData(s){
     var d=String(s||'').replace(/\D/g,'').slice(0,8);
     if(d.length<=2) return d; if(d.length<=4) return d.slice(0,2)+'/'+d.slice(2);
@@ -42184,9 +42214,9 @@ body:not(.dark) .lic-link{color:#0a5f96}
   }
   /* CPF com máscara enquanto digita; Enter salva e Esc cancela nos formulários da página */
   document.addEventListener('input', function(e){
-    if(e.target && e.target.id==='licPesCpf'){ var f=licCpfFmt(e.target.value); if(f!==e.target.value) e.target.value=f; }
-    if(e.target && e.target.id==='licPesNasc'){ var g=licMascData(e.target.value); if(g!==e.target.value) e.target.value=g; }
-    if(e.target && (e.target.id==='licDemIda' || e.target.id==='licDemVolta')){ var h=licMascDataHora(e.target.value); if(h!==e.target.value) e.target.value=h; }
+    if(e.target && e.target.id==='licPesCpf') licMascCursor(e.target, licCpfFmt);
+    if(e.target && e.target.id==='licPesNasc') licMascCursor(e.target, licMascData);
+    if(e.target && (e.target.id==='licDemIda' || e.target.id==='licDemVolta')) licMascCursor(e.target, licMascDataHora);
   });
   document.addEventListener('keydown', function(e){
     var f=e.target && e.target.closest && e.target.closest('#licWrap .lic-pg-form'); if(!f) return;
@@ -42648,6 +42678,9 @@ body:not(.dark) .lic-link{color:#0a5f96}
    ═════════════════════════════════════════════════════════════════════════ */
 #scr-cobranca{color:#d7e3ea}
 #scr-cobranca .cob-cab{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
+.cob-doc-selo{display:inline-block;margin-left:6px;padding:0 7px;border-radius:99px;font-size:.64rem;font-weight:800;background:#1b2b38;color:#9fb3c2;text-transform:none;letter-spacing:0}
+.cob-doc-selo.ok{background:rgba(22,163,74,.18);color:#4ade80}
+.cob-doc-selo.erro{background:rgba(220,38,38,.18);color:#f87171}
 #scr-cobranca .cob-tit{margin:0;font-size:1.3rem;font-weight:800;color:#E6EEF3}
 #scr-cobranca .cob-sub{color:#8CA3B3;font-size:.8rem;margin-top:3px}
 #scr-cobranca .cob-acoes{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
@@ -42969,6 +43002,29 @@ body:not(.dark) #scr-cobranca .cob-st.on{color:#fff}
      CNPJ/CPF: até 11 dígitos é CPF (000.000.000-00); do 12º em diante vira
      CNPJ (00.000.000/0000-00). O separador só entra quando vem número depois
      dele — o Backspace apaga normalmente, sem "travar" no ponto. */
+
+  /* (·472) MÁSCARA QUE RESPEITA O CURSOR. Trocar o valor do campo joga o cursor
+     para o FIM — então corrigir um dígito no MEIO (apagar e redigitar) mandava
+     o número novo para o final e embaralhava tudo: foi o "13.387.342/0015-8"
+     do print. Agora conta quantos DÍGITOS havia antes do cursor e devolve o
+     cursor logo depois do mesmo dígito no texto já formatado. */
+  function cobMascCursor(el, fn){
+    var raw=el.value, pos=(el.selectionStart==null)?raw.length:el.selectionStart;
+    var nd=raw.slice(0,pos).replace(/\D/g,'').length, out=fn(raw);
+    if(out===raw) return;
+    el.value=out;
+    var i=0, c=0; while(i<out.length && c<nd){ if(/\d/.test(out.charAt(i))) c++; i++; }
+    try{ el.setSelectionRange(i,i); }catch(e){}
+  }
+  /* (·472) TELEFONE: (48) 98429-9758 — celular com 11 dígitos; fixo com 10 fica
+     (48) 3333-4444. Mesma regra: separador só quando vem número depois. */
+  function cobMascFone(s){
+    var d=String(s||'').replace(/\D/g,''); if(d.length>11 && d.slice(0,2)==='55') d=d.slice(2); d=d.slice(0,11);
+    if(!d) return ''; if(d.length<=2) return '('+d;
+    if(d.length<=6) return '('+d.slice(0,2)+') '+d.slice(2);
+    if(d.length<=10) return '('+d.slice(0,2)+') '+d.slice(2,6)+'-'+d.slice(6);
+    return '('+d.slice(0,2)+') '+d.slice(2,7)+'-'+d.slice(7);
+  }
   function cobMascMoeda(s){
     var d=String(s||'').replace(/\D/g,'').replace(/^0+/,'').slice(0,13); if(!d) return '';
     return 'R$ '+(parseInt(d,10)/100).toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2});
@@ -42982,6 +43038,26 @@ body:not(.dark) #scr-cobranca .cob-st.on{color:#fff}
     }
     if(d.length<=12) return d.slice(0,2)+'.'+d.slice(2,5)+'.'+d.slice(5,8)+'/'+d.slice(8);
     return d.slice(0,2)+'.'+d.slice(2,5)+'.'+d.slice(5,8)+'/'+d.slice(8,12)+'-'+d.slice(12);
+  }
+  /* (·473) RECONHECE CPF OU CNPJ e confere os dígitos verificadores — o selo
+     ao lado do rótulo diz "CPF ✓", "CNPJ ✓" ou "inválido" enquanto digita.
+     Com 11 números é CPF (048.545.379-73); com 14, CNPJ (13.387.342/0001-58). */
+  function cobCpfOk(d){ if(d.length!==11 || /^(\d)\1{10}$/.test(d)) return false;
+    for(var t=9;t<11;t++){ var s=0; for(var i=0;i<t;i++) s+=(+d[i])*(t+1-i); if(((s*10)%11)%10!==+d[t]) return false; } return true; }
+  function cobCnpjOk(d){ if(d.length!==14 || /^(\d)\1{13}$/.test(d)) return false;
+    var calc=function(n){ var pesos=n===12?[5,4,3,2,9,8,7,6,5,4,3,2]:[6,5,4,3,2,9,8,7,6,5,4,3,2], s=0; for(var i=0;i<n;i++) s+=(+d[i])*pesos[i]; var r=s%11; return r<2?0:11-r; };
+    return calc(12)===+d[12] && calc(13)===+d[13]; }
+  function cobDocTipo(v){ /* {tipo:'CPF'|'CNPJ'|'', ok:bool|null} */
+    var d=String(v||'').replace(/\D/g,'');
+    if(d.length===11) return {tipo:'CPF', ok:cobCpfOk(d)};
+    if(d.length===14) return {tipo:'CNPJ', ok:cobCnpjOk(d)};
+    if(d.length>11) return {tipo:'CNPJ', ok:null};
+    return {tipo:d.length?'CPF':'', ok:null};
+  }
+  function cobDocSelo(v){
+    var t=cobDocTipo(v); if(!t.tipo) return '';
+    if(t.ok===null) return '<span class="cob-doc-selo">'+t.tipo+'…</span>';
+    return t.ok ? '<span class="cob-doc-selo ok">'+t.tipo+' ✓</span>' : '<span class="cob-doc-selo erro">'+t.tipo+' inválido</span>';
   }
   /* (·471) quem pode ser responsável pela cobrança — lista fixa do Nando */
   var COB_RESPONSAVEIS=['Ruth Alves','Diego Oliveira','Ana Maria','Hynaê Teston'];
@@ -43042,7 +43118,7 @@ body:not(.dark) #scr-cobranca .cob-st.on{color:#fff}
       if(ok && rr){ cobHist(rr,'anexo', ok+' fatura(s)/documento(s) anexado(s)'); cobSalvar(); }
       cobRender(true);
       cobMsgArq(erros.length ? ('⚠ '+erros.join(' · ')) : (ok+' arquivo(s) anexado(s)'), !erros.length);
-      try{ if(ok && typeof logRemoto==='function') logRemoto('cobranca', ok+' fatura(s) anexada(s) — '+(cobVal(rr,'cliente')||'caso de cobrança'), {area:'Núcleo de Cobrança'}); }catch(e){}
+      try{ if(ok && typeof logRemoto==='function') logRemoto('cobranca', ok+' fatura(s) anexada(s) — '+(cobVal(rr,'cliente')||'caso de cobrança'), {area:'Núcleo Cobrança'}); }catch(e){}
     });
   }
   function cobMsgArq(t, ok){ var m=document.getElementById('cobMsgArq'); if(m){ m.textContent=t; m.className='cob-vazio-mini'+(ok?'':''); m.style.color=ok?'#4ade80':''; } }
@@ -43168,7 +43244,7 @@ body:not(.dark) #scr-cobranca .cob-st.on{color:#fff}
     var medio=atrasos.length?Math.round(atrasos.reduce(function(a,b){ return a+b; },0)/atrasos.length):0;
     var acAtr=ativos.filter(function(r){ return cobProxEstado(r)==='atrasada'; }).length, acHoje=ativos.filter(function(r){ return cobProxEstado(r)==='hoje'; }).length;
 
-    var cab='<div class="cob-cab"><div><h2 class="cob-tit">💰 Núcleo de Cobrança</h2>'
+    var cab='<div class="cob-cab"><div><h2 class="cob-tit">💰 Núcleo Cobrança</h2>'
       +'<div class="cob-sub">Controle e acompanhamento dos clientes inadimplentes · '+todos.length+' caso'+(todos.length===1?'':'s')+' · '+ativos.length+' em andamento</div></div>'
       +'<div class="cob-acoes"><button type="button" class="cob-btn" id="cobExportar" title="Baixar a lista filtrada em planilha (CSV)">⬇ Exportar</button>'
       +'<button type="button" class="cob-btn cob-btn-pri" id="cobNovo">＋ Novo caso</button></div></div>';
@@ -43251,9 +43327,9 @@ body:not(.dark) #scr-cobranca .cob-st.on{color:#fff}
       +'<div class="cob-status-sel">'+COB_STATUS.map(function(s){ return '<button type="button" class="cob-st'+(s.v===st?' on':'')+'" style="--c:'+s.c+'" data-cob-status="'+s.v+'">'+cobEsc(s.r)+'</button>'; }).join('')+'</div></div>';
     var dados='<div class="cob-box" data-cob-digitando><h3>🧾 Dados do caso <small>editáveis</small></h3><div class="cob-form">'
       +cobCampo('cliente','Cliente (empresa ou pessoa)',cobVal(r,'cliente'),' maxlength="140" placeholder="Nome do cliente"',true)
-      +cobCampo('doc','CNPJ / CPF',cobVal(r,'doc'),' inputmode="numeric" maxlength="18" placeholder="00.000.000/0000-00" data-cob-doc')
+      +cobCampo('doc','CNPJ / CPF <span id="cobDocSelo">'+cobDocSelo(cobVal(r,'doc'))+'</span>',cobVal(r,'doc')?cobMascDoc(cobVal(r,'doc')):'',' inputmode="numeric" maxlength="18" placeholder="CPF ou CNPJ — só números" data-cob-doc')
       +cobCampo('contato','Contato (quem responde)',cobVal(r,'contato'),' maxlength="80"')
-      +cobCampo('fone','Telefone / WhatsApp',cobVal(r,'fone'),' inputmode="tel" maxlength="30" placeholder="(48) 99999-9999"')
+      +cobCampo('fone','Telefone / WhatsApp',cobVal(r,'fone')?cobMascFone(cobVal(r,'fone')):'',' inputmode="tel" maxlength="15" placeholder="(48) 98429-9758" data-cob-fone')
       +cobCampo('email','E-mail',cobVal(r,'email'),' type="email" maxlength="120"')
       +cobCampo('valor','Valor total em cobrança (R$)',cobMoedaCampo(cobVal(r,'valor')),' inputmode="numeric" placeholder="R$ 0,00" data-cob-moeda')
       +cobCampo('venc','Vencimento original',cobDataBR(cobVal(r,'venc')),' inputmode="numeric" maxlength="10" placeholder="dd/mm/aaaa" data-cob-data')
@@ -43323,7 +43399,7 @@ body:not(.dark) #scr-cobranca .cob-st.on{color:#fff}
       +'Podemos ajudar a regularizar? Se o pagamento já foi feito, por favor desconsidere esta mensagem e nos envie o comprovante.\n\n'
       +'Obrigado!';
   }
-  window.__cobTeste={ mascMoeda:cobMascMoeda, mascDoc:cobMascDoc, numero:cobNumero, mensagem:function(id){ return cobMensagem(cobStore().casos[id]); }, lerData:cobLerData };
+  window.__cobTeste={ docTipo:cobDocTipo, mascFone:cobMascFone, mascMoeda:cobMascMoeda, mascDoc:cobMascDoc, numero:cobNumero, mensagem:function(id){ return cobMensagem(cobStore().casos[id]); }, lerData:cobLerData };
   function cobAbrir(id){ cobPag=id; cobForm=''; cobRender(true); try{ var s=document.getElementById('scr-cobranca'); if(s && s.scrollIntoView) s.scrollIntoView({block:'start'}); }catch(e){} }
   function cobNovo(){
     var S=cobStore(), id=cobId('cb'), t=cobAgora();
@@ -43345,7 +43421,7 @@ body:not(.dark) #scr-cobranca .cob-st.on{color:#fff}
     });
     if(erro){ if(msg){ msg.className='cob-msg'; msg.textContent=erro; } return; }
     cobSemRascunho=true;
-    if(mud){ cobSalvar(); try{ if(typeof logRemoto==='function') logRemoto('cobranca','Caso de cobrança atualizado — '+(cobVal(r,'cliente')||'sem nome'),{area:'Núcleo de Cobrança'}); }catch(e){} }
+    if(mud){ cobSalvar(); try{ if(typeof logRemoto==='function') logRemoto('cobranca','Caso de cobrança atualizado — '+(cobVal(r,'cliente')||'sem nome'),{area:'Núcleo Cobrança'}); }catch(e){} }
     cobRender(true);
     var m2=document.getElementById('cobMsgDados'); if(m2){ m2.className='cob-msg ok'; m2.textContent=mud?'✓ Salvo':'Nada mudou'; }
   }
@@ -43369,7 +43445,7 @@ body:not(.dark) #scr-cobranca .cob-st.on{color:#fff}
     if(cobTotal(r)>0 && cobSaldo(r)<=0 && st!=='quitado'){ cobSet(id,'status','quitado'); cobHist(r,'status','Status: '+COB_ST[st].r+' → Quitado (saldo zerado)'); }
     else if(cobSaldo(r)>0 && (st==='aberto'||st==='contato'||st==='negociando')){ cobSet(id,'status','parcial'); cobHist(r,'status','Status: '+COB_ST[st].r+' → Pago parcial'); }
     cobForm=''; cobSalvar(); cobRender(true);
-    try{ if(typeof logRemoto==='function') logRemoto('cobranca','Recebimento registrado — '+(cobVal(r,'cliente')||'sem nome'),{area:'Núcleo de Cobrança'}); }catch(e){}
+    try{ if(typeof logRemoto==='function') logRemoto('cobranca','Recebimento registrado — '+(cobVal(r,'cliente')||'sem nome'),{area:'Núcleo Cobrança'}); }catch(e){}
   }
   function cobSalvarHist(id){
     var r=cobStore().casos[id]; if(!r) return;
@@ -43386,7 +43462,7 @@ body:not(.dark) #scr-cobranca .cob-st.on{color:#fff}
       return [cobVal(r,'cliente'),cobVal(r,'doc'),cobVal(r,'contato'),cobVal(r,'fone'),cobVal(r,'email'),(COB_ST[cobVal(r,'status')||'aberto']||{}).r,(COB_PR[cobVal(r,'prio')]||{}).r||'',cobVal(r,'resp'),cobDataBR(cobVal(r,'venc')),cobAtraso(r),n(cobTotal(r)),n(cobRecebido(r)),n(cobSaldo(r)),cobPct(r)+'%',cobVal(r,'faturas'),cobDataBR(cobVal(r,'prox')),cobVal(r,'proxTxt'),cobVal(r,'acordo'),cobVal(r,'obs')].map(q).join(sep);
     }));
     var blob=new Blob(['﻿'+linhas.join('\r\n')],{type:'text/csv;charset=utf-8'}), a=document.createElement('a');
-    a.href=URL.createObjectURL(blob); a.download='nucleo-de-cobranca-'+cobHojeISO()+'.csv'; document.body.appendChild(a); a.click(); a.remove();
+    a.href=URL.createObjectURL(blob); a.download='nucleo-cobranca-'+cobHojeISO()+'.csv'; document.body.appendChild(a); a.click(); a.remove();
   }
   function cobToast(t,tp){ try{ if(typeof toast==='function') toast(t,tp||'ok'); }catch(e){} }
 
@@ -43446,16 +43522,17 @@ body:not(.dark) #scr-cobranca .cob-st.on{color:#fff}
     if(t.closest('[data-cob-excluir]')){
       if(!window.confirm('Excluir o caso de cobrança de "'+(cobVal(r,'cliente')||'sem nome')+'"?\n\nIsso vale para todos os computadores.')) return;
       cobSet(id,'__del',1); cobSalvar(); cobPag=''; cobRender(true);
-      try{ if(typeof logRemoto==='function') logRemoto('cobranca','Caso de cobrança excluído — '+(cobVal(r,'cliente')||'sem nome'),{area:'Núcleo de Cobrança'}); }catch(x){}
+      try{ if(typeof logRemoto==='function') logRemoto('cobranca','Caso de cobrança excluído — '+(cobVal(r,'cliente')||'sem nome'),{area:'Núcleo Cobrança'}); }catch(x){}
       return;
     }
   });
   document.addEventListener('input', function(e){
     var t=e.target; if(!t) return;
     if(t.id==='cobBusca'){ cobBusca=t.value; cobRender(true); return; }
-    if(t.hasAttribute && t.hasAttribute('data-cob-data') && t.closest && t.closest('#cobWrap')){ var m=cobMascData(t.value); if(m!==t.value) t.value=m; }
+    if(t.hasAttribute && t.hasAttribute('data-cob-data') && t.closest && t.closest('#cobWrap')) cobMascCursor(t, cobMascData);
     if(t.hasAttribute && t.hasAttribute('data-cob-moeda') && t.closest && t.closest('#cobWrap')){ var mm=cobMascMoeda(t.value); if(mm!==t.value){ t.value=mm; try{ t.setSelectionRange(mm.length,mm.length); }catch(x){} } }
-    if(t.hasAttribute && t.hasAttribute('data-cob-doc') && t.closest && t.closest('#cobWrap')){ var md=cobMascDoc(t.value); if(md!==t.value) t.value=md; }
+    if(t.hasAttribute && t.hasAttribute('data-cob-doc') && t.closest && t.closest('#cobWrap')){ cobMascCursor(t, cobMascDoc); var sd=document.getElementById('cobDocSelo'); if(sd) sd.innerHTML=cobDocSelo(t.value); }
+    if(t.hasAttribute && t.hasAttribute('data-cob-fone') && t.closest && t.closest('#cobWrap')) cobMascCursor(t, cobMascFone);
     if(t.hasAttribute && t.hasAttribute('data-cob-f')) t.setAttribute('data-sujo','1');
   });
   document.addEventListener('change', function(e){
