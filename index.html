@@ -3937,6 +3937,35 @@ body:not(.dark) .mt-lock-card select,body:not(.dark) .mt-lock-card input[type=pa
 .arq-at{font-weight:400;color:#7C8AA5;font-size:12px}
 .arq-restaurar{flex:0 0 auto;font-size:11px;font-weight:700;border-radius:7px;padding:5px 10px;cursor:pointer;background:rgba(127,178,245,.12);color:#7FB2F5;border:1px solid rgba(127,178,245,.35);transition:all .14s;line-height:1}
 .arq-restaurar:hover{background:#7FB2F5;color:#0A1929;border-color:#7FB2F5}
+/* ===== (·485) Pasta Hotéis não Oficiais — ciano ===== */
+#shNaoOficiais:empty{display:none}
+.hno-painel{margin-top:14px;border:1px solid rgba(34,211,238,.32);border-radius:var(--raio-sm);overflow:hidden;background:rgba(34,211,238,.04)}
+.hno-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:transparent;border:none;color:#5CD8EE;font-size:13.5px;font-weight:700;padding:11px 15px;cursor:pointer;font-family:inherit;text-align:left}
+.hno-toggle:hover{background:rgba(34,211,238,.07);color:#8BE6F5}
+.hno-toggle b{color:#5CD8EE}
+.hno-chev{font-size:10px;opacity:.7}
+.hno-resumo{display:inline-flex;gap:8px;margin-left:10px;font-size:11.5px;font-weight:700;flex-wrap:wrap}
+.hno-r-ok{color:#5FE0A0}.hno-r-pend{color:#FFB35C}
+.hno-lista{padding:6px 12px 12px;display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto}
+.hno-item{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:9px 11px;border-radius:8px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06)}
+.hno-item.hno-pend{border-color:rgba(255,159,67,.30)}
+.hno-corpo{min-width:0;display:flex;flex-direction:column;gap:3px}
+.hno-nome{font-size:13px;font-weight:700;word-break:break-word}
+.hno-st{display:inline-block;margin-left:6px;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:999px;vertical-align:1px}
+.hno-st-ok{background:rgba(53,208,127,.14);color:#5FE0A0;border:1px solid rgba(53,208,127,.35)}
+.hno-st-pend{background:rgba(255,159,67,.12);color:#FFB35C;border:1px solid rgba(255,159,67,.35)}
+.hno-det{font-size:12px;color:#9FB0C8;word-break:break-word}
+.hno-det-csv{color:#7C8AA5}
+.hno-div{color:#FFB35C;font-weight:600}
+.hno-vch{color:#7FB2F5;cursor:pointer;text-decoration:underline dotted}
+.hno-aviso{color:#FFB35C;font-weight:600}
+.hno-vazio{padding:8px 15px 14px;font-size:12.5px;color:#9FB0C8;line-height:1.5}
+.conc-hno-acoes{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;flex:0 0 auto}
+.conc-hno{flex:0 0 auto;background:rgba(34,211,238,.12);color:#5CD8EE;border:1px solid rgba(34,211,238,.4);border-radius:8px;padding:7px 12px;font-size:11.5px;font-weight:800;cursor:pointer;transition:all .14s;white-space:nowrap;font-family:inherit}
+.conc-hno:hover{background:#22D3EE;color:#0A1929;border-color:#22D3EE}
+.aud-hno{margin-top:6px}
+body:not(.dark) .hno-toggle,body:not(.dark) .hno-toggle b,body:not(.dark) .conc-hno{color:#0E7490}
+body:not(.dark) .hno-det{color:#475569}
 /* ===== Pasta Erro de comunicação (status CSV) — laranja (sempre fixa) ===== */
 .err-painel{margin-top:14px;border:1px solid rgba(255,159,67,.34);border-radius:var(--raio-sm);overflow:hidden;background:rgba(255,159,67,.05)}
 .err-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;background:transparent;border:none;color:#FFA94D;font-size:13.5px;font-weight:700;padding:11px 15px;cursor:pointer;font-family:inherit}
@@ -5949,7 +5978,7 @@ window.uvTelaPermitida=function(scr){
   };
 })();
 
-var UV_BUILD_NUM = 484; // (·484) MENU: (1) abrir OU fechar uma pasta com sub-pastas deixa o azul nela (fechar não passa mais a seleção para a tela aberta) — computador e celular. (2) Celular abre sem nenhuma pasta azul (nem o Control Desk); o azul aparece no primeiro toque. ANTERIOR: (·483) NOTAS PESSOAIS: (1) o quadro vazio 'Nenhuma nota avulsa…' saiu — sem nota avulsa, só aparece uma zona 'Solte aqui para tirar a nota da pasta' enquanto uma nota é arrastada. (2) A seção Notas fica sempre aberta (cabeçalho fixo, sem recolher). ANTERIOR: (·482) MENU: (1) 'Controle de Check-in' saiu de Minhas Tarefas e virou a sub-pasta 'Alertas Check-in' da Matriz Operacional, logo abaixo de Cias Aéreas (tela própria scr-checkin; mesmo dado appConfig.checkins). (2) Seção 'Controle Geral' removida de Minhas Tarefas (dado guardado intocado). (3) 'Minhas Tarefas' → 'Notas Pessoais'. (4) '＋ Adicionar evento' e '＋ Adicionar grupo' removidos. (5) WeCann Summit 2026 selecionada fica verde translúcida. (6) Clicar em WeCann seleciona Eventos (antes o azul pulava para o Control Desk). ANTERIOR: (·481) MENU: uma seleção só — com uma pasta principal selecionada (azul), o item da tela aberta e a pasta-mãe dela deixam de ficar azuis (computador e celular). ANTERIOR: (·480) MENU DESKTOP: clicar numa pasta principal (Voucher, Equipe, Comercial…) a deixa selecionada em azul; fechar ou navegar tira. ANTERIOR: (·479) MENU: 'Gerador de Voucher' virou 'Voucher' — pasta sem tela própria com as sub-pastas Gerador (o conteúdo que era da pasta; tela 'gerador') e Salvos (antes 'Vouchers Salvos'). Letícia continua vendo a pasta Voucher e as duas sub-pastas. ANTERIOR: (·478) MENU: 'Cabeça de Rede' 3px mais à esquerda (ajuste ótico — o ícone dela é mais estreito que os emojis das vizinhas e o vão antes do nome parecia maior). ANTERIOR: (·477) MENU: sub-pastas da Equipe alinhadas — os três ícones (Cabeça de Rede, Aniversários, Insights) numa caixa do mesmo tamanho, nomes começando no mesmo ponto. ANTERIOR: (·476) MENU: Equipe virou pasta sem tela própria com três sub-pastas — Cabeça de Rede (saiu do topo), Aniversários (o conteúdo que era da Equipe; id de tela 'equipe' mantido) e Insights, nessa ordem. ANTERIOR: (·475) CELULAR: o Hub sempre abre (e ao atualizar) com todas as pastas fechadas e o conteúdo recolhido — só a lista de pastas; a tela ativa volta com um toque. Desktop intocado. ANTERIOR: (·474) NÚCLEO COBRANÇA: o selo CPF/CNPJ ficava numa linha própria e desalinhava o campo CNPJ/CPF do campo Contato ao lado; agora fica na linha do rótulo, sem aumentar a altura. ANTERIOR: (·473) (1) CPF/CNPJ: selo ao lado do rótulo reconhece CPF (11 números, 048.545.379-73) ou CNPJ (14, 13.387.342/0001-58) e confere os dígitos (✓ / inválido); valor salvo antigo aparece formatado. (2) 'Núcleo de Cobrança' → 'Núcleo Cobrança'. (3) Celular: sub-pasta aberta laranja translúcido e a pasta principal azul, iguais ao desktop. ANTERIOR: (·472) MÁSCARAS QUE RESPEITAM O CURSOR: corrigir um dígito no meio do CNPJ jogava o cursor para o fim e embaralhava o número (13.387.342/0015-8); agora o cursor volta para depois do mesmo dígito (Cobrança e Licitação). + Telefone com máscara (48) 98429-9758 (fixo: (48) 3333-4444). ANTERIOR: (·471) NÚCLEO DE COBRANÇA: responsável vira lista (Ruth Alves, Diego Oliveira, Ana Maria, Hynaê Teston); CNPJ/CPF com pontos, barra e traço automáticos ao digitar; valor total (e o do recebimento) com máscara de moeda R$ 3.000,00 enquanto digita. ANTERIOR: (·470) NOVA PASTA 'NÚCLEO DE COBRANÇA' (logo abaixo de Licitação), só para a diretoria + Ruth Alves. Tabela de casos (status coloridos, prioridade, responsável, vencimento, dias de atraso, total/recebido/saldo, barra de evolução, próxima ação, faturas), KPIs, gráfico de recebido por mês, distribuição por status, saldo por faixa de atraso, filtros/busca/ordenação, exportar CSV. Página do caso: dados editáveis, 8 status coloridos, recebimentos (quitado/parcial automático), faturas anexadas com visualizador (PDF página a página), linha do tempo com anotações/contatos, mensagem de cobrança pronta e WhatsApp. União entre PCs campo a campo / item a item. ANTERIOR: (·469) CELULAR: TRILHA MÓVEL SEM TREMOR. (1) a margem do conteúdo não muda mais a cada quadro de rolagem: muda uma vez por aparição/sumiço, compensada por transform (o movimento é só transform); (2) resize só de altura (barra do Safari ao rolar) não reacopla nem zera a trilha; (3) folga 24px na mesma direção e nada liga enquanto a trilha aparece no lugar natural; ao voltar a essa faixa ela pousa com troca compensada. ANTERIOR: (·468) CELULAR: TRILHA MÓVEL. Nada fica mais grudado o tempo todo: rolando para baixo (arrastar para cima) a barra do topo, a pasta e as sub-pastas saem da tela junto com a página; rolando para cima (arrastar para baixo) a pasta e as sub-pastas voltam na hora, grudadas no topo, EMPURRANDO o conteúdo (margem --uv-empurra) em vez de cobri-lo. Desktop intocado. ANTERIOR: (·467) MENU DESKTOP: Gerador de Voucher e Equipe (pastas com tela própria E sub-pastas) agora recolhem as sub-pastas no segundo clique, como Comercial/Matriz/Eventos/Grupos. Pasta EM USO (a tela dela ou uma sub-pasta dela aberta) com a árvore aberta → fecha sem navegar; nos outros casos → abre e navega. Celular intocado. ANTERIOR: (·466) MENU. (1) Todo NOVO acesso (aba/janela nova, navegador reaberto, depois de sair) abre no Control Desk; só o F5 na mesma aba devolve a tela (tela guardada no sessionStorage da aba, uv_hub_screen_aba; o localStorage uv_hub_screen não decide mais o boot). (2) Desktop: TODAS as pastas fechadas no 1º acesso do dia na máquina; depois o que se abriu/fechou persiste, inclusive no F5 (localStorage uv_menu_arvores com o dia). (3) Desktop: contorno branco discreto nas pastas principais (não nas sub-pastas). (4) Desktop: com sub-pasta aberta, a pasta principal fica AZUL e a sub-pasta LARANJA bem transparente. Celular intocado. ANTERIOR: (·465) MURAL: LIXEIRA PAGINADA. Pedido: na lista de excluídos, só os 5 mais recentes na primeira tela; o resto em páginas 1, 2, 3… (‹ › + números; só aparece com mais de 5). Abrir a lixeira volta sempre para a página 1; devolver o último recado de uma página não a deixa vazia. ANTERIOR: (·464) MURAL: LIXEIRA SÓ DO NANDO. Pedido: devolver recado excluído é função exclusiva do administrador (Fernando Pires), não da diretoria. mrPodeRestaurar compara o NOME COMPLETO normalizado (não a regra tolerante de mrMesmaPessoa, que aceitaria 'Fernando' sozinho). Excluir (✕) continua com a diretoria. ANTERIOR: (·463) MURAL: LIXEIRA — DEVOLVER RECADO EXCLUÍDO. Pedido do Nando: como admin, devolver ao mural um recado já excluído. A exclusão sempre foi suave (del=1); agora a diretoria (mesma porta do ✕) tem o botão '🗑 Excluídos (N)' no canto do quadro → lista dos excluídos (autor, data, quem excluiu) com '↩ Devolver ao mural'. Devolver = del:0 + mts novo (vence a cópia excluída de outro PC na união). Excluir passou a carimbar mts/delEm/delPor em vez de sobrescrever ts — o recado devolvido volta no mesmo lugar e com a data original. + Ocupação: badge do plantonista (noite/fim de semana) com nome comprido vazava a tela entre ~1000–1024px → pode encolher/quebrar (achado rodando a regressão num domingo). ANTERIOR: (·462) LICITAÇÃO — DEMANDA AÉREA COMPLETA + DATAS DIGITADAS. Passagem aérea agora tem Trecho + Data e hora de ida + Data e hora de volta (dd/mm/aaaa hh:mm, só números, formata sozinho, hora opcional, data impossível e volta antes da ida recusadas) + Cia aérea; Hotel esconde esses campos. Nascimento virou campo digitado dd/mm/aaaa (não calendário). CORREÇÃO: no ·461 a tabela de tipos da demanda se chamava LIC_TIPOS e sobrescrevia a de tipos de ANEXO (miniatura sem imagem dizia ARQ) — renomeada para LIC_DEM_TIPOS. ANTERIOR: (·461) LICITAÇÃO: SINAL + PÁGINA DO PROCESSO COM DEMANDAS. Bolinha na coluna # (ao lado do ⤢) com menu Sem cor/Verde/Amarelo/Vermelho (campo f.sinal, união campo a campo). Clicar em qualquer ponto da linha abre a PÁGINA do processo (resumo + Demandas): ＋ Adicionar demanda (Passagem aérea ou Hotel; trecho/nome do hotel em fonte grande de título) e, em cada demanda, ＋ Adicionar pessoas (nome, nascimento, CPF com máscara e dígito verificador). r.dem entra na união (licMergeDem — sem isso a união apagava as demandas). Redesenho de fora não apaga formulário aberto. ⤢ e 'Editar dados do processo' seguem abrindo o formulário de dados. ANTERIOR: (·460) LICITAÇÃO: GRADE PROTEGIDA. Pedido do Nando: todas as colunas bloqueadas na página principal — clicar numa célula não edita, sem ＋ de anexar nem arrastar arquivo na grade; documento aberto pela grade abre só para ver (sem Remover). Editar SÓ abrindo o processo no ⤢ (formulário mantém tudo: campos, opções coloridas, anexos, remover, excluir). Aviso 🔒 no topo. ANTERIOR: (·459) PASTA LICITAÇÃO ABERTA A TODOS, MENOS À LETÍCIA ROSA. Pedido do
+var UV_BUILD_NUM = 485; // (·485) CONCILIAÇÃO WECANN — HOTÉIS NÃO OFICIAIS: no aviso 'Quarto no CSV sem voucher' (e na auditoria) o botão '🏨 Hotel não oficial' tira a pessoa da conciliação dos 3 hotéis oficiais e a leva para a nova pasta 'Hotéis não Oficiais' (abaixo de Template Enviado), onde ela é conferida contra o voucher de QUALQUER hotel (tem voucher? datas batem?) com ✅ Conciliado / ⚠️ pendente e ↩ Restaurar. Dado em appConfig.hoteisNaoOficiais, unido entre PCs por carimbo. ANTERIOR: (·484) MENU: (1) abrir OU fechar uma pasta com sub-pastas deixa o azul nela (fechar não passa mais a seleção para a tela aberta) — computador e celular. (2) Celular abre sem nenhuma pasta azul (nem o Control Desk); o azul aparece no primeiro toque. ANTERIOR: (·483) NOTAS PESSOAIS: (1) o quadro vazio 'Nenhuma nota avulsa…' saiu — sem nota avulsa, só aparece uma zona 'Solte aqui para tirar a nota da pasta' enquanto uma nota é arrastada. (2) A seção Notas fica sempre aberta (cabeçalho fixo, sem recolher). ANTERIOR: (·482) MENU: (1) 'Controle de Check-in' saiu de Minhas Tarefas e virou a sub-pasta 'Alertas Check-in' da Matriz Operacional, logo abaixo de Cias Aéreas (tela própria scr-checkin; mesmo dado appConfig.checkins). (2) Seção 'Controle Geral' removida de Minhas Tarefas (dado guardado intocado). (3) 'Minhas Tarefas' → 'Notas Pessoais'. (4) '＋ Adicionar evento' e '＋ Adicionar grupo' removidos. (5) WeCann Summit 2026 selecionada fica verde translúcida. (6) Clicar em WeCann seleciona Eventos (antes o azul pulava para o Control Desk). ANTERIOR: (·481) MENU: uma seleção só — com uma pasta principal selecionada (azul), o item da tela aberta e a pasta-mãe dela deixam de ficar azuis (computador e celular). ANTERIOR: (·480) MENU DESKTOP: clicar numa pasta principal (Voucher, Equipe, Comercial…) a deixa selecionada em azul; fechar ou navegar tira. ANTERIOR: (·479) MENU: 'Gerador de Voucher' virou 'Voucher' — pasta sem tela própria com as sub-pastas Gerador (o conteúdo que era da pasta; tela 'gerador') e Salvos (antes 'Vouchers Salvos'). Letícia continua vendo a pasta Voucher e as duas sub-pastas. ANTERIOR: (·478) MENU: 'Cabeça de Rede' 3px mais à esquerda (ajuste ótico — o ícone dela é mais estreito que os emojis das vizinhas e o vão antes do nome parecia maior). ANTERIOR: (·477) MENU: sub-pastas da Equipe alinhadas — os três ícones (Cabeça de Rede, Aniversários, Insights) numa caixa do mesmo tamanho, nomes começando no mesmo ponto. ANTERIOR: (·476) MENU: Equipe virou pasta sem tela própria com três sub-pastas — Cabeça de Rede (saiu do topo), Aniversários (o conteúdo que era da Equipe; id de tela 'equipe' mantido) e Insights, nessa ordem. ANTERIOR: (·475) CELULAR: o Hub sempre abre (e ao atualizar) com todas as pastas fechadas e o conteúdo recolhido — só a lista de pastas; a tela ativa volta com um toque. Desktop intocado. ANTERIOR: (·474) NÚCLEO COBRANÇA: o selo CPF/CNPJ ficava numa linha própria e desalinhava o campo CNPJ/CPF do campo Contato ao lado; agora fica na linha do rótulo, sem aumentar a altura. ANTERIOR: (·473) (1) CPF/CNPJ: selo ao lado do rótulo reconhece CPF (11 números, 048.545.379-73) ou CNPJ (14, 13.387.342/0001-58) e confere os dígitos (✓ / inválido); valor salvo antigo aparece formatado. (2) 'Núcleo de Cobrança' → 'Núcleo Cobrança'. (3) Celular: sub-pasta aberta laranja translúcido e a pasta principal azul, iguais ao desktop. ANTERIOR: (·472) MÁSCARAS QUE RESPEITAM O CURSOR: corrigir um dígito no meio do CNPJ jogava o cursor para o fim e embaralhava o número (13.387.342/0015-8); agora o cursor volta para depois do mesmo dígito (Cobrança e Licitação). + Telefone com máscara (48) 98429-9758 (fixo: (48) 3333-4444). ANTERIOR: (·471) NÚCLEO DE COBRANÇA: responsável vira lista (Ruth Alves, Diego Oliveira, Ana Maria, Hynaê Teston); CNPJ/CPF com pontos, barra e traço automáticos ao digitar; valor total (e o do recebimento) com máscara de moeda R$ 3.000,00 enquanto digita. ANTERIOR: (·470) NOVA PASTA 'NÚCLEO DE COBRANÇA' (logo abaixo de Licitação), só para a diretoria + Ruth Alves. Tabela de casos (status coloridos, prioridade, responsável, vencimento, dias de atraso, total/recebido/saldo, barra de evolução, próxima ação, faturas), KPIs, gráfico de recebido por mês, distribuição por status, saldo por faixa de atraso, filtros/busca/ordenação, exportar CSV. Página do caso: dados editáveis, 8 status coloridos, recebimentos (quitado/parcial automático), faturas anexadas com visualizador (PDF página a página), linha do tempo com anotações/contatos, mensagem de cobrança pronta e WhatsApp. União entre PCs campo a campo / item a item. ANTERIOR: (·469) CELULAR: TRILHA MÓVEL SEM TREMOR. (1) a margem do conteúdo não muda mais a cada quadro de rolagem: muda uma vez por aparição/sumiço, compensada por transform (o movimento é só transform); (2) resize só de altura (barra do Safari ao rolar) não reacopla nem zera a trilha; (3) folga 24px na mesma direção e nada liga enquanto a trilha aparece no lugar natural; ao voltar a essa faixa ela pousa com troca compensada. ANTERIOR: (·468) CELULAR: TRILHA MÓVEL. Nada fica mais grudado o tempo todo: rolando para baixo (arrastar para cima) a barra do topo, a pasta e as sub-pastas saem da tela junto com a página; rolando para cima (arrastar para baixo) a pasta e as sub-pastas voltam na hora, grudadas no topo, EMPURRANDO o conteúdo (margem --uv-empurra) em vez de cobri-lo. Desktop intocado. ANTERIOR: (·467) MENU DESKTOP: Gerador de Voucher e Equipe (pastas com tela própria E sub-pastas) agora recolhem as sub-pastas no segundo clique, como Comercial/Matriz/Eventos/Grupos. Pasta EM USO (a tela dela ou uma sub-pasta dela aberta) com a árvore aberta → fecha sem navegar; nos outros casos → abre e navega. Celular intocado. ANTERIOR: (·466) MENU. (1) Todo NOVO acesso (aba/janela nova, navegador reaberto, depois de sair) abre no Control Desk; só o F5 na mesma aba devolve a tela (tela guardada no sessionStorage da aba, uv_hub_screen_aba; o localStorage uv_hub_screen não decide mais o boot). (2) Desktop: TODAS as pastas fechadas no 1º acesso do dia na máquina; depois o que se abriu/fechou persiste, inclusive no F5 (localStorage uv_menu_arvores com o dia). (3) Desktop: contorno branco discreto nas pastas principais (não nas sub-pastas). (4) Desktop: com sub-pasta aberta, a pasta principal fica AZUL e a sub-pasta LARANJA bem transparente. Celular intocado. ANTERIOR: (·465) MURAL: LIXEIRA PAGINADA. Pedido: na lista de excluídos, só os 5 mais recentes na primeira tela; o resto em páginas 1, 2, 3… (‹ › + números; só aparece com mais de 5). Abrir a lixeira volta sempre para a página 1; devolver o último recado de uma página não a deixa vazia. ANTERIOR: (·464) MURAL: LIXEIRA SÓ DO NANDO. Pedido: devolver recado excluído é função exclusiva do administrador (Fernando Pires), não da diretoria. mrPodeRestaurar compara o NOME COMPLETO normalizado (não a regra tolerante de mrMesmaPessoa, que aceitaria 'Fernando' sozinho). Excluir (✕) continua com a diretoria. ANTERIOR: (·463) MURAL: LIXEIRA — DEVOLVER RECADO EXCLUÍDO. Pedido do Nando: como admin, devolver ao mural um recado já excluído. A exclusão sempre foi suave (del=1); agora a diretoria (mesma porta do ✕) tem o botão '🗑 Excluídos (N)' no canto do quadro → lista dos excluídos (autor, data, quem excluiu) com '↩ Devolver ao mural'. Devolver = del:0 + mts novo (vence a cópia excluída de outro PC na união). Excluir passou a carimbar mts/delEm/delPor em vez de sobrescrever ts — o recado devolvido volta no mesmo lugar e com a data original. + Ocupação: badge do plantonista (noite/fim de semana) com nome comprido vazava a tela entre ~1000–1024px → pode encolher/quebrar (achado rodando a regressão num domingo). ANTERIOR: (·462) LICITAÇÃO — DEMANDA AÉREA COMPLETA + DATAS DIGITADAS. Passagem aérea agora tem Trecho + Data e hora de ida + Data e hora de volta (dd/mm/aaaa hh:mm, só números, formata sozinho, hora opcional, data impossível e volta antes da ida recusadas) + Cia aérea; Hotel esconde esses campos. Nascimento virou campo digitado dd/mm/aaaa (não calendário). CORREÇÃO: no ·461 a tabela de tipos da demanda se chamava LIC_TIPOS e sobrescrevia a de tipos de ANEXO (miniatura sem imagem dizia ARQ) — renomeada para LIC_DEM_TIPOS. ANTERIOR: (·461) LICITAÇÃO: SINAL + PÁGINA DO PROCESSO COM DEMANDAS. Bolinha na coluna # (ao lado do ⤢) com menu Sem cor/Verde/Amarelo/Vermelho (campo f.sinal, união campo a campo). Clicar em qualquer ponto da linha abre a PÁGINA do processo (resumo + Demandas): ＋ Adicionar demanda (Passagem aérea ou Hotel; trecho/nome do hotel em fonte grande de título) e, em cada demanda, ＋ Adicionar pessoas (nome, nascimento, CPF com máscara e dígito verificador). r.dem entra na união (licMergeDem — sem isso a união apagava as demandas). Redesenho de fora não apaga formulário aberto. ⤢ e 'Editar dados do processo' seguem abrindo o formulário de dados. ANTERIOR: (·460) LICITAÇÃO: GRADE PROTEGIDA. Pedido do Nando: todas as colunas bloqueadas na página principal — clicar numa célula não edita, sem ＋ de anexar nem arrastar arquivo na grade; documento aberto pela grade abre só para ver (sem Remover). Editar SÓ abrindo o processo no ⤢ (formulário mantém tudo: campos, opções coloridas, anexos, remover, excluir). Aviso 🔒 no topo. ANTERIOR: (·459) PASTA LICITAÇÃO ABERTA A TODOS, MENOS À LETÍCIA ROSA. Pedido do
 // Nando, trocando a regra do ·458 (só diretoria + Maria Eduarda). A exceção reaproveita a trava do
 // ·457 (uvSoVoucher) em vez de criar outra lista com o nome dela — uma segunda cópia do mesmo fato
 // ficaria para trás no dia em que a trava do voucher mudar. O portão em hubGoScreen continua: para
@@ -9232,6 +9261,8 @@ async function carregarConfig(){
       // por aqui, era exatamente o gatilho que expunha isso. Une local+nuvem sem
       // nunca perder uma escolha já salva.
       appConfig.vinculos={...(local.vinculos||{}), ...(c.vinculos||{})};
+      // (·485) Hotéis não Oficiais: união por carimbo (tem Restaurar, então não é soma pura)
+      appConfig.hoteisNaoOficiais=hnoMesclar(local.hoteisNaoOficiais, c.hoteisNaoOficiais);
       // BAIXA DE QUARTOS (conciliação WeCann): decisão PERMANENTE. Une local+nuvem por
       // assinatura (ID+nomes) E pelo ID da reserva. Assim, um quarto conferido NUNCA
       // volta para a lista "sem voucher" ao reimportar o CSV — nem entre PCs diferentes.
@@ -9727,6 +9758,7 @@ async function salvarConfig(){
     // (·232) VÍNCULOS DE NOME AMBÍGUO: mesma proteção PERMANENTE que as três linhas
     // acima já têm — une nuvem+local, nunca apaga uma escolha já feita.
     appConfig.vinculos={...(cloud.vinculos||{}), ...(appConfig.vinculos||{})};
+    appConfig.hoteisNaoOficiais=hnoMesclar(cloud.hoteisNaoOficiais, appConfig.hoteisNaoOficiais);   // (·485)
     // BAIXA DE QUARTOS: mesma proteção permanente (une nuvem+local, nunca apaga).
     // Impede que um PC com estado antigo sobrescreva/ressuscite uma baixa já feita.
     appConfig.quartosConferidos  ={...(cloud.quartosConferidos  ||{}), ...(appConfig.quartosConferidos  ||{})};
@@ -10934,7 +10966,7 @@ function conciliacaoWecann(){
   const rows=(statusHotelData&&statusHotelData.rows)||[];
   const vSet=nomesDeVouchers();
   const cart=carteiraMap();
-  const fechados=rows.filter(r=>normStatusHotel(r.statusRaw)==='fechado');   // Fechado = SÓ quem tem status "fechado" no CSV
+  const fechados=rows.filter(r=>normStatusHotel(r.statusRaw)==='fechado' && !ehHotelNaoOficial(r.nome));   // Fechado = SÓ quem tem status "fechado" no CSV · (·485) sem os de hotel não oficial
   const wecMap=wecannGuestMap();              // norm -> nomeOriginal (hóspedes WeCann)
   const wecSet=new Set(wecMap.keys());
   const fechSet=new Set(fechados.map(r=>normNome(r.nome)));
@@ -11115,6 +11147,7 @@ function quartosDoCSV(){
   const map=new Map();  // idReserva(orig) -> { id, pessoas:[nomes], hotelPrefixo }
   rows.forEach(r=>{
     if(normStatusHotel(r.statusRaw)!=='fechado') return;   // só status FECHADO conta
+    if(ehHotelNaoOficial(r.nome)) return;                  // (·485) hotel não oficial: conferido na pasta própria
     const id=(r.idReserva||'').trim();
     if(!id) return;                      // linha sem ID reserva: ignora nesta conciliação
     const k=id.toUpperCase();
@@ -11247,6 +11280,7 @@ function auditoriaDisparidadeQuartos(){
   const mapQ=new Map();
   rowsAll.forEach(r=>{
     if(normStatusHotel(r.statusRaw)!=='fechado') return;
+    if(ehHotelNaoOficial(r.nome)) return;                  // (·485) fora da conta dos hotéis oficiais
     const id=(r.idReserva||'').trim(); if(!id) return;
     const k=id.toUpperCase();
     if(!mapQ.has(k)) mapQ.set(k,{ id, hotelPrefixo:_prefixoHotelId(id), linhas:[] });
@@ -11682,6 +11716,8 @@ function montarBlocoQuartos(cq){
   const e=esc;
   const prefLabel=p=> p==='tower'?'Tower Anhanguera':(p==='contemporaneo'?'Contemporâneo':(p==='plaza'?'Plaza':''));
   // botão de baixa: carrega o ID E os nomes do quarto (para a assinatura da baixa)
+  /* (·485) quem vai ficar em hotel fora do evento: sai da conta oficial e vai para a pasta Hotéis não Oficiais */
+  const btnHno=(id,pessoas)=>`<button class="conc-hno" data-hno-id="${e(id)}" data-hno-pessoas="${e(encodeURIComponent(JSON.stringify(pessoas||[])))}" title="Esta reserva é de um hotel NÃO oficial do evento — mover para a pasta Hotéis não Oficiais">🏨 Hotel não oficial</button>`;
   const btnBaixa=(id,pessoas)=>`<button class="conc-baixa" data-baixaquarto="${e(id)}" data-baixapessoas="${e(encodeURIComponent(JSON.stringify(pessoas||[])))}" title="Conferido — dar baixa e remover da lista">✓ Dar baixa</button>`;
 
   // 1) contagem quartos × vouchers (mostra também quantos já foram baixados)
@@ -11710,7 +11746,7 @@ function montarBlocoQuartos(cq){
         <div class="conc-quarto-corpo">
           <div><b>${e(q.id)}</b> ${q.hotelPrefixo?`<span class="conc-amb-n">(${prefLabel(q.hotelPrefixo)})</span>`:''}</div>
           <div class="conc-quarto-falta">Pessoas: ${q.pessoas.map(e).join(', ')}</div>
-        </div>${btnBaixa(q.id, q.pessoas)}
+        </div><span class="conc-hno-acoes">${btnHno(q.id, q.pessoas)}${btnBaixa(q.id, q.pessoas)}</span>
       </li>`).join('')}</ul>
     </div>` : '';
 
@@ -11769,7 +11805,8 @@ function montarBlocoAuditoriaDisparidade(ad){
   const gB=grupo('aud-menos', `🔴 Quarto no CSV <b>sem voucher no sistema</b> <span class="aud-peso">−${ad.quartoSemVoucher.length} voucher(s)</span>`,
     ad.quartoSemVoucher.map(q=>item(q.chave, q.id+' — '+q.pessoas.join(', '),
       `<div><b>${e(q.id)}</b> — ${q.pessoas.map(e).join(', ')}</div>
-       <div class="aud-dica">Reserva fechada no CSV mas sem voucher emitido no sistema.</div>`)));
+       <div class="aud-dica">Reserva fechada no CSV mas sem voucher emitido no sistema.</div>
+       <div class="aud-hno"><button class="conc-hno" data-hno-id="${e(q.id)}" data-hno-pessoas="${e(encodeURIComponent(JSON.stringify(q.pessoas||[])))}" title="Esta reserva é de um hotel NÃO oficial do evento — mover para a pasta Hotéis não Oficiais">🏨 Hotel não oficial</button></div>`)));
 
   // C) quarto dividido em vários vouchers
   const gC=grupo('aud-mais', `🔀 Quarto do CSV <b>dividido em vouchers diferentes</b> <span class="aud-peso">${sinal(ad.extraDividido)} voucher(s)</span>`,
@@ -11933,6 +11970,12 @@ function renderConciliacao(forcar){
 
   // toda a interação por delegação no container (evita clique duplo no "Ver detalhes")
   box.onclick=(e)=>{
+    const hn=e.target.closest('[data-hno-pessoas]');
+    if(hn){
+      let pessoas=[];
+      try{ pessoas=JSON.parse(decodeURIComponent(hn.getAttribute('data-hno-pessoas')||'%5B%5D')); }catch(_){ pessoas=[]; }
+      marcarHotelNaoOficial(pessoas, hn.getAttribute('data-hno-id')||''); return;
+    }
     const bq=e.target.closest('[data-baixaquarto]');
     if(bq){
       let pessoas=[];
@@ -13044,6 +13087,140 @@ function nomeCadastradoWecann(nome){
   renderStatusColunas();
   toast('"'+nome+'" cadastrado — saiu da lista.','info');
 }
+
+/* ═════ (·485) HOTÉIS NÃO OFICIAIS — Conciliação WeCann ═════
+   Pedido do Nando: algumas pessoas do evento vão ficar em hotéis que NÃO são os
+   três oficiais. O voucher delas é de outro hotel, então a conciliação oficial
+   (que só enxerga Tower, Contemporâneo e Plaza) sempre acusaria "quarto no CSV
+   sem voucher". Agora, nesses avisos, o botão "🏨 Hotel não oficial" tira a
+   pessoa da conciliação oficial e a coloca na pasta "Hotéis não Oficiais"
+   (logo abaixo de Template Enviado), onde a conferência CSV × voucher continua
+   sendo feita — mas contra o voucher de QUALQUER hotel.
+   ARMAZENAMENTO: appConfig.hoteisNaoOficiais = { normNome: {nome, id, ts, por, del} }.
+   Diferente das baixas "para sempre" (voucherResolvido etc.), aqui existe o
+   "↩ Restaurar" — então a união entre PCs é por CARIMBO (ts) com lápide (del),
+   e não por soma: um restaurar feito num PC não pode ser desfeito pela cópia
+   antiga de outro PC. */
+function _hnoMapa(){
+  if(!appConfig.hoteisNaoOficiais || typeof appConfig.hoteisNaoOficiais!=='object') appConfig.hoteisNaoOficiais={};
+  return appConfig.hoteisNaoOficiais;
+}
+function hnoMesclar(a,b){
+  const out={}; a=(a&&typeof a==='object')?a:{}; b=(b&&typeof b==='object')?b:{};
+  new Set([...Object.keys(a),...Object.keys(b)]).forEach(k=>{
+    const x=a[k], y=b[k];
+    if(!x){ out[k]=y; return; } if(!y){ out[k]=x; return; }
+    out[k]=((+y.ts||0)>(+x.ts||0))?y:x;
+  });
+  return out;
+}
+window.hnoMesclar=hnoMesclar;
+function ehHotelNaoOficial(nome){
+  const it=(appConfig.hoteisNaoOficiais||{})[normNome(nome)];
+  return !!(it && !it.del);
+}
+function hnoLista(){
+  return Object.values(appConfig.hoteisNaoOficiais||{}).filter(it=>it && !it.del && it.nome)
+    .sort((a,b)=>String(a.nome).localeCompare(String(b.nome),'pt-BR'));
+}
+function marcarHotelNaoOficial(pessoas, id){
+  pessoas=(pessoas||[]).map(x=>String(x||'').trim()).filter(Boolean);
+  if(!pessoas.length) return;
+  if(!confirm('Mover para "Hotéis não Oficiais"?\n\n'+pessoas.join('\n')+(id?'\n(reserva '+id+')':'')
+    +'\n\nSai da conciliação dos hotéis oficiais e passa a ser conferido contra o voucher do hotel onde vai ficar. Dá para restaurar depois.')) return;
+  const m=_hnoMapa(), agora=Date.now();
+  let por=''; try{ por=(typeof window.uvAuthNome==='function'?window.uvAuthNome():'')||''; }catch(e){}
+  pessoas.forEach(nm=>{ m[normNome(nm)]={ nome:nm, id:id||'', ts:agora, por:por, del:0 }; });
+  shNaoOficiaisAberto=true;
+  salvarConfig();
+  renderStatusColunas();
+  try{ logRemoto('conc_hotel_nao_oficial', pessoas.join(', ')+' → Hotéis não Oficiais'+(id?' ('+id+')':''), { nomes:pessoas.join(', '), id:id||'' }); }catch(e){}
+  toast(pessoas.length>1 ? pessoas.length+' pessoas movidas para Hotéis não Oficiais 🏨' : '"'+pessoas[0]+'" movido para Hotéis não Oficiais 🏨','ok');
+}
+function restaurarHotelNaoOficial(nome){
+  const k=normNome(nome), it=(appConfig.hoteisNaoOficiais||{})[k]; if(!it) return;
+  if(!confirm('Tirar "'+nome+'" de Hotéis não Oficiais?\n\nVolta para a conciliação dos hotéis oficiais.')) return;
+  it.del=1; it.ts=Date.now();
+  salvarConfig();
+  renderStatusColunas();
+  toast('"'+nome+'" voltou para a conciliação oficial','info');
+}
+/* A conferência CSV × voucher desta pasta — a mesma pergunta da conciliação
+   oficial ("tem voucher? as datas batem?"), só que procurando em TODOS os
+   vouchers salvos, de qualquer hotel. */
+function _hnoNomesDoVoucher(v){
+  const out=[];
+  (v.services||[]).forEach(sv=>{ if(sv.type!=='hotel') return; const h=sv.data&&sv.data.hospedes;
+    (Array.isArray(h)?h:(h?[h]:[])).forEach(x=>_nomesSeparados(x).forEach(n=>out.push(n))); });
+  _nomesSeparados(v.cliente||'').forEach(n=>out.push(n));
+  (v.passageiros||[]).forEach(x=>_nomesSeparados(x).forEach(n=>out.push(n)));
+  return out;
+}
+function hnoConferir(it){
+  const rows=(statusHotelData&&statusHotelData.rows)||[];
+  const nN=normNome(it.nome);
+  const row=rows.find(r=>normNome(r.nome)===nN) || rows.find(r=>umNomeBateEstrito(it.nome, r.nome)) || null;
+  const achados=[];
+  (savedCache||[]).forEach(v=>{
+    if(!_hnoNomesDoVoucher(v).some(n=>umNomeBate(it.nome, n))) return;
+    const hs=(v.services||[]).filter(sv=>sv.type==='hotel');
+    const sv=hs.find(x=>{ const h=x.data&&x.data.hospedes; return (Array.isArray(h)?h:(h?[h]:[])).some(y=>_nomesSeparados(y).some(n=>umNomeBate(it.nome,n))); }) || hs[0] || null;
+    achados.push({ num:String(v.num||''), hotel:(sv&&sv.data&&sv.data.hotel)||'', checkin:(sv&&sv.data&&sv.data.checkin)||'', checkout:(sv&&sv.data&&sv.data.checkout)||'', temHotel:!!sv });
+  });
+  const csvCi=row?normDataFlexivel(row.checkin):'', csvCo=row?normDataFlexivel(row.checkout):'';
+  const v=achados[0]||null;
+  const diverg=[];
+  if(v){
+    if(csvCi && v.checkin && csvCi!==v.checkin) diverg.push({campo:'Check-in', csv:_ckFmtData(csvCi), voucher:_ckFmtData(v.checkin)});
+    if(csvCo && v.checkout && csvCo!==v.checkout) diverg.push({campo:'Check-out', csv:_ckFmtData(csvCo), voucher:_ckFmtData(v.checkout)});
+  }
+  let estado='ok';
+  if(!v) estado='semvoucher';
+  else if(!v.temHotel) estado='semhotel';
+  else if(diverg.length) estado='datas';
+  return { row, vouchers:achados, voucher:v, diverg, estado, oficial: !!(v && HOTEIS_OCUPACAO.some(h=>h.match(v.hotel))) };
+}
+window.hnoConferir=hnoConferir;
+let shNaoOficiaisAberto=false;
+function renderNaoOficiais(){
+  const box=document.getElementById('shNaoOficiais'); if(!box) return;
+  const rows=(statusHotelData&&statusHotelData.rows)||[];
+  const lista=hnoLista();
+  if(!rows.length && !lista.length){ box.innerHTML=''; return; }
+  const e=esc;
+  const conf=lista.map(it=>({ it, c:hnoConferir(it) }));
+  const nOk=conf.filter(x=>x.c.estado==='ok').length, nPend=conf.length-nOk;
+  const resumo = conf.length ? `<span class="hno-resumo">${nOk?`<span class="hno-r-ok">✅ ${nOk} conciliado(s)</span>`:''}${nPend?`<span class="hno-r-pend">⚠️ ${nPend} pendente(s)</span>`:''}</span>` : '';
+  const itens = !shNaoOficiaisAberto ? '' : (conf.length ? `<div class="hno-lista">${conf.map(({it,c})=>{
+      let st;
+      if(c.estado==='ok')              st=`<span class="hno-st hno-st-ok">✅ Conciliado</span>`;
+      else if(c.estado==='semvoucher') st=`<span class="hno-st hno-st-pend">⚠️ Sem voucher no sistema</span>`;
+      else if(c.estado==='semhotel')   st=`<span class="hno-st hno-st-pend">⚠️ Voucher sem hospedagem</span>`;
+      else                             st=`<span class="hno-st hno-st-pend">🗓️ Datas divergentes</span>`;
+      const v=c.voucher;
+      const linhaV = v ? `<div class="hno-det">Voucher ${c.vouchers.map(x=>`<b class="hno-vch" data-hno-abrir="${e(x.num)}" title="Abrir o voucher #${e(x.num)}">#${e(x.num)}</b>`).join(' · ')}${v.hotel?` · ${e(v.hotel)}`:''}${(v.checkin||v.checkout)?` · ${e(_ckFmtData(v.checkin))} a ${e(_ckFmtData(v.checkout))}`:''}${c.oficial?` <span class="hno-aviso">(hotel oficial — confira)</span>`:''}</div>` : '';
+      const linhaCsv = c.row ? `<div class="hno-det hno-det-csv">CSV${it.id?` · ${e(it.id)}`:(c.row.idReserva?` · ${e(c.row.idReserva)}`:'')}${c.row.hotel?` · ${e(c.row.hotel)}`:''}${(c.row.checkin||c.row.checkout)?` · ${e(c.row.checkin||'?')} a ${e(c.row.checkout||'?')}`:''}</div>`
+                               : `<div class="hno-det hno-det-csv">Não está mais no CSV importado</div>`;
+      const linhaDiv = c.diverg.length ? `<div class="hno-det hno-div">${c.diverg.map(d=>`${e(d.campo)}: CSV ${e(d.csv)} × voucher ${e(d.voucher)}`).join(' · ')}</div>` : '';
+      return `<div class="hno-item hno-${c.estado==='ok'?'ok':'pend'}">
+          <div class="hno-corpo"><div class="hno-nome">${e(it.nome)} ${st}</div>${linhaV}${linhaCsv}${linhaDiv}</div>
+          <button class="arq-restaurar" data-hno-restaurar="${e(it.nome)}" title="Voltar para a conciliação dos hotéis oficiais">↩ Restaurar</button>
+        </div>`; }).join('')}</div>`
+      : `<div class="hno-vazio">Nenhuma pessoa aqui ainda. Na <b>Conciliação</b>, use o botão <b>🏨 Hotel não oficial</b> no aviso de quem vai ficar fora dos hotéis do evento.</div>`);
+  box.innerHTML=`<div class="hno-painel">
+    <button class="hno-toggle" id="btnNaoOficiais" type="button">
+      <span>🏨 Hotéis não Oficiais <b>(${lista.length})</b>${resumo}</span>
+      <span class="folder-right"><span class="folder-tag tag-interno">Controle Interno</span><span class="hno-chev">${shNaoOficiaisAberto?'▲':'▼'}</span></span>
+    </button>${itens}
+  </div>`;
+  box.onclick=(ev)=>{
+    const r=ev.target.closest('[data-hno-restaurar]'); if(r){ restaurarHotelNaoOficial(r.getAttribute('data-hno-restaurar')); return; }
+    const a=ev.target.closest('[data-hno-abrir]');
+    if(a){ const num=a.getAttribute('data-hno-abrir'); const v=(savedCache||[]).find(x=>String(x.num||'')===num); if(v) loadVoucher(v); else toast('Voucher #'+num+' não encontrado','info'); return; }
+    if(ev.target.closest('#btnNaoOficiais')){ shNaoOficiaisAberto=!shNaoOficiaisAberto; renderNaoOficiais(); try{ requestAnimationFrame(ajustarAlturaCarrossel); }catch(_){} return; }
+  };
+}
+window.renderNaoOficiais=renderNaoOficiais;
 // esse nome (recusado no CSV) está dentro de algum voucher WeCann?
 function recusadoEmVoucher(csvNome){
   const vou=[...nomesDosVouchersWecann().values()];
@@ -13305,6 +13482,7 @@ function renderStatusColunas(){
   renderSemRetorno();
   renderContatoFeito();
   renderArquivados();
+  renderNaoOficiais();   // (·485)
 
   const info=document.getElementById('shInfo');
   if(info){
@@ -13768,6 +13946,7 @@ function renderDisponibilidade(){
             <div id="shSemRetorno"></div>
             <div id="shContatoFeito"></div>
             <div id="shArquiv"></div>
+            <div id="shNaoOficiais"></div>
             <div class="sh-dir" id="shDir">
               <div class="dir-folder open">
                 <button class="dir-head" type="button" onclick="this.parentElement.classList.toggle('open')"><span class="dir-ic">📁</span><span class="dir-nome">Diretório</span><span class="dir-caret">▾</span></button>
