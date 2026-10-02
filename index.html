@@ -5978,7 +5978,7 @@ window.uvTelaPermitida=function(scr){
   };
 })();
 
-var UV_BUILD_NUM = 487; // (·487) LICITAÇÃO ▸ PRIORIDADE: opções agora Alta (vermelho), Média (amarelo), Baixa (azul claro, nova) e Finalizado (verde). Registros antigos: Perdido → Alta, Cancelado → Média (lidos assim, sem reescrever). ANTERIOR: (·486) HOTÉIS NÃO OFICIAIS — O CONTRÁRIO TAMBÉM: 'Voucher no sistema sem quarto no CSV' (auditoria) ganhou o botão '🏨 Hotel não oficial'; o voucher inteiro sai da conciliação por quarto/auditoria (e as pessoas dele do aviso 'sem Fechado'), vai para a pasta, e o Restaurar devolve o voucher inteiro. ANTERIOR: (·485) CONCILIAÇÃO WECANN — HOTÉIS NÃO OFICIAIS: no aviso 'Quarto no CSV sem voucher' (e na auditoria) o botão '🏨 Hotel não oficial' tira a pessoa da conciliação dos 3 hotéis oficiais e a leva para a nova pasta 'Hotéis não Oficiais' (abaixo de Template Enviado), onde ela é conferida contra o voucher de QUALQUER hotel (tem voucher? datas batem?) com ✅ Conciliado / ⚠️ pendente e ↩ Restaurar. Dado em appConfig.hoteisNaoOficiais, unido entre PCs por carimbo. ANTERIOR: (·484) MENU: (1) abrir OU fechar uma pasta com sub-pastas deixa o azul nela (fechar não passa mais a seleção para a tela aberta) — computador e celular. (2) Celular abre sem nenhuma pasta azul (nem o Control Desk); o azul aparece no primeiro toque. ANTERIOR: (·483) NOTAS PESSOAIS: (1) o quadro vazio 'Nenhuma nota avulsa…' saiu — sem nota avulsa, só aparece uma zona 'Solte aqui para tirar a nota da pasta' enquanto uma nota é arrastada. (2) A seção Notas fica sempre aberta (cabeçalho fixo, sem recolher). ANTERIOR: (·482) MENU: (1) 'Controle de Check-in' saiu de Minhas Tarefas e virou a sub-pasta 'Alertas Check-in' da Matriz Operacional, logo abaixo de Cias Aéreas (tela própria scr-checkin; mesmo dado appConfig.checkins). (2) Seção 'Controle Geral' removida de Minhas Tarefas (dado guardado intocado). (3) 'Minhas Tarefas' → 'Notas Pessoais'. (4) '＋ Adicionar evento' e '＋ Adicionar grupo' removidos. (5) WeCann Summit 2026 selecionada fica verde translúcida. (6) Clicar em WeCann seleciona Eventos (antes o azul pulava para o Control Desk). ANTERIOR: (·481) MENU: uma seleção só — com uma pasta principal selecionada (azul), o item da tela aberta e a pasta-mãe dela deixam de ficar azuis (computador e celular). ANTERIOR: (·480) MENU DESKTOP: clicar numa pasta principal (Voucher, Equipe, Comercial…) a deixa selecionada em azul; fechar ou navegar tira. ANTERIOR: (·479) MENU: 'Gerador de Voucher' virou 'Voucher' — pasta sem tela própria com as sub-pastas Gerador (o conteúdo que era da pasta; tela 'gerador') e Salvos (antes 'Vouchers Salvos'). Letícia continua vendo a pasta Voucher e as duas sub-pastas. ANTERIOR: (·478) MENU: 'Cabeça de Rede' 3px mais à esquerda (ajuste ótico — o ícone dela é mais estreito que os emojis das vizinhas e o vão antes do nome parecia maior). ANTERIOR: (·477) MENU: sub-pastas da Equipe alinhadas — os três ícones (Cabeça de Rede, Aniversários, Insights) numa caixa do mesmo tamanho, nomes começando no mesmo ponto. ANTERIOR: (·476) MENU: Equipe virou pasta sem tela própria com três sub-pastas — Cabeça de Rede (saiu do topo), Aniversários (o conteúdo que era da Equipe; id de tela 'equipe' mantido) e Insights, nessa ordem. ANTERIOR: (·475) CELULAR: o Hub sempre abre (e ao atualizar) com todas as pastas fechadas e o conteúdo recolhido — só a lista de pastas; a tela ativa volta com um toque. Desktop intocado. ANTERIOR: (·474) NÚCLEO COBRANÇA: o selo CPF/CNPJ ficava numa linha própria e desalinhava o campo CNPJ/CPF do campo Contato ao lado; agora fica na linha do rótulo, sem aumentar a altura. ANTERIOR: (·473) (1) CPF/CNPJ: selo ao lado do rótulo reconhece CPF (11 números, 048.545.379-73) ou CNPJ (14, 13.387.342/0001-58) e confere os dígitos (✓ / inválido); valor salvo antigo aparece formatado. (2) 'Núcleo de Cobrança' → 'Núcleo Cobrança'. (3) Celular: sub-pasta aberta laranja translúcido e a pasta principal azul, iguais ao desktop. ANTERIOR: (·472) MÁSCARAS QUE RESPEITAM O CURSOR: corrigir um dígito no meio do CNPJ jogava o cursor para o fim e embaralhava o número (13.387.342/0015-8); agora o cursor volta para depois do mesmo dígito (Cobrança e Licitação). + Telefone com máscara (48) 98429-9758 (fixo: (48) 3333-4444). ANTERIOR: (·471) NÚCLEO DE COBRANÇA: responsável vira lista (Ruth Alves, Diego Oliveira, Ana Maria, Hynaê Teston); CNPJ/CPF com pontos, barra e traço automáticos ao digitar; valor total (e o do recebimento) com máscara de moeda R$ 3.000,00 enquanto digita. ANTERIOR: (·470) NOVA PASTA 'NÚCLEO DE COBRANÇA' (logo abaixo de Licitação), só para a diretoria + Ruth Alves. Tabela de casos (status coloridos, prioridade, responsável, vencimento, dias de atraso, total/recebido/saldo, barra de evolução, próxima ação, faturas), KPIs, gráfico de recebido por mês, distribuição por status, saldo por faixa de atraso, filtros/busca/ordenação, exportar CSV. Página do caso: dados editáveis, 8 status coloridos, recebimentos (quitado/parcial automático), faturas anexadas com visualizador (PDF página a página), linha do tempo com anotações/contatos, mensagem de cobrança pronta e WhatsApp. União entre PCs campo a campo / item a item. ANTERIOR: (·469) CELULAR: TRILHA MÓVEL SEM TREMOR. (1) a margem do conteúdo não muda mais a cada quadro de rolagem: muda uma vez por aparição/sumiço, compensada por transform (o movimento é só transform); (2) resize só de altura (barra do Safari ao rolar) não reacopla nem zera a trilha; (3) folga 24px na mesma direção e nada liga enquanto a trilha aparece no lugar natural; ao voltar a essa faixa ela pousa com troca compensada. ANTERIOR: (·468) CELULAR: TRILHA MÓVEL. Nada fica mais grudado o tempo todo: rolando para baixo (arrastar para cima) a barra do topo, a pasta e as sub-pastas saem da tela junto com a página; rolando para cima (arrastar para baixo) a pasta e as sub-pastas voltam na hora, grudadas no topo, EMPURRANDO o conteúdo (margem --uv-empurra) em vez de cobri-lo. Desktop intocado. ANTERIOR: (·467) MENU DESKTOP: Gerador de Voucher e Equipe (pastas com tela própria E sub-pastas) agora recolhem as sub-pastas no segundo clique, como Comercial/Matriz/Eventos/Grupos. Pasta EM USO (a tela dela ou uma sub-pasta dela aberta) com a árvore aberta → fecha sem navegar; nos outros casos → abre e navega. Celular intocado. ANTERIOR: (·466) MENU. (1) Todo NOVO acesso (aba/janela nova, navegador reaberto, depois de sair) abre no Control Desk; só o F5 na mesma aba devolve a tela (tela guardada no sessionStorage da aba, uv_hub_screen_aba; o localStorage uv_hub_screen não decide mais o boot). (2) Desktop: TODAS as pastas fechadas no 1º acesso do dia na máquina; depois o que se abriu/fechou persiste, inclusive no F5 (localStorage uv_menu_arvores com o dia). (3) Desktop: contorno branco discreto nas pastas principais (não nas sub-pastas). (4) Desktop: com sub-pasta aberta, a pasta principal fica AZUL e a sub-pasta LARANJA bem transparente. Celular intocado. ANTERIOR: (·465) MURAL: LIXEIRA PAGINADA. Pedido: na lista de excluídos, só os 5 mais recentes na primeira tela; o resto em páginas 1, 2, 3… (‹ › + números; só aparece com mais de 5). Abrir a lixeira volta sempre para a página 1; devolver o último recado de uma página não a deixa vazia. ANTERIOR: (·464) MURAL: LIXEIRA SÓ DO NANDO. Pedido: devolver recado excluído é função exclusiva do administrador (Fernando Pires), não da diretoria. mrPodeRestaurar compara o NOME COMPLETO normalizado (não a regra tolerante de mrMesmaPessoa, que aceitaria 'Fernando' sozinho). Excluir (✕) continua com a diretoria. ANTERIOR: (·463) MURAL: LIXEIRA — DEVOLVER RECADO EXCLUÍDO. Pedido do Nando: como admin, devolver ao mural um recado já excluído. A exclusão sempre foi suave (del=1); agora a diretoria (mesma porta do ✕) tem o botão '🗑 Excluídos (N)' no canto do quadro → lista dos excluídos (autor, data, quem excluiu) com '↩ Devolver ao mural'. Devolver = del:0 + mts novo (vence a cópia excluída de outro PC na união). Excluir passou a carimbar mts/delEm/delPor em vez de sobrescrever ts — o recado devolvido volta no mesmo lugar e com a data original. + Ocupação: badge do plantonista (noite/fim de semana) com nome comprido vazava a tela entre ~1000–1024px → pode encolher/quebrar (achado rodando a regressão num domingo). ANTERIOR: (·462) LICITAÇÃO — DEMANDA AÉREA COMPLETA + DATAS DIGITADAS. Passagem aérea agora tem Trecho + Data e hora de ida + Data e hora de volta (dd/mm/aaaa hh:mm, só números, formata sozinho, hora opcional, data impossível e volta antes da ida recusadas) + Cia aérea; Hotel esconde esses campos. Nascimento virou campo digitado dd/mm/aaaa (não calendário). CORREÇÃO: no ·461 a tabela de tipos da demanda se chamava LIC_TIPOS e sobrescrevia a de tipos de ANEXO (miniatura sem imagem dizia ARQ) — renomeada para LIC_DEM_TIPOS. ANTERIOR: (·461) LICITAÇÃO: SINAL + PÁGINA DO PROCESSO COM DEMANDAS. Bolinha na coluna # (ao lado do ⤢) com menu Sem cor/Verde/Amarelo/Vermelho (campo f.sinal, união campo a campo). Clicar em qualquer ponto da linha abre a PÁGINA do processo (resumo + Demandas): ＋ Adicionar demanda (Passagem aérea ou Hotel; trecho/nome do hotel em fonte grande de título) e, em cada demanda, ＋ Adicionar pessoas (nome, nascimento, CPF com máscara e dígito verificador). r.dem entra na união (licMergeDem — sem isso a união apagava as demandas). Redesenho de fora não apaga formulário aberto. ⤢ e 'Editar dados do processo' seguem abrindo o formulário de dados. ANTERIOR: (·460) LICITAÇÃO: GRADE PROTEGIDA. Pedido do Nando: todas as colunas bloqueadas na página principal — clicar numa célula não edita, sem ＋ de anexar nem arrastar arquivo na grade; documento aberto pela grade abre só para ver (sem Remover). Editar SÓ abrindo o processo no ⤢ (formulário mantém tudo: campos, opções coloridas, anexos, remover, excluir). Aviso 🔒 no topo. ANTERIOR: (·459) PASTA LICITAÇÃO ABERTA A TODOS, MENOS À LETÍCIA ROSA. Pedido do
+var UV_BUILD_NUM = 488; // (·488) VENCIMENTO DO DOMÍNIO: pílula '🌐 Domínio · N dias' ao lado de 'Nuvem Conectada', só para o Fernando (mesmo critério do Backup). Verde > 60 dias, amarelo até 60, vermelho piscando até 30; aviso na tela uma vez por dia quando perto. Clique abre a lista (editar data, renovação automática, adicionar domínio — ex.: hubvma.com). Semente: hubultravel.com, 03/08/2027, renovação automática ligada. ANTERIOR: (·487) LICITAÇÃO ▸ PRIORIDADE: opções agora Alta (vermelho), Média (amarelo), Baixa (azul claro, nova) e Finalizado (verde). Registros antigos: Perdido → Alta, Cancelado → Média (lidos assim, sem reescrever). ANTERIOR: (·486) HOTÉIS NÃO OFICIAIS — O CONTRÁRIO TAMBÉM: 'Voucher no sistema sem quarto no CSV' (auditoria) ganhou o botão '🏨 Hotel não oficial'; o voucher inteiro sai da conciliação por quarto/auditoria (e as pessoas dele do aviso 'sem Fechado'), vai para a pasta, e o Restaurar devolve o voucher inteiro. ANTERIOR: (·485) CONCILIAÇÃO WECANN — HOTÉIS NÃO OFICIAIS: no aviso 'Quarto no CSV sem voucher' (e na auditoria) o botão '🏨 Hotel não oficial' tira a pessoa da conciliação dos 3 hotéis oficiais e a leva para a nova pasta 'Hotéis não Oficiais' (abaixo de Template Enviado), onde ela é conferida contra o voucher de QUALQUER hotel (tem voucher? datas batem?) com ✅ Conciliado / ⚠️ pendente e ↩ Restaurar. Dado em appConfig.hoteisNaoOficiais, unido entre PCs por carimbo. ANTERIOR: (·484) MENU: (1) abrir OU fechar uma pasta com sub-pastas deixa o azul nela (fechar não passa mais a seleção para a tela aberta) — computador e celular. (2) Celular abre sem nenhuma pasta azul (nem o Control Desk); o azul aparece no primeiro toque. ANTERIOR: (·483) NOTAS PESSOAIS: (1) o quadro vazio 'Nenhuma nota avulsa…' saiu — sem nota avulsa, só aparece uma zona 'Solte aqui para tirar a nota da pasta' enquanto uma nota é arrastada. (2) A seção Notas fica sempre aberta (cabeçalho fixo, sem recolher). ANTERIOR: (·482) MENU: (1) 'Controle de Check-in' saiu de Minhas Tarefas e virou a sub-pasta 'Alertas Check-in' da Matriz Operacional, logo abaixo de Cias Aéreas (tela própria scr-checkin; mesmo dado appConfig.checkins). (2) Seção 'Controle Geral' removida de Minhas Tarefas (dado guardado intocado). (3) 'Minhas Tarefas' → 'Notas Pessoais'. (4) '＋ Adicionar evento' e '＋ Adicionar grupo' removidos. (5) WeCann Summit 2026 selecionada fica verde translúcida. (6) Clicar em WeCann seleciona Eventos (antes o azul pulava para o Control Desk). ANTERIOR: (·481) MENU: uma seleção só — com uma pasta principal selecionada (azul), o item da tela aberta e a pasta-mãe dela deixam de ficar azuis (computador e celular). ANTERIOR: (·480) MENU DESKTOP: clicar numa pasta principal (Voucher, Equipe, Comercial…) a deixa selecionada em azul; fechar ou navegar tira. ANTERIOR: (·479) MENU: 'Gerador de Voucher' virou 'Voucher' — pasta sem tela própria com as sub-pastas Gerador (o conteúdo que era da pasta; tela 'gerador') e Salvos (antes 'Vouchers Salvos'). Letícia continua vendo a pasta Voucher e as duas sub-pastas. ANTERIOR: (·478) MENU: 'Cabeça de Rede' 3px mais à esquerda (ajuste ótico — o ícone dela é mais estreito que os emojis das vizinhas e o vão antes do nome parecia maior). ANTERIOR: (·477) MENU: sub-pastas da Equipe alinhadas — os três ícones (Cabeça de Rede, Aniversários, Insights) numa caixa do mesmo tamanho, nomes começando no mesmo ponto. ANTERIOR: (·476) MENU: Equipe virou pasta sem tela própria com três sub-pastas — Cabeça de Rede (saiu do topo), Aniversários (o conteúdo que era da Equipe; id de tela 'equipe' mantido) e Insights, nessa ordem. ANTERIOR: (·475) CELULAR: o Hub sempre abre (e ao atualizar) com todas as pastas fechadas e o conteúdo recolhido — só a lista de pastas; a tela ativa volta com um toque. Desktop intocado. ANTERIOR: (·474) NÚCLEO COBRANÇA: o selo CPF/CNPJ ficava numa linha própria e desalinhava o campo CNPJ/CPF do campo Contato ao lado; agora fica na linha do rótulo, sem aumentar a altura. ANTERIOR: (·473) (1) CPF/CNPJ: selo ao lado do rótulo reconhece CPF (11 números, 048.545.379-73) ou CNPJ (14, 13.387.342/0001-58) e confere os dígitos (✓ / inválido); valor salvo antigo aparece formatado. (2) 'Núcleo de Cobrança' → 'Núcleo Cobrança'. (3) Celular: sub-pasta aberta laranja translúcido e a pasta principal azul, iguais ao desktop. ANTERIOR: (·472) MÁSCARAS QUE RESPEITAM O CURSOR: corrigir um dígito no meio do CNPJ jogava o cursor para o fim e embaralhava o número (13.387.342/0015-8); agora o cursor volta para depois do mesmo dígito (Cobrança e Licitação). + Telefone com máscara (48) 98429-9758 (fixo: (48) 3333-4444). ANTERIOR: (·471) NÚCLEO DE COBRANÇA: responsável vira lista (Ruth Alves, Diego Oliveira, Ana Maria, Hynaê Teston); CNPJ/CPF com pontos, barra e traço automáticos ao digitar; valor total (e o do recebimento) com máscara de moeda R$ 3.000,00 enquanto digita. ANTERIOR: (·470) NOVA PASTA 'NÚCLEO DE COBRANÇA' (logo abaixo de Licitação), só para a diretoria + Ruth Alves. Tabela de casos (status coloridos, prioridade, responsável, vencimento, dias de atraso, total/recebido/saldo, barra de evolução, próxima ação, faturas), KPIs, gráfico de recebido por mês, distribuição por status, saldo por faixa de atraso, filtros/busca/ordenação, exportar CSV. Página do caso: dados editáveis, 8 status coloridos, recebimentos (quitado/parcial automático), faturas anexadas com visualizador (PDF página a página), linha do tempo com anotações/contatos, mensagem de cobrança pronta e WhatsApp. União entre PCs campo a campo / item a item. ANTERIOR: (·469) CELULAR: TRILHA MÓVEL SEM TREMOR. (1) a margem do conteúdo não muda mais a cada quadro de rolagem: muda uma vez por aparição/sumiço, compensada por transform (o movimento é só transform); (2) resize só de altura (barra do Safari ao rolar) não reacopla nem zera a trilha; (3) folga 24px na mesma direção e nada liga enquanto a trilha aparece no lugar natural; ao voltar a essa faixa ela pousa com troca compensada. ANTERIOR: (·468) CELULAR: TRILHA MÓVEL. Nada fica mais grudado o tempo todo: rolando para baixo (arrastar para cima) a barra do topo, a pasta e as sub-pastas saem da tela junto com a página; rolando para cima (arrastar para baixo) a pasta e as sub-pastas voltam na hora, grudadas no topo, EMPURRANDO o conteúdo (margem --uv-empurra) em vez de cobri-lo. Desktop intocado. ANTERIOR: (·467) MENU DESKTOP: Gerador de Voucher e Equipe (pastas com tela própria E sub-pastas) agora recolhem as sub-pastas no segundo clique, como Comercial/Matriz/Eventos/Grupos. Pasta EM USO (a tela dela ou uma sub-pasta dela aberta) com a árvore aberta → fecha sem navegar; nos outros casos → abre e navega. Celular intocado. ANTERIOR: (·466) MENU. (1) Todo NOVO acesso (aba/janela nova, navegador reaberto, depois de sair) abre no Control Desk; só o F5 na mesma aba devolve a tela (tela guardada no sessionStorage da aba, uv_hub_screen_aba; o localStorage uv_hub_screen não decide mais o boot). (2) Desktop: TODAS as pastas fechadas no 1º acesso do dia na máquina; depois o que se abriu/fechou persiste, inclusive no F5 (localStorage uv_menu_arvores com o dia). (3) Desktop: contorno branco discreto nas pastas principais (não nas sub-pastas). (4) Desktop: com sub-pasta aberta, a pasta principal fica AZUL e a sub-pasta LARANJA bem transparente. Celular intocado. ANTERIOR: (·465) MURAL: LIXEIRA PAGINADA. Pedido: na lista de excluídos, só os 5 mais recentes na primeira tela; o resto em páginas 1, 2, 3… (‹ › + números; só aparece com mais de 5). Abrir a lixeira volta sempre para a página 1; devolver o último recado de uma página não a deixa vazia. ANTERIOR: (·464) MURAL: LIXEIRA SÓ DO NANDO. Pedido: devolver recado excluído é função exclusiva do administrador (Fernando Pires), não da diretoria. mrPodeRestaurar compara o NOME COMPLETO normalizado (não a regra tolerante de mrMesmaPessoa, que aceitaria 'Fernando' sozinho). Excluir (✕) continua com a diretoria. ANTERIOR: (·463) MURAL: LIXEIRA — DEVOLVER RECADO EXCLUÍDO. Pedido do Nando: como admin, devolver ao mural um recado já excluído. A exclusão sempre foi suave (del=1); agora a diretoria (mesma porta do ✕) tem o botão '🗑 Excluídos (N)' no canto do quadro → lista dos excluídos (autor, data, quem excluiu) com '↩ Devolver ao mural'. Devolver = del:0 + mts novo (vence a cópia excluída de outro PC na união). Excluir passou a carimbar mts/delEm/delPor em vez de sobrescrever ts — o recado devolvido volta no mesmo lugar e com a data original. + Ocupação: badge do plantonista (noite/fim de semana) com nome comprido vazava a tela entre ~1000–1024px → pode encolher/quebrar (achado rodando a regressão num domingo). ANTERIOR: (·462) LICITAÇÃO — DEMANDA AÉREA COMPLETA + DATAS DIGITADAS. Passagem aérea agora tem Trecho + Data e hora de ida + Data e hora de volta (dd/mm/aaaa hh:mm, só números, formata sozinho, hora opcional, data impossível e volta antes da ida recusadas) + Cia aérea; Hotel esconde esses campos. Nascimento virou campo digitado dd/mm/aaaa (não calendário). CORREÇÃO: no ·461 a tabela de tipos da demanda se chamava LIC_TIPOS e sobrescrevia a de tipos de ANEXO (miniatura sem imagem dizia ARQ) — renomeada para LIC_DEM_TIPOS. ANTERIOR: (·461) LICITAÇÃO: SINAL + PÁGINA DO PROCESSO COM DEMANDAS. Bolinha na coluna # (ao lado do ⤢) com menu Sem cor/Verde/Amarelo/Vermelho (campo f.sinal, união campo a campo). Clicar em qualquer ponto da linha abre a PÁGINA do processo (resumo + Demandas): ＋ Adicionar demanda (Passagem aérea ou Hotel; trecho/nome do hotel em fonte grande de título) e, em cada demanda, ＋ Adicionar pessoas (nome, nascimento, CPF com máscara e dígito verificador). r.dem entra na união (licMergeDem — sem isso a união apagava as demandas). Redesenho de fora não apaga formulário aberto. ⤢ e 'Editar dados do processo' seguem abrindo o formulário de dados. ANTERIOR: (·460) LICITAÇÃO: GRADE PROTEGIDA. Pedido do Nando: todas as colunas bloqueadas na página principal — clicar numa célula não edita, sem ＋ de anexar nem arrastar arquivo na grade; documento aberto pela grade abre só para ver (sem Remover). Editar SÓ abrindo o processo no ⤢ (formulário mantém tudo: campos, opções coloridas, anexos, remover, excluir). Aviso 🔒 no topo. ANTERIOR: (·459) PASTA LICITAÇÃO ABERTA A TODOS, MENOS À LETÍCIA ROSA. Pedido do
 // Nando, trocando a regra do ·458 (só diretoria + Maria Eduarda). A exceção reaproveita a trava do
 // ·457 (uvSoVoucher) em vez de criar outra lista com o nome dela — uma segunda cópia do mesmo fato
 // ficaria para trás no dia em que a trava do voucher mudar. O portão em hubGoScreen continua: para
@@ -9263,6 +9263,7 @@ async function carregarConfig(){
       appConfig.vinculos={...(local.vinculos||{}), ...(c.vinculos||{})};
       // (·485) Hotéis não Oficiais: união por carimbo (tem Restaurar, então não é soma pura)
       appConfig.hoteisNaoOficiais=hnoMesclar(local.hoteisNaoOficiais, c.hoteisNaoOficiais);
+      appConfig.uvDominios=hnoMesclar(local.uvDominios, c.uvDominios);   // (·488) vencimento de domínio — por carimbo
       // BAIXA DE QUARTOS (conciliação WeCann): decisão PERMANENTE. Une local+nuvem por
       // assinatura (ID+nomes) E pelo ID da reserva. Assim, um quarto conferido NUNCA
       // volta para a lista "sem voucher" ao reimportar o CSV — nem entre PCs diferentes.
@@ -9759,6 +9760,7 @@ async function salvarConfig(){
     // acima já têm — une nuvem+local, nunca apaga uma escolha já feita.
     appConfig.vinculos={...(cloud.vinculos||{}), ...(appConfig.vinculos||{})};
     appConfig.hoteisNaoOficiais=hnoMesclar(cloud.hoteisNaoOficiais, appConfig.hoteisNaoOficiais);   // (·485)
+    appConfig.uvDominios=hnoMesclar(cloud.uvDominios, appConfig.uvDominios);   // (·488)
     // BAIXA DE QUARTOS: mesma proteção permanente (une nuvem+local, nunca apaga).
     // Impede que um PC com estado antigo sobrescreva/ressuscite uma baixa já feita.
     appConfig.quartosConferidos  ={...(cloud.quartosConferidos  ||{}), ...(appConfig.quartosConferidos  ||{})};
@@ -16752,6 +16754,7 @@ init();
        hora. Este ponto roda no boot E a cada ressincronização da sessão. */
     try{ if(typeof window.licAtualizarMenu==='function') window.licAtualizarMenu(); }catch(e){}   // (·458)
     try{ if(typeof window.cobAtualizarMenu==='function') window.cobAtualizarMenu(); }catch(e){}   // (·470)
+    try{ if(typeof window.uvDomAtualizar==='function') window.uvDomAtualizar(); }catch(e){}       // (·488)
     try{
       var soV=(typeof window.uvSoVoucher==='function') && window.uvSoVoucher();
       document.body.classList.toggle('uv-so-voucher', !!soV);
@@ -43945,5 +43948,174 @@ body:not(.dark) #scr-cobranca .cob-st.on{color:#fff}
 })();
 </script>
 
+<style>
+/* ═════ (·488) CONTROLE DE VENCIMENTO DO DOMÍNIO — só o Fernando ═════ */
+#uvDomBtn{display:inline-flex;align-items:center;gap:6px;border-radius:var(--raio-sm);padding:3px 9px;min-height:20px;font-size:11px;font-weight:600;font-family:'Inter',inherit;white-space:nowrap;cursor:pointer;border:1px solid rgba(255,255,255,.16);background:#16212E;color:#E8EEF4;margin-right:8px;line-height:1.2}
+#uvDomBtn .uvd-dot{width:7px;height:7px;border-radius:50%;flex:0 0 auto}
+#uvDomBtn.uvd-ok .uvd-dot{background:#35D07F}
+#uvDomBtn.uvd-atencao{border-color:rgba(245,196,0,.55)} #uvDomBtn.uvd-atencao .uvd-dot{background:#f5c400}
+#uvDomBtn.uvd-urgente{border-color:rgba(255,100,100,.7);color:#FFB4B4} #uvDomBtn.uvd-urgente .uvd-dot{background:#ff5a5a;animation:pulse 1s infinite}
+#uvDomBtn:hover{background:#1d2b3b}
+body:not(.dark) #uvDomBtn{background:#fff;color:#1f2a37;border-color:#d5dde6}
+#uvDomPop{position:fixed;z-index:9999;width:380px;max-width:calc(100vw - 24px);background:#111c28;border:1px solid #2E4460;border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.55);color:#E8EEF4;font-family:'Inter',inherit;overflow:hidden}
+#uvDomPop .uvd-cab{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #22344a;font-weight:800;font-size:13.5px}
+#uvDomPop .uvd-x{background:none;border:0;color:#9FB0C8;font-size:16px;cursor:pointer}
+#uvDomPop .uvd-lista{padding:10px 12px;display:flex;flex-direction:column;gap:8px;max-height:60vh;overflow:auto}
+#uvDomPop .uvd-item{border:1px solid #22344a;border-radius:10px;padding:10px 11px;background:rgba(255,255,255,.02)}
+#uvDomPop .uvd-item.uvd-atencao{border-color:rgba(245,196,0,.45)} #uvDomPop .uvd-item.uvd-urgente{border-color:rgba(255,100,100,.6)}
+#uvDomPop .uvd-nome{font-weight:800;font-size:13.5px;display:flex;justify-content:space-between;gap:8px;align-items:center}
+#uvDomPop .uvd-dias{font-size:11px;font-weight:800;padding:2px 8px;border-radius:99px;white-space:nowrap}
+#uvDomPop .uvd-ok .uvd-dias{background:rgba(53,208,127,.14);color:#5FE0A0}
+#uvDomPop .uvd-atencao .uvd-dias{background:rgba(245,196,0,.16);color:#FFD84D}
+#uvDomPop .uvd-urgente .uvd-dias{background:rgba(255,90,90,.16);color:#FF8A8A}
+#uvDomPop .uvd-det{font-size:12px;color:#9FB0C8;margin-top:4px;line-height:1.5}
+#uvDomPop .uvd-acoes{display:flex;gap:6px;margin-top:8px}
+#uvDomPop button.uvd-b{background:rgba(127,178,245,.12);color:#7FB2F5;border:1px solid rgba(127,178,245,.35);border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit}
+#uvDomPop button.uvd-b.uvd-del{background:rgba(255,90,90,.1);color:#FF8A8A;border-color:rgba(255,90,90,.35)}
+#uvDomPop button.uvd-b.uvd-ok2{background:#1f9d55;color:#fff;border-color:#27c36b}
+#uvDomPop .uvd-form{display:flex;flex-direction:column;gap:7px;margin-top:4px}
+#uvDomPop .uvd-form label{font-size:11px;color:#9FB0C8;font-weight:700;display:flex;flex-direction:column;gap:3px}
+#uvDomPop .uvd-form input[type=text],#uvDomPop .uvd-form input[type=date]{background:#0b141e;border:1px solid #2E4460;border-radius:7px;color:#E8EEF4;padding:6px 8px;font-size:12.5px;font-family:inherit}
+#uvDomPop .uvd-form .uvd-chk{flex-direction:row;align-items:center;gap:6px;font-size:12px;color:#E8EEF4}
+#uvDomPop .uvd-rodape{padding:10px 12px;border-top:1px solid #22344a;display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11px;color:#7C8AA5}
+</style>
+<script>
+/* ═════ (·488) CONTROLE DE VENCIMENTO DO DOMÍNIO ═════
+   Pedido do Nando: no canto superior direito, ao lado de "Nuvem Conectada",
+   SÓ para ele, um acompanhamento do vencimento do domínio que avise quando a
+   data estiver perto. Quem vê: o mesmo critério do Backup (bkSouAdmin =
+   "Fernando Pires" pelo nome), não o perfil admin — admin é cargo.
+   DADO: appConfig.uvDominios = { id: {dominio, vence:'AAAA-MM-DD', auto:bool, ts, del} },
+   unido entre PCs por carimbo (hnoMesclar). Enquanto ninguém editar, vale a
+   semente com o que o painel da Cloudflare mostrou em 03/10/2026:
+   hubultravel.com — vence 03/08/2027, renovação automática ligada.
+   AVISO: a pílula muda de cor (verde > 60 dias, amarelo até 60, vermelho até
+   30 e piscando) e, uma vez por dia, um aviso na tela quando faltar 60 dias ou
+   menos (30 se a renovação automática estiver ligada). */
+(function(){
+  var SEMENTE={ hubultravel:{ dominio:'hubultravel.com', vence:'2027-08-03', auto:true, ts:1, del:0 } };
+  var aberto=false, editando='';
+  function pode(){ try{ return typeof window.bkSouAdmin==='function' && window.bkSouAdmin(); }catch(e){ return false; } }
+  function esc(v){ return (v==null?'':String(v)).replace(/[&<>"]/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function mapa(){
+    var m=(typeof appConfig!=='undefined' && appConfig && appConfig.uvDominios && typeof appConfig.uvDominios==='object') ? appConfig.uvDominios : null;
+    return (m && Object.keys(m).length) ? m : SEMENTE;
+  }
+  function gravavel(){
+    if(!appConfig.uvDominios || typeof appConfig.uvDominios!=='object' || !Object.keys(appConfig.uvDominios).length)
+      appConfig.uvDominios=JSON.parse(JSON.stringify(SEMENTE));
+    return appConfig.uvDominios;
+  }
+  function hojeISO(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+  function dias(iso){
+    var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(iso||''); if(!m) return null;
+    var a=new Date(+m[1],+m[2]-1,+m[3]), h=new Date(); h=new Date(h.getFullYear(),h.getMonth(),h.getDate());
+    return Math.round((a-h)/86400000);
+  }
+  function fmt(iso){ var a=(iso||'').split('-'); return a.length===3? a[2]+'/'+a[1]+'/'+a[0] : '—'; }
+  function nivel(d){ if(d==null) return 'ok'; if(d<=30) return 'urgente'; if(d<=60) return 'atencao'; return 'ok'; }
+  function txtDias(d){ if(d==null) return 'sem data'; if(d<0) return 'VENCIDO há '+(-d)+' dia(s)'; if(d===0) return 'vence HOJE'; if(d===1) return 'vence amanhã'; return d+' dias'; }
+  function lista(){
+    var m=mapa();
+    return Object.keys(m).map(function(k){ var x=m[k]; return x && !x.del ? {id:k, dominio:x.dominio||'', vence:x.vence||'', auto:!!x.auto, d:dias(x.vence)} : null; })
+      .filter(Boolean).sort(function(a,b){ return (a.d==null?1e9:a.d)-(b.d==null?1e9:b.d); });
+  }
+  window.uvDomLista=lista;
+  function avisoDoDia(L){
+    var alvo=L.filter(function(x){ return x.d!=null && x.d<=(x.auto?30:60); })[0]; if(!alvo) return;
+    var chave='uv_dom_aviso_'+hojeISO();
+    try{ if(localStorage.getItem(chave)) return; localStorage.setItem(chave,'1'); }catch(e){}
+    try{ toast('🌐 '+alvo.dominio+' — '+txtDias(alvo.d)+' (vencimento '+fmt(alvo.vence)+')'+(alvo.auto?' · renovação automática ligada: confira o cartão na Cloudflare':' · renovação automática DESLIGADA'), alvo.d<=30?'err':'info'); }catch(e){}
+  }
+  function pilula(){
+    var cloud=document.getElementById('cloud'); if(!cloud) return null;
+    var b=document.getElementById('uvDomBtn');
+    if(!b){ b=document.createElement('button'); b.type='button'; b.id='uvDomBtn'; cloud.parentNode.insertBefore(b, cloud); }
+    return b;
+  }
+  function atualizar(){
+    var b=document.getElementById('uvDomBtn');
+    /* no celular o topo é uma GRADE de duas colunas (·436/·442) e um terceiro
+       filho — mesmo escondido — muda o :nth-child que posiciona a nuvem e o
+       Sair. Por isso lá ele nem entra no documento; o aviso do dia continua. */
+    var celular=window.innerWidth<=980;
+    if(!pode() || celular){ if(b) b.remove(); fechar(); if(pode()) avisoDoDia(lista()); return; }
+    b=pilula(); if(!b) return;
+    var L=lista(), p=L[0];
+    var nv=p?nivel(p.d):'ok';
+    b.className='uvd-'+nv;
+    b.title=p ? ('Vencimento do domínio — '+p.dominio+': '+fmt(p.vence)+' ('+txtDias(p.d)+'). Clique para ver e editar.') : 'Vencimento do domínio';
+    b.innerHTML='<span class="uvd-dot"></span><span>🌐 '+(p? (p.d!=null && p.d<0 ? 'Domínio vencido' : 'Domínio · '+txtDias(p.d)) : 'Domínio')+'</span>';
+    if(aberto) desenharPop();
+    avisoDoDia(L);
+  }
+  window.uvDomAtualizar=atualizar;
+  function fechar(){ aberto=false; editando=''; var p=document.getElementById('uvDomPop'); if(p) p.remove(); }
+  function desenharPop(){
+    var pop=document.getElementById('uvDomPop');
+    if(!pop){ pop=document.createElement('div'); pop.id='uvDomPop'; document.body.appendChild(pop); }
+    var L=lista();
+    var itens=L.map(function(x){
+      if(editando===x.id) return form(x);
+      var nv=nivel(x.d);
+      return '<div class="uvd-item uvd-'+nv+'"><div class="uvd-nome"><span>'+esc(x.dominio)+'</span><span class="uvd-dias">'+esc(txtDias(x.d))+'</span></div>'
+        +'<div class="uvd-det">Vence em <b>'+esc(fmt(x.vence))+'</b> · renovação automática <b>'+(x.auto?'ligada':'DESLIGADA')+'</b>'
+        +(x.auto?'<br>A Cloudflare cobra sozinha no cartão cadastrado — mantenha-o válido.':'<br>⚠️ Sem renovação automática: renove manualmente antes da data.')+'</div>'
+        +'<div class="uvd-acoes"><button type="button" class="uvd-b" data-uvd-editar="'+esc(x.id)+'">✏️ Editar</button>'
+        +'<button type="button" class="uvd-b uvd-del" data-uvd-apagar="'+esc(x.id)+'">Remover</button></div></div>';
+    }).join('');
+    if(editando==='__novo') itens+=form({id:'__novo', dominio:'', vence:'', auto:true});
+    pop.innerHTML='<div class="uvd-cab"><span>🌐 Vencimento dos domínios</span><button type="button" class="uvd-x" data-uvd-fechar title="Fechar">✕</button></div>'
+      +'<div class="uvd-lista">'+(itens||'<div class="uvd-det">Nenhum domínio cadastrado.</div>')+'</div>'
+      +'<div class="uvd-rodape"><span>Aviso: amarelo a 60 dias · vermelho a 30</span>'+(editando?'':'<button type="button" class="uvd-b" data-uvd-novo>＋ Adicionar domínio</button>')+'</div>';
+    var b=document.getElementById('uvDomBtn');
+    if(b){ var r=b.getBoundingClientRect(); pop.style.top=(r.bottom+8)+'px'; pop.style.left=Math.max(12, Math.min(window.innerWidth-pop.offsetWidth-12, r.right-pop.offsetWidth))+'px'; }
+  }
+  function form(x){
+    return '<div class="uvd-item"><div class="uvd-form">'
+      +'<label>Domínio<input type="text" id="uvdDom" value="'+esc(x.dominio)+'" placeholder="ex.: hubvma.com"></label>'
+      +'<label>Vence em<input type="date" id="uvdVence" value="'+esc(x.vence)+'"></label>'
+      +'<label class="uvd-chk"><input type="checkbox" id="uvdAuto"'+(x.auto?' checked':'')+'> Renovação automática ligada</label>'
+      +'<div class="uvd-acoes"><button type="button" class="uvd-b uvd-ok2" data-uvd-salvar="'+esc(x.id)+'">Salvar</button><button type="button" class="uvd-b" data-uvd-cancelar>Cancelar</button></div>'
+      +'<div class="uvd-det" id="uvdErro"></div></div></div>';
+  }
+  function salvar(id){
+    var dom=(document.getElementById('uvdDom').value||'').trim().toLowerCase().replace(/^https?:\/\//,'').replace(/\/.*$/,'');
+    var ve=(document.getElementById('uvdVence').value||'').trim(), au=!!document.getElementById('uvdAuto').checked;
+    var er=document.getElementById('uvdErro');
+    if(!dom || dom.indexOf('.')<0){ er.textContent='Informe o domínio (ex.: hubvma.com).'; return; }
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(ve)){ er.textContent='Informe a data de vencimento.'; return; }
+    var m=gravavel(), k=(id==='__novo') ? dom.replace(/[^a-z0-9]/g,'') : id;
+    m[k]={ dominio:dom, vence:ve, auto:au, ts:Date.now(), del:0 };
+    editando=''; try{ salvarConfig(); }catch(e){}
+    atualizar(); try{ toast('Vencimento de '+dom+' salvo 🌐','ok'); }catch(e){}
+  }
+  document.addEventListener('click', function(e){
+    var t=e.target; if(!t || !t.closest) return;
+    if(t.closest('#uvDomBtn')){ if(aberto) fechar(); else { aberto=true; desenharPop(); } return; }
+    var pop=document.getElementById('uvDomPop'); if(!pop) return;
+    if(!pop.contains(t)){ fechar(); return; }
+    var el;
+    if(t.closest('[data-uvd-fechar]')){ fechar(); return; }
+    if(t.closest('[data-uvd-novo]')){ editando='__novo'; desenharPop(); return; }
+    if(t.closest('[data-uvd-cancelar]')){ editando=''; desenharPop(); return; }
+    if((el=t.closest('[data-uvd-editar]'))){ editando=el.getAttribute('data-uvd-editar'); desenharPop(); return; }
+    if((el=t.closest('[data-uvd-salvar]'))){ salvar(el.getAttribute('data-uvd-salvar')); return; }
+    if((el=t.closest('[data-uvd-apagar]'))){
+      var id=el.getAttribute('data-uvd-apagar'), m=gravavel(), x=m[id]; if(!x) return;
+      if(!confirm('Parar de acompanhar o vencimento de '+x.dominio+'?')) return;
+      x.del=1; x.ts=Date.now(); try{ salvarConfig(); }catch(e2){} atualizar(); return;
+    }
+  });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape' && aberto) fechar(); });
+  /* a pílula precisa do login (quem é) e da configuração (as datas): confere a
+     cada 30s — barato, e cobre a virada do dia sem depender de outro evento */
+  function ciclo(){ try{ atualizar(); }catch(e){} }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', function(){ setTimeout(ciclo,1500); });
+  else setTimeout(ciclo,1500);
+  setInterval(ciclo, 30000);
+  window.addEventListener('resize', function(){ clearTimeout(ciclo._t); ciclo._t=setTimeout(ciclo,200); });
+})();
+</script>
 </body>
 </html>
