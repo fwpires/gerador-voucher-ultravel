@@ -4763,6 +4763,8 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
         <div class="nav-children show" data-tree-body="gerador">
           <button class="nav-item nav-sub" data-screen="gerador"><span>Gerador</span></button>
           <button class="nav-item nav-sub" data-screen="vouchers"><span>Salvos</span></button>
+          <!-- (·507) VMA: Voucher ▸ Anexados (só aparece na VMA) -->
+          <button class="nav-item nav-sub" data-screen="anexados"><span>Anexados</span></button>
         </div>
 
         <!-- (·476) Equipe virou pasta SEM tela própria (como Comercial): o conteúdo dela foi para a sub-pasta Aniversários, e a Cabeça de Rede entrou como sub-pasta -->
@@ -5260,6 +5262,10 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
       <section class="screen" id="scr-checkin">
         <div id="ciTelaRoot"></div>
       </section>
+      <!-- (·507) VMA ▸ Voucher ▸ Anexados -->
+      <section class="screen" id="scr-anexados">
+        <div id="vxaRoot"></div>
+      </section>
 
       <section class="screen" id="scr-csdi">
         <div id="csdiWrap"></div>
@@ -5598,6 +5604,7 @@ function logAreaMenu(a){ return LOG_AREA_MENU[a] || a; }
 var LOG_AREAS_FIXAS=['Matriz Operacional › Fornecedores Online','Matriz Operacional › Fornecedores Offline',
   'Matriz Operacional › Clientes','Matriz Operacional › Cartões de Crédito','Matriz Operacional › Cias Aéreas',
   'Matriz Operacional › Alertas Check-in','Comercial › Ações Comerciais','Comercial › Prospecção','Comercial › CRM'];
+try{ if(window.UV_EMP==='vma') LOG_AREAS_FIXAS.unshift('Voucher › Anexados'); }catch(e){}   /* (·507) */
 function logArea(tipo, dados){
   if(dados && dados.area) return logAreaMenu(dados.area);
   return logAreaMenu(LOG_AREA_POR_TIPO[tipo] || 'Outros');
@@ -6152,6 +6159,7 @@ window.uvTelaPermitida=function(scr){
   /* (·492) VMA: o que a VMA não tem nesta fase (Nando, 02-03/10) — Dashboard, Voucher,
      Matriz Operacional (menos Alertas Check-in), Licitação, Núcleo Cobrança — e o que é
      da operação da Ultravel dentro de Eventos e Grupos (WeCann, Imersão CSDI) */
+  if(scr==='anexados') return window.UV_EMP==='vma';   /* (·507) Anexados é só da VMA */
   if(window.UV_EMP==='vma' && UV_VMA_FORA[scr]) return false;
   try{ if(window.uvSoVoucher()) return !!UV_SO_VOUCHER_TELAS[scr]; }catch(e){}
   /* (·458) Licitação: portão próprio (·459: todos, menos quem só vê o voucher). Esconder o item do menu
@@ -6219,7 +6227,7 @@ window.uvTelaPermitida=function(scr){
   };
 })();
 
-var UV_BUILD_NUM = 506; // (·506) OCUPAÇÃO ULTRAVEL → VMA (Fernando, Diego, Juliana, Ghabriella): o que marcam na Ultravel aparece na VMA traduzido, em duas linhas centralizadas — Gestão Interna → "Interno / Ultravel"; cliente, Prospecção e demais → "Em Atendimento / Ultravel"; caixa nova roxa "Voe Mais Alto" (só os 4, só na Ultravel, cliente opcional) → "Atendimento VMA / cliente"; Ausente e Indisponível iguais. Espelho travado no Hub que recebe. VMA → Ultravel (Juliana/Ghabriella) passa a chegar como "Voe Mais Alto" (vindo da VMA). Worker ·506 faz o espelho nos dois sentidos sem pingue-pongue. ANTERIOR: (·505) ESCALA DE PLANTÕES DA VMA: grupo Nando, Diego, Juliana e Ghabi (Ana e Hynaê fora da VMA). "Quem manda é a Ultravel": se Nando/Juliana/Ghabi estão no plantão da Ultravel (escala efetiva, com as trocas), estão no da VMA no mesmo dia/fim de semana — travado na tela; os demais plantões seguem distribuição justa entre os 4 (Diego inclusive nos fins de semana), calculada da escala-padrão, a partir de 05/10/2026. As trocas da Ultravel chegam por /api/vma/escala-ultravel (worker ·505). ANTERIOR: (·504) DIRETORIA NA OCUPAÇÃO DA VMA (servidor, worker ·504: /api/vma/equipe inclui Fernando, Diego, Ana Maria e Hynaê antes da Juliana e da Ghabriella). Na tela: como na Ultravel, a diretoria aparece no painel mas NÃO entra no sorteio do atendente da vez nem na contagem de ausência da equipe de vendas (papel "vendas" no uvEquipeEmp). O espelho VMA→Ultravel segue só da Juliana e da Ghabriella. ANTERIOR: (·503) LOG DA MATRIZ E DO COMERCIAL COMPLETO: a lista de áreas do 📋 Log mostra SEMPRE todas as sub-pastas da Matriz Operacional e do Comercial (com a contagem, mesmo zero). Novos registros: Alertas Check-in (agendar com passageiros, excluir, dar baixa — antes ia como "Minhas Tarefas"; os antigos são remapeados), reação em Ações Comerciais, reordenar Fornecedores Online. Rótulos de tipo para cartão/check-in/CRM/prospecção. Cias Aéreas é só consulta (nada a registrar). ANTERIOR: (·502) AUDITORIA MATRIZ/COMERCIAL: (1) se o cofre (·500) não carrega — ex.: Worker antigo — aparece um aviso vermelho dizendo que os dados protegidos não carregaram e que NADA foi apagado (antes a tela mostrava só os registros editados pela tela, parecendo exclusão: Matriz › Clientes com 3 de 40). (2) Log: área vira o caminho do menu ("Matriz Operacional › Clientes", "Comercial › CRM"…), também nos registros antigos. (3) CRM ganhou log em tudo: card criado/editado/movido/excluído, coluna criada/renomeada/excluída (com os cards arquivados junto), Kanban renomeado. ANTERIOR: (·501) LOGO ALINHADA COM O MENU: no computador a logo (Ultravel e VMA) andou 10px para a direita e começa exatamente na borda esquerda das pastas do menu. Celular intocado. ANTERIOR: (·500) O COFRE — DADOS SENSÍVEIS FORA DO ARQUIVO PÚBLICO: equipe (CPF, nascimento, telefone, e-mail pessoal, endereço), os 18 cartões de crédito (número, validade, CVV), passageiros/vistos da Imersão CSDI + 8 PDFs (passaporte, ficha, visto), ~1.400 contatos de Prospecção, clientes corporativos, fornecedores, Cabeça de Rede e as sementes do Controle Geral/Gestão CSDI saíram do index.html e moram no Worker (rota /api/cofre e /api/cofre/doc — só conta da Ultravel logada; nunca VMA, nunca Letícia). Os módulos leem os mesmos "potes" (window.uvCofre), preenchidos no lugar quando o cofre chega. Comentários com CPF/cartão/passaporte/telefone reais mascarados. ANTERIOR: (·499) VMA — EQUIPE AUTOMÁTICA + ESPELHO DE OCUPAÇÃO: a equipe da VMA (Ocupação, escala, listas) vem sozinha das CONTAS — toda conta com empresa VMA + Juliana e Ghabriella (servidor /api/vma/equipe; guardada na máquina e conferida ao abrir e a cada 5 min; mudou → recarrega uma vez, coberta). TI e Financeiro (listas de função única) ficam vazias na VMA. Servidor (worker ·499): o que Juliana/Ghabriella marcam na Ocupação da VMA aparece igual na da Ultravel, bolinha a bolinha (vence a mudança mais nova); o contrário não. ANTERIOR: (·498) AÇÕES COMERCIAIS — UMA ABERTURA BASTA: o modo de teste do ·351 (AC_NOTIF_ADMIN_TUDO) estava ligado e fazia o admin ser avisado das PRÓPRIAS ações (responder, reagir, criar tópico), com a baixa suspensa até sair e reabrir o card — por isso o Nando precisava entrar duas vezes. Desligado: o admin segue a regra de todos (avisado só do que os outros fazem). Mesmo interruptor do Insights. ANTERIOR: (·497) FAVICON VMA COM CONTORNO: no tema claro o "b" branco sumia — contorno preto fino e sutil (≈2px em 64px, 80% de opacidade) só em volta das partes brancas (o b e as hastes); bolinhas sem contorno; fundo continua transparente. ANTERIOR: (·496) FAVICON VMA SEM FUNDO: pedido do Nando — tirado o quadrado grafite; ícone com fundo transparente, recortado rente e ocupando a altura inteira do quadro (64px; 180px no iPhone). ANTERIOR: (·495) SEM PISCAR A ULTRAVEL: ao entrar no Hub VMA aparecia por milésimos a cara da Ultravel (o arquivo de ~9MB é pintado aos pedaços e a troca para a VMA roda no fim do <body>). Agora, na VMA, a página nasce coberta (fundo grafite, <body> invisível) e só aparece no DOMContentLoaded, já toda VMA; o título da aba também já nasce "Hub VMA". Ultravel intocado. ANTERIOR: (·494) ADMIN PELO hubvma.com: conta da Ultravel com acesso à VMA (podeVerVma) que abre pelo hubvma.com fica no Hub VMA (antes era mandada de volta ao hubultravel.com); sem seletor nesse endereço (a página é sempre VMA). Quem chega ao hubvma.com é decidido no Cloudflare Access (equipe VMA de fora + Fernando). Conta sem acesso à VMA continua sendo levada ao hubultravel.com. ANTERIOR: (·493) FAVICON VMA: na VMA (hubvma.com ou seletor) o ícone da aba e dos favoritos vira o ícone da VMA (b com bolinhas verde/amarela/laranja/vermelha em fundo grafite arredondado — o branco sumiria em barra clara); no iPhone também ao salvar na tela de início (apple-touch-icon 180px). Ultravel intocado. ANTERIOR: (·492) HUB VMA — ETAPA 2 (tela): motor no <head> decide a empresa da página (conta VMA; seletor da diretoria/Juliana/Ghabriella; endereço hubvma.com antes do login), separa a cópia local (prefixo vma: no localStorage/sessionStorage), manda X-Hub-Empresa em toda chamada e &empresa=vma no WebSocket, e leva a sessão entre hubultravel.com e hubvma.com pelo #fragmento. Visual VMA: logo Voe Mais Alto Hub (mesmo tamanho), fundos grafite, tudo amarelo, seleção amarela com texto escuro. Menu VMA sem Dashboard/Voucher/Licitação/Cobrança; Matriz só com Alertas Check-in; Eventos e Grupos vazios; sem Welcome Day; listas de equipe e sementes vazias. Seletor Ultravel|VMA (topo no computador, alto do menu no celular). Usuários: empresa da conta, mover de empresa, sem opção Admin; redefinir senha mantém perfil/empresa. ANTERIOR: (·491) SERVIDOR: (1) seletor 'Ultravel | VMA' liberado também para Juliana Lupo e Ghabriella Bressan (sem o Insights); (2) admin do sistema = SÓ o Fernando Pires — o servidor trata qualquer outra conta marcada como admin como atendente. Tela sem mudança. ANTERIOR: (·490) MULTIEMPRESA — ETAPA 1 (servidor): worker.js separa Ultravel e VMA (gaveta vma:*, sala de tempo real hub-vma, conta com empresa, seletor da diretoria por X-Hub-Empresa, CORS para hubvma.com, backup e alertas por empresa). Nenhuma mudança de tela neste build além do ·489. ANTERIOR: (·489) VENCIMENTO DO DOMÍNIO: hubvma.com cadastrado (vence 02/10/2027, renovação automática ligada — print do painel Cloudflare). A semente agora entra por chave que falta, então aparece mesmo para quem já tinha editado a lista. ANTERIOR: (·488) VENCIMENTO DO DOMÍNIO: pílula '🌐 Domínio · N dias' ao lado de 'Nuvem Conectada', só para o Fernando (mesmo critério do Backup). Verde > 60 dias, amarelo até 60, vermelho piscando até 30; aviso na tela uma vez por dia quando perto. Clique abre a lista (editar data, renovação automática, adicionar domínio — ex.: hubvma.com). Semente: hubultravel.com, 03/08/2027, renovação automática ligada. ANTERIOR: (·487) LICITAÇÃO ▸ PRIORIDADE: opções agora Alta (vermelho), Média (amarelo), Baixa (azul claro, nova) e Finalizado (verde). Registros antigos: Perdido → Alta, Cancelado → Média (lidos assim, sem reescrever). ANTERIOR: (·486) HOTÉIS NÃO OFICIAIS — O CONTRÁRIO TAMBÉM: 'Voucher no sistema sem quarto no CSV' (auditoria) ganhou o botão '🏨 Hotel não oficial'; o voucher inteiro sai da conciliação por quarto/auditoria (e as pessoas dele do aviso 'sem Fechado'), vai para a pasta, e o Restaurar devolve o voucher inteiro. ANTERIOR: (·485) CONCILIAÇÃO WECANN — HOTÉIS NÃO OFICIAIS: no aviso 'Quarto no CSV sem voucher' (e na auditoria) o botão '🏨 Hotel não oficial' tira a pessoa da conciliação dos 3 hotéis oficiais e a leva para a nova pasta 'Hotéis não Oficiais' (abaixo de Template Enviado), onde ela é conferida contra o voucher de QUALQUER hotel (tem voucher? datas batem?) com ✅ Conciliado / ⚠️ pendente e ↩ Restaurar. Dado em appConfig.hoteisNaoOficiais, unido entre PCs por carimbo. ANTERIOR: (·484) MENU: (1) abrir OU fechar uma pasta com sub-pastas deixa o azul nela (fechar não passa mais a seleção para a tela aberta) — computador e celular. (2) Celular abre sem nenhuma pasta azul (nem o Control Desk); o azul aparece no primeiro toque. ANTERIOR: (·483) NOTAS PESSOAIS: (1) o quadro vazio 'Nenhuma nota avulsa…' saiu — sem nota avulsa, só aparece uma zona 'Solte aqui para tirar a nota da pasta' enquanto uma nota é arrastada. (2) A seção Notas fica sempre aberta (cabeçalho fixo, sem recolher). ANTERIOR: (·482) MENU: (1) 'Controle de Check-in' saiu de Minhas Tarefas e virou a sub-pasta 'Alertas Check-in' da Matriz Operacional, logo abaixo de Cias Aéreas (tela própria scr-checkin; mesmo dado appConfig.checkins). (2) Seção 'Controle Geral' removida de Minhas Tarefas (dado guardado intocado). (3) 'Minhas Tarefas' → 'Notas Pessoais'. (4) '＋ Adicionar evento' e '＋ Adicionar grupo' removidos. (5) WeCann Summit 2026 selecionada fica verde translúcida. (6) Clicar em WeCann seleciona Eventos (antes o azul pulava para o Control Desk). ANTERIOR: (·481) MENU: uma seleção só — com uma pasta principal selecionada (azul), o item da tela aberta e a pasta-mãe dela deixam de ficar azuis (computador e celular). ANTERIOR: (·480) MENU DESKTOP: clicar numa pasta principal (Voucher, Equipe, Comercial…) a deixa selecionada em azul; fechar ou navegar tira. ANTERIOR: (·479) MENU: 'Gerador de Voucher' virou 'Voucher' — pasta sem tela própria com as sub-pastas Gerador (o conteúdo que era da pasta; tela 'gerador') e Salvos (antes 'Vouchers Salvos'). Letícia continua vendo a pasta Voucher e as duas sub-pastas. ANTERIOR: (·478) MENU: 'Cabeça de Rede' 3px mais à esquerda (ajuste ótico — o ícone dela é mais estreito que os emojis das vizinhas e o vão antes do nome parecia maior). ANTERIOR: (·477) MENU: sub-pastas da Equipe alinhadas — os três ícones (Cabeça de Rede, Aniversários, Insights) numa caixa do mesmo tamanho, nomes começando no mesmo ponto. ANTERIOR: (·476) MENU: Equipe virou pasta sem tela própria com três sub-pastas — Cabeça de Rede (saiu do topo), Aniversários (o conteúdo que era da Equipe; id de tela 'equipe' mantido) e Insights, nessa ordem. ANTERIOR: (·475) CELULAR: o Hub sempre abre (e ao atualizar) com todas as pastas fechadas e o conteúdo recolhido — só a lista de pastas; a tela ativa volta com um toque. Desktop intocado. ANTERIOR: (·474) NÚCLEO COBRANÇA: o selo CPF/CNPJ ficava numa linha própria e desalinhava o campo CNPJ/CPF do campo Contato ao lado; agora fica na linha do rótulo, sem aumentar a altura. ANTERIOR: (·473) (1) CPF/CNPJ: selo ao lado do rótulo reconhece CPF (11 números, 123.456.789-09) ou CNPJ (14, 13.387.342/0001-58) e confere os dígitos (✓ / inválido); valor salvo antigo aparece formatado. (2) 'Núcleo de Cobrança' → 'Núcleo Cobrança'. (3) Celular: sub-pasta aberta laranja translúcido e a pasta principal azul, iguais ao desktop. ANTERIOR: (·472) MÁSCARAS QUE RESPEITAM O CURSOR: corrigir um dígito no meio do CNPJ jogava o cursor para o fim e embaralhava o número (13.387.342/0015-8); agora o cursor volta para depois do mesmo dígito (Cobrança e Licitação). + Telefone com máscara (48) 9••••-•••• (fixo: (48) 3333-4444). ANTERIOR: (·471) NÚCLEO DE COBRANÇA: responsável vira lista (Ruth Alves, Diego Oliveira, Ana Maria, Hynaê Teston); CNPJ/CPF com pontos, barra e traço automáticos ao digitar; valor total (e o do recebimento) com máscara de moeda R$ 3.000,00 enquanto digita. ANTERIOR: (·470) NOVA PASTA 'NÚCLEO DE COBRANÇA' (logo abaixo de Licitação), só para a diretoria + Ruth Alves. Tabela de casos (status coloridos, prioridade, responsável, vencimento, dias de atraso, total/recebido/saldo, barra de evolução, próxima ação, faturas), KPIs, gráfico de recebido por mês, distribuição por status, saldo por faixa de atraso, filtros/busca/ordenação, exportar CSV. Página do caso: dados editáveis, 8 status coloridos, recebimentos (quitado/parcial automático), faturas anexadas com visualizador (PDF página a página), linha do tempo com anotações/contatos, mensagem de cobrança pronta e WhatsApp. União entre PCs campo a campo / item a item. ANTERIOR: (·469) CELULAR: TRILHA MÓVEL SEM TREMOR. (1) a margem do conteúdo não muda mais a cada quadro de rolagem: muda uma vez por aparição/sumiço, compensada por transform (o movimento é só transform); (2) resize só de altura (barra do Safari ao rolar) não reacopla nem zera a trilha; (3) folga 24px na mesma direção e nada liga enquanto a trilha aparece no lugar natural; ao voltar a essa faixa ela pousa com troca compensada. ANTERIOR: (·468) CELULAR: TRILHA MÓVEL. Nada fica mais grudado o tempo todo: rolando para baixo (arrastar para cima) a barra do topo, a pasta e as sub-pastas saem da tela junto com a página; rolando para cima (arrastar para baixo) a pasta e as sub-pastas voltam na hora, grudadas no topo, EMPURRANDO o conteúdo (margem --uv-empurra) em vez de cobri-lo. Desktop intocado. ANTERIOR: (·467) MENU DESKTOP: Gerador de Voucher e Equipe (pastas com tela própria E sub-pastas) agora recolhem as sub-pastas no segundo clique, como Comercial/Matriz/Eventos/Grupos. Pasta EM USO (a tela dela ou uma sub-pasta dela aberta) com a árvore aberta → fecha sem navegar; nos outros casos → abre e navega. Celular intocado. ANTERIOR: (·466) MENU. (1) Todo NOVO acesso (aba/janela nova, navegador reaberto, depois de sair) abre no Control Desk; só o F5 na mesma aba devolve a tela (tela guardada no sessionStorage da aba, uv_hub_screen_aba; o localStorage uv_hub_screen não decide mais o boot). (2) Desktop: TODAS as pastas fechadas no 1º acesso do dia na máquina; depois o que se abriu/fechou persiste, inclusive no F5 (localStorage uv_menu_arvores com o dia). (3) Desktop: contorno branco discreto nas pastas principais (não nas sub-pastas). (4) Desktop: com sub-pasta aberta, a pasta principal fica AZUL e a sub-pasta LARANJA bem transparente. Celular intocado. ANTERIOR: (·465) MURAL: LIXEIRA PAGINADA. Pedido: na lista de excluídos, só os 5 mais recentes na primeira tela; o resto em páginas 1, 2, 3… (‹ › + números; só aparece com mais de 5). Abrir a lixeira volta sempre para a página 1; devolver o último recado de uma página não a deixa vazia. ANTERIOR: (·464) MURAL: LIXEIRA SÓ DO NANDO. Pedido: devolver recado excluído é função exclusiva do administrador (Fernando Pires), não da diretoria. mrPodeRestaurar compara o NOME COMPLETO normalizado (não a regra tolerante de mrMesmaPessoa, que aceitaria 'Fernando' sozinho). Excluir (✕) continua com a diretoria. ANTERIOR: (·463) MURAL: LIXEIRA — DEVOLVER RECADO EXCLUÍDO. Pedido do Nando: como admin, devolver ao mural um recado já excluído. A exclusão sempre foi suave (del=1); agora a diretoria (mesma porta do ✕) tem o botão '🗑 Excluídos (N)' no canto do quadro → lista dos excluídos (autor, data, quem excluiu) com '↩ Devolver ao mural'. Devolver = del:0 + mts novo (vence a cópia excluída de outro PC na união). Excluir passou a carimbar mts/delEm/delPor em vez de sobrescrever ts — o recado devolvido volta no mesmo lugar e com a data original. + Ocupação: badge do plantonista (noite/fim de semana) com nome comprido vazava a tela entre ~1000–1024px → pode encolher/quebrar (achado rodando a regressão num domingo). ANTERIOR: (·462) LICITAÇÃO — DEMANDA AÉREA COMPLETA + DATAS DIGITADAS. Passagem aérea agora tem Trecho + Data e hora de ida + Data e hora de volta (dd/mm/aaaa hh:mm, só números, formata sozinho, hora opcional, data impossível e volta antes da ida recusadas) + Cia aérea; Hotel esconde esses campos. Nascimento virou campo digitado dd/mm/aaaa (não calendário). CORREÇÃO: no ·461 a tabela de tipos da demanda se chamava LIC_TIPOS e sobrescrevia a de tipos de ANEXO (miniatura sem imagem dizia ARQ) — renomeada para LIC_DEM_TIPOS. ANTERIOR: (·461) LICITAÇÃO: SINAL + PÁGINA DO PROCESSO COM DEMANDAS. Bolinha na coluna # (ao lado do ⤢) com menu Sem cor/Verde/Amarelo/Vermelho (campo f.sinal, união campo a campo). Clicar em qualquer ponto da linha abre a PÁGINA do processo (resumo + Demandas): ＋ Adicionar demanda (Passagem aérea ou Hotel; trecho/nome do hotel em fonte grande de título) e, em cada demanda, ＋ Adicionar pessoas (nome, nascimento, CPF com máscara e dígito verificador). r.dem entra na união (licMergeDem — sem isso a união apagava as demandas). Redesenho de fora não apaga formulário aberto. ⤢ e 'Editar dados do processo' seguem abrindo o formulário de dados. ANTERIOR: (·460) LICITAÇÃO: GRADE PROTEGIDA. Pedido do Nando: todas as colunas bloqueadas na página principal — clicar numa célula não edita, sem ＋ de anexar nem arrastar arquivo na grade; documento aberto pela grade abre só para ver (sem Remover). Editar SÓ abrindo o processo no ⤢ (formulário mantém tudo: campos, opções coloridas, anexos, remover, excluir). Aviso 🔒 no topo. ANTERIOR: (·459) PASTA LICITAÇÃO ABERTA A TODOS, MENOS À LETÍCIA ROSA. Pedido do
+var UV_BUILD_NUM = 507; // (·507) VEZ ÚNICA ENTRE PCs (carimbo vezTs; liberar bolinha de Gestão Interna/Grupos não re-sorteia mais) · "Interno Ultravel" VERMELHO na VMA · voucher sempre com a logo da Ultravel · VMA ▸ Voucher ▸ Anexados (pastas de clientes com documentos e busca). ANTERIOR:  (·506) OCUPAÇÃO ULTRAVEL → VMA (Fernando, Diego, Juliana, Ghabriella): o que marcam na Ultravel aparece na VMA traduzido, em duas linhas centralizadas — Gestão Interna → "Interno / Ultravel"; cliente, Prospecção e demais → "Em Atendimento / Ultravel"; caixa nova roxa "Voe Mais Alto" (só os 4, só na Ultravel, cliente opcional) → "Atendimento VMA / cliente"; Ausente e Indisponível iguais. Espelho travado no Hub que recebe. VMA → Ultravel (Juliana/Ghabriella) passa a chegar como "Voe Mais Alto" (vindo da VMA). Worker ·506 faz o espelho nos dois sentidos sem pingue-pongue. ANTERIOR: (·505) ESCALA DE PLANTÕES DA VMA: grupo Nando, Diego, Juliana e Ghabi (Ana e Hynaê fora da VMA). "Quem manda é a Ultravel": se Nando/Juliana/Ghabi estão no plantão da Ultravel (escala efetiva, com as trocas), estão no da VMA no mesmo dia/fim de semana — travado na tela; os demais plantões seguem distribuição justa entre os 4 (Diego inclusive nos fins de semana), calculada da escala-padrão, a partir de 05/10/2026. As trocas da Ultravel chegam por /api/vma/escala-ultravel (worker ·505). ANTERIOR: (·504) DIRETORIA NA OCUPAÇÃO DA VMA (servidor, worker ·504: /api/vma/equipe inclui Fernando, Diego, Ana Maria e Hynaê antes da Juliana e da Ghabriella). Na tela: como na Ultravel, a diretoria aparece no painel mas NÃO entra no sorteio do atendente da vez nem na contagem de ausência da equipe de vendas (papel "vendas" no uvEquipeEmp). O espelho VMA→Ultravel segue só da Juliana e da Ghabriella. ANTERIOR: (·503) LOG DA MATRIZ E DO COMERCIAL COMPLETO: a lista de áreas do 📋 Log mostra SEMPRE todas as sub-pastas da Matriz Operacional e do Comercial (com a contagem, mesmo zero). Novos registros: Alertas Check-in (agendar com passageiros, excluir, dar baixa — antes ia como "Minhas Tarefas"; os antigos são remapeados), reação em Ações Comerciais, reordenar Fornecedores Online. Rótulos de tipo para cartão/check-in/CRM/prospecção. Cias Aéreas é só consulta (nada a registrar). ANTERIOR: (·502) AUDITORIA MATRIZ/COMERCIAL: (1) se o cofre (·500) não carrega — ex.: Worker antigo — aparece um aviso vermelho dizendo que os dados protegidos não carregaram e que NADA foi apagado (antes a tela mostrava só os registros editados pela tela, parecendo exclusão: Matriz › Clientes com 3 de 40). (2) Log: área vira o caminho do menu ("Matriz Operacional › Clientes", "Comercial › CRM"…), também nos registros antigos. (3) CRM ganhou log em tudo: card criado/editado/movido/excluído, coluna criada/renomeada/excluída (com os cards arquivados junto), Kanban renomeado. ANTERIOR: (·501) LOGO ALINHADA COM O MENU: no computador a logo (Ultravel e VMA) andou 10px para a direita e começa exatamente na borda esquerda das pastas do menu. Celular intocado. ANTERIOR: (·500) O COFRE — DADOS SENSÍVEIS FORA DO ARQUIVO PÚBLICO: equipe (CPF, nascimento, telefone, e-mail pessoal, endereço), os 18 cartões de crédito (número, validade, CVV), passageiros/vistos da Imersão CSDI + 8 PDFs (passaporte, ficha, visto), ~1.400 contatos de Prospecção, clientes corporativos, fornecedores, Cabeça de Rede e as sementes do Controle Geral/Gestão CSDI saíram do index.html e moram no Worker (rota /api/cofre e /api/cofre/doc — só conta da Ultravel logada; nunca VMA, nunca Letícia). Os módulos leem os mesmos "potes" (window.uvCofre), preenchidos no lugar quando o cofre chega. Comentários com CPF/cartão/passaporte/telefone reais mascarados. ANTERIOR: (·499) VMA — EQUIPE AUTOMÁTICA + ESPELHO DE OCUPAÇÃO: a equipe da VMA (Ocupação, escala, listas) vem sozinha das CONTAS — toda conta com empresa VMA + Juliana e Ghabriella (servidor /api/vma/equipe; guardada na máquina e conferida ao abrir e a cada 5 min; mudou → recarrega uma vez, coberta). TI e Financeiro (listas de função única) ficam vazias na VMA. Servidor (worker ·499): o que Juliana/Ghabriella marcam na Ocupação da VMA aparece igual na da Ultravel, bolinha a bolinha (vence a mudança mais nova); o contrário não. ANTERIOR: (·498) AÇÕES COMERCIAIS — UMA ABERTURA BASTA: o modo de teste do ·351 (AC_NOTIF_ADMIN_TUDO) estava ligado e fazia o admin ser avisado das PRÓPRIAS ações (responder, reagir, criar tópico), com a baixa suspensa até sair e reabrir o card — por isso o Nando precisava entrar duas vezes. Desligado: o admin segue a regra de todos (avisado só do que os outros fazem). Mesmo interruptor do Insights. ANTERIOR: (·497) FAVICON VMA COM CONTORNO: no tema claro o "b" branco sumia — contorno preto fino e sutil (≈2px em 64px, 80% de opacidade) só em volta das partes brancas (o b e as hastes); bolinhas sem contorno; fundo continua transparente. ANTERIOR: (·496) FAVICON VMA SEM FUNDO: pedido do Nando — tirado o quadrado grafite; ícone com fundo transparente, recortado rente e ocupando a altura inteira do quadro (64px; 180px no iPhone). ANTERIOR: (·495) SEM PISCAR A ULTRAVEL: ao entrar no Hub VMA aparecia por milésimos a cara da Ultravel (o arquivo de ~9MB é pintado aos pedaços e a troca para a VMA roda no fim do <body>). Agora, na VMA, a página nasce coberta (fundo grafite, <body> invisível) e só aparece no DOMContentLoaded, já toda VMA; o título da aba também já nasce "Hub VMA". Ultravel intocado. ANTERIOR: (·494) ADMIN PELO hubvma.com: conta da Ultravel com acesso à VMA (podeVerVma) que abre pelo hubvma.com fica no Hub VMA (antes era mandada de volta ao hubultravel.com); sem seletor nesse endereço (a página é sempre VMA). Quem chega ao hubvma.com é decidido no Cloudflare Access (equipe VMA de fora + Fernando). Conta sem acesso à VMA continua sendo levada ao hubultravel.com. ANTERIOR: (·493) FAVICON VMA: na VMA (hubvma.com ou seletor) o ícone da aba e dos favoritos vira o ícone da VMA (b com bolinhas verde/amarela/laranja/vermelha em fundo grafite arredondado — o branco sumiria em barra clara); no iPhone também ao salvar na tela de início (apple-touch-icon 180px). Ultravel intocado. ANTERIOR: (·492) HUB VMA — ETAPA 2 (tela): motor no <head> decide a empresa da página (conta VMA; seletor da diretoria/Juliana/Ghabriella; endereço hubvma.com antes do login), separa a cópia local (prefixo vma: no localStorage/sessionStorage), manda X-Hub-Empresa em toda chamada e &empresa=vma no WebSocket, e leva a sessão entre hubultravel.com e hubvma.com pelo #fragmento. Visual VMA: logo Voe Mais Alto Hub (mesmo tamanho), fundos grafite, tudo amarelo, seleção amarela com texto escuro. Menu VMA sem Dashboard/Voucher/Licitação/Cobrança; Matriz só com Alertas Check-in; Eventos e Grupos vazios; sem Welcome Day; listas de equipe e sementes vazias. Seletor Ultravel|VMA (topo no computador, alto do menu no celular). Usuários: empresa da conta, mover de empresa, sem opção Admin; redefinir senha mantém perfil/empresa. ANTERIOR: (·491) SERVIDOR: (1) seletor 'Ultravel | VMA' liberado também para Juliana Lupo e Ghabriella Bressan (sem o Insights); (2) admin do sistema = SÓ o Fernando Pires — o servidor trata qualquer outra conta marcada como admin como atendente. Tela sem mudança. ANTERIOR: (·490) MULTIEMPRESA — ETAPA 1 (servidor): worker.js separa Ultravel e VMA (gaveta vma:*, sala de tempo real hub-vma, conta com empresa, seletor da diretoria por X-Hub-Empresa, CORS para hubvma.com, backup e alertas por empresa). Nenhuma mudança de tela neste build além do ·489. ANTERIOR: (·489) VENCIMENTO DO DOMÍNIO: hubvma.com cadastrado (vence 02/10/2027, renovação automática ligada — print do painel Cloudflare). A semente agora entra por chave que falta, então aparece mesmo para quem já tinha editado a lista. ANTERIOR: (·488) VENCIMENTO DO DOMÍNIO: pílula '🌐 Domínio · N dias' ao lado de 'Nuvem Conectada', só para o Fernando (mesmo critério do Backup). Verde > 60 dias, amarelo até 60, vermelho piscando até 30; aviso na tela uma vez por dia quando perto. Clique abre a lista (editar data, renovação automática, adicionar domínio — ex.: hubvma.com). Semente: hubultravel.com, 03/08/2027, renovação automática ligada. ANTERIOR: (·487) LICITAÇÃO ▸ PRIORIDADE: opções agora Alta (vermelho), Média (amarelo), Baixa (azul claro, nova) e Finalizado (verde). Registros antigos: Perdido → Alta, Cancelado → Média (lidos assim, sem reescrever). ANTERIOR: (·486) HOTÉIS NÃO OFICIAIS — O CONTRÁRIO TAMBÉM: 'Voucher no sistema sem quarto no CSV' (auditoria) ganhou o botão '🏨 Hotel não oficial'; o voucher inteiro sai da conciliação por quarto/auditoria (e as pessoas dele do aviso 'sem Fechado'), vai para a pasta, e o Restaurar devolve o voucher inteiro. ANTERIOR: (·485) CONCILIAÇÃO WECANN — HOTÉIS NÃO OFICIAIS: no aviso 'Quarto no CSV sem voucher' (e na auditoria) o botão '🏨 Hotel não oficial' tira a pessoa da conciliação dos 3 hotéis oficiais e a leva para a nova pasta 'Hotéis não Oficiais' (abaixo de Template Enviado), onde ela é conferida contra o voucher de QUALQUER hotel (tem voucher? datas batem?) com ✅ Conciliado / ⚠️ pendente e ↩ Restaurar. Dado em appConfig.hoteisNaoOficiais, unido entre PCs por carimbo. ANTERIOR: (·484) MENU: (1) abrir OU fechar uma pasta com sub-pastas deixa o azul nela (fechar não passa mais a seleção para a tela aberta) — computador e celular. (2) Celular abre sem nenhuma pasta azul (nem o Control Desk); o azul aparece no primeiro toque. ANTERIOR: (·483) NOTAS PESSOAIS: (1) o quadro vazio 'Nenhuma nota avulsa…' saiu — sem nota avulsa, só aparece uma zona 'Solte aqui para tirar a nota da pasta' enquanto uma nota é arrastada. (2) A seção Notas fica sempre aberta (cabeçalho fixo, sem recolher). ANTERIOR: (·482) MENU: (1) 'Controle de Check-in' saiu de Minhas Tarefas e virou a sub-pasta 'Alertas Check-in' da Matriz Operacional, logo abaixo de Cias Aéreas (tela própria scr-checkin; mesmo dado appConfig.checkins). (2) Seção 'Controle Geral' removida de Minhas Tarefas (dado guardado intocado). (3) 'Minhas Tarefas' → 'Notas Pessoais'. (4) '＋ Adicionar evento' e '＋ Adicionar grupo' removidos. (5) WeCann Summit 2026 selecionada fica verde translúcida. (6) Clicar em WeCann seleciona Eventos (antes o azul pulava para o Control Desk). ANTERIOR: (·481) MENU: uma seleção só — com uma pasta principal selecionada (azul), o item da tela aberta e a pasta-mãe dela deixam de ficar azuis (computador e celular). ANTERIOR: (·480) MENU DESKTOP: clicar numa pasta principal (Voucher, Equipe, Comercial…) a deixa selecionada em azul; fechar ou navegar tira. ANTERIOR: (·479) MENU: 'Gerador de Voucher' virou 'Voucher' — pasta sem tela própria com as sub-pastas Gerador (o conteúdo que era da pasta; tela 'gerador') e Salvos (antes 'Vouchers Salvos'). Letícia continua vendo a pasta Voucher e as duas sub-pastas. ANTERIOR: (·478) MENU: 'Cabeça de Rede' 3px mais à esquerda (ajuste ótico — o ícone dela é mais estreito que os emojis das vizinhas e o vão antes do nome parecia maior). ANTERIOR: (·477) MENU: sub-pastas da Equipe alinhadas — os três ícones (Cabeça de Rede, Aniversários, Insights) numa caixa do mesmo tamanho, nomes começando no mesmo ponto. ANTERIOR: (·476) MENU: Equipe virou pasta sem tela própria com três sub-pastas — Cabeça de Rede (saiu do topo), Aniversários (o conteúdo que era da Equipe; id de tela 'equipe' mantido) e Insights, nessa ordem. ANTERIOR: (·475) CELULAR: o Hub sempre abre (e ao atualizar) com todas as pastas fechadas e o conteúdo recolhido — só a lista de pastas; a tela ativa volta com um toque. Desktop intocado. ANTERIOR: (·474) NÚCLEO COBRANÇA: o selo CPF/CNPJ ficava numa linha própria e desalinhava o campo CNPJ/CPF do campo Contato ao lado; agora fica na linha do rótulo, sem aumentar a altura. ANTERIOR: (·473) (1) CPF/CNPJ: selo ao lado do rótulo reconhece CPF (11 números, 123.456.789-09) ou CNPJ (14, 13.387.342/0001-58) e confere os dígitos (✓ / inválido); valor salvo antigo aparece formatado. (2) 'Núcleo de Cobrança' → 'Núcleo Cobrança'. (3) Celular: sub-pasta aberta laranja translúcido e a pasta principal azul, iguais ao desktop. ANTERIOR: (·472) MÁSCARAS QUE RESPEITAM O CURSOR: corrigir um dígito no meio do CNPJ jogava o cursor para o fim e embaralhava o número (13.387.342/0015-8); agora o cursor volta para depois do mesmo dígito (Cobrança e Licitação). + Telefone com máscara (48) 9••••-•••• (fixo: (48) 3333-4444). ANTERIOR: (·471) NÚCLEO DE COBRANÇA: responsável vira lista (Ruth Alves, Diego Oliveira, Ana Maria, Hynaê Teston); CNPJ/CPF com pontos, barra e traço automáticos ao digitar; valor total (e o do recebimento) com máscara de moeda R$ 3.000,00 enquanto digita. ANTERIOR: (·470) NOVA PASTA 'NÚCLEO DE COBRANÇA' (logo abaixo de Licitação), só para a diretoria + Ruth Alves. Tabela de casos (status coloridos, prioridade, responsável, vencimento, dias de atraso, total/recebido/saldo, barra de evolução, próxima ação, faturas), KPIs, gráfico de recebido por mês, distribuição por status, saldo por faixa de atraso, filtros/busca/ordenação, exportar CSV. Página do caso: dados editáveis, 8 status coloridos, recebimentos (quitado/parcial automático), faturas anexadas com visualizador (PDF página a página), linha do tempo com anotações/contatos, mensagem de cobrança pronta e WhatsApp. União entre PCs campo a campo / item a item. ANTERIOR: (·469) CELULAR: TRILHA MÓVEL SEM TREMOR. (1) a margem do conteúdo não muda mais a cada quadro de rolagem: muda uma vez por aparição/sumiço, compensada por transform (o movimento é só transform); (2) resize só de altura (barra do Safari ao rolar) não reacopla nem zera a trilha; (3) folga 24px na mesma direção e nada liga enquanto a trilha aparece no lugar natural; ao voltar a essa faixa ela pousa com troca compensada. ANTERIOR: (·468) CELULAR: TRILHA MÓVEL. Nada fica mais grudado o tempo todo: rolando para baixo (arrastar para cima) a barra do topo, a pasta e as sub-pastas saem da tela junto com a página; rolando para cima (arrastar para baixo) a pasta e as sub-pastas voltam na hora, grudadas no topo, EMPURRANDO o conteúdo (margem --uv-empurra) em vez de cobri-lo. Desktop intocado. ANTERIOR: (·467) MENU DESKTOP: Gerador de Voucher e Equipe (pastas com tela própria E sub-pastas) agora recolhem as sub-pastas no segundo clique, como Comercial/Matriz/Eventos/Grupos. Pasta EM USO (a tela dela ou uma sub-pasta dela aberta) com a árvore aberta → fecha sem navegar; nos outros casos → abre e navega. Celular intocado. ANTERIOR: (·466) MENU. (1) Todo NOVO acesso (aba/janela nova, navegador reaberto, depois de sair) abre no Control Desk; só o F5 na mesma aba devolve a tela (tela guardada no sessionStorage da aba, uv_hub_screen_aba; o localStorage uv_hub_screen não decide mais o boot). (2) Desktop: TODAS as pastas fechadas no 1º acesso do dia na máquina; depois o que se abriu/fechou persiste, inclusive no F5 (localStorage uv_menu_arvores com o dia). (3) Desktop: contorno branco discreto nas pastas principais (não nas sub-pastas). (4) Desktop: com sub-pasta aberta, a pasta principal fica AZUL e a sub-pasta LARANJA bem transparente. Celular intocado. ANTERIOR: (·465) MURAL: LIXEIRA PAGINADA. Pedido: na lista de excluídos, só os 5 mais recentes na primeira tela; o resto em páginas 1, 2, 3… (‹ › + números; só aparece com mais de 5). Abrir a lixeira volta sempre para a página 1; devolver o último recado de uma página não a deixa vazia. ANTERIOR: (·464) MURAL: LIXEIRA SÓ DO NANDO. Pedido: devolver recado excluído é função exclusiva do administrador (Fernando Pires), não da diretoria. mrPodeRestaurar compara o NOME COMPLETO normalizado (não a regra tolerante de mrMesmaPessoa, que aceitaria 'Fernando' sozinho). Excluir (✕) continua com a diretoria. ANTERIOR: (·463) MURAL: LIXEIRA — DEVOLVER RECADO EXCLUÍDO. Pedido do Nando: como admin, devolver ao mural um recado já excluído. A exclusão sempre foi suave (del=1); agora a diretoria (mesma porta do ✕) tem o botão '🗑 Excluídos (N)' no canto do quadro → lista dos excluídos (autor, data, quem excluiu) com '↩ Devolver ao mural'. Devolver = del:0 + mts novo (vence a cópia excluída de outro PC na união). Excluir passou a carimbar mts/delEm/delPor em vez de sobrescrever ts — o recado devolvido volta no mesmo lugar e com a data original. + Ocupação: badge do plantonista (noite/fim de semana) com nome comprido vazava a tela entre ~1000–1024px → pode encolher/quebrar (achado rodando a regressão num domingo). ANTERIOR: (·462) LICITAÇÃO — DEMANDA AÉREA COMPLETA + DATAS DIGITADAS. Passagem aérea agora tem Trecho + Data e hora de ida + Data e hora de volta (dd/mm/aaaa hh:mm, só números, formata sozinho, hora opcional, data impossível e volta antes da ida recusadas) + Cia aérea; Hotel esconde esses campos. Nascimento virou campo digitado dd/mm/aaaa (não calendário). CORREÇÃO: no ·461 a tabela de tipos da demanda se chamava LIC_TIPOS e sobrescrevia a de tipos de ANEXO (miniatura sem imagem dizia ARQ) — renomeada para LIC_DEM_TIPOS. ANTERIOR: (·461) LICITAÇÃO: SINAL + PÁGINA DO PROCESSO COM DEMANDAS. Bolinha na coluna # (ao lado do ⤢) com menu Sem cor/Verde/Amarelo/Vermelho (campo f.sinal, união campo a campo). Clicar em qualquer ponto da linha abre a PÁGINA do processo (resumo + Demandas): ＋ Adicionar demanda (Passagem aérea ou Hotel; trecho/nome do hotel em fonte grande de título) e, em cada demanda, ＋ Adicionar pessoas (nome, nascimento, CPF com máscara e dígito verificador). r.dem entra na união (licMergeDem — sem isso a união apagava as demandas). Redesenho de fora não apaga formulário aberto. ⤢ e 'Editar dados do processo' seguem abrindo o formulário de dados. ANTERIOR: (·460) LICITAÇÃO: GRADE PROTEGIDA. Pedido do Nando: todas as colunas bloqueadas na página principal — clicar numa célula não edita, sem ＋ de anexar nem arrastar arquivo na grade; documento aberto pela grade abre só para ver (sem Remover). Editar SÓ abrindo o processo no ⤢ (formulário mantém tudo: campos, opções coloridas, anexos, remover, excluir). Aviso 🔒 no topo. ANTERIOR: (·459) PASTA LICITAÇÃO ABERTA A TODOS, MENOS À LETÍCIA ROSA. Pedido do
 // Nando, trocando a regra do ·458 (só diretoria + Maria Eduarda). A exceção reaproveita a trava do
 // ·457 (uvSoVoucher) em vez de criar outra lista com o nome dela — uma segunda cópia do mesmo fato
 // ficaria para trás no dia em que a trava do voucher mudar. O portão em hubGoScreen continua: para
@@ -9407,7 +9415,7 @@ function uvRedesenharTudo(){
   var fns=['renderControlDesk','renderAusProg','renderCdNotifs','renderCdAniversario',
            'renderDashboard','renderCabecaRede','renderEquipe','renderTimeInsights',
            'renderAcoes','renderProspeccao','renderKanbanLeads','renderMatriz','renderForn','renderContatos',
-           'renderCliente','renderCartoes','renderCias','renderTarefas','renderCheckinTela'];
+           'renderCliente','renderCartoes','renderCias','renderTarefas','renderCheckinTela','renderAnexados'];
   for(var k=0;k<fns.length;k++){
     try{ if(typeof window[fns[k]]==='function') window[fns[k]](); }catch(e){}
   }
@@ -9610,6 +9618,9 @@ async function carregarConfig(){
       /* (·250) CARTÕES CADASTRADOS PELO USUÁRIO — mesma proteção de união. */
       if(typeof window.ccEditsMergeMaps==='function'){        // (·398) correções de cartão
         appConfig.ccEdits=window.ccEditsMergeMaps(local.ccEdits, c.ccEdits);
+      }
+      if(typeof window.vxaMergeMaps==='function' && (local.vmaAnexados || c.vmaAnexados)){   // (·507) VMA ▸ Anexados
+        appConfig.vmaAnexados=window.vxaMergeMaps(local.vmaAnexados, c.vmaAnexados);
       }
       if(typeof window.mrMergeMaps==='function'){            // (·406) Mural de Recados
         appConfig.mural=window.mrMergeMaps(local.mural, c.mural);
@@ -10216,6 +10227,9 @@ async function salvarConfig(){
        acabou de publicar no mesmo minuto. */
     if(typeof window.mrMergeMaps==='function'){
       appConfig.mural=window.mrMergeMaps(appConfig.mural, cloud.mural);
+    }
+    if(typeof window.vxaMergeMaps==='function' && (appConfig.vmaAnexados || cloud.vmaAnexados)){   // (·507) VMA ▸ Anexados
+      appConfig.vmaAnexados=window.vxaMergeMaps(appConfig.vmaAnexados, cloud.vmaAnexados);
     }
     if(typeof window.ccExtrasMergeMaps==='function'){         // (·250) Cartões cadastrados
       appConfig.ccExtras=window.ccExtrasMergeMaps(appConfig.ccExtras, cloud.ccExtras);
@@ -14985,7 +14999,9 @@ function imprimir(v){
   },120);
 }
 function montarVoucherHTML(vv){
-  const logoSrc = (document.querySelector('.brand img')||{}).src || '';
+  /* (·507) o voucher é da ULTRAVEL, sempre. Antes pegava "a primeira imagem do topo" — e desde o ·492 a
+     primeira imagem do topo é a logo da VMA (inserida escondida em TODO Hub), então o voucher saía com a logo errada. */
+  const logoSrc = (document.getElementById('uvLogoHome')||document.querySelector('.brand img:not(.brand-vma)')||{}).src || '';
   const ehWecann = /wecann/i.test(vv.evento||'');
   const PV_CSS = `
     .print-area *{-webkit-print-color-adjust:exact;print-color-adjust:exact;box-sizing:border-box}
@@ -16660,6 +16676,7 @@ init();
     if(scr==='cias' && typeof window.renderCias==='function') window.renderCias();
     if(scr==='tarefas' && typeof window.renderTarefas==='function') window.renderTarefas();
     if(scr==='checkin' && typeof window.renderCheckinTela==='function') window.renderCheckinTela();   // (·482)
+    if(scr==='anexados' && typeof window.renderAnexados==='function') window.renderAnexados();       // (·507)
     if(scr==='backup'  && typeof window.renderBackup==='function')  window.renderBackup();
     if(scr==='csdi' && typeof window.renderCsdi==='function') window.renderCsdi();
     if(scr==='licitacao' && typeof window.renderLicitacao==='function') window.renderLicitacao();   // (·458)
@@ -18164,6 +18181,19 @@ function excluirNotaUI(id){
       pool: (base.pool!==undefined && base.pool!==null) ? (Array.isArray(base.pool)?base.pool.slice():base.pool) : (Array.isArray(outro.pool)?outro.pool.slice():outro.pool),
       atual:(base.atual!==undefined && base.atual!==null) ? base.atual : outro.atual
     };
+    /* (·507) A VEZ É UMA SÓ PARA TODOS OS PCs. Antes, o "da vez" LOCAL sempre vencia a
+       mescla: cada computador sorteava por conta própria (empate = sorteio aleatório) e
+       NUNCA adotava o sorteio feito noutro PC — cada tela mostrava um nome, e a cada
+       clique em qualquer bolinha o nome pulava. Agora quem mexeu na vez por último
+       (carimbo vezTs, gravado por ocpGarantirVez) vence, e a fila vem junto. */
+    var _vtB=+base.vezTs||0, _vtO=+outro.vezTs||0;
+    if(_vtO>_vtB){
+      out.atual=(outro.atual!==undefined)?outro.atual:null;
+      out.pool=Array.isArray(outro.pool)?outro.pool.slice():(outro.pool!==undefined?outro.pool:out.pool);
+      out.vezTs=_vtO; out.vezSig=outro.vezSig||'';
+    } else if(_vtB){
+      out.vezTs=_vtB; out.vezSig=base.vezSig||'';
+    }
     // percorre TODOS os atendentes conhecidos (união de ambas as versões)
     var nomes={};
     OCP_ATENDENTES.forEach(function(n){ nomes[n]=1; });
@@ -19560,7 +19590,17 @@ function excluirNotaUI(id){
        o.atual vira null e o painel mostra a mensagem de "todos ocupados".
 
      Retorna true se o sorteio/fila mudou (para sabermos quando salvar na nuvem). */
+  /* (·507) carimbo da vez: TODA mudança de "da vez" ou da fila — venha do sorteio, de um
+     clique ou de devolver a vez perdida — ganha vezTs, que é o que decide a mescla entre PCs. */
   function ocpGarantirVez(o, forcar){
+    var _r=ocpGarantirVezNucleo(o, forcar);
+    try{
+      var _sig=JSON.stringify({a:o.atual||null, p:o.pool||null});
+      if(o.vezSig!==_sig){ o.vezSig=_sig; o.vezTs=Date.now(); _r=true; }
+    }catch(e){}
+    return _r;
+  }
+  function ocpGarantirVezNucleo(o, forcar){
     // 🌙 MODO PLANTÃO (·111): com o plantão ativo, o sorteio fica CONGELADO no
     // plantonista — nenhuma das regras abaixo roda (nem higiene de sorteável,
     // nem "cheio", nem modo dinâmico). Às 09:00 o verificador liga forcar=true
@@ -19898,7 +19938,7 @@ function excluirNotaUI(id){
         var _podeOperar=ocpSouDonoOuAdmin(a);
         if(!_podeOperar) tipLed='🔒 Somente '+a+' ou o administrador podem alterar este status';
         return '<div class="ocp-slot">'+
-          '<button type="button" class="ocp-led '+(oc?'ocupado':'livre')+(oc&&(licit||finan)?' licitacao':'')+(oc&&prosp?' prospeccao':'')+(oc&&grupos?' grupos':'')+(oc&&ti?' ti':'')+(oc&&vmaSt?' grupos':'')+(oc&&ultTp==='interno'?' interno':'')+(oc&&ultTp==='vma'?' grupos':'')+(oc&&indisp?' indisponivel':'')+(oc&&interno?' interno':'')+(oc&&ausente?' ausente':'')+(_podeOperar?'':' ocp-led-bloqueada')+'"'+
+          '<button type="button" class="ocp-led '+(oc?'ocupado':'livre')+(oc&&(licit||finan)?' licitacao':'')+(oc&&prosp?' prospeccao':'')+(oc&&grupos?' grupos':'')+(oc&&ti?' ti':'')+(oc&&vmaSt?' grupos':'')+(oc&&ultTp==='vma'?' grupos':'')+(oc&&indisp?' indisponivel':'')+(oc&&interno?' interno':'')+(oc&&ausente?' ausente':'')+(_podeOperar?'':' ocp-led-bloqueada')+'"'+
           ' data-ocp-at="'+ocpEsc(a)+'" data-ocp-i="'+i+'"'+
           ' title="'+ocpEsc(tipLed)+'"></button>'+
           '<span class="'+tmClass+'"'+tmData+'>'+tmTxt+'</span>'+
@@ -24492,7 +24532,7 @@ function excluirNotaUI(id){
     document.getElementById('aprBloqEncerrar').onclick=function(){
       try{ if(typeof window.aprEncerrarAgora==='function') window.aprEncerrarAgora(e.id); }catch(_){}
       fechar();
-      try{ window.renderOcupacao(true); }catch(_){}
+      try{ window.renderOcupacao(); }catch(_){}   /* (·507) encerrar ausência libera — não força sorteio */
       try{ if(typeof toast==='function') toast('✅ Ausência encerrada — '+(e.atendente||'')+' liberado(a).'); }catch(_){}
     };
   }
@@ -25718,8 +25758,12 @@ function excluirNotaUI(id){
         else ocpFecharInternoSeAberto(at);
       }
       ocpLiberarSlotTransfer(at, i);   // libera só este slot (mesma função do Stand By)
+      /* (·507) era renderOcupacao(true): liberar UMA bolinha de Gestão Interna/Grupos
+         (Fernando, Diego, Ana, Mayara — nem estão no sorteio) FORÇAVA um sorteio novo
+         e a vez pulava de nome a cada clique. Liberar bolinha segue a regra de sempre:
+         só re-sorteia se o da vez estiver cheio — e isso o ocpGarantirVez já decide sozinho. */
+      try{ window.renderOcupacao(); }catch(_){}
       try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(_){}
-      try{ window.renderOcupacao(true); }catch(_){}
       try{ if(typeof logRemoto==='function') logRemoto('ocp_sentinela', (at||'—')+' — liberou 1 bolinha de '+_rotuloSolto+(_restamSolto?' (as demais continuam)':' (última — registrada no hist\u00f3rico)'), {atendente:at}); }catch(_){}
       return;
     }
@@ -26113,6 +26157,7 @@ function excluirNotaUI(id){
         var antesAus =JSON.stringify(appConfig.ausenciasProgramadas||{});
         var antesAcoes=JSON.stringify(appConfig.acoes||{});
         var antesMural=JSON.stringify(appConfig.mural||{});   // (·420) Mural de Recados
+        var antesVxa=JSON.stringify(appConfig.vmaAnexados||{});   // (·507) VMA ▸ Anexados
 
         // --- Kanban: carteira + arquivados (carimbo mais recente vence) ---
         if(typeof uvMesclarCarteiraArq==='function'){
@@ -26190,6 +26235,9 @@ function excluirNotaUI(id){
         if(remoto.mural && typeof window.mrMergeMaps==='function'){
           appConfig.mural=window.mrMergeMaps(appConfig.mural, remoto.mural);
         }
+        if(remoto.vmaAnexados && typeof window.vxaMergeMaps==='function'){   // (·507) pasta nova aparece na hora nos outros PCs
+          appConfig.vmaAnexados=window.vxaMergeMaps(appConfig.vmaAnexados, remoto.vmaAnexados);
+        }
         try{ localStorage.setItem('uv_config',JSON.stringify(appConfig)); }catch(e){}
 
         // Só re-renderiza o que REALMENTE mudou (evita piscar tela à toa)
@@ -26218,6 +26266,7 @@ function excluirNotaUI(id){
         }
         /* (·420) recado novo aparece no quadro na hora, sem recarregar nada */
         if(mudouMural){ try{ if(typeof window.mrRender==='function') window.mrRender(); }catch(e){} }
+        if(JSON.stringify(appConfig.vmaAnexados||{})!==antesVxa){ try{ if(typeof window.renderAnexados==='function') window.renderAnexados(); }catch(e){} }   // (·507)
       }catch(e){ /* nunca deixa o tempo real derrubar a tela */ }
       aplicando=false;
     }
@@ -42809,7 +42858,7 @@ html.uv-emp-vma .uv-so-vma{display:block}
 .nav-vazio{font-size:12px;color:var(--texto-fraco);font-style:italic;padding:8px 14px 10px}
 /* o que a VMA não tem nesta fase */
 html.uv-emp-vma #hubSidebar [data-screen="dashboard"],
-html.uv-emp-vma #hubSidebar [data-tree="gerador"], html.uv-emp-vma #hubSidebar [data-tree-body="gerador"],
+html.uv-emp-vma #hubSidebar [data-tree-body="gerador"] > [data-screen="gerador"], html.uv-emp-vma #hubSidebar [data-tree-body="gerador"] > [data-screen="vouchers"],   /* (·507) a pasta Voucher volta na VMA, só com Anexados */
 html.uv-emp-vma #hubSidebar #navLicitacao, html.uv-emp-vma #hubSidebar #navCobranca,
 html.uv-emp-vma #hubSidebar [data-tree-body="matriz"] > .nav-item:not([data-screen="checkin"]),
 html.uv-emp-vma #hubSidebar [data-tree-body="eventos"] > .nav-sub-row,
@@ -43058,9 +43107,431 @@ html.uv-emp-vma #hubSidebar .nav-item.uv-pasta-sel .nav-ic{filter:none}
   background:linear-gradient(180deg,#ff5a5f,#b3141a);border:1px solid #ff9a9d;color:#fff;box-shadow:0 0 7px rgba(255,90,95,.55)}
 .ocp-cli-btn.ocp-cli-ult span{display:block;max-width:100%;white-space:normal;overflow-wrap:normal;word-break:normal}
 .ocp-cli-btn.ocp-cli-ult .ocp-ult-l2{font-weight:700;opacity:.92;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.ocp-cli-btn.ocp-cli-ult.ult-interno{background:linear-gradient(180deg,#12B0FF,#0863A8);border-color:#6cd4ff;color:#052235;box-shadow:0 0 7px rgba(18,176,255,.6)}
+/* (·507) "Interno Ultravel" é VERMELHO na VMA (bolinha e rótulo) — pedido do Nando: para a VMA a pessoa está ocupada */
 .ocp-cli-btn.ocp-cli-ult.ult-vma{background:linear-gradient(180deg,#A855F7,#7e22ce);border-color:#c084fc;color:#fff;box-shadow:0 0 7px rgba(168,85,247,.6)}
 .ocp-cli-btn.ocp-cli-vma{animation:none}
 </style>
+<style id="vxaEstilo">
+/* ═════ (·507) VMA ▸ VOUCHER ▸ ANEXADOS — pastas de clientes com os documentos da reserva ═════
+   Só existe na VMA. Cores das pastas vão INLINE (style=) de propósito: o tingimento da VMA
+   reescreve as folhas de estilo, e a cor escolhida pela pessoa não pode ser "puxada pro amarelo". */
+#hubSidebar .nav-item[data-screen="anexados"]{display:none!important}
+html.uv-emp-vma #hubSidebar .nav-item[data-screen="anexados"]{display:flex!important}
+.vxa-wrap{max-width:1180px;margin:0 auto;padding:4px 2px 30px;color:#e9ecf1}
+.vxa-cab{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:0 0 14px}
+.vxa-cab h2{margin:0;font-size:22px;font-weight:800;letter-spacing:-.2px;color:#fff}
+.vxa-cab p{margin:4px 0 0;font-size:13px;color:#9aa3b0}
+.vxa-novo{border:0;border-radius:10px;background:#F5C400;color:#1b1b1b;font-weight:800;font-size:13.5px;padding:10px 16px;cursor:pointer;box-shadow:0 4px 14px rgba(245,196,0,.25)}
+.vxa-novo:hover{filter:brightness(1.06)}
+.vxa-busca{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:0 12px;margin:0 0 6px}
+.vxa-busca:focus-within{border-color:#F5C400;box-shadow:0 0 0 3px rgba(245,196,0,.15)}
+.vxa-busca span{font-size:15px;opacity:.8}
+.vxa-busca input{flex:1;min-width:0;background:transparent;border:0;outline:none;color:#fff;font-size:14px;padding:12px 0}
+.vxa-busca button{background:transparent;border:0;color:#9aa3b0;font-size:16px;cursor:pointer;padding:4px}
+.vxa-conta{font-size:12px;color:#9aa3b0;margin:0 2px 14px}
+.vxa-grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.vxa-card{position:relative;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;text-align:left;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:0 0 12px;cursor:pointer;color:inherit;font:inherit;overflow:hidden;transition:transform .12s,border-color .12s}
+.vxa-card:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.22)}
+.vxa-aba{height:8px;width:42%;border-radius:0 0 8px 0}
+.vxa-card-top{display:flex;align-items:center;gap:10px;padding:12px 14px 6px}
+.vxa-ico{flex:0 0 auto;width:38px;height:30px;border-radius:4px 8px 8px 8px;position:relative;box-shadow:inset 0 -6px 0 rgba(0,0,0,.18)}
+.vxa-ico:before{content:"";position:absolute;left:0;top:-5px;width:16px;height:7px;border-radius:4px 4px 0 0;background:inherit}
+.vxa-nome{font-size:15px;font-weight:800;color:#fff;line-height:1.2;word-break:break-word}
+.vxa-loc{display:inline-block;margin-top:3px;font-size:11px;font-weight:800;letter-spacing:.4px;color:#1b1b1b;background:#F5C400;border-radius:6px;padding:2px 7px}
+.vxa-lin{font-size:12.5px;color:#c7cdd6;padding:2px 14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vxa-lin b{color:#fff;font-weight:700}
+.vxa-rod{margin-top:auto!important;display:flex;justify-content:space-between;align-items:center;font-size:11.5px;color:#9aa3b0;padding:8px 14px 0;margin-top:6px;border-top:1px dashed rgba(255,255,255,.1)}
+.vxa-vazio{grid-column:1/-1;text-align:center;padding:42px 16px;color:#9aa3b0;border:1px dashed rgba(255,255,255,.15);border-radius:14px;font-size:14px}
+.vxa-vazio b{color:#fff}
+/* ---- modal da pasta ---- */
+.vxa-bg{position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:9000;display:flex;align-items:flex-start;justify-content:center;padding:28px 12px;overflow-y:auto}
+.vxa-modal{width:100%;max-width:640px;background:#1d2026;border:1px solid rgba(255,255,255,.12);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.55);color:#e9ecf1}
+.vxa-m-cab{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.08)}
+.vxa-m-cab h3{margin:0;font-size:17px;font-weight:800;color:#fff;flex:1}
+.vxa-x{background:transparent;border:0;color:#9aa3b0;font-size:20px;cursor:pointer;line-height:1;padding:4px 6px}
+.vxa-m-corpo{padding:14px 18px 6px}
+.vxa-sec{font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:#9aa3b0;margin:14px 0 8px}
+.vxa-sec:first-child{margin-top:2px}
+.vxa-campo{margin:0 0 12px}
+.vxa-campo label{display:block;font-size:12.5px;font-weight:700;color:#d6dbe3;margin:0 0 5px}
+.vxa-campo label i{font-style:normal;color:#ff6b6b}
+.vxa-campo label em{font-style:normal;font-weight:600;color:#8d96a3}
+.vxa-in{width:100%;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:9px;color:#fff;font-size:14px;padding:10px 11px;outline:none}
+.vxa-in:focus{border-color:#F5C400}
+.vxa-in:disabled{opacity:.45}
+.vxa-in.vxa-erro,.vxa-pax.vxa-erro .vxa-in{border-color:#ff5a5f;box-shadow:0 0 0 3px rgba(255,90,95,.18)}
+.vxa-duas{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.vxa-chk{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:#c7cdd6;margin-top:7px;cursor:pointer;user-select:none}
+.vxa-chk input{width:16px!important;height:16px!important;min-height:0!important;accent-color:#F5C400;margin:0!important;padding:0!important;flex:0 0 auto}
+.vxa-cores{display:flex;gap:8px;flex-wrap:wrap}
+.vxa-cor{width:30px;height:30px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0;box-shadow:inset 0 0 0 2px rgba(0,0,0,.25)}
+.vxa-cor.on{border-color:#fff;transform:scale(1.08)}
+.vxa-pax{display:flex;gap:8px;margin:0 0 7px}
+.vxa-pax .vxa-in{flex:1}
+.vxa-pax-x{flex:0 0 auto;width:38px;border-radius:9px;border:1px solid rgba(255,255,255,.14);background:transparent;color:#ff8a8d;font-size:15px;cursor:pointer}
+.vxa-mais{background:transparent;border:1px dashed rgba(255,255,255,.25);color:#F5C400;border-radius:9px;padding:8px 12px;font-size:12.5px;font-weight:700;cursor:pointer}
+.vxa-drop{display:block;border:1.5px dashed rgba(245,196,0,.55);border-radius:12px;padding:16px;text-align:center;color:#d6dbe3;font-size:13px;cursor:pointer;background:rgba(245,196,0,.04)}
+.vxa-drop b{color:#F5C400}
+.vxa-drop.sobre{background:rgba(245,196,0,.12)}
+.vxa-drop small{display:block;color:#8d96a3;margin-top:4px;font-size:11.5px}
+.vxa-arqs{margin:10px 0 4px;display:flex;flex-direction:column;gap:6px}
+.vxa-arq{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px 10px}
+.vxa-arq-tp{flex:0 0 auto;font-size:10px;font-weight:900;letter-spacing:.5px;border-radius:6px;padding:4px 6px;background:#3a3f48;color:#fff}
+.vxa-arq-tp.pdf{background:#c62828}.vxa-arq-tp.jpg{background:#7b1fa2}.vxa-arq-tp.png{background:#2e7d32}
+.vxa-arq-n{flex:1;min-width:0}
+.vxa-arq-n b{display:block;font-size:13px;color:#fff;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vxa-arq-n span{font-size:11px;color:#8d96a3}
+.vxa-arq button{background:transparent;border:1px solid rgba(255,255,255,.16);color:#d6dbe3;border-radius:8px;font-size:12px;padding:5px 9px;cursor:pointer}
+.vxa-arq button.vxa-rm{color:#ff8a8d}
+.vxa-arq.pend{border-style:dashed}
+.vxa-aviso{display:none;margin:4px 0 0;background:rgba(255,90,95,.12);border:1px solid rgba(255,90,95,.45);color:#ffb3b5;border-radius:10px;padding:9px 12px;font-size:12.5px}
+.vxa-aviso.on{display:block}
+.vxa-m-rod{display:flex;align-items:center;gap:10px;padding:14px 18px 16px;border-top:1px solid rgba(255,255,255,.08);margin-top:10px}
+.vxa-m-rod .vxa-esp{flex:1}
+.vxa-bt{border-radius:10px;font-weight:800;font-size:13.5px;padding:10px 16px;cursor:pointer;border:1px solid rgba(255,255,255,.16);background:transparent;color:#d6dbe3}
+.vxa-bt.ok{background:#F5C400;border-color:#F5C400;color:#1b1b1b}
+.vxa-bt.ok:disabled{opacity:.6;cursor:wait}
+.vxa-bt.del{color:#ff8a8d;border-color:rgba(255,90,95,.4)}
+.vxa-meta{font-size:11.5px;color:#8d96a3;padding:0 18px}
+@media (max-width:600px){
+  .vxa-bg{padding:0}
+  .vxa-modal{border-radius:0;min-height:100%}
+  .vxa-duas{grid-template-columns:1fr}
+  .vxa-cab h2{font-size:19px}
+  .vxa-novo{width:100%}
+}
+</style>
+<script>
+/* ═════ (·507) VMA ▸ VOUCHER ▸ ANEXADOS ═════
+   Pedido do Nando (05/10/2026): dentro da VMA, pasta Voucher logo abaixo do Control Desk
+   com a subpasta "Anexados" — uma pasta por cliente (nome e cor livres), documentos
+   anexados (PDF, JPEG, PNG) e campos obrigatórios para SALVAR: Localizador/Nº da reserva,
+   Hotel (ou a caixinha "Sem hotel") e pelo menos um Pax. Opcionais: ida/check-in,
+   volta/check-out e cia aérea. Pesquisa por qualquer dado da pasta.
+
+   ONDE MORA O DADO
+   • appConfig.vmaAnexados = { pastas: { <id>: pasta } } — CAMPO VIVO no Worker (Durable
+     Object da VMA, forte consistência + tempo real), com a MESMA regra de mescla aqui e lá
+     (vxaMergeMaps ⇄ mergeVmaAnexados): pasta vence pelo carimbo mts; os anexos se unem por
+     id (cada um com o próprio mts), então dois PCs anexando ao mesmo tempo não se apagam.
+   • O ARQUIVO vai para o R2 pela rota /api/anexo (a mesma das Ações/Licitação/Cobrança); no
+     dado fica só a etiqueta {id,nome,tipo,tam}. O Worker carimba o anexo com a empresa e a
+     Ultravel não abre anexo da VMA (nem o contrário).
+   • Exclusão é SUAVE (del:1) — regra da casa — e só o criador da pasta ou o administrador.
+
+   A PASTA SÓ NASCE VÁLIDA: o rascunho vive no modal e só vira pasta quando passa na
+   validação e os arquivos terminam de subir. Fechar com alteração pergunta antes de descartar. */
+(function(){
+  if(window.vxaMergeMaps) return;
+  var CORES=['#F5C400','#FF8A00','#E53935','#EC407A','#8E44AD','#1E88E5','#00ACC1','#43A047','#8D6E63','#78909C'];
+  var TIPOS={'application/pdf':'PDF','image/jpeg':'JPG','image/png':'PNG'};
+  var EXT={pdf:'application/pdf',jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png'};
+  var MAX=20*1024*1024;
+  var AREA='Voucher › Anexados';
+
+  /* ---------- mescla (espelho EXATO de mergeVmaAnexados no worker.js) ---------- */
+  function carimbo(x){ return (x && +x.mts) || 0; }
+  function mergeAnexos(a,b){
+    a=(a&&typeof a==='object')?a:{}; b=(b&&typeof b==='object')?b:{};
+    var out={}, ids={};
+    Object.keys(a).forEach(function(k){ ids[k]=1; }); Object.keys(b).forEach(function(k){ ids[k]=1; });
+    Object.keys(ids).forEach(function(k){ var x=a[k], y=b[k]; out[k]=(!x||!y)?(x||y):(carimbo(x)>=carimbo(y)?x:y); });
+    return out;
+  }
+  function vxaMergeMaps(A,B){
+    var pa=(A&&A.pastas&&typeof A.pastas==='object')?A.pastas:{};
+    var pb=(B&&B.pastas&&typeof B.pastas==='object')?B.pastas:{};
+    var out={}, ids={};
+    Object.keys(pa).forEach(function(k){ ids[k]=1; }); Object.keys(pb).forEach(function(k){ ids[k]=1; });
+    Object.keys(ids).forEach(function(id){
+      var x=pa[id], y=pb[id];
+      if(!x||!y){ out[id]=x||y; return; }
+      var v=(carimbo(x)>=carimbo(y))?x:y, c={};
+      Object.keys(v).forEach(function(k){ c[k]=v[k]; });
+      c.anexos=mergeAnexos(x.anexos, y.anexos);
+      out[id]=c;
+    });
+    return {pastas:out};
+  }
+  window.vxaMergeMaps=vxaMergeMaps;
+
+  /* ---------- utilidades ---------- */
+  function store(){
+    try{
+      if(!appConfig.vmaAnexados || typeof appConfig.vmaAnexados!=='object') appConfig.vmaAnexados={pastas:{}};
+      if(!appConfig.vmaAnexados.pastas || typeof appConfig.vmaAnexados.pastas!=='object') appConfig.vmaAnexados.pastas={};
+      return appConfig.vmaAnexados;
+    }catch(e){ return {pastas:{}}; }
+  }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function norm(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,' ').trim(); }
+  function quem(){ try{ return (window.uvAuthNome&&window.uvAuthNome())||''; }catch(e){ return ''; } }
+  function login(){ try{ return (window.uvAuthUsuario&&window.uvAuthUsuario())||''; }catch(e){ return ''; } }
+  function souAdmin(){ try{ return window.uvAuthPerfil && window.uvAuthPerfil()==='admin'; }catch(e){ return false; } }
+  function novoId(p){ return p+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
+  function dataBr(iso){ var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(iso||''); return m?(m[3]+'/'+m[2]+'/'+m[1]):''; }
+  function quando(ts){ try{ var d=new Date(+ts); return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear()+' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2); }catch(e){ return ''; } }
+  function tam(n){ n=+n||0; return n<1024?n+' B':(n<1048576?Math.round(n/1024)+' KB':(n/1048576).toFixed(1)+' MB'); }
+  function tipoDe(f){ var t=(f&&f.type||'').toLowerCase(); if(TIPOS[t]) return t; var n=(f&&f.name||'').toLowerCase(), p=n.lastIndexOf('.'); return EXT[p>=0?n.slice(p+1):'']||''; }
+  function base(){ try{ return (typeof getWorkerUrl==='function')?(getWorkerUrl()||''):''; }catch(e){ return ''; } }
+  function hdr(){ var h={}; try{ var t=(window.uvAuthToken&&window.uvAuthToken())||''; if(t) h['Authorization']='Bearer '+t; }catch(e){} return h; }
+  function aviso(m,tp){ try{ if(typeof toast==='function'){ toast(m,tp||'info'); return; } }catch(e){} }
+  function log(msg){ try{ if(typeof logRemoto==='function') logRemoto('vma_anexados', msg, {area:AREA}); }catch(e){} }
+  function salvar(){ try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){} }
+  function vivos(m){ var o={}; Object.keys(m||{}).forEach(function(k){ if(m[k] && !m[k].del) o[k]=m[k]; }); return o; }
+  function podeApagarPasta(p){ return souAdmin() || (p && p.criadoU && p.criadoU===login()); }
+  function podeApagarArq(p,a){ return podeApagarPasta(p) || (a && a.porU && a.porU===login()); }
+
+  function enviar(file){
+    var tipo=tipoDe(file);
+    if(!tipo) return Promise.reject(new Error('"'+file.name+'": só PDF, JPEG ou PNG'));
+    if(file.size>MAX) return Promise.reject(new Error('"'+file.name+'": maior que 20 MB'));
+    var b=base(); if(!b) return Promise.reject(new Error('sem conexão com o servidor'));
+    return fetch(b+'/api/anexo?tipo='+encodeURIComponent(tipo)+'&nome='+encodeURIComponent(file.name||'documento')+'&area='+encodeURIComponent(AREA),
+                 {method:'POST', headers:hdr(), body:file})
+      .then(function(r){ return r.json().then(function(d){ if(!r.ok||!d||!d.id) throw new Error((d&&d.error)||('HTTP '+r.status)); return {id:d.id, nome:(file.name||'documento').slice(0,180), tipo:tipo, tam:d.tam||file.size||0}; }); });
+  }
+  /* abrir/baixar por fetch + blob: o token viaja no cabeçalho, nunca na URL */
+  function pegar(id){
+    var b=base(); if(!b) return Promise.reject(new Error('sem conexão com o servidor'));
+    return fetch(b+'/api/anexo/'+encodeURIComponent(id), {headers:hdr()})
+      .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.blob(); });
+  }
+  function abrirArq(a, baixar){
+    var w=null; if(!baixar){ try{ w=window.open('','_blank'); }catch(e){} }
+    pegar(a.id).then(function(bl){
+      if(a.tipo && bl.type!==a.tipo){ try{ bl=new Blob([bl],{type:a.tipo}); }catch(e){} }
+      var u=URL.createObjectURL(bl);
+      if(w && !baixar){ w.location.href=u; }
+      else { var l=document.createElement('a'); l.href=u; l.download=a.nome||'documento'; document.body.appendChild(l); l.click(); setTimeout(function(){ try{ document.body.removeChild(l); }catch(e){} },1500); }
+      setTimeout(function(){ try{ URL.revokeObjectURL(u); }catch(e){} }, 60000);
+    }).catch(function(e){ try{ if(w) w.close(); }catch(_){} aviso('Não consegui abrir o documento: '+(e&&e.message||e),'erro'); });
+  }
+
+  /* ---------- tela ---------- */
+  var termo='';
+  function textoBusca(p){
+    var arqs=vivos(p.anexos);
+    return norm([p.nome,p.loc,p.semHotel?'sem hotel':p.hotel,(p.pax||[]).join(' '),p.cia,
+                 p.ida,dataBr(p.ida),p.volta,dataBr(p.volta),p.criadoPor,
+                 Object.keys(arqs).map(function(k){ return arqs[k].nome; }).join(' ')].join(' | '));
+  }
+  function pastasVisiveis(){
+    var P=vivos(store().pastas), lista=Object.keys(P).map(function(k){ return P[k]; });
+    var t=norm(termo);
+    if(t){ var partes=t.split(' '); lista=lista.filter(function(p){ var s=textoBusca(p); return partes.every(function(x){ return s.indexOf(x)>=0; }); }); }
+    lista.sort(function(a,b){ return carimbo(b)-carimbo(a); });
+    return lista;
+  }
+  function cardHtml(p){
+    var cor=p.cor||CORES[0], pax=(p.pax||[]).filter(Boolean), n=Object.keys(vivos(p.anexos)).length;
+    var datas=(p.ida||p.volta)?('<div class="vxa-lin">📅 '+esc(dataBr(p.ida)||'—')+' → '+esc(dataBr(p.volta)||'—')+'</div>'):'';
+    return '<button type="button" class="vxa-card" data-vxa-abrir="'+esc(p.id)+'">'+
+      '<div class="vxa-aba" style="background:'+esc(cor)+'"></div>'+
+      '<div class="vxa-card-top"><span class="vxa-ico" style="background:'+esc(cor)+'"></span>'+
+        '<div><div class="vxa-nome">'+esc(p.nome||'Sem nome')+'</div><span class="vxa-loc">'+esc(p.loc||'')+'</span></div></div>'+
+      '<div class="vxa-lin">🏨 '+(p.semHotel?'<b>Sem hotel</b>':'<b>'+esc(p.hotel||'')+'</b>')+'</div>'+
+      '<div class="vxa-lin">👤 '+esc(pax[0]||'')+(pax.length>1?' <b>+'+(pax.length-1)+'</b>':'')+'</div>'+
+      datas+(p.cia?'<div class="vxa-lin">✈️ '+esc(p.cia)+'</div>':'')+
+      '<div class="vxa-rod"><span>📎 '+n+' documento'+(n===1?'':'s')+'</span><span>'+esc(quando(p.mts))+'</span></div>'+
+    '</button>';
+  }
+  function renderGrade(){
+    var g=document.getElementById('vxaGrade'), c=document.getElementById('vxaConta'); if(!g) return;
+    var lista=pastasVisiveis(), total=Object.keys(vivos(store().pastas)).length;
+    if(!total) g.innerHTML='<div class="vxa-vazio">Nenhuma pasta ainda.<br>Clique em <b>+ Nova pasta</b> para criar a primeira.</div>';
+    else if(!lista.length) g.innerHTML='<div class="vxa-vazio">Nada encontrado para <b>'+esc(termo)+'</b>.</div>';
+    else g.innerHTML=lista.map(cardHtml).join('');
+    if(c) c.textContent=termo ? (lista.length+' de '+total+' pasta'+(total===1?'':'s')) : (total+' pasta'+(total===1?'':'s'));
+  }
+  window.renderAnexados=function(){
+    var root=document.getElementById('vxaRoot'); if(!root) return;
+    if(!root.querySelector('.vxa-wrap')){
+      root.innerHTML='<div class="vxa-wrap">'+
+        '<div class="vxa-cab"><div><h2>Anexados</h2><p>Uma pasta por cliente, com os documentos da reserva.</p></div>'+
+        '<button type="button" class="vxa-novo" id="vxaNova">+ Nova pasta</button></div>'+
+        '<div class="vxa-busca"><span>🔍</span><input type="text" id="vxaBusca" autocomplete="off" placeholder="Pesquisar por nome, localizador, hotel, passageiro, cia aérea, data ou documento…">'+
+        '<button type="button" id="vxaLimpaBusca" title="Limpar" style="display:none">✕</button></div>'+
+        '<div class="vxa-conta" id="vxaConta"></div>'+
+        '<div class="vxa-grade" id="vxaGrade"></div></div>';
+      var inp=document.getElementById('vxaBusca'), lb=document.getElementById('vxaLimpaBusca');
+      inp.value=termo;
+      inp.addEventListener('input', function(){ termo=inp.value; lb.style.display=termo?'':'none'; renderGrade(); });
+      lb.addEventListener('click', function(){ termo=''; inp.value=''; lb.style.display='none'; renderGrade(); inp.focus(); });
+      document.getElementById('vxaNova').addEventListener('click', function(){ abrirPasta(null); });
+      root.addEventListener('click', function(ev){ var b=ev.target.closest && ev.target.closest('[data-vxa-abrir]'); if(b) abrirPasta(b.getAttribute('data-vxa-abrir')); });
+    }
+    renderGrade();
+  };
+
+  /* ---------- modal da pasta ---------- */
+  function abrirPasta(id){
+    if(document.getElementById('vxaModal')) return;
+    var orig=id ? store().pastas[id] : null;
+    if(id && (!orig || orig.del)) return;
+    var R={ nome:orig?orig.nome||'':'', cor:orig?orig.cor||CORES[0]:CORES[0], loc:orig?orig.loc||'':'',
+            hotel:orig?orig.hotel||'':'', semHotel:!!(orig&&orig.semHotel), pax:orig&&orig.pax&&orig.pax.length?orig.pax.slice():[''],
+            ida:orig?orig.ida||'':'', volta:orig?orig.volta||'':'', cia:orig?orig.cia||'':'',
+            anexos:JSON.parse(JSON.stringify(orig&&orig.anexos||{})), pend:[] };
+    var inicial=JSON.stringify(R), enviando=false;
+    var bg=document.createElement('div'); bg.className='vxa-bg'; bg.id='vxaModal';
+    document.body.appendChild(bg);
+
+    function sujo(){ return JSON.stringify(R)!==inicial; }
+    function lerCampos(){
+      var q=function(s){ return bg.querySelector(s); };
+      if(!q('#vxaNome')) return;
+      R.nome=q('#vxaNome').value; R.loc=q('#vxaLoc').value; R.hotel=q('#vxaHotel').value; R.semHotel=q('#vxaSemHotel').checked;
+      R.ida=q('#vxaIda').value; R.volta=q('#vxaVolta').value; R.cia=q('#vxaCia').value;
+      R.pax=[].map.call(bg.querySelectorAll('[data-vxa-pax]'), function(i){ return i.value; });
+    }
+    function arqHtml(a, k, pend){
+      var tp=(TIPOS[a.tipo]||'ARQ'), cls=tp.toLowerCase();
+      var acoes=pend ? '<button type="button" class="vxa-rm" data-vxa-rmpend="'+k+'">Remover</button>'
+        : '<button type="button" data-vxa-ver="'+esc(a.id)+'">Abrir</button><button type="button" data-vxa-baixar="'+esc(a.id)+'">Baixar</button>'+
+          (podeApagarArq(orig,a)?'<button type="button" class="vxa-rm" data-vxa-rm="'+esc(a.id)+'">Remover</button>':'');
+      return '<div class="vxa-arq'+(pend?' pend':'')+'"><span class="vxa-arq-tp '+cls+'">'+tp+'</span>'+
+        '<div class="vxa-arq-n"><b title="'+esc(a.nome)+'">'+esc(a.nome)+'</b><span>'+tam(a.tam)+(pend?' · será enviado ao salvar':(a.por?' · '+esc(a.por)+' · '+esc(quando(a.ts)):''))+'</span></div>'+acoes+'</div>';
+    }
+    function desenhar(){
+      var arqs=vivos(R.anexos), ks=Object.keys(arqs).sort(function(a,b){ return (arqs[a].ts||0)-(arqs[b].ts||0); });
+      bg.innerHTML='<div class="vxa-modal" role="dialog" aria-modal="true">'+
+        '<div class="vxa-m-cab"><span class="vxa-ico" style="background:'+esc(R.cor)+'"></span><h3>'+(orig?esc(orig.nome||'Pasta'):'Nova pasta')+'</h3><button type="button" class="vxa-x" id="vxaFechar" title="Fechar">✕</button></div>'+
+        '<div class="vxa-m-corpo">'+
+          '<div class="vxa-sec">Pasta</div>'+
+          '<div class="vxa-campo"><label for="vxaNome">Nome da pasta <i>*</i></label><input class="vxa-in" id="vxaNome" maxlength="80" placeholder="Ex.: Família Souza — Gramado" value="'+esc(R.nome)+'"></div>'+
+          '<div class="vxa-campo"><label>Cor da pasta</label><div class="vxa-cores">'+CORES.map(function(c){ return '<button type="button" class="vxa-cor'+(c===R.cor?' on':'')+'" data-vxa-cor="'+c+'" style="background:'+c+'" title="'+c+'"></button>'; }).join('')+'</div></div>'+
+          '<div class="vxa-sec">Reserva</div>'+
+          '<div class="vxa-campo"><label for="vxaLoc">Localizador / Número da reserva <i>*</i></label><input class="vxa-in" id="vxaLoc" maxlength="60" value="'+esc(R.loc)+'"></div>'+
+          '<div class="vxa-campo"><label for="vxaHotel">Nome do hotel <i>*</i></label><input class="vxa-in" id="vxaHotel" maxlength="120" value="'+esc(R.semHotel?'':R.hotel)+'"'+(R.semHotel?' disabled':'')+'>'+
+            '<label class="vxa-chk"><input type="checkbox" id="vxaSemHotel"'+(R.semHotel?' checked':'')+'> Sem hotel</label></div>'+
+          '<div class="vxa-campo"><label>Nome do pax <i>*</i></label><div id="vxaPaxLista">'+
+            R.pax.map(function(n,i){ return '<div class="vxa-pax"><input class="vxa-in" data-vxa-pax="'+i+'" maxlength="120" placeholder="Nome completo do passageiro" value="'+esc(n)+'">'+(R.pax.length>1?'<button type="button" class="vxa-pax-x" data-vxa-paxrm="'+i+'" title="Remover pax">✕</button>':'')+'</div>'; }).join('')+
+            '</div><button type="button" class="vxa-mais" id="vxaMaisPax">+ Adicionar pax</button></div>'+
+          '<div class="vxa-duas">'+
+            '<div class="vxa-campo"><label for="vxaIda">Data de ida / check-in <em>(opcional)</em></label><input type="date" class="vxa-in" id="vxaIda" value="'+esc(R.ida)+'"></div>'+
+            '<div class="vxa-campo"><label for="vxaVolta">Data de volta / check-out <em>(opcional)</em></label><input type="date" class="vxa-in" id="vxaVolta" value="'+esc(R.volta)+'"></div>'+
+          '</div>'+
+          '<div class="vxa-campo"><label for="vxaCia">Cia aérea <em>(opcional)</em></label><input class="vxa-in" id="vxaCia" maxlength="60" placeholder="Ex.: LATAM, GOL, Azul" value="'+esc(R.cia)+'"></div>'+
+          '<div class="vxa-sec">Documentos</div>'+
+          '<label class="vxa-drop" id="vxaDrop"><input type="file" id="vxaArq" multiple accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" style="display:none">'+
+            '📎 <b>Anexar documentos</b> ou arraste aqui<small>PDF, JPEG ou PNG · até 20 MB cada</small></label>'+
+          '<div class="vxa-arqs">'+ks.map(function(k){ return arqHtml(arqs[k],k,false); }).join('')+R.pend.map(function(f,i){ return arqHtml({nome:f.name,tipo:tipoDe(f),tam:f.size},i,true); }).join('')+'</div>'+
+          '<div class="vxa-aviso" id="vxaAviso"></div>'+
+        '</div>'+
+        (orig?'<div class="vxa-meta">Criada por '+esc(orig.criadoPor||'—')+' em '+esc(quando(orig.criadoEm))+(orig.porUlt?' · última alteração: '+esc(orig.porUlt)+' em '+esc(quando(orig.mts)):'')+'</div>':'')+
+        '<div class="vxa-m-rod">'+(orig&&podeApagarPasta(orig)?'<button type="button" class="vxa-bt del" id="vxaExcluir">Excluir pasta</button>':'')+
+          '<span class="vxa-esp"></span><button type="button" class="vxa-bt" id="vxaCancelar">Cancelar</button><button type="button" class="vxa-bt ok" id="vxaSalvar">Salvar pasta</button></div>'+
+      '</div>';
+    }
+    function redesenhar(){ var y=bg.scrollTop; desenhar(); bg.scrollTop=y; }   /* quem chama já leu os campos (lerCampos) ANTES de mexer no rascunho */
+    function fechar(forcar){
+      if(enviando) return;
+      lerCampos();
+      if(!forcar && sujo() && !window.confirm(orig?'Descartar as alterações desta pasta?':'Descartar esta pasta? Ela ainda não foi salva.')) return;
+      if(bg.parentNode) bg.parentNode.removeChild(bg);
+      document.removeEventListener('keydown', tecla, true);
+    }
+    function tecla(ev){ if(ev.key==='Escape'){ ev.stopPropagation(); fechar(false); } }
+    document.addEventListener('keydown', tecla, true);
+    function marcar(sel, erro){ var e=bg.querySelector(sel); if(e) e.classList.toggle('vxa-erro', !!erro); }
+    function validar(){
+      lerCampos();
+      var falta=[];
+      var okNome=!!R.nome.trim(), okLoc=!!R.loc.trim(), okHotel=R.semHotel || !!R.hotel.trim();
+      var paxOk=R.pax.map(function(n){ return n.trim(); }).filter(Boolean);
+      if(!okNome) falta.push('Nome da pasta');
+      if(!okLoc) falta.push('Localizador / Número da reserva');
+      if(!okHotel) falta.push('Nome do hotel (ou marque "Sem hotel")');
+      if(!paxOk.length) falta.push('Nome do pax');
+      marcar('#vxaNome',!okNome); marcar('#vxaLoc',!okLoc); marcar('#vxaHotel',!okHotel);
+      [].forEach.call(bg.querySelectorAll('[data-vxa-pax]'), function(i){ i.classList.toggle('vxa-erro', !paxOk.length && !i.value.trim()); });
+      var av=bg.querySelector('#vxaAviso');
+      if(R.ida && R.volta && R.volta<R.ida){ falta.push('a volta / check-out não pode ser antes da ida / check-in'); marcar('#vxaVolta',true); } else marcar('#vxaVolta',false);
+      if(falta.length){ av.innerHTML='Para salvar, preencha: <b>'+falta.map(esc).join('</b>, <b>')+'</b>.'; av.classList.add('on'); return false; }
+      av.classList.remove('on'); return true;
+    }
+    function gravar(){
+      if(enviando || !validar()) return;
+      var btn=bg.querySelector('#vxaSalvar'); enviando=true;
+      var fila=R.pend.slice(), feitos=0, erros=[];
+      function passo(){
+        if(!fila.length) return concluir();
+        var f=fila.shift(); btn.disabled=true; btn.textContent='Enviando '+(feitos+erros.length+1)+'/'+R.pend.length+'…';
+        enviar(f).then(function(a){
+          var t=Date.now(); a.ts=t; a.mts=t; a.por=quem(); a.porU=login(); R.anexos[a.id]=a; feitos++;
+          R.pend.splice(R.pend.indexOf(f),1);
+        }).catch(function(e){ erros.push(e&&e.message||String(e)); }).then(passo);
+      }
+      function concluir(){
+        enviando=false; btn.disabled=false; btn.textContent='Salvar pasta';
+        var S=store(), agora=Date.now(), pid=orig?orig.id:novoId('vxp');
+        var p=orig?JSON.parse(JSON.stringify(S.pastas[pid]||orig)):{id:pid, criadoEm:agora, criadoPor:quem(), criadoU:login()};
+        p.nome=R.nome.trim(); p.cor=R.cor; p.loc=R.loc.trim(); p.semHotel=!!R.semHotel; p.hotel=R.semHotel?'':R.hotel.trim();
+        p.pax=R.pax.map(function(n){ return n.trim(); }).filter(Boolean); p.ida=R.ida||''; p.volta=R.volta||''; p.cia=R.cia.trim();
+        p.anexos=mergeAnexos(p.anexos, R.anexos); p.mts=agora; if(orig){ p.porUlt=quem(); }
+        S.pastas[pid]=p; salvar();
+        log((orig?'alterou a pasta "':'criou a pasta "')+p.nome+'" (localizador '+p.loc+')'+(feitos?' · '+feitos+' documento(s) anexado(s)':''));
+        try{ window.renderAnexados(); }catch(e){}
+        if(erros.length){
+          orig=S.pastas[pid]; inicial=JSON.stringify(R); redesenhar();
+          var av=bg.querySelector('#vxaAviso'); av.innerHTML='A pasta foi salva, mas '+erros.length+' documento(s) não subiram: '+erros.map(esc).join('; ')+'. Tente salvar de novo.'; av.classList.add('on');
+          return;
+        }
+        aviso(orig?'✅ Pasta atualizada':'✅ Pasta criada');
+        fechar(true);
+      }
+      passo();
+    }
+    function addArquivos(files){
+      lerCampos();
+      var recusados=[];
+      [].forEach.call(files||[], function(f){
+        if(!tipoDe(f)) recusados.push(f.name+' (formato)');
+        else if(f.size>MAX) recusados.push(f.name+' (acima de 20 MB)');
+        else R.pend.push(f);
+      });
+      redesenhar();
+      if(recusados.length){ var av=bg.querySelector('#vxaAviso'); av.innerHTML='Não aceito: <b>'+recusados.map(esc).join('</b>, <b>')+'</b>. Só PDF, JPEG ou PNG até 20 MB.'; av.classList.add('on'); }
+    }
+    bg.addEventListener('click', function(ev){
+      var t=ev.target, c=function(s){ return t.closest && t.closest(s); }, b;
+      if(t===bg){ fechar(false); return; }
+      if(c('#vxaFechar')||c('#vxaCancelar')){ fechar(false); return; }
+      if(c('#vxaSalvar')){ gravar(); return; }
+      if((b=c('[data-vxa-cor]'))){ lerCampos(); R.cor=b.getAttribute('data-vxa-cor'); redesenhar(); return; }
+      if(c('#vxaMaisPax')){ lerCampos(); R.pax.push(''); redesenhar(); var l=bg.querySelectorAll('[data-vxa-pax]'); if(l.length) l[l.length-1].focus(); return; }
+      if((b=c('[data-vxa-paxrm]'))){ lerCampos(); R.pax.splice(+b.getAttribute('data-vxa-paxrm'),1); if(!R.pax.length) R.pax=['']; redesenhar(); return; }
+      if((b=c('[data-vxa-rmpend]'))){ lerCampos(); R.pend.splice(+b.getAttribute('data-vxa-rmpend'),1); redesenhar(); return; }
+      if((b=c('[data-vxa-ver]'))){ var a=R.anexos[b.getAttribute('data-vxa-ver')]; if(a) abrirArq(a,false); return; }
+      if((b=c('[data-vxa-baixar]'))){ var a2=R.anexos[b.getAttribute('data-vxa-baixar')]; if(a2) abrirArq(a2,true); return; }
+      if((b=c('[data-vxa-rm]'))){
+        var a3=R.anexos[b.getAttribute('data-vxa-rm')]; if(!a3) return;
+        if(!window.confirm('Remover o documento "'+a3.nome+'" desta pasta?')) return;
+        lerCampos(); var t2=Date.now(); R.anexos[a3.id]=Object.assign({},a3,{del:1,mts:t2,delPor:quem()}); redesenhar(); return;
+      }
+      if(c('#vxaExcluir')){
+        if(!orig || !podeApagarPasta(orig)) return;
+        if(!window.confirm('Excluir a pasta "'+(orig.nome||'')+'"? Ela sai da lista de Anexados.')) return;
+        var S=store(), p=JSON.parse(JSON.stringify(S.pastas[orig.id]||orig)); p.del=1; p.mts=Date.now(); p.delPor=quem(); S.pastas[orig.id]=p; salvar();
+        log('excluiu a pasta "'+(orig.nome||'')+'" (localizador '+(orig.loc||'')+')');
+        try{ window.renderAnexados(); }catch(e){}
+        aviso('🗑️ Pasta excluída'); fechar(true); return;
+      }
+    });
+    bg.addEventListener('change', function(ev){
+      var t=ev.target;
+      if(t.id==='vxaArq'){ addArquivos(t.files); return; }
+      if(t.id==='vxaSemHotel'){ var h=bg.querySelector('#vxaHotel'); h.disabled=t.checked; if(t.checked){ h.value=''; h.classList.remove('vxa-erro'); } else h.focus(); }
+    });
+    bg.addEventListener('dragover', function(ev){ var d=ev.target.closest&&ev.target.closest('#vxaDrop'); if(d){ ev.preventDefault(); d.classList.add('sobre'); } });
+    bg.addEventListener('dragleave', function(ev){ var d=ev.target.closest&&ev.target.closest('#vxaDrop'); if(d) d.classList.remove('sobre'); });
+    bg.addEventListener('drop', function(ev){ var d=ev.target.closest&&ev.target.closest('#vxaDrop'); if(d){ ev.preventDefault(); addArquivos(ev.dataTransfer&&ev.dataTransfer.files); } });
+    desenhar();
+    if(!orig) setTimeout(function(){ try{ bg.querySelector('#vxaNome').focus(); }catch(e){} },30);
+  }
+  window.vxaAbrirPasta=abrirPasta;
+})();
+</script>
 </body>
 </html>
