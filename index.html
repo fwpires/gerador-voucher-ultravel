@@ -6244,7 +6244,7 @@ window.uvTelaPermitida=function(scr){
   };
 })();
 
-var UV_BUILD_NUM = 523; // (·523) ESTEIRA: DESFEITO o ·522 a pedido do Nando ("já existia a opção Devolver à fila — vamos deixar como estava"): saiu o "‹ Na fila" do início da fileira, voltou o "↩ Devolver à fila" no fim e o rótulo "‹ Voltar para Atendimento Iniciado". Tela idêntica ao ·521; número sobe para nunca andar para trás. Worker continua ·520. ANTERIOR:  (·522) ESTEIRA: botão "‹ Na fila" no detalhe de cada solicitação, o PRIMEIRO da fileira (antes de "Orçamento enviado"), devolvendo o card ao início (Na fila, sem responsável), com confirmação e registro na linha do tempo — pedido do Nando com print. Substitui o "↩ Devolver à fila" do fim da fileira (mesma ação). Vale também para Compras e Manutenção. "‹ Voltar para Atendimento Iniciado" encurtado para "‹ Atendimento Iniciado". Só tela; Worker continua ·520. ANTERIOR:  (·521) ESTEIRA: azul de Compras trocado para #579CEA, o tom da imagem enviada pelo Nando (o azul-bebê #9AD3F5 do ·520 não agradou) — aba, card, botão e borda do detalhe. + Achados no print de conferência: colunas das linhas de Compras/Manutenção desalinhadas entre si (a coluna de botões tinha largura automática; agora fixa) e o texto "na fila há agora" (agora "na fila agora"); e no tema escuro o texto da etapa atual no detalhe saía apagado (regra body.dark .esq-passo mais específica) — agora escuro e em negrito sobre a cor da categoria. Só tela; Worker continua ·520. ANTERIOR:  (·520) ESTEIRA DE SOLICITAÇÕES no Control Desk, logo abaixo do Mural (pedido do Nando, 07/10): três categorias — Viagens (amarelo; funil Na fila → Atendimento Iniciado → Orçamento Enviado/Aguardando Aprovação → Venda Concluída e Cadastrada, com localizador/nº de reserva OBRIGATÓRIO, um ou mais | Venda Declinada, com motivo OBRIGATÓRIO), Compras (azul-bebê) e Manutenção Loja (verde) — solicitante → comprador/executante → baixa, 🔴 pendente / 🟢 feito, ou Cancelar com motivo. Criar e passar para alguém: só a diretoria; os demais pegam da fila (Assumir). Cliente, telefone, descrição e anexos PDF/PNG/JPEG (R2, /api/anexo). Linha do tempo com data, hora e quem fez cada passo. Arquivar → ARQUIVO à parte no servidor (Durable Object, chaves esa:<id>; busca por nome, filtros por categoria e resultado, paginado) — no estado vivo fica só uma lápide, para não engordar. Campo vivo appConfig.esteira, unido por esqMergeMaps (= mergeEsteira no worker) nos três pontos (boot, salvamento, WebSocket); histórico e anexos unidos por id; arquivada é definitivo. Badge no menu do Control Desk = solicitações sem responsável; aviso para quem recebe uma solicitação; card esquecido na fila há 15+ min pulsa laranja. Log em Control Desk › Esteira de Solicitações. VMA não tem a função (tela, servidor e limpeza da gaveta). Worker ·520. ANTERIOR:  (·519) OCUPAÇÃO: a caixa "Voe Mais Alto" ocupa SÓ a bolinha clicada (antes as três) e libera bolinha a bolinha. ANTERIOR:  (·518) MENU: bolinha vermelha de notificação na PASTA PRINCIPAL (Equipe, Comercial…) quando uma sub-pasta visível tem badge aceso (Insights, Ações Comerciais) — aparece mesmo com a pasta recolhida, antes da setinha. ANTERIOR:  (·517) VMA: etiquetas da Ultravel na Ocupação mais sutis — 10px/700 e 9px/500 (eram 12px/900 e 11px/700), piso 9px antes de quebrar com hífen. ANTERIOR:  (·516) ULTRAVEL ▸ Clientes: botões da linha (VMA, ver, editar, excluir, ✓ Na VMA) ~20% menores na mesma proporção; saiu o botão amarelo "＋ Adicionar Cliente VMA" do topo (o envio fica só pela caixinha VMA de cada linha). ANTERIOR:  (·515) ULTRAVEL ▸ Clientes: caixinha "VMA" e "✓ Na VMA" discretas, no mesmo molde dos botões ao lado (fundo escuro tingido, borda e letra amarelas, mesma altura). ANTERIOR:  (·514) ULTRAVEL ▸ Clientes: caixinha amarela "VMA" em cada linha (ao lado de ver/editar/excluir) — um clique envia o cliente para a VMA e vira "✓ Na VMA" (clicar nele reenvia, com confirmação). ANTERIOR:  (·513) ULTRAVEL ▸ Clientes: etiqueta "✓ Na VMA" também na lista, à esquerda das ações (quem tem acesso à VMA; conferido no servidor a cada 60 s e na hora após enviar). ANTERIOR:  (·512) AÇÕES COMERCIAIS: caixinha "☐ Marcar todos" no seletor de atendentes de cada card (marca os 12 de uma vez; com todos marcados vira "☑ Todos marcados" e desmarca todos). ANTERIOR:  (·511) VMA: etiqueta "Em Atendimento / Ultravel" (e as irmãs) com letra maior — 12px/11px, usando também o vão entre as bolinhas; se não couber encolhe só até 10,5px e depois quebra com hífen. ANTERIOR:  (·510) VMA: "Grupos" → "Campanha de Incentivo"; Matriz Operacional ▸ Clientes (dados próprios, campo vivo vmaClientes); Aniversários com diretoria + Juliana + Ghabriella (só nome/sexo/nascimento, /api/vma/aniversarios) e os mesmos alertas; Insights para Juliana e Ghabriella SÓ na VMA (servidor tiPodeVerEmpSrv + tela). ULTRAVEL: botão "Adicionar Cliente VMA" em Matriz ▸ Clientes (cópia com reenvio, só quem tem acesso à VMA). Registro (Log) sem eventos do Insights para quem não pode ver. Worker ·510. ANTERIOR:  (·508) SELO LARANJA "VMA" nos cards de Fernando, Diego, Juliana e Ghabriella na Ocupação da Ultravel quando a pessoa está no plantão da VMA (mesmo cálculo da escala da VMA + trocas da VMA por /api/ultravel/escala-vma, worker ·508) · rótulos da Ultravel na VMA com letra maior (10px; encolhe sozinho só se não couber). ANTERIOR:  (·507) VEZ ÚNICA ENTRE PCs (carimbo vezTs; liberar bolinha de Gestão Interna/Grupos não re-sorteia mais) · "Interno Ultravel" VERMELHO na VMA · voucher sempre com a logo da Ultravel · VMA ▸ Voucher ▸ Anexados (pastas de clientes com documentos e busca). ANTERIOR:  (·506) OCUPAÇÃO ULTRAVEL → VMA (Fernando, Diego, Juliana, Ghabriella): o que marcam na Ultravel aparece na VMA traduzido, em duas linhas centralizadas — Gestão Interna → "Interno / Ultravel"; cliente, Prospecção e demais → "Em Atendimento / Ultravel"; caixa nova roxa "Voe Mais Alto" (só os 4, só na Ultravel, cliente opcional) → "Atendimento VMA / cliente"; Ausente e Indisponível iguais. Espelho travado no Hub que recebe. VMA → Ultravel (Juliana/Ghabriella) passa a chegar como "Voe Mais Alto" (vindo da VMA). Worker ·506 faz o espelho nos dois sentidos sem pingue-pongue. ANTERIOR: (·505) ESCALA DE PLANTÕES DA VMA: grupo Nando, Diego, Juliana e Ghabi (Ana e Hynaê fora da VMA). "Quem manda é a Ultravel": se Nando/Juliana/Ghabi estão no plantão da Ultravel (escala efetiva, com as trocas), estão no da VMA no mesmo dia/fim de semana — travado na tela; os demais plantões seguem distribuição justa entre os 4 (Diego inclusive nos fins de semana), calculada da escala-padrão, a partir de 05/10/2026. As trocas da Ultravel chegam por /api/vma/escala-ultravel (worker ·505). ANTERIOR: (·504) DIRETORIA NA OCUPAÇÃO DA VMA (servidor, worker ·504: /api/vma/equipe inclui Fernando, Diego, Ana Maria e Hynaê antes da Juliana e da Ghabriella). Na tela: como na Ultravel, a diretoria aparece no painel mas NÃO entra no sorteio do atendente da vez nem na contagem de ausência da equipe de vendas (papel "vendas" no uvEquipeEmp). O espelho VMA→Ultravel segue só da Juliana e da Ghabriella. ANTERIOR: (·503) LOG DA MATRIZ E DO COMERCIAL COMPLETO: a lista de áreas do 📋 Log mostra SEMPRE todas as sub-pastas da Matriz Operacional e do Comercial (com a contagem, mesmo zero). Novos registros: Alertas Check-in (agendar com passageiros, excluir, dar baixa — antes ia como "Minhas Tarefas"; os antigos são remapeados), reação em Ações Comerciais, reordenar Fornecedores Online. Rótulos de tipo para cartão/check-in/CRM/prospecção. Cias Aéreas é só consulta (nada a registrar). ANTERIOR: (·502) AUDITORIA MATRIZ/COMERCIAL: (1) se o cofre (·500) não carrega — ex.: Worker antigo — aparece um aviso vermelho dizendo que os dados protegidos não carregaram e que NADA foi apagado (antes a tela mostrava só os registros editados pela tela, parecendo exclusão: Matriz › Clientes com 3 de 40). (2) Log: área vira o caminho do menu ("Matriz Operacional › Clientes", "Comercial › CRM"…), também nos registros antigos. (3) CRM ganhou log em tudo: card criado/editado/movido/excluído, coluna criada/renomeada/excluída (com os cards arquivados junto), Kanban renomeado. ANTERIOR: (·501) LOGO ALINHADA COM O MENU: no computador a logo (Ultravel e VMA) andou 10px para a direita e começa exatamente na borda esquerda das pastas do menu. Celular intocado. ANTERIOR: (·500) O COFRE — DADOS SENSÍVEIS FORA DO ARQUIVO PÚBLICO: equipe (CPF, nascimento, telefone, e-mail pessoal, endereço), os 18 cartões de crédito (número, validade, CVV), passageiros/vistos da Imersão CSDI + 8 PDFs (passaporte, ficha, visto), ~1.400 contatos de Prospecção, clientes corporativos, fornecedores, Cabeça de Rede e as sementes do Controle Geral/Gestão CSDI saíram do index.html e moram no Worker (rota /api/cofre e /api/cofre/doc — só conta da Ultravel logada; nunca VMA, nunca Letícia). Os módulos leem os mesmos "potes" (window.uvCofre), preenchidos no lugar quando o cofre chega. Comentários com CPF/cartão/passaporte/telefone reais mascarados. ANTERIOR: (·499) VMA — EQUIPE AUTOMÁTICA + ESPELHO DE OCUPAÇÃO: a equipe da VMA (Ocupação, escala, listas) vem sozinha das CONTAS — toda conta com empresa VMA + Juliana e Ghabriella (servidor /api/vma/equipe; guardada na máquina e conferida ao abrir e a cada 5 min; mudou → recarrega uma vez, coberta). TI e Financeiro (listas de função única) ficam vazias na VMA. Servidor (worker ·499): o que Juliana/Ghabriella marcam na Ocupação da VMA aparece igual na da Ultravel, bolinha a bolinha (vence a mudança mais nova); o contrário não. ANTERIOR: (·498) AÇÕES COMERCIAIS — UMA ABERTURA BASTA: o modo de teste do ·351 (AC_NOTIF_ADMIN_TUDO) estava ligado e fazia o admin ser avisado das PRÓPRIAS ações (responder, reagir, criar tópico), com a baixa suspensa até sair e reabrir o card — por isso o Nando precisava entrar duas vezes. Desligado: o admin segue a regra de todos (avisado só do que os outros fazem). Mesmo interruptor do Insights. ANTERIOR: (·497) FAVICON VMA COM CONTORNO: no tema claro o "b" branco sumia — contorno preto fino e sutil (≈2px em 64px, 80% de opacidade) só em volta das partes brancas (o b e as hastes); bolinhas sem contorno; fundo continua transparente. ANTERIOR: (·496) FAVICON VMA SEM FUNDO: pedido do Nando — tirado o quadrado grafite; ícone com fundo transparente, recortado rente e ocupando a altura inteira do quadro (64px; 180px no iPhone). ANTERIOR: (·495) SEM PISCAR A ULTRAVEL: ao entrar no Hub VMA aparecia por milésimos a cara da Ultravel (o arquivo de ~9MB é pintado aos pedaços e a troca para a VMA roda no fim do <body>). Agora, na VMA, a página nasce coberta (fundo grafite, <body> invisível) e só aparece no DOMContentLoaded, já toda VMA; o título da aba também já nasce "Hub VMA". Ultravel intocado. ANTERIOR: (·494) ADMIN PELO hubvma.com: conta da Ultravel com acesso à VMA (podeVerVma) que abre pelo hubvma.com fica no Hub VMA (antes era mandada de volta ao hubultravel.com); sem seletor nesse endereço (a página é sempre VMA). Quem chega ao hubvma.com é decidido no Cloudflare Access (equipe VMA de fora + Fernando). Conta sem acesso à VMA continua sendo levada ao hubultravel.com. ANTERIOR: (·493) FAVICON VMA: na VMA (hubvma.com ou seletor) o ícone da aba e dos favoritos vira o ícone da VMA (b com bolinhas verde/amarela/laranja/vermelha em fundo grafite arredondado — o branco sumiria em barra clara); no iPhone também ao salvar na tela de início (apple-touch-icon 180px). Ultravel intocado. ANTERIOR: (·492) HUB VMA — ETAPA 2 (tela): motor no <head> decide a empresa da página (conta VMA; seletor da diretoria/Juliana/Ghabriella; endereço hubvma.com antes do login), separa a cópia local (prefixo vma: no localStorage/sessionStorage), manda X-Hub-Empresa em toda chamada e &empresa=vma no WebSocket, e leva a sessão entre hubultravel.com e hubvma.com pelo #fragmento. Visual VMA: logo Voe Mais Alto Hub (mesmo tamanho), fundos grafite, tudo amarelo, seleção amarela com texto escuro. Menu VMA sem Dashboard/Voucher/Licitação/Cobrança; Matriz só com Alertas Check-in; Eventos e Grupos vazios; sem Welcome Day; listas de equipe e sementes vazias. Seletor Ultravel|VMA (topo no computador, alto do menu no celular). Usuários: empresa da conta, mover de empresa, sem opção Admin; redefinir senha mantém perfil/empresa. ANTERIOR: (·491) SERVIDOR: (1) seletor 'Ultravel | VMA' liberado também para Juliana Lupo e Ghabriella Bressan (sem o Insights); (2) admin do sistema = SÓ o Fernando Pires — o servidor trata qualquer outra conta marcada como admin como atendente. Tela sem mudança. ANTERIOR: (·490) MULTIEMPRESA — ETAPA 1 (servidor): worker.js separa Ultravel e VMA (gaveta vma:*, sala de tempo real hub-vma, conta com empresa, seletor da diretoria por X-Hub-Empresa, CORS para hubvma.com, backup e alertas por empresa). Nenhuma mudança de tela neste build além do ·489. ANTERIOR: (·489) VENCIMENTO DO DOMÍNIO: hubvma.com cadastrado (vence 02/10/2027, renovação automática ligada — print do painel Cloudflare). A semente agora entra por chave que falta, então aparece mesmo para quem já tinha editado a lista. ANTERIOR: (·488) VENCIMENTO DO DOMÍNIO: pílula '🌐 Domínio · N dias' ao lado de 'Nuvem Conectada', só para o Fernando (mesmo critério do Backup). Verde > 60 dias, amarelo até 60, vermelho piscando até 30; aviso na tela uma vez por dia quando perto. Clique abre a lista (editar data, renovação automática, adicionar domínio — ex.: hubvma.com). Semente: hubultravel.com, 03/08/2027, renovação automática ligada. ANTERIOR: (·487) LICITAÇÃO ▸ PRIORIDADE: opções agora Alta (vermelho), Média (amarelo), Baixa (azul claro, nova) e Finalizado (verde). Registros antigos: Perdido → Alta, Cancelado → Média (lidos assim, sem reescrever). ANTERIOR: (·486) HOTÉIS NÃO OFICIAIS — O CONTRÁRIO TAMBÉM: 'Voucher no sistema sem quarto no CSV' (auditoria) ganhou o botão '🏨 Hotel não oficial'; o voucher inteiro sai da conciliação por quarto/auditoria (e as pessoas dele do aviso 'sem Fechado'), vai para a pasta, e o Restaurar devolve o voucher inteiro. ANTERIOR: (·485) CONCILIAÇÃO WECANN — HOTÉIS NÃO OFICIAIS: no aviso 'Quarto no CSV sem voucher' (e na auditoria) o botão '🏨 Hotel não oficial' tira a pessoa da conciliação dos 3 hotéis oficiais e a leva para a nova pasta 'Hotéis não Oficiais' (abaixo de Template Enviado), onde ela é conferida contra o voucher de QUALQUER hotel (tem voucher? datas batem?) com ✅ Conciliado / ⚠️ pendente e ↩ Restaurar. Dado em appConfig.hoteisNaoOficiais, unido entre PCs por carimbo. ANTERIOR: (·484) MENU: (1) abrir OU fechar uma pasta com sub-pastas deixa o azul nela (fechar não passa mais a seleção para a tela aberta) — computador e celular. (2) Celular abre sem nenhuma pasta azul (nem o Control Desk); o azul aparece no primeiro toque. ANTERIOR: (·483) NOTAS PESSOAIS: (1) o quadro vazio 'Nenhuma nota avulsa…' saiu — sem nota avulsa, só aparece uma zona 'Solte aqui para tirar a nota da pasta' enquanto uma nota é arrastada. (2) A seção Notas fica sempre aberta (cabeçalho fixo, sem recolher). ANTERIOR: (·482) MENU: (1) 'Controle de Check-in' saiu de Minhas Tarefas e virou a sub-pasta 'Alertas Check-in' da Matriz Operacional, logo abaixo de Cias Aéreas (tela própria scr-checkin; mesmo dado appConfig.checkins). (2) Seção 'Controle Geral' removida de Minhas Tarefas (dado guardado intocado). (3) 'Minhas Tarefas' → 'Notas Pessoais'. (4) '＋ Adicionar evento' e '＋ Adicionar grupo' removidos. (5) WeCann Summit 2026 selecionada fica verde translúcida. (6) Clicar em WeCann seleciona Eventos (antes o azul pulava para o Control Desk). ANTERIOR: (·481) MENU: uma seleção só — com uma pasta principal selecionada (azul), o item da tela aberta e a pasta-mãe dela deixam de ficar azuis (computador e celular). ANTERIOR: (·480) MENU DESKTOP: clicar numa pasta principal (Voucher, Equipe, Comercial…) a deixa selecionada em azul; fechar ou navegar tira. ANTERIOR: (·479) MENU: 'Gerador de Voucher' virou 'Voucher' — pasta sem tela própria com as sub-pastas Gerador (o conteúdo que era da pasta; tela 'gerador') e Salvos (antes 'Vouchers Salvos'). Letícia continua vendo a pasta Voucher e as duas sub-pastas. ANTERIOR: (·478) MENU: 'Cabeça de Rede' 3px mais à esquerda (ajuste ótico — o ícone dela é mais estreito que os emojis das vizinhas e o vão antes do nome parecia maior). ANTERIOR: (·477) MENU: sub-pastas da Equipe alinhadas — os três ícones (Cabeça de Rede, Aniversários, Insights) numa caixa do mesmo tamanho, nomes começando no mesmo ponto. ANTERIOR: (·476) MENU: Equipe virou pasta sem tela própria com três sub-pastas — Cabeça de Rede (saiu do topo), Aniversários (o conteúdo que era da Equipe; id de tela 'equipe' mantido) e Insights, nessa ordem. ANTERIOR: (·475) CELULAR: o Hub sempre abre (e ao atualizar) com todas as pastas fechadas e o conteúdo recolhido — só a lista de pastas; a tela ativa volta com um toque. Desktop intocado. ANTERIOR: (·474) NÚCLEO COBRANÇA: o selo CPF/CNPJ ficava numa linha própria e desalinhava o campo CNPJ/CPF do campo Contato ao lado; agora fica na linha do rótulo, sem aumentar a altura. ANTERIOR: (·473) (1) CPF/CNPJ: selo ao lado do rótulo reconhece CPF (11 números, 123.456.789-09) ou CNPJ (14, 13.387.342/0001-58) e confere os dígitos (✓ / inválido); valor salvo antigo aparece formatado. (2) 'Núcleo de Cobrança' → 'Núcleo Cobrança'. (3) Celular: sub-pasta aberta laranja translúcido e a pasta principal azul, iguais ao desktop. ANTERIOR: (·472) MÁSCARAS QUE RESPEITAM O CURSOR: corrigir um dígito no meio do CNPJ jogava o cursor para o fim e embaralhava o número (13.387.342/0015-8); agora o cursor volta para depois do mesmo dígito (Cobrança e Licitação). + Telefone com máscara (48) 9••••-•••• (fixo: (48) 3333-4444). ANTERIOR: (·471) NÚCLEO DE COBRANÇA: responsável vira lista (Ruth Alves, Diego Oliveira, Ana Maria, Hynaê Teston); CNPJ/CPF com pontos, barra e traço automáticos ao digitar; valor total (e o do recebimento) com máscara de moeda R$ 3.000,00 enquanto digita. ANTERIOR: (·470) NOVA PASTA 'NÚCLEO DE COBRANÇA' (logo abaixo de Licitação), só para a diretoria + Ruth Alves. Tabela de casos (status coloridos, prioridade, responsável, vencimento, dias de atraso, total/recebido/saldo, barra de evolução, próxima ação, faturas), KPIs, gráfico de recebido por mês, distribuição por status, saldo por faixa de atraso, filtros/busca/ordenação, exportar CSV. Página do caso: dados editáveis, 8 status coloridos, recebimentos (quitado/parcial automático), faturas anexadas com visualizador (PDF página a página), linha do tempo com anotações/contatos, mensagem de cobrança pronta e WhatsApp. União entre PCs campo a campo / item a item. ANTERIOR: (·469) CELULAR: TRILHA MÓVEL SEM TREMOR. (1) a margem do conteúdo não muda mais a cada quadro de rolagem: muda uma vez por aparição/sumiço, compensada por transform (o movimento é só transform); (2) resize só de altura (barra do Safari ao rolar) não reacopla nem zera a trilha; (3) folga 24px na mesma direção e nada liga enquanto a trilha aparece no lugar natural; ao voltar a essa faixa ela pousa com troca compensada. ANTERIOR: (·468) CELULAR: TRILHA MÓVEL. Nada fica mais grudado o tempo todo: rolando para baixo (arrastar para cima) a barra do topo, a pasta e as sub-pastas saem da tela junto com a página; rolando para cima (arrastar para baixo) a pasta e as sub-pastas voltam na hora, grudadas no topo, EMPURRANDO o conteúdo (margem --uv-empurra) em vez de cobri-lo. Desktop intocado. ANTERIOR: (·467) MENU DESKTOP: Gerador de Voucher e Equipe (pastas com tela própria E sub-pastas) agora recolhem as sub-pastas no segundo clique, como Comercial/Matriz/Eventos/Grupos. Pasta EM USO (a tela dela ou uma sub-pasta dela aberta) com a árvore aberta → fecha sem navegar; nos outros casos → abre e navega. Celular intocado. ANTERIOR: (·466) MENU. (1) Todo NOVO acesso (aba/janela nova, navegador reaberto, depois de sair) abre no Control Desk; só o F5 na mesma aba devolve a tela (tela guardada no sessionStorage da aba, uv_hub_screen_aba; o localStorage uv_hub_screen não decide mais o boot). (2) Desktop: TODAS as pastas fechadas no 1º acesso do dia na máquina; depois o que se abriu/fechou persiste, inclusive no F5 (localStorage uv_menu_arvores com o dia). (3) Desktop: contorno branco discreto nas pastas principais (não nas sub-pastas). (4) Desktop: com sub-pasta aberta, a pasta principal fica AZUL e a sub-pasta LARANJA bem transparente. Celular intocado. ANTERIOR: (·465) MURAL: LIXEIRA PAGINADA. Pedido: na lista de excluídos, só os 5 mais recentes na primeira tela; o resto em páginas 1, 2, 3… (‹ › + números; só aparece com mais de 5). Abrir a lixeira volta sempre para a página 1; devolver o último recado de uma página não a deixa vazia. ANTERIOR: (·464) MURAL: LIXEIRA SÓ DO NANDO. Pedido: devolver recado excluído é função exclusiva do administrador (Fernando Pires), não da diretoria. mrPodeRestaurar compara o NOME COMPLETO normalizado (não a regra tolerante de mrMesmaPessoa, que aceitaria 'Fernando' sozinho). Excluir (✕) continua com a diretoria. ANTERIOR: (·463) MURAL: LIXEIRA — DEVOLVER RECADO EXCLUÍDO. Pedido do Nando: como admin, devolver ao mural um recado já excluído. A exclusão sempre foi suave (del=1); agora a diretoria (mesma porta do ✕) tem o botão '🗑 Excluídos (N)' no canto do quadro → lista dos excluídos (autor, data, quem excluiu) com '↩ Devolver ao mural'. Devolver = del:0 + mts novo (vence a cópia excluída de outro PC na união). Excluir passou a carimbar mts/delEm/delPor em vez de sobrescrever ts — o recado devolvido volta no mesmo lugar e com a data original. + Ocupação: badge do plantonista (noite/fim de semana) com nome comprido vazava a tela entre ~1000–1024px → pode encolher/quebrar (achado rodando a regressão num domingo). ANTERIOR: (·462) LICITAÇÃO — DEMANDA AÉREA COMPLETA + DATAS DIGITADAS. Passagem aérea agora tem Trecho + Data e hora de ida + Data e hora de volta (dd/mm/aaaa hh:mm, só números, formata sozinho, hora opcional, data impossível e volta antes da ida recusadas) + Cia aérea; Hotel esconde esses campos. Nascimento virou campo digitado dd/mm/aaaa (não calendário). CORREÇÃO: no ·461 a tabela de tipos da demanda se chamava LIC_TIPOS e sobrescrevia a de tipos de ANEXO (miniatura sem imagem dizia ARQ) — renomeada para LIC_DEM_TIPOS. ANTERIOR: (·461) LICITAÇÃO: SINAL + PÁGINA DO PROCESSO COM DEMANDAS. Bolinha na coluna # (ao lado do ⤢) com menu Sem cor/Verde/Amarelo/Vermelho (campo f.sinal, união campo a campo). Clicar em qualquer ponto da linha abre a PÁGINA do processo (resumo + Demandas): ＋ Adicionar demanda (Passagem aérea ou Hotel; trecho/nome do hotel em fonte grande de título) e, em cada demanda, ＋ Adicionar pessoas (nome, nascimento, CPF com máscara e dígito verificador). r.dem entra na união (licMergeDem — sem isso a união apagava as demandas). Redesenho de fora não apaga formulário aberto. ⤢ e 'Editar dados do processo' seguem abrindo o formulário de dados. ANTERIOR: (·460) LICITAÇÃO: GRADE PROTEGIDA. Pedido do Nando: todas as colunas bloqueadas na página principal — clicar numa célula não edita, sem ＋ de anexar nem arrastar arquivo na grade; documento aberto pela grade abre só para ver (sem Remover). Editar SÓ abrindo o processo no ⤢ (formulário mantém tudo: campos, opções coloridas, anexos, remover, excluir). Aviso 🔒 no topo. ANTERIOR: (·459) PASTA LICITAÇÃO ABERTA A TODOS, MENOS À LETÍCIA ROSA. Pedido do
+var UV_BUILD_NUM = 524; // (·524) ESTEIRA ▸ INDICADORES (só Viagens, só a diretoria): botão "📊 Indicadores" ao lado do Arquivo. Tempos tirados da linha do tempo de cada solicitação (ativas + arquivadas, rota /api/esteira/indicadores): conversão em venda, pedido → Assumir (só as puxadas), jornada média por etapa (Na fila / Atendimento Iniciado / Orçamento Enviado), tempo entre etapas com média, mediana, mais rápido e mais lento, Assumir → fechamento e ciclo completo; ranking de vendas (🥇🥈🥉, declinadas, conversão, produtos pelos localizadores); quem mais puxou (puxou × recebeu da diretoria, reação média); velocidade por atendente (⚡ mais rápido, 🐢 mais demorado, onde o tempo vai); 5 atendimentos mais rápidos e mais demorados; parados agora (clicáveis); motivos de declínio. Filtros: período (7/30/90 dias, este mês, tudo) e atendente (destaca). + ARQUIVO e ARQUIVAR passam a ser SÓ DA DIRETORIA (tela e servidor). Worker ·524. ANTERIOR:  (·523) ESTEIRA: DESFEITO o ·522 a pedido do Nando ("já existia a opção Devolver à fila — vamos deixar como estava"): saiu o "‹ Na fila" do início da fileira, voltou o "↩ Devolver à fila" no fim e o rótulo "‹ Voltar para Atendimento Iniciado". Tela idêntica ao ·521; número sobe para nunca andar para trás. Worker continua ·520. ANTERIOR:  (·522) ESTEIRA: botão "‹ Na fila" no detalhe de cada solicitação, o PRIMEIRO da fileira (antes de "Orçamento enviado"), devolvendo o card ao início (Na fila, sem responsável), com confirmação e registro na linha do tempo — pedido do Nando com print. Substitui o "↩ Devolver à fila" do fim da fileira (mesma ação). Vale também para Compras e Manutenção. "‹ Voltar para Atendimento Iniciado" encurtado para "‹ Atendimento Iniciado". Só tela; Worker continua ·520. ANTERIOR:  (·521) ESTEIRA: azul de Compras trocado para #579CEA, o tom da imagem enviada pelo Nando (o azul-bebê #9AD3F5 do ·520 não agradou) — aba, card, botão e borda do detalhe. + Achados no print de conferência: colunas das linhas de Compras/Manutenção desalinhadas entre si (a coluna de botões tinha largura automática; agora fixa) e o texto "na fila há agora" (agora "na fila agora"); e no tema escuro o texto da etapa atual no detalhe saía apagado (regra body.dark .esq-passo mais específica) — agora escuro e em negrito sobre a cor da categoria. Só tela; Worker continua ·520. ANTERIOR:  (·520) ESTEIRA DE SOLICITAÇÕES no Control Desk, logo abaixo do Mural (pedido do Nando, 07/10): três categorias — Viagens (amarelo; funil Na fila → Atendimento Iniciado → Orçamento Enviado/Aguardando Aprovação → Venda Concluída e Cadastrada, com localizador/nº de reserva OBRIGATÓRIO, um ou mais | Venda Declinada, com motivo OBRIGATÓRIO), Compras (azul-bebê) e Manutenção Loja (verde) — solicitante → comprador/executante → baixa, 🔴 pendente / 🟢 feito, ou Cancelar com motivo. Criar e passar para alguém: só a diretoria; os demais pegam da fila (Assumir). Cliente, telefone, descrição e anexos PDF/PNG/JPEG (R2, /api/anexo). Linha do tempo com data, hora e quem fez cada passo. Arquivar → ARQUIVO à parte no servidor (Durable Object, chaves esa:<id>; busca por nome, filtros por categoria e resultado, paginado) — no estado vivo fica só uma lápide, para não engordar. Campo vivo appConfig.esteira, unido por esqMergeMaps (= mergeEsteira no worker) nos três pontos (boot, salvamento, WebSocket); histórico e anexos unidos por id; arquivada é definitivo. Badge no menu do Control Desk = solicitações sem responsável; aviso para quem recebe uma solicitação; card esquecido na fila há 15+ min pulsa laranja. Log em Control Desk › Esteira de Solicitações. VMA não tem a função (tela, servidor e limpeza da gaveta). Worker ·520. ANTERIOR:  (·519) OCUPAÇÃO: a caixa "Voe Mais Alto" ocupa SÓ a bolinha clicada (antes as três) e libera bolinha a bolinha. ANTERIOR:  (·518) MENU: bolinha vermelha de notificação na PASTA PRINCIPAL (Equipe, Comercial…) quando uma sub-pasta visível tem badge aceso (Insights, Ações Comerciais) — aparece mesmo com a pasta recolhida, antes da setinha. ANTERIOR:  (·517) VMA: etiquetas da Ultravel na Ocupação mais sutis — 10px/700 e 9px/500 (eram 12px/900 e 11px/700), piso 9px antes de quebrar com hífen. ANTERIOR:  (·516) ULTRAVEL ▸ Clientes: botões da linha (VMA, ver, editar, excluir, ✓ Na VMA) ~20% menores na mesma proporção; saiu o botão amarelo "＋ Adicionar Cliente VMA" do topo (o envio fica só pela caixinha VMA de cada linha). ANTERIOR:  (·515) ULTRAVEL ▸ Clientes: caixinha "VMA" e "✓ Na VMA" discretas, no mesmo molde dos botões ao lado (fundo escuro tingido, borda e letra amarelas, mesma altura). ANTERIOR:  (·514) ULTRAVEL ▸ Clientes: caixinha amarela "VMA" em cada linha (ao lado de ver/editar/excluir) — um clique envia o cliente para a VMA e vira "✓ Na VMA" (clicar nele reenvia, com confirmação). ANTERIOR:  (·513) ULTRAVEL ▸ Clientes: etiqueta "✓ Na VMA" também na lista, à esquerda das ações (quem tem acesso à VMA; conferido no servidor a cada 60 s e na hora após enviar). ANTERIOR:  (·512) AÇÕES COMERCIAIS: caixinha "☐ Marcar todos" no seletor de atendentes de cada card (marca os 12 de uma vez; com todos marcados vira "☑ Todos marcados" e desmarca todos). ANTERIOR:  (·511) VMA: etiqueta "Em Atendimento / Ultravel" (e as irmãs) com letra maior — 12px/11px, usando também o vão entre as bolinhas; se não couber encolhe só até 10,5px e depois quebra com hífen. ANTERIOR:  (·510) VMA: "Grupos" → "Campanha de Incentivo"; Matriz Operacional ▸ Clientes (dados próprios, campo vivo vmaClientes); Aniversários com diretoria + Juliana + Ghabriella (só nome/sexo/nascimento, /api/vma/aniversarios) e os mesmos alertas; Insights para Juliana e Ghabriella SÓ na VMA (servidor tiPodeVerEmpSrv + tela). ULTRAVEL: botão "Adicionar Cliente VMA" em Matriz ▸ Clientes (cópia com reenvio, só quem tem acesso à VMA). Registro (Log) sem eventos do Insights para quem não pode ver. Worker ·510. ANTERIOR:  (·508) SELO LARANJA "VMA" nos cards de Fernando, Diego, Juliana e Ghabriella na Ocupação da Ultravel quando a pessoa está no plantão da VMA (mesmo cálculo da escala da VMA + trocas da VMA por /api/ultravel/escala-vma, worker ·508) · rótulos da Ultravel na VMA com letra maior (10px; encolhe sozinho só se não couber). ANTERIOR:  (·507) VEZ ÚNICA ENTRE PCs (carimbo vezTs; liberar bolinha de Gestão Interna/Grupos não re-sorteia mais) · "Interno Ultravel" VERMELHO na VMA · voucher sempre com a logo da Ultravel · VMA ▸ Voucher ▸ Anexados (pastas de clientes com documentos e busca). ANTERIOR:  (·506) OCUPAÇÃO ULTRAVEL → VMA (Fernando, Diego, Juliana, Ghabriella): o que marcam na Ultravel aparece na VMA traduzido, em duas linhas centralizadas — Gestão Interna → "Interno / Ultravel"; cliente, Prospecção e demais → "Em Atendimento / Ultravel"; caixa nova roxa "Voe Mais Alto" (só os 4, só na Ultravel, cliente opcional) → "Atendimento VMA / cliente"; Ausente e Indisponível iguais. Espelho travado no Hub que recebe. VMA → Ultravel (Juliana/Ghabriella) passa a chegar como "Voe Mais Alto" (vindo da VMA). Worker ·506 faz o espelho nos dois sentidos sem pingue-pongue. ANTERIOR: (·505) ESCALA DE PLANTÕES DA VMA: grupo Nando, Diego, Juliana e Ghabi (Ana e Hynaê fora da VMA). "Quem manda é a Ultravel": se Nando/Juliana/Ghabi estão no plantão da Ultravel (escala efetiva, com as trocas), estão no da VMA no mesmo dia/fim de semana — travado na tela; os demais plantões seguem distribuição justa entre os 4 (Diego inclusive nos fins de semana), calculada da escala-padrão, a partir de 05/10/2026. As trocas da Ultravel chegam por /api/vma/escala-ultravel (worker ·505). ANTERIOR: (·504) DIRETORIA NA OCUPAÇÃO DA VMA (servidor, worker ·504: /api/vma/equipe inclui Fernando, Diego, Ana Maria e Hynaê antes da Juliana e da Ghabriella). Na tela: como na Ultravel, a diretoria aparece no painel mas NÃO entra no sorteio do atendente da vez nem na contagem de ausência da equipe de vendas (papel "vendas" no uvEquipeEmp). O espelho VMA→Ultravel segue só da Juliana e da Ghabriella. ANTERIOR: (·503) LOG DA MATRIZ E DO COMERCIAL COMPLETO: a lista de áreas do 📋 Log mostra SEMPRE todas as sub-pastas da Matriz Operacional e do Comercial (com a contagem, mesmo zero). Novos registros: Alertas Check-in (agendar com passageiros, excluir, dar baixa — antes ia como "Minhas Tarefas"; os antigos são remapeados), reação em Ações Comerciais, reordenar Fornecedores Online. Rótulos de tipo para cartão/check-in/CRM/prospecção. Cias Aéreas é só consulta (nada a registrar). ANTERIOR: (·502) AUDITORIA MATRIZ/COMERCIAL: (1) se o cofre (·500) não carrega — ex.: Worker antigo — aparece um aviso vermelho dizendo que os dados protegidos não carregaram e que NADA foi apagado (antes a tela mostrava só os registros editados pela tela, parecendo exclusão: Matriz › Clientes com 3 de 40). (2) Log: área vira o caminho do menu ("Matriz Operacional › Clientes", "Comercial › CRM"…), também nos registros antigos. (3) CRM ganhou log em tudo: card criado/editado/movido/excluído, coluna criada/renomeada/excluída (com os cards arquivados junto), Kanban renomeado. ANTERIOR: (·501) LOGO ALINHADA COM O MENU: no computador a logo (Ultravel e VMA) andou 10px para a direita e começa exatamente na borda esquerda das pastas do menu. Celular intocado. ANTERIOR: (·500) O COFRE — DADOS SENSÍVEIS FORA DO ARQUIVO PÚBLICO: equipe (CPF, nascimento, telefone, e-mail pessoal, endereço), os 18 cartões de crédito (número, validade, CVV), passageiros/vistos da Imersão CSDI + 8 PDFs (passaporte, ficha, visto), ~1.400 contatos de Prospecção, clientes corporativos, fornecedores, Cabeça de Rede e as sementes do Controle Geral/Gestão CSDI saíram do index.html e moram no Worker (rota /api/cofre e /api/cofre/doc — só conta da Ultravel logada; nunca VMA, nunca Letícia). Os módulos leem os mesmos "potes" (window.uvCofre), preenchidos no lugar quando o cofre chega. Comentários com CPF/cartão/passaporte/telefone reais mascarados. ANTERIOR: (·499) VMA — EQUIPE AUTOMÁTICA + ESPELHO DE OCUPAÇÃO: a equipe da VMA (Ocupação, escala, listas) vem sozinha das CONTAS — toda conta com empresa VMA + Juliana e Ghabriella (servidor /api/vma/equipe; guardada na máquina e conferida ao abrir e a cada 5 min; mudou → recarrega uma vez, coberta). TI e Financeiro (listas de função única) ficam vazias na VMA. Servidor (worker ·499): o que Juliana/Ghabriella marcam na Ocupação da VMA aparece igual na da Ultravel, bolinha a bolinha (vence a mudança mais nova); o contrário não. ANTERIOR: (·498) AÇÕES COMERCIAIS — UMA ABERTURA BASTA: o modo de teste do ·351 (AC_NOTIF_ADMIN_TUDO) estava ligado e fazia o admin ser avisado das PRÓPRIAS ações (responder, reagir, criar tópico), com a baixa suspensa até sair e reabrir o card — por isso o Nando precisava entrar duas vezes. Desligado: o admin segue a regra de todos (avisado só do que os outros fazem). Mesmo interruptor do Insights. ANTERIOR: (·497) FAVICON VMA COM CONTORNO: no tema claro o "b" branco sumia — contorno preto fino e sutil (≈2px em 64px, 80% de opacidade) só em volta das partes brancas (o b e as hastes); bolinhas sem contorno; fundo continua transparente. ANTERIOR: (·496) FAVICON VMA SEM FUNDO: pedido do Nando — tirado o quadrado grafite; ícone com fundo transparente, recortado rente e ocupando a altura inteira do quadro (64px; 180px no iPhone). ANTERIOR: (·495) SEM PISCAR A ULTRAVEL: ao entrar no Hub VMA aparecia por milésimos a cara da Ultravel (o arquivo de ~9MB é pintado aos pedaços e a troca para a VMA roda no fim do <body>). Agora, na VMA, a página nasce coberta (fundo grafite, <body> invisível) e só aparece no DOMContentLoaded, já toda VMA; o título da aba também já nasce "Hub VMA". Ultravel intocado. ANTERIOR: (·494) ADMIN PELO hubvma.com: conta da Ultravel com acesso à VMA (podeVerVma) que abre pelo hubvma.com fica no Hub VMA (antes era mandada de volta ao hubultravel.com); sem seletor nesse endereço (a página é sempre VMA). Quem chega ao hubvma.com é decidido no Cloudflare Access (equipe VMA de fora + Fernando). Conta sem acesso à VMA continua sendo levada ao hubultravel.com. ANTERIOR: (·493) FAVICON VMA: na VMA (hubvma.com ou seletor) o ícone da aba e dos favoritos vira o ícone da VMA (b com bolinhas verde/amarela/laranja/vermelha em fundo grafite arredondado — o branco sumiria em barra clara); no iPhone também ao salvar na tela de início (apple-touch-icon 180px). Ultravel intocado. ANTERIOR: (·492) HUB VMA — ETAPA 2 (tela): motor no <head> decide a empresa da página (conta VMA; seletor da diretoria/Juliana/Ghabriella; endereço hubvma.com antes do login), separa a cópia local (prefixo vma: no localStorage/sessionStorage), manda X-Hub-Empresa em toda chamada e &empresa=vma no WebSocket, e leva a sessão entre hubultravel.com e hubvma.com pelo #fragmento. Visual VMA: logo Voe Mais Alto Hub (mesmo tamanho), fundos grafite, tudo amarelo, seleção amarela com texto escuro. Menu VMA sem Dashboard/Voucher/Licitação/Cobrança; Matriz só com Alertas Check-in; Eventos e Grupos vazios; sem Welcome Day; listas de equipe e sementes vazias. Seletor Ultravel|VMA (topo no computador, alto do menu no celular). Usuários: empresa da conta, mover de empresa, sem opção Admin; redefinir senha mantém perfil/empresa. ANTERIOR: (·491) SERVIDOR: (1) seletor 'Ultravel | VMA' liberado também para Juliana Lupo e Ghabriella Bressan (sem o Insights); (2) admin do sistema = SÓ o Fernando Pires — o servidor trata qualquer outra conta marcada como admin como atendente. Tela sem mudança. ANTERIOR: (·490) MULTIEMPRESA — ETAPA 1 (servidor): worker.js separa Ultravel e VMA (gaveta vma:*, sala de tempo real hub-vma, conta com empresa, seletor da diretoria por X-Hub-Empresa, CORS para hubvma.com, backup e alertas por empresa). Nenhuma mudança de tela neste build além do ·489. ANTERIOR: (·489) VENCIMENTO DO DOMÍNIO: hubvma.com cadastrado (vence 02/10/2027, renovação automática ligada — print do painel Cloudflare). A semente agora entra por chave que falta, então aparece mesmo para quem já tinha editado a lista. ANTERIOR: (·488) VENCIMENTO DO DOMÍNIO: pílula '🌐 Domínio · N dias' ao lado de 'Nuvem Conectada', só para o Fernando (mesmo critério do Backup). Verde > 60 dias, amarelo até 60, vermelho piscando até 30; aviso na tela uma vez por dia quando perto. Clique abre a lista (editar data, renovação automática, adicionar domínio — ex.: hubvma.com). Semente: hubultravel.com, 03/08/2027, renovação automática ligada. ANTERIOR: (·487) LICITAÇÃO ▸ PRIORIDADE: opções agora Alta (vermelho), Média (amarelo), Baixa (azul claro, nova) e Finalizado (verde). Registros antigos: Perdido → Alta, Cancelado → Média (lidos assim, sem reescrever). ANTERIOR: (·486) HOTÉIS NÃO OFICIAIS — O CONTRÁRIO TAMBÉM: 'Voucher no sistema sem quarto no CSV' (auditoria) ganhou o botão '🏨 Hotel não oficial'; o voucher inteiro sai da conciliação por quarto/auditoria (e as pessoas dele do aviso 'sem Fechado'), vai para a pasta, e o Restaurar devolve o voucher inteiro. ANTERIOR: (·485) CONCILIAÇÃO WECANN — HOTÉIS NÃO OFICIAIS: no aviso 'Quarto no CSV sem voucher' (e na auditoria) o botão '🏨 Hotel não oficial' tira a pessoa da conciliação dos 3 hotéis oficiais e a leva para a nova pasta 'Hotéis não Oficiais' (abaixo de Template Enviado), onde ela é conferida contra o voucher de QUALQUER hotel (tem voucher? datas batem?) com ✅ Conciliado / ⚠️ pendente e ↩ Restaurar. Dado em appConfig.hoteisNaoOficiais, unido entre PCs por carimbo. ANTERIOR: (·484) MENU: (1) abrir OU fechar uma pasta com sub-pastas deixa o azul nela (fechar não passa mais a seleção para a tela aberta) — computador e celular. (2) Celular abre sem nenhuma pasta azul (nem o Control Desk); o azul aparece no primeiro toque. ANTERIOR: (·483) NOTAS PESSOAIS: (1) o quadro vazio 'Nenhuma nota avulsa…' saiu — sem nota avulsa, só aparece uma zona 'Solte aqui para tirar a nota da pasta' enquanto uma nota é arrastada. (2) A seção Notas fica sempre aberta (cabeçalho fixo, sem recolher). ANTERIOR: (·482) MENU: (1) 'Controle de Check-in' saiu de Minhas Tarefas e virou a sub-pasta 'Alertas Check-in' da Matriz Operacional, logo abaixo de Cias Aéreas (tela própria scr-checkin; mesmo dado appConfig.checkins). (2) Seção 'Controle Geral' removida de Minhas Tarefas (dado guardado intocado). (3) 'Minhas Tarefas' → 'Notas Pessoais'. (4) '＋ Adicionar evento' e '＋ Adicionar grupo' removidos. (5) WeCann Summit 2026 selecionada fica verde translúcida. (6) Clicar em WeCann seleciona Eventos (antes o azul pulava para o Control Desk). ANTERIOR: (·481) MENU: uma seleção só — com uma pasta principal selecionada (azul), o item da tela aberta e a pasta-mãe dela deixam de ficar azuis (computador e celular). ANTERIOR: (·480) MENU DESKTOP: clicar numa pasta principal (Voucher, Equipe, Comercial…) a deixa selecionada em azul; fechar ou navegar tira. ANTERIOR: (·479) MENU: 'Gerador de Voucher' virou 'Voucher' — pasta sem tela própria com as sub-pastas Gerador (o conteúdo que era da pasta; tela 'gerador') e Salvos (antes 'Vouchers Salvos'). Letícia continua vendo a pasta Voucher e as duas sub-pastas. ANTERIOR: (·478) MENU: 'Cabeça de Rede' 3px mais à esquerda (ajuste ótico — o ícone dela é mais estreito que os emojis das vizinhas e o vão antes do nome parecia maior). ANTERIOR: (·477) MENU: sub-pastas da Equipe alinhadas — os três ícones (Cabeça de Rede, Aniversários, Insights) numa caixa do mesmo tamanho, nomes começando no mesmo ponto. ANTERIOR: (·476) MENU: Equipe virou pasta sem tela própria com três sub-pastas — Cabeça de Rede (saiu do topo), Aniversários (o conteúdo que era da Equipe; id de tela 'equipe' mantido) e Insights, nessa ordem. ANTERIOR: (·475) CELULAR: o Hub sempre abre (e ao atualizar) com todas as pastas fechadas e o conteúdo recolhido — só a lista de pastas; a tela ativa volta com um toque. Desktop intocado. ANTERIOR: (·474) NÚCLEO COBRANÇA: o selo CPF/CNPJ ficava numa linha própria e desalinhava o campo CNPJ/CPF do campo Contato ao lado; agora fica na linha do rótulo, sem aumentar a altura. ANTERIOR: (·473) (1) CPF/CNPJ: selo ao lado do rótulo reconhece CPF (11 números, 123.456.789-09) ou CNPJ (14, 13.387.342/0001-58) e confere os dígitos (✓ / inválido); valor salvo antigo aparece formatado. (2) 'Núcleo de Cobrança' → 'Núcleo Cobrança'. (3) Celular: sub-pasta aberta laranja translúcido e a pasta principal azul, iguais ao desktop. ANTERIOR: (·472) MÁSCARAS QUE RESPEITAM O CURSOR: corrigir um dígito no meio do CNPJ jogava o cursor para o fim e embaralhava o número (13.387.342/0015-8); agora o cursor volta para depois do mesmo dígito (Cobrança e Licitação). + Telefone com máscara (48) 9••••-•••• (fixo: (48) 3333-4444). ANTERIOR: (·471) NÚCLEO DE COBRANÇA: responsável vira lista (Ruth Alves, Diego Oliveira, Ana Maria, Hynaê Teston); CNPJ/CPF com pontos, barra e traço automáticos ao digitar; valor total (e o do recebimento) com máscara de moeda R$ 3.000,00 enquanto digita. ANTERIOR: (·470) NOVA PASTA 'NÚCLEO DE COBRANÇA' (logo abaixo de Licitação), só para a diretoria + Ruth Alves. Tabela de casos (status coloridos, prioridade, responsável, vencimento, dias de atraso, total/recebido/saldo, barra de evolução, próxima ação, faturas), KPIs, gráfico de recebido por mês, distribuição por status, saldo por faixa de atraso, filtros/busca/ordenação, exportar CSV. Página do caso: dados editáveis, 8 status coloridos, recebimentos (quitado/parcial automático), faturas anexadas com visualizador (PDF página a página), linha do tempo com anotações/contatos, mensagem de cobrança pronta e WhatsApp. União entre PCs campo a campo / item a item. ANTERIOR: (·469) CELULAR: TRILHA MÓVEL SEM TREMOR. (1) a margem do conteúdo não muda mais a cada quadro de rolagem: muda uma vez por aparição/sumiço, compensada por transform (o movimento é só transform); (2) resize só de altura (barra do Safari ao rolar) não reacopla nem zera a trilha; (3) folga 24px na mesma direção e nada liga enquanto a trilha aparece no lugar natural; ao voltar a essa faixa ela pousa com troca compensada. ANTERIOR: (·468) CELULAR: TRILHA MÓVEL. Nada fica mais grudado o tempo todo: rolando para baixo (arrastar para cima) a barra do topo, a pasta e as sub-pastas saem da tela junto com a página; rolando para cima (arrastar para baixo) a pasta e as sub-pastas voltam na hora, grudadas no topo, EMPURRANDO o conteúdo (margem --uv-empurra) em vez de cobri-lo. Desktop intocado. ANTERIOR: (·467) MENU DESKTOP: Gerador de Voucher e Equipe (pastas com tela própria E sub-pastas) agora recolhem as sub-pastas no segundo clique, como Comercial/Matriz/Eventos/Grupos. Pasta EM USO (a tela dela ou uma sub-pasta dela aberta) com a árvore aberta → fecha sem navegar; nos outros casos → abre e navega. Celular intocado. ANTERIOR: (·466) MENU. (1) Todo NOVO acesso (aba/janela nova, navegador reaberto, depois de sair) abre no Control Desk; só o F5 na mesma aba devolve a tela (tela guardada no sessionStorage da aba, uv_hub_screen_aba; o localStorage uv_hub_screen não decide mais o boot). (2) Desktop: TODAS as pastas fechadas no 1º acesso do dia na máquina; depois o que se abriu/fechou persiste, inclusive no F5 (localStorage uv_menu_arvores com o dia). (3) Desktop: contorno branco discreto nas pastas principais (não nas sub-pastas). (4) Desktop: com sub-pasta aberta, a pasta principal fica AZUL e a sub-pasta LARANJA bem transparente. Celular intocado. ANTERIOR: (·465) MURAL: LIXEIRA PAGINADA. Pedido: na lista de excluídos, só os 5 mais recentes na primeira tela; o resto em páginas 1, 2, 3… (‹ › + números; só aparece com mais de 5). Abrir a lixeira volta sempre para a página 1; devolver o último recado de uma página não a deixa vazia. ANTERIOR: (·464) MURAL: LIXEIRA SÓ DO NANDO. Pedido: devolver recado excluído é função exclusiva do administrador (Fernando Pires), não da diretoria. mrPodeRestaurar compara o NOME COMPLETO normalizado (não a regra tolerante de mrMesmaPessoa, que aceitaria 'Fernando' sozinho). Excluir (✕) continua com a diretoria. ANTERIOR: (·463) MURAL: LIXEIRA — DEVOLVER RECADO EXCLUÍDO. Pedido do Nando: como admin, devolver ao mural um recado já excluído. A exclusão sempre foi suave (del=1); agora a diretoria (mesma porta do ✕) tem o botão '🗑 Excluídos (N)' no canto do quadro → lista dos excluídos (autor, data, quem excluiu) com '↩ Devolver ao mural'. Devolver = del:0 + mts novo (vence a cópia excluída de outro PC na união). Excluir passou a carimbar mts/delEm/delPor em vez de sobrescrever ts — o recado devolvido volta no mesmo lugar e com a data original. + Ocupação: badge do plantonista (noite/fim de semana) com nome comprido vazava a tela entre ~1000–1024px → pode encolher/quebrar (achado rodando a regressão num domingo). ANTERIOR: (·462) LICITAÇÃO — DEMANDA AÉREA COMPLETA + DATAS DIGITADAS. Passagem aérea agora tem Trecho + Data e hora de ida + Data e hora de volta (dd/mm/aaaa hh:mm, só números, formata sozinho, hora opcional, data impossível e volta antes da ida recusadas) + Cia aérea; Hotel esconde esses campos. Nascimento virou campo digitado dd/mm/aaaa (não calendário). CORREÇÃO: no ·461 a tabela de tipos da demanda se chamava LIC_TIPOS e sobrescrevia a de tipos de ANEXO (miniatura sem imagem dizia ARQ) — renomeada para LIC_DEM_TIPOS. ANTERIOR: (·461) LICITAÇÃO: SINAL + PÁGINA DO PROCESSO COM DEMANDAS. Bolinha na coluna # (ao lado do ⤢) com menu Sem cor/Verde/Amarelo/Vermelho (campo f.sinal, união campo a campo). Clicar em qualquer ponto da linha abre a PÁGINA do processo (resumo + Demandas): ＋ Adicionar demanda (Passagem aérea ou Hotel; trecho/nome do hotel em fonte grande de título) e, em cada demanda, ＋ Adicionar pessoas (nome, nascimento, CPF com máscara e dígito verificador). r.dem entra na união (licMergeDem — sem isso a união apagava as demandas). Redesenho de fora não apaga formulário aberto. ⤢ e 'Editar dados do processo' seguem abrindo o formulário de dados. ANTERIOR: (·460) LICITAÇÃO: GRADE PROTEGIDA. Pedido do Nando: todas as colunas bloqueadas na página principal — clicar numa célula não edita, sem ＋ de anexar nem arrastar arquivo na grade; documento aberto pela grade abre só para ver (sem Remover). Editar SÓ abrindo o processo no ⤢ (formulário mantém tudo: campos, opções coloridas, anexos, remover, excluir). Aviso 🔒 no topo. ANTERIOR: (·459) PASTA LICITAÇÃO ABERTA A TODOS, MENOS À LETÍCIA ROSA. Pedido do
 // Nando, trocando a regra do ·458 (só diretoria + Maria Eduarda). A exceção reaproveita a trava do
 // ·457 (uvSoVoucher) em vez de criar outra lista com o nome dela — uma segunda cópia do mesmo fato
 // ficaria para trás no dia em que a trava do voucher mudar. O portão em hubGoScreen continua: para
@@ -27933,6 +27933,88 @@ body.dark .esq-campo i{color:#6E88A3}
 .esq-arq-det{padding:4px 14px 14px 48px;display:flex;flex-direction:column;gap:10px}
 .esq-pags{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:10px;font-size:12px;color:var(--texto-suave)}
 
+/* (·524) INDICADORES da Esteira (Viagens) — mesma linguagem do painel das Ações Comerciais
+   (herói + blocos + barras finas), em classes próprias esq-ind-* (as aci-* vivem presas a
+   #scr-acoes). Barras: um tom só para grandeza; etapas com 3 cores validadas + nome escrito. */
+.esq-modal.esq-ind{max-width:1080px}
+.esq-ind-filtros{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px}
+.esq-ind-filtros .esq-chips{margin-top:0}
+.esq-ind-at{width:auto;min-width:210px}
+.esq-ind-nota{font-size:12px;color:var(--texto-suave);line-height:1.45;margin:2px 0 10px}
+.esq-ind-kpis{display:grid;grid-template-columns:1.5fr repeat(3,1fr);gap:10px}
+.esq-ind-heroi,.esq-ind-tile,.esq-ind-bloco{background:color-mix(in srgb,var(--texto) 4%,transparent);border:1px solid var(--borda);border-radius:14px;padding:13px 15px}
+.esq-ind-heroi{border-color:color-mix(in srgb,#22A85F 55%,transparent)}
+.esq-ind-rot{font-size:12px;font-weight:700;color:var(--texto-suave)}
+.esq-ind-num{font-family:'Sora',sans-serif;font-size:2.4rem;font-weight:800;color:var(--texto);line-height:1.1;margin-top:3px;font-variant-numeric:tabular-nums}
+.esq-ind-num span{font-size:1.2rem;color:var(--texto-suave);margin-left:2px}
+.esq-ind-sub,.esq-ind-tsub{font-size:11.5px;color:var(--texto-suave);margin:2px 0 8px}
+.esq-ind-tsub{margin:4px 0 0}
+.esq-ind-tnum{font-family:'Sora',sans-serif;font-size:1.6rem;font-weight:800;color:var(--texto);font-variant-numeric:tabular-nums;margin-bottom:2px}
+.esq-ind-trilho{height:8px;border-radius:99px;background:color-mix(in srgb,var(--texto) 9%,transparent);overflow:hidden}
+.esq-ind-trilho i{display:block;height:100%;border-radius:99px;background:#22A85F}
+.esq-ind-tit{margin:0 0 3px;font-size:14px;font-weight:800;color:var(--texto)}
+.esq-ind-tit2{margin-top:14px}
+.esq-ind-jorn{display:flex;gap:2px;height:22px;border-radius:6px;overflow:hidden}
+.esq-ind-jorn i{display:flex;align-items:center;min-width:0;flex-basis:0;background:var(--c);padding:0 8px;cursor:default}
+.esq-ind-jorn i:first-child{border-radius:6px 2px 2px 6px}
+.esq-ind-jorn i:last-child{border-radius:2px 6px 6px 2px}
+.esq-ind-leg-v{gap:10px 22px}
+.esq-ind-leg-v b{color:var(--texto);margin-left:4px}
+.esq-ind-leg-v small{margin-left:6px;color:var(--texto-suave)}
+.esq-ind-leg{display:flex;flex-wrap:wrap;gap:14px;margin:8px 0 2px;font-size:11.5px;color:var(--texto-suave)}
+.esq-ind-leg i{display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--c);margin-right:6px;vertical-align:-1px}
+.esq-ind-tab{display:flex;flex-direction:column}
+.esq-ind-cab,.esq-ind-lin{display:grid;align-items:center;gap:10px;padding:7px 8px}
+.esq-ind-cab{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-suave);border-bottom:1px solid var(--borda);padding-bottom:6px}
+.esq-ind-lin{border-bottom:1px solid color-mix(in srgb,var(--borda) 70%,transparent);font-size:12.5px;color:var(--texto)}
+.esq-ind-lin:last-child{border-bottom:0}
+.esq-ind-lin.eu{background:color-mix(in srgb,#3987e5 10%,transparent);border-radius:8px}
+.esq-ind-lin.forte .esq-ind-nome{font-weight:800}
+.esq-ind-trans .esq-ind-cab,.esq-ind-trans .esq-ind-lin{grid-template-columns:minmax(170px,1.3fr) 1.4fr 80px 80px 90px 90px}
+.esq-ind-rank .esq-ind-cab,.esq-ind-rank .esq-ind-lin{grid-template-columns:38px minmax(140px,1fr) 56px 1.2fr 82px 80px minmax(120px,1fr)}
+.esq-ind-pux .esq-ind-cab,.esq-ind-pux .esq-ind-lin{grid-template-columns:minmax(150px,1fr) 1.6fr 60px 70px 100px}
+.esq-ind-vel .esq-ind-cab,.esq-ind-vel .esq-ind-lin{grid-template-columns:minmax(150px,1fr) 1.6fr 90px 90px 70px}
+.esq-ind-mot .esq-ind-lin{grid-template-columns:minmax(190px,1fr) 1.6fr 90px}
+.esq-ind-nome{font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.esq-ind-nome small{display:block;font-weight:500;font-size:10.5px;color:var(--texto-suave)}
+.esq-ind-v{font-variant-numeric:tabular-nums;color:var(--texto-suave);white-space:nowrap}
+.esq-ind-v b{color:var(--texto)}
+.esq-ind-pos{font-size:15px;text-align:center}
+.esq-ind-prod{display:flex;flex-wrap:wrap;gap:8px;font-size:12px;color:var(--texto-suave)}
+.esq-ind-barra{display:block;height:10px;border-radius:0 5px 5px 0;background:color-mix(in srgb,var(--texto) 6%,transparent);overflow:hidden}
+.esq-ind-barra i{display:block;height:100%;background:#3987e5;border-radius:0 4px 4px 0}
+.esq-ind-pilha{display:flex;gap:2px;height:12px;min-width:6px}
+.esq-ind-pilha i{display:block;flex-basis:0;min-width:3px;background:var(--c);border-radius:2px}
+.esq-ind-pilha i:first-child{border-radius:4px 2px 2px 4px}
+.esq-ind-pilha i:last-child{border-radius:2px 4px 4px 2px}
+.esq-ind-pilha i:only-child{border-radius:4px}
+.esq-ind-duas{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.esq-ind-caso{display:grid;grid-template-columns:minmax(0,1fr) auto 80px;align-items:center;gap:10px;width:100%;padding:7px 4px;border:0;border-bottom:1px solid color-mix(in srgb,var(--borda) 70%,transparent);background:transparent;color:var(--texto);text-align:left;font:500 12.5px 'Inter',sans-serif}
+.esq-ind-caso:last-child{border-bottom:0}
+.esq-ind-caso-bt{cursor:pointer;border-radius:8px}
+.esq-ind-caso-bt:hover{background:color-mix(in srgb,var(--texto) 5%,transparent)}
+.esq-ind-caso-t{display:flex;flex-direction:column;min-width:0}
+.esq-ind-caso-t b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.esq-ind-caso-t small{font-size:11px;color:var(--texto-suave)}
+.esq-ind-caso .esq-ind-v{text-align:right}
+.esq-ind-etq{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:var(--texto-suave);white-space:nowrap}
+.esq-ind-etq i{width:9px;height:9px;border-radius:50%;background:var(--c)}
+.esq-ind .esq-m-corpo{gap:12px}
+@media (max-width:860px){
+  .esq-ind-kpis{grid-template-columns:1fr 1fr}
+  .esq-ind-heroi{grid-column:1/-1}
+  .esq-ind-kpis .esq-ind-tile:last-child{grid-column:1/-1}
+  .esq-ind-duas{grid-template-columns:1fr}
+  .esq-ind-cab{display:none}
+  .esq-ind-trans .esq-ind-lin{grid-template-columns:1fr 1fr 1fr 1fr}
+  .esq-ind-trans .esq-ind-nome,.esq-ind-trans .esq-ind-barra{grid-column:1/-1}
+  .esq-ind-rank .esq-ind-lin{grid-template-columns:32px 1fr auto auto}
+  .esq-ind-rank .esq-ind-barra,.esq-ind-rank .esq-ind-prod{grid-column:2/-1}
+  .esq-ind-pux .esq-ind-lin,.esq-ind-vel .esq-ind-lin{grid-template-columns:1fr auto auto auto}
+  .esq-ind-pux .esq-ind-pilha,.esq-ind-vel .esq-ind-pilha{grid-column:1/-1;order:5}
+  .esq-ind-mot .esq-ind-lin{grid-template-columns:1fr auto}
+  .esq-ind-mot .esq-ind-barra{grid-column:1/-1}
+}
 /* a VMA não tem a Esteira (decisão do Nando) — rede de segurança visual além do esqAtiva() */
 html.uv-emp-vma #cdEsteira,html.uv-emp-vma #esqNavBadge{display:none!important}
 @media (max-width:760px){
@@ -28109,6 +28191,9 @@ html.uv-emp-vma #cdEsteira,html.uv-emp-vma #esqNavBadge{display:none!important}
   function esqSouResp(it){ return !!(it && it.resp && esqMesma(it.resp, esqNome())); }
   function esqPodeOperar(it){ return esqAtiva() && !!it && (esqDir() || esqSouResp(it)); }
   function esqFinal(it){ var e=esqEtapa(it); return !!(e && e.fim); }
+  /* (·524) ARQUIVAR, ARQUIVO e INDICADORES: só a diretoria (pedido do Nando). O servidor
+     confere de novo (/api/esteira/* → 403 para quem não é da diretoria). */
+  function esqPodeArquivar(it){ return esqAtiva() && esqDir() && esqFinal(it); }
   window.esqPodeCriar=esqPodeCriar;
 
   /* ---------- dados ---------- */
@@ -28277,7 +28362,7 @@ html.uv-emp-vma #cdEsteira,html.uv-emp-vma #esqNavBadge{display:none!important}
   /* ARQUIVAR — passo único no servidor (guarda no arquivo + lápide no estado vivo) */
   var esqArquivando={};
   function esqArquivar(id){
-    var it=esqStore()[id]; if(!it || !esqPodeOperar(it) || !esqFinal(it) || esqArquivando[id]) return;
+    var it=esqStore()[id]; if(!it || !esqPodeArquivar(it) || esqArquivando[id]) return;
     esqArquivando[id]=1; esqRender(); esqRenderModal();
     api('/api/esteira/arquivar',{method:'POST', body:JSON.stringify({item:it})})
       .then(function(d){
@@ -28390,7 +28475,7 @@ html.uv-emp-vma #cdEsteira,html.uv-emp-vma #esqNavBadge{display:none!important}
     if(esqPodeDesignar() && !fim){
       h+='<button type="button" class="esq-bt" data-esq-passar="'+esqEsc(it.id)+'" title="Passar para um atendente específico (diretoria)">'+(it.resp?'Trocar ▾':'Passar ▾')+'</button>';
     }
-    if(fim && esqPodeOperar(it)){
+    if(esqPodeArquivar(it)){
       h+='<button type="button" class="esq-bt arq" data-esq-arquivar="'+esqEsc(it.id)+'"'+(esqArquivando[it.id]?' disabled':'')+'>'+(esqArquivando[it.id]?'Arquivando…':'📚 Arquivar')+'</button>';
     }
     return h?'<div class="esq-card-acoes">'+h+'</div>':'';
@@ -28466,7 +28551,7 @@ html.uv-emp-vma #cdEsteira,html.uv-emp-vma #esqNavBadge{display:none!important}
     if(!it.resp) acoes+='<button type="button" class="esq-bt pri" data-esq-assumir="'+esqEsc(it.id)+'">Assumir</button>';
     if(it.resp && !fim && esqPodeOperar(it)) acoes+='<button type="button" class="esq-bt ok" data-esq-baixa="'+esqEsc(it.id)+'" title="Dar baixa: '+esqEsc(ESQ_OK[it.cat].toLowerCase())+'">✓ Dar baixa</button>';
     if(esqPodeDesignar() && !fim) acoes+='<button type="button" class="esq-bt" data-esq-passar="'+esqEsc(it.id)+'">'+(it.resp?'Trocar ▾':'Passar ▾')+'</button>';
-    if(fim && esqPodeOperar(it)) acoes+='<button type="button" class="esq-bt arq" data-esq-arquivar="'+esqEsc(it.id)+'"'+(esqArquivando[it.id]?' disabled':'')+'>'+(esqArquivando[it.id]?'Arquivando…':'📚 Arquivar')+'</button>';
+    if(esqPodeArquivar(it)) acoes+='<button type="button" class="esq-bt arq" data-esq-arquivar="'+esqEsc(it.id)+'"'+(esqArquivando[it.id]?' disabled':'')+'>'+(esqArquivando[it.id]?'Arquivando…':'📚 Arquivar')+'</button>';
     return '<div class="esq-lin'+(fim?' fim':'')+(atras?' atrasado':'')+(esqSouResp(it)?' meu':'')+'" data-esq-abrir="'+esqEsc(it.id)+'" tabindex="0">'
       +'<div class="esq-lin-item"><b>'+esqEsc(esqTitulo(it))+'</b>'
         +(it.desc?'<span class="esq-lin-desc">'+esqEsc(it.desc)+'</span>':'')
@@ -28517,7 +28602,8 @@ html.uv-emp-vma #cdEsteira,html.uv-emp-vma #esqNavBadge{display:none!important}
         +'<div class="esq-cab-txt"><h3 class="esq-tit">Esteira de Solicitações</h3>'
           +'<span class="esq-sub">quem pediu, quem pegou e em que etapa está — em tempo real</span></div>'
         +'<div class="esq-cab-acoes">'
-          +'<button type="button" class="esq-bt" id="esqArqBt" data-esq-arquivo="1" title="Solicitações arquivadas — busca por nome e filtros">📚 Arquivo</button>'
+          +(esqDir()?'<button type="button" class="esq-bt" id="esqIndBt" data-esq-ind="1" title="Indicadores de Viagens — tempos, etapas, ranking de vendas (diretoria)">📊 Indicadores</button>'
+            +'<button type="button" class="esq-bt" id="esqArqBt" data-esq-arquivo="1" title="Solicitações arquivadas — busca por nome e filtros (diretoria)">📚 Arquivo</button>':'')
           +(esqPodeCriar()?'<button type="button" class="esq-bt pri esq-nova-bt" data-esq-nova="'+esqTab+'">＋ Nova solicitação</button>':'')
         +'</div>'
       +'</div>'
@@ -28658,10 +28744,8 @@ html.uv-emp-vma #cdEsteira,html.uv-emp-vma #esqNavBadge{display:none!important}
       }
       b.push('<button type="button" class="esq-bt fino" data-esq-devolver="'+esqEsc(it.id)+'">↩ Devolver à fila</button>');
     }
-    if(fim && op){
-      b.push('<button type="button" class="esq-bt arq" data-esq-arquivar="'+esqEsc(it.id)+'"'+(esqArquivando[it.id]?' disabled':'')+'>'+(esqArquivando[it.id]?'Arquivando…':'📚 Arquivar')+'</button>');
-      b.push('<button type="button" class="esq-bt fino" data-esq-reabrir="'+esqEsc(it.id)+'">↺ Reabrir</button>');
-    }
+    if(esqPodeArquivar(it)) b.push('<button type="button" class="esq-bt arq" data-esq-arquivar="'+esqEsc(it.id)+'"'+(esqArquivando[it.id]?' disabled':'')+'>'+(esqArquivando[it.id]?'Arquivando…':'📚 Arquivar')+'</button>');
+    if(fim && op) b.push('<button type="button" class="esq-bt fino" data-esq-reabrir="'+esqEsc(it.id)+'">↺ Reabrir</button>');
     if(esqPodeDesignar() && !fim){
       b.push('<label class="esq-passar-sel">'+(it.resp?'Trocar responsável':'Passar para')+' <select class="esq-inp" data-esq-designar-sel="'+esqEsc(it.id)+'"><option value="">escolha…</option>'
         +esqEquipe().map(function(n){ return '<option value="'+esqEsc(n)+'"'+(it.resp&&esqMesma(it.resp,n)?' disabled':'')+'>'+esqEsc(n)+'</option>'; }).join('')+'</select></label>');
@@ -28846,10 +28930,285 @@ html.uv-emp-vma #cdEsteira,html.uv-emp-vma #esqNavBadge{display:none!important}
   }
   var esqArqTimer=null;
 
+  /* ═══════════════ (·524) INDICADORES — só Viagens, só a diretoria ═══════════════
+     Pedido do Nando: "a mesma função do botão Indicadores das Ações Comerciais", aqui
+     medindo o USO da esteira de Viagens: quantos cada um puxou, quanto tempo do pedido
+     até alguém apertar Assumir, quanto tempo parado em cada etapa e entre etapas, o
+     tempo total do assumir até a venda concluída/declinada, quem puxou mais, quem foi
+     mais rápido e mais demorado, e o ranking de quem mais vendeu.
+
+     DE ONDE VÊM OS TEMPOS — a LINHA DO TEMPO (hist) de cada solicitação, ativa ou
+     arquivada (as arquivadas chegam por /api/esteira/indicadores). Diferente das Ações
+     Comerciais (que só guardam o status atual), aqui cada passo tem data e hora, então
+     dá para medir de verdade, sem supor nada. esqJornada() reconstrói a viagem:
+       fila → (assumiu | designada) → iniciado → (etapa) → orçamento → concluída/declinada
+       com "devolvida" voltando à fila e "reaberta" saindo do fechamento.
+     ⚠ "PUXOU" × "RECEBEU": quem aperta Assumir PUXOU da fila; quando a diretoria passa
+     direto, a pessoa RECEBEU. O "tempo até assumir" usa SÓ as puxadas — nas recebidas
+     ele seria zero (ou o tempo da diretoria), e falsearia a reação do time.
+     ⚠ QUEM FICA COM A VENDA: o responsável no FECHAMENTO (quem apertou concluída/declinada
+     está no hist; o dono do card é quem responde por ela).
+     ⚠ MÉDIA E MEDIANA lado a lado: um atendimento esquecido de 3 dias puxa a média
+     sozinho; a mediana mostra o "normal". As duas ficam escritas.
+     CORES das etapas: slots 1–3 da paleta de referência, validados (claro e escuro) —
+     e nunca a cor sozinha: toda barra tem o nome e o número escritos. */
+  var ESQ_IND_ETAPAS=[
+    {id:'fila',      rot:'Na fila',              cor:'#d95926'},
+    {id:'iniciado',  rot:'Atendimento Iniciado', cor:'#3987e5'},
+    {id:'orcamento', rot:'Orçamento Enviado',    cor:'#199e70'}
+  ];
+  var ESQ_IND_PERIODOS=[{id:'7',rot:'7 dias'},{id:'30',rot:'30 dias'},{id:'90',rot:'90 dias'},{id:'mes',rot:'Este mês'},{id:'tudo',rot:'Tudo'}];
+  var esqIndAberto=false, esqIndPer='30', esqIndAt='', esqIndArq=null, esqIndCarregando=false, esqIndErro='';
+
+  function esqDur(ms){
+    if(ms==null || isNaN(ms)) return '—';
+    var m=Math.round(ms/60000);
+    if(m<1) return '< 1 min';
+    if(m<60) return m+' min';
+    var h=Math.floor(m/60), r=m%60;
+    if(h<24) return h+'h'+(r?' '+esq2(r):'');
+    var d=Math.floor(h/24), hh=h%24;
+    return d+'d'+(hh?' '+hh+'h':'');
+  }
+  function esqMedia(a){ if(!a.length) return null; var s=0; a.forEach(function(x){ s+=x; }); return s/a.length; }
+  function esqMediana(a){ if(!a.length) return null; var b=a.slice().sort(function(x,y){ return x-y; }), m=Math.floor(b.length/2); return b.length%2?b[m]:(b[m-1]+b[m])/2; }
+  function esqPct(n,t){ return t?Math.round(n*100/t):0; }
+  function esqChave(n){ return (n||'').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,' ').trim(); }
+  /* o nome "oficial" (lista da Ocupação) para somar "Diego de Oliveira" com "Diego Oliveira" */
+  function esqCanon(n){
+    if(!n) return '';
+    var L=esqEquipe(); for(var i=0;i<L.length;i++){ if(esqMesma(L[i], n)) return L[i]; }
+    return n;
+  }
+
+  /* reconstrói a jornada de UMA solicitação a partir da linha do tempo */
+  function esqJornada(it, agora){
+    var H=it.hist||{}, ev=Object.keys(H).map(function(k){ return H[k]; }).filter(Boolean)
+      .sort(function(a,b){ return (a.em||0)-(b.em||0); });
+    var J={ it:it, criada:it.ts||0, estadias:[], take:null, orcEm:null, ultOrcEm:null, fim:null, resp:esqCanon(it.resp), aberta:true };
+    var est='fila', desde=it.ts||0;
+    function fecha(em){ if(est==='fila'||est==='iniciado'||est==='orcamento'){ J.estadias.push({etapa:est, dur:Math.max(0,em-desde), fechada:true}); } desde=em; }
+    ev.forEach(function(e){
+      var em=e.em||0;
+      if(e.t==='assumiu'){ if(est==='fila'){ fecha(em); est='iniciado'; } if(!J.take) J.take={em:em, tipo:'puxou', quem:esqCanon(e.por)}; }
+      else if(e.t==='designada'){ if(est==='fila'){ fecha(em); est='iniciado'; } if(!J.take) J.take={em:em, tipo:'recebeu', quem:esqCanon(e.para)}; }
+      else if(e.t==='devolvida'){ fecha(em); est='fila'; }
+      else if(e.t==='etapa'){
+        fecha(em); est=e.para;
+        if(e.para==='orcamento'){ if(!J.orcEm) J.orcEm=em; J.ultOrcEm=em; }
+        if(e.para==='concluida'||e.para==='declinada') J.fim={em:em, etapa:e.para, por:esqCanon(e.por), locs:e.locs||it.locs||[], mot:e.mot||it.mot||null};
+      }
+      else if(e.t==='reaberta'){ fecha(em); est=e.para; J.fim=null; }
+    });
+    /* estadia em curso: conta para "parados agora", nunca para as médias */
+    if(!J.fim && (est==='fila'||est==='iniciado'||est==='orcamento')) J.atual={etapa:est, desde:desde, dur:Math.max(0,(agora||esqAgora())-desde)};
+    J.aberta=!J.fim;
+    if(J.take && J.take.tipo==='puxou') J.tAssumir=J.take.em-J.criada;
+    if(J.take && J.orcEm) J.tAteOrc=J.orcEm-J.take.em;
+    if(J.fim && J.ultOrcEm) J.tOrcFim=J.fim.em-J.ultOrcEm;
+    if(J.fim && J.take) J.tAtend=J.fim.em-J.take.em;
+    if(J.fim) J.tCiclo=J.fim.em-J.criada;
+    return J;
+  }
+  function esqIndInicio(){
+    var d=new Date(); d.setHours(0,0,0,0);
+    if(esqIndPer==='tudo') return 0;
+    if(esqIndPer==='mes'){ d.setDate(1); return d.getTime(); }
+    return d.getTime()-(+esqIndPer-1)*86400000;
+  }
+  function esqIndBase(){
+    var agora=esqAgora(), ini=esqIndInicio(), vistos={}, out=[];
+    esqVivas('viagem').forEach(function(it){ vistos[it.id]=1; out.push(it); });
+    ((esqIndArq&&esqIndArq.itens)||[]).forEach(function(it){ if(!vistos[it.id]){ vistos[it.id]=1; out.push(it); } });
+    return out.filter(function(it){ return (it.ts||0)>=ini; }).map(function(it){ return esqJornada(it, agora); });
+  }
+  function esqIndCarregar(){
+    esqIndCarregando=true; esqIndErro=''; esqRenderInd();
+    api('/api/esteira/indicadores?cat=viagem').then(function(d){ esqIndArq=d||{itens:[]}; esqIndCarregando=false; esqRenderInd(); })
+      .catch(function(e){ esqIndCarregando=false; esqIndErro=(e&&e.message)?e.message:String(e); esqIndArq={itens:[]}; esqRenderInd(); });
+  }
+
+  function esqIndHtml(){
+    var todas=esqIndBase();
+    var pessoas={};   /* por atendente: tudo o que interessa */
+    function P(n){ var k=esqChave(n); if(!k) return null; if(!pessoas[k]) pessoas[k]={nome:n, puxou:0, recebeu:0, tAssumir:[], vendas:0, decl:0, tAtend:[], est:{fila:[],iniciado:[],orcamento:[]}, prod:{}, abertas:0, itens:[]}; return pessoas[k]; }
+    todas.forEach(function(J){
+      if(J.take){ var p=P(J.take.quem); if(p){ p[J.take.tipo==='puxou'?'puxou':'recebeu']++; if(J.take.tipo==='puxou') p.tAssumir.push(J.tAssumir); } }
+      var dono=J.fim ? (J.resp||J.fim.por) : J.resp;
+      var q=P(dono);
+      if(q){
+        q.itens.push(J);
+        if(J.fim){ if(J.fim.etapa==='concluida'){ q.vendas++; (J.fim.locs||[]).forEach(function(l){ q.prod[l.tipo]=(q.prod[l.tipo]||0)+1; }); } else q.decl++; if(J.tAtend!=null) q.tAtend.push(J.tAtend); }
+        else q.abertas++;
+        J.estadias.forEach(function(s){ if(s.etapa!=='fila') q.est[s.etapa].push(s.dur); });
+      }
+    });
+    var lista=Object.keys(pessoas).map(function(k){ return pessoas[k]; });
+    var foco=esqIndAt ? esqChave(esqIndAt) : '';
+    var base=foco ? todas.filter(function(J){ return esqChave(J.fim?(J.resp||J.fim.por):J.resp)===foco || (J.take && esqChave(J.take.quem)===foco); }) : todas;
+
+    var T=base.length, fech=base.filter(function(J){ return J.fim; }), vend=fech.filter(function(J){ return J.fim.etapa==='concluida'; });
+    var abertas=base.filter(function(J){ return !J.fim; }), naFila=abertas.filter(function(J){ return J.atual && J.atual.etapa==='fila'; });
+    var tAss=base.filter(function(J){ return J.tAssumir!=null; }).map(function(J){ return J.tAssumir; });
+    var tAt=fech.filter(function(J){ return J.tAtend!=null; }).map(function(J){ return J.tAtend; });
+    var conv=esqPct(vend.length, fech.length);
+
+    var perChips=ESQ_IND_PERIODOS.map(function(p){ return '<button type="button" class="esq-chip'+(esqIndPer===p.id?' on':'')+'" data-esq-ind-per="'+p.id+'">'+p.rot+'</button>'; }).join('');
+    var atOpts='<option value="">Todos os atendentes</option>'+esqEquipe().map(function(n){ return '<option value="'+esqEsc(n)+'"'+(esqIndAt===n?' selected':'')+'>'+esqEsc(n)+'</option>'; }).join('');
+    var filtros='<div class="esq-ind-filtros"><div class="esq-chips">'+perChips+'</div>'
+      +'<select class="esq-inp esq-ind-at" data-esq-ind-at="1">'+atOpts+'</select></div>'
+      +'<div class="esq-ind-nota">Solicitações de <b>Viagens</b> criadas no período — ativas e arquivadas'+(esqIndAt?', em que <b>'+esqEsc(esqIndAt)+'</b> puxou, recebeu ou fechou':'')+'. Os tempos saem da linha do tempo de cada uma.</div>';
+    if(esqIndCarregando && !esqIndArq) return filtros+'<div class="esq-vazio">Carregando as solicitações arquivadas…</div>';
+    var aviso=esqIndErro?'<div class="esq-erro">Não consegui buscar as arquivadas ('+esqEsc(esqIndErro)+') — os números abaixo contam só as ativas.</div>':'';
+    if(!T) return filtros+aviso+'<div class="esq-vazio">Nenhuma solicitação de Viagens neste período.</div>';
+
+    /* ── números principais ── */
+    var kpis='<div class="esq-ind-kpis">'
+      +'<div class="esq-ind-heroi"><div class="esq-ind-rot">🎯 Conversão em venda</div>'
+        +'<div class="esq-ind-num">'+conv+'<span>%</span></div>'
+        +'<div class="esq-ind-sub">'+vend.length+' vendida'+(vend.length===1?'':'s')+' de '+fech.length+' fechada'+(fech.length===1?'':'s')+' · '+(fech.length-vend.length)+' declinada'+((fech.length-vend.length)===1?'':'s')+'</div>'
+        +'<div class="esq-ind-trilho" role="img" aria-label="'+conv+'% das fechadas viraram venda"><i style="width:'+conv+'%"></i></div></div>'
+      +'<div class="esq-ind-tile"><div class="esq-ind-tnum">'+T+'</div><div class="esq-ind-rot">Solicitações no período</div><div class="esq-ind-tsub">'+abertas.length+' em aberto · '+naFila.length+' na fila agora</div></div>'
+      +'<div class="esq-ind-tile"><div class="esq-ind-tnum">'+esqDur(esqMedia(tAss))+'</div><div class="esq-ind-rot">Pedido → alguém Assumir</div><div class="esq-ind-tsub">média · mediana '+esqDur(esqMediana(tAss))+' · '+tAss.length+' puxada'+(tAss.length===1?'':'s')+'</div></div>'
+      +'<div class="esq-ind-tile"><div class="esq-ind-tnum">'+esqDur(esqMedia(tAt))+'</div><div class="esq-ind-rot">Assumir → fechamento</div><div class="esq-ind-tsub">média · mediana '+esqDur(esqMediana(tAt))+' · '+tAt.length+' fechada'+(tAt.length===1?'':'s')+'</div></div>'
+    +'</div>';
+
+    /* ── tempos por etapa e entre etapas ── */
+    var porEt={}; ESQ_IND_ETAPAS.forEach(function(e){ porEt[e.id]=[]; });
+    base.forEach(function(J){ J.estadias.forEach(function(s){ if(porEt[s.etapa]) porEt[s.etapa].push(s.dur); }); });
+    var medEt=ESQ_IND_ETAPAS.map(function(e){ return {e:e, med:esqMedia(porEt[e.id])||0, n:porEt[e.id].length}; });
+    var somaEt=medEt.reduce(function(a,x){ return a+x.med; },0)||1;
+    var jornada='<div class="esq-ind-jorn" role="img" aria-label="Jornada média: '+medEt.map(function(x){ return x.e.rot+' '+esqDur(x.med); }).join(', ')+'">'
+      +medEt.map(function(x){ if(!x.n) return ''; var w=Math.max(4, x.med*100/somaEt);
+        return '<i style="--c:'+x.e.cor+';flex-grow:'+w+'" tabindex="0" data-ind-tip="'+esqEsc(x.e.rot)+': média '+esqDur(x.med)+' · mediana '+esqDur(esqMediana(porEt[x.e.id]))+' ('+x.n+' passagens)"></i>'; }).join('')+'</div>'
+      /* os NÚMEROS ficam na legenda, e não dentro da barra: um trecho curto cortava o texto ("Na f…") */
+      +'<div class="esq-ind-leg esq-ind-leg-v">'+medEt.map(function(x){ return '<span><i style="--c:'+x.e.cor+'"></i>'+esqEsc(x.e.rot)+' <b>'+(x.n?esqDur(x.med):'—')+'</b><small>'+(x.n?'mediana '+esqDur(esqMediana(porEt[x.e.id])):'sem dados')+'</small></span>'; }).join('')+'</div>';
+    var trans=[
+      {rot:'Pedido criado → Assumir', sub:'só as puxadas da fila', v:tAss},
+      {rot:'Assumir → Orçamento enviado', v:base.filter(function(J){ return J.tAteOrc!=null; }).map(function(J){ return J.tAteOrc; })},
+      {rot:'Orçamento → Concluída / Declinada', v:base.filter(function(J){ return J.tOrcFim!=null; }).map(function(J){ return J.tOrcFim; })},
+      {rot:'Assumir → Concluída / Declinada', sub:'tempo total do atendimento', v:tAt, forte:true},
+      {rot:'Pedido criado → fechamento', sub:'ciclo completo', v:fech.filter(function(J){ return J.tCiclo!=null; }).map(function(J){ return J.tCiclo; })}
+    ];
+    var maxT=Math.max.apply(null, trans.map(function(t){ return esqMedia(t.v)||0; }).concat([1]));
+    var tempos='<section class="esq-ind-bloco"><h4 class="esq-ind-tit">Tempo em cada etapa</h4>'
+      +'<div class="esq-ind-nota">Jornada média de uma solicitação: quanto tempo ela costuma ficar parada em cada etapa (só estadias já encerradas).</div>'+jornada
+      +'<h4 class="esq-ind-tit esq-ind-tit2">Tempo entre uma etapa e outra</h4>'
+      +'<div class="esq-ind-tab esq-ind-trans">'
+      +'<div class="esq-ind-cab"><span>Trecho</span><span></span><span>Média</span><span>Mediana</span><span>Mais rápido</span><span>Mais lento</span></div>'
+      +trans.map(function(t){
+        var m=esqMedia(t.v);
+        return '<div class="esq-ind-lin'+(t.forte?' forte':'')+'"><span class="esq-ind-nome">'+esqEsc(t.rot)+(t.sub?'<small>'+esqEsc(t.sub)+'</small>':'')+'</span>'
+          +'<span class="esq-ind-barra" tabindex="0" data-ind-tip="'+esqEsc(t.rot)+': média '+esqDur(m)+' em '+t.v.length+' caso(s)"><i style="width:'+(m?Math.max(2,m*100/maxT):0)+'%"></i></span>'
+          +'<span class="esq-ind-v"><b>'+esqDur(m)+'</b></span><span class="esq-ind-v">'+esqDur(esqMediana(t.v))+'</span>'
+          +'<span class="esq-ind-v">'+(t.v.length?esqDur(Math.min.apply(null,t.v)):'—')+'</span><span class="esq-ind-v">'+(t.v.length?esqDur(Math.max.apply(null,t.v)):'—')+'</span></div>';
+      }).join('')+'</div></section>';
+
+    /* ── ranking de vendas ── */
+    var rank=lista.filter(function(p){ return p.vendas||p.decl; }).sort(function(a,b){ return (b.vendas-a.vendas) || (esqPct(b.vendas,b.vendas+b.decl)-esqPct(a.vendas,a.vendas+a.decl)) || a.nome.localeCompare(b.nome,'pt-BR'); });
+    var maxV=Math.max.apply(null, rank.map(function(p){ return p.vendas; }).concat([1]));
+    var med=['🥇','🥈','🥉'];
+    var ranking='<section class="esq-ind-bloco"><h4 class="esq-ind-tit">🏆 Ranking de vendas</h4>'
+      +'<div class="esq-ind-nota">Vendas concluídas e cadastradas por atendente (quem é o responsável no fechamento). Conversão = concluídas ÷ (concluídas + declinadas).</div>'
+      +(rank.length?'<div class="esq-ind-tab esq-ind-rank"><div class="esq-ind-cab"><span>#</span><span>Atendente</span><span>Vendas</span><span></span><span>Declinadas</span><span>Conversão</span><span>Produtos vendidos</span></div>'
+      +rank.map(function(p,i){
+        var c=esqPct(p.vendas,p.vendas+p.decl), eu=foco && esqChave(p.nome)===foco;
+        var prod=Object.keys(p.prod).map(function(k){ return '<span title="'+esqEsc(esqLocRot(k))+'">'+esqLocIco(k)+' '+p.prod[k]+'</span>'; }).join(' ');
+        return '<div class="esq-ind-lin'+(eu?' eu':'')+'"><span class="esq-ind-pos">'+((p.vendas && med[i])||(i+1)+'º')+'</span><span class="esq-ind-nome">'+esqEsc(p.nome)+'</span>'
+          +'<span class="esq-ind-v"><b>'+p.vendas+'</b></span>'
+          +'<span class="esq-ind-barra" tabindex="0" data-ind-tip="'+esqEsc(p.nome)+': '+p.vendas+' venda(s), '+p.decl+' declinada(s)"><i style="width:'+(p.vendas*100/maxV)+'%"></i></span>'
+          +'<span class="esq-ind-v">'+p.decl+'</span><span class="esq-ind-v">'+c+'%</span><span class="esq-ind-prod">'+(prod||'—')+'</span></div>';
+      }).join('')+'</div>':'<div class="esq-vazio">Nenhuma venda fechada no período ainda.</div>')+'</section>';
+
+    /* ── quem mais puxou da fila ── */
+    var pux=lista.filter(function(p){ return p.puxou||p.recebeu; }).sort(function(a,b){ return (b.puxou-a.puxou) || (b.recebeu-a.recebeu) || a.nome.localeCompare(b.nome,'pt-BR'); });
+    var maxP=Math.max.apply(null, pux.map(function(p){ return p.puxou+p.recebeu; }).concat([1]));
+    var puxou='<section class="esq-ind-bloco"><h4 class="esq-ind-tit">Quem mais puxou atendimentos</h4>'
+      +'<div class="esq-ind-nota"><b>Puxou</b> = apertou Assumir na fila · <b>Recebeu</b> = a diretoria passou direto. A reação (pedido → Assumir) conta só as puxadas.</div>'
+      +'<div class="esq-ind-leg"><span><i style="--c:#3987e5"></i>Puxou da fila</span><span><i style="--c:#8BA4BF"></i>Recebeu da diretoria</span></div>'
+      +(pux.length?'<div class="esq-ind-tab esq-ind-pux"><div class="esq-ind-cab"><span>Atendente</span><span></span><span>Puxou</span><span>Recebeu</span><span>Reação média</span></div>'
+      +pux.map(function(p,i){
+        var eu=foco && esqChave(p.nome)===foco;
+        return '<div class="esq-ind-lin'+(eu?' eu':'')+'"><span class="esq-ind-nome">'+(i===0&&p.puxou?'⭐ ':'')+esqEsc(p.nome)+'</span>'
+          +'<span class="esq-ind-pilha" style="width:'+((p.puxou+p.recebeu)*100/maxP)+'%">'
+            +(p.puxou?'<i style="--c:#3987e5;flex-grow:'+p.puxou+'" tabindex="0" data-ind-tip="'+esqEsc(p.nome)+' puxou '+p.puxou+'"></i>':'')
+            +(p.recebeu?'<i style="--c:#8BA4BF;flex-grow:'+p.recebeu+'" tabindex="0" data-ind-tip="'+esqEsc(p.nome)+' recebeu '+p.recebeu+'"></i>':'')+'</span>'
+          +'<span class="esq-ind-v"><b>'+p.puxou+'</b></span><span class="esq-ind-v">'+p.recebeu+'</span><span class="esq-ind-v">'+esqDur(esqMedia(p.tAssumir))+'</span></div>';
+      }).join('')+'</div>':'<div class="esq-vazio">Ninguém assumiu solicitações no período.</div>')+'</section>';
+
+    /* ── velocidade por atendente ── */
+    var vel=lista.filter(function(p){ return p.tAtend.length; }).sort(function(a,b){ return esqMedia(a.tAtend)-esqMedia(b.tAtend); });
+    var maxVel=Math.max.apply(null, vel.map(function(p){ return (esqMedia(p.est.iniciado)||0)+(esqMedia(p.est.orcamento)||0); }).concat([1]));
+    var velocidade='<section class="esq-ind-bloco"><h4 class="esq-ind-tit">Velocidade por atendente</h4>'
+      +'<div class="esq-ind-nota">Tempo médio do atendimento (Assumir → concluída/declinada), do mais rápido para o mais demorado. A barra divide o tempo entre <b>Atendimento Iniciado</b> e <b>Orçamento Enviado</b>.</div>'
+      +(vel.length?'<div class="esq-ind-tab esq-ind-vel"><div class="esq-ind-cab"><span>Atendente</span><span>Onde o tempo vai</span><span>Média</span><span>Mediana</span><span>Fechadas</span></div>'
+      +vel.map(function(p,i){
+        var mi=esqMedia(p.est.iniciado)||0, mo=esqMedia(p.est.orcamento)||0, eu=foco && esqChave(p.nome)===foco;
+        var selo=(vel.length>1 && i===0)?'⚡ ':(vel.length>1 && i===vel.length-1)?'🐢 ':'';
+        return '<div class="esq-ind-lin'+(eu?' eu':'')+'"><span class="esq-ind-nome">'+selo+esqEsc(p.nome)+'</span>'
+          +'<span class="esq-ind-pilha" style="width:'+Math.max(4,(mi+mo)*100/maxVel)+'%">'
+            +(mi?'<i style="--c:#3987e5;flex-grow:'+mi+'" tabindex="0" data-ind-tip="'+esqEsc(p.nome)+' · Atendimento Iniciado: média '+esqDur(mi)+'"></i>':'')
+            +(mo?'<i style="--c:#199e70;flex-grow:'+mo+'" tabindex="0" data-ind-tip="'+esqEsc(p.nome)+' · Orçamento Enviado: média '+esqDur(mo)+'"></i>':'')+'</span>'
+          +'<span class="esq-ind-v"><b>'+esqDur(esqMedia(p.tAtend))+'</b></span><span class="esq-ind-v">'+esqDur(esqMediana(p.tAtend))+'</span><span class="esq-ind-v">'+p.tAtend.length+'</span></div>';
+      }).join('')+'</div><div class="esq-ind-leg"><span><i style="--c:#3987e5"></i>Atendimento Iniciado</span><span><i style="--c:#199e70"></i>Orçamento Enviado</span><span>⚡ mais rápido · 🐢 mais demorado</span></div>'
+      :'<div class="esq-vazio">Nenhum atendimento fechado no período ainda.</div>')+'</section>';
+
+    /* ── os mais rápidos e os mais demorados (atendimentos) ── */
+    var comT=fech.filter(function(J){ return J.tAtend!=null; });
+    function linhaJ(J){
+      var ok=J.fim.etapa==='concluida';
+      return '<div class="esq-ind-caso"><span class="esq-ind-caso-t"><b>'+esqEsc(esqTitulo(J.it))+'</b><small>'+esqEsc(J.resp||J.fim.por||'—')+' · '+esqEsc(esqDataCurta(J.fim.em))+'</small></span>'
+        +'<span class="esq-st '+(ok?'ok':'nao')+'">'+(ok?'✓ Vendida':'✕ Declinada')+'</span><span class="esq-ind-v"><b>'+esqDur(J.tAtend)+'</b></span></div>';
+    }
+    /* as duas listas NÃO repetem caso: com poucos atendimentos, metade vai para cada lado */
+    var nR=Math.min(5, Math.ceil(comT.length/2)), nD=Math.min(5, comT.length-nR);
+    var rap=comT.slice().sort(function(a,b){ return a.tAtend-b.tAtend; }).slice(0,nR);
+    var dem=comT.slice().sort(function(a,b){ return b.tAtend-a.tAtend; }).slice(0,nD);
+    var extremos=comT.length?'<div class="esq-ind-duas">'
+      +'<section class="esq-ind-bloco"><h4 class="esq-ind-tit">⚡ Atendimentos mais rápidos</h4><div class="esq-ind-nota">Assumir → fechamento.</div>'+rap.map(linhaJ).join('')+'</section>'
+      +'<section class="esq-ind-bloco"><h4 class="esq-ind-tit">🐢 Atendimentos mais demorados</h4><div class="esq-ind-nota">Assumir → fechamento.</div>'+(dem.length?dem.map(linhaJ).join(''):'<div class="esq-vazio-mini">Ainda há poucos atendimentos fechados para comparar.</div>')+'</section>'
+      +'</div>':'';
+
+    /* ── parados agora (o que pede ação HOJE) ── */
+    var par=abertas.filter(function(J){ return J.atual; }).sort(function(a,b){ return b.atual.dur-a.atual.dur; }).slice(0,8);
+    var etRot={}; ESQ_IND_ETAPAS.forEach(function(e){ etRot[e.id]=e.rot; });
+    var parados=par.length?'<section class="esq-ind-bloco"><h4 class="esq-ind-tit">⏳ Parados agora — há mais tempo na mesma etapa</h4>'
+      +'<div class="esq-ind-nota">Solicitações em aberto, da mais parada para a menos. Clique para abrir.</div>'
+      +par.map(function(J){
+        return '<button type="button" class="esq-ind-caso esq-ind-caso-bt" data-esq-ind-abrir="'+esqEsc(J.it.id)+'"><span class="esq-ind-caso-t"><b>'+esqEsc(esqTitulo(J.it))+'</b><small>'+esqEsc(J.it.resp||'sem responsável')+'</small></span>'
+          +'<span class="esq-ind-etq" style="--c:'+(ESQ_IND_ETAPAS.filter(function(e){ return e.id===J.atual.etapa; })[0]||{cor:'#8BA4BF'}).cor+'"><i></i>'+esqEsc(etRot[J.atual.etapa]||J.atual.etapa)+'</span>'
+          +'<span class="esq-ind-v"><b>'+esqDur(J.atual.dur)+'</b></span></button>';
+      }).join('')+'</section>':'';
+
+    /* ── por que não fechou ── */
+    var mots={}; fech.filter(function(J){ return J.fim.etapa==='declinada'; }).forEach(function(J){ var c=(J.fim.mot&&J.fim.mot.cod)||'outro'; mots[c]=(mots[c]||0)+1; });
+    var mk=Object.keys(mots).sort(function(a,b){ return mots[b]-mots[a]; }), totD=mk.reduce(function(a,k){ return a+mots[k]; },0);
+    var motivos=mk.length?'<section class="esq-ind-bloco"><h4 class="esq-ind-tit">Por que as vendas não fecharam</h4>'
+      +'<div class="esq-ind-tab esq-ind-mot">'+mk.map(function(k){
+        var r=k; ESQ_MOTIVOS.forEach(function(m){ if(m.cod===k) r=m.rot; });
+        return '<div class="esq-ind-lin"><span class="esq-ind-nome">'+esqEsc(r)+'</span><span class="esq-ind-barra" tabindex="0" data-ind-tip="'+esqEsc(r)+': '+mots[k]+' ('+esqPct(mots[k],totD)+'%)"><i style="width:'+esqPct(mots[k],mk.length?mots[mk[0]]:1)+'%"></i></span><span class="esq-ind-v"><b>'+mots[k]+'</b> · '+esqPct(mots[k],totD)+'%</span></div>';
+      }).join('')+'</div></section>':'';
+
+    return filtros+aviso+kpis+tempos+ranking+puxou+velocidade+extremos+parados+motivos;
+  }
+  function esqRenderInd(){
+    var raiz=document.getElementById('esqIndModal');
+    if(!esqIndAberto || !esqDir()){ if(raiz) raiz.remove(); return; }
+    var sy=0; try{ var c0=raiz && raiz.querySelector('.esq-m-corpo'); if(c0) sy=c0.scrollTop; }catch(e){}
+    var html='<div class="esq-modal esq-ind" role="dialog" aria-modal="true" style="--esq-cor:#F2C230">'
+      +'<header class="esq-m-cab"><div class="esq-m-cat"><span class="esq-aba-dot"></span>✈️ Viagens · Esteira de Solicitações</div><h3 class="esq-m-tit">📊 Indicadores</h3>'
+        +'<button type="button" class="esq-m-x" data-esq-ind-fechar="1" aria-label="Fechar">✕</button></header>'
+      +'<div class="esq-m-corpo">'+esqIndHtml()+'</div></div>';
+    if(!raiz){ raiz=document.createElement('div'); raiz.id='esqIndModal'; raiz.className='esq-modal-bg'; document.body.appendChild(raiz); }
+    raiz.innerHTML=html;
+    try{ if(sy) raiz.querySelector('.esq-m-corpo').scrollTop=sy; }catch(e){}
+  }
+  window.esqIndicadoresDados=function(){ return esqIndBase(); };   /* diagnóstico/teste */
+
   /* ---------- cliques (um ouvinte só, delegado) ---------- */
   document.addEventListener('click', function(e){
     var t=e.target; if(!t || !t.closest) return;
-    var dentro=t.closest('#cdEsteira,#esqModal,#esqNovaModal,#esqArqModal');
+    var dentro=t.closest('#cdEsteira,#esqModal,#esqNovaModal,#esqArqModal,#esqIndModal');
     /* clique fora fecha o seletor "Passar para" do quadro */
     if(esqPassarAberto && !t.closest('.esq-passar') && !t.closest('[data-esq-passar]')){ esqPassarAberto=''; esqRender(); }
     if(!dentro) return;
@@ -28858,11 +29217,16 @@ html.uv-emp-vma #cdEsteira,html.uv-emp-vma #esqNavBadge{display:none!important}
     if(t.classList && t.classList.contains('esq-modal-bg')){
       if(t.id==='esqModal') esqFecharModal();
       else if(t.id==='esqArqModal'){ esqArqAberto=false; esqRenderArquivo(); }
+      else if(t.id==='esqIndModal'){ esqIndAberto=false; esqRenderInd(); }
       return;   /* o de "nova" não fecha no fundo: perderia o que foi digitado */
     }
     if((el=t.closest('[data-esq-aba]'))){ esqTab=el.getAttribute('data-esq-aba'); try{ localStorage.setItem('uv_esq_aba', esqTab); }catch(x){} esqPassarAberto=''; esqRender(); return; }
     if((el=t.closest('[data-esq-nova]'))){ esqAbrirNova(el.getAttribute('data-esq-nova')); return; }
-    if((el=t.closest('[data-esq-arquivo]'))){ esqArqAberto=true; esqArqPag=1; esqArqVer=null; esqArqCache=null; esqRenderArquivo(); esqCarregarArquivo(); return; }
+    if((el=t.closest('[data-esq-ind]'))){ if(!esqDir()) return; esqIndAberto=true; esqIndArq=null; esqRenderInd(); esqIndCarregar(); return; }
+    if((el=t.closest('[data-esq-ind-fechar]'))){ esqIndAberto=false; esqRenderInd(); return; }
+    if((el=t.closest('[data-esq-ind-per]'))){ esqIndPer=el.getAttribute('data-esq-ind-per'); esqRenderInd(); return; }
+    if((el=t.closest('[data-esq-ind-abrir]'))){ var aid=el.getAttribute('data-esq-ind-abrir'); esqIndAberto=false; esqRenderInd(); esqAbrirModal(aid); return; }
+    if((el=t.closest('[data-esq-arquivo]'))){ if(!esqDir()) return; esqArqAberto=true; esqArqPag=1; esqArqVer=null; esqArqCache=null; esqRenderArquivo(); esqCarregarArquivo(); return; }
     if((el=t.closest('[data-esq-passar]'))){ e.stopPropagation(); var pid=el.getAttribute('data-esq-passar'); esqPassarAberto=(esqPassarAberto===pid?'':pid); esqRender(); return; }
     if((el=t.closest('[data-esq-designar]'))){ var did=el.getAttribute('data-esq-designar'), para=el.getAttribute('data-esq-para'); esqPassarAberto=''; if(esqDesignar(did, para)) esqToast('Passada para '+esqPrimeiro(para)+'.','ok'); esqRender(); esqRenderModal(); return; }
     if((el=t.closest('[data-esq-assumir]'))){ if(esqAssumir(el.getAttribute('data-esq-assumir'))) esqToast('Agora é sua. Bom atendimento!','ok'); esqRender(); esqRenderModal(); return; }
@@ -28920,6 +29284,7 @@ html.uv-emp-vma #cdEsteira,html.uv-emp-vma #esqNavBadge{display:none!important}
   document.addEventListener('keydown', function(e){
     if(e.key==='Escape'){
       if(document.getElementById('esqArqModal')){ esqArqAberto=false; esqRenderArquivo(); return; }
+      if(document.getElementById('esqIndModal')){ esqIndAberto=false; esqRenderInd(); return; }
       if(document.getElementById('esqModal')){ if(esqForm){ esqForm=''; var r=document.getElementById('esqModal'); if(r) r.innerHTML=''; esqRenderModal(); } else esqFecharModal(); return; }
       if(esqPassarAberto){ esqPassarAberto=''; esqRender(); }
       return;
@@ -28931,6 +29296,7 @@ html.uv-emp-vma #cdEsteira,html.uv-emp-vma #esqNavBadge{display:none!important}
   });
   document.addEventListener('change', function(e){
     var t=e.target; if(!t || !t.getAttribute) return;
+    if(t.hasAttribute('data-esq-ind-at')){ esqIndAt=t.value||''; esqRenderInd(); return; }
     if(t.hasAttribute('data-esq-designar-sel')){
       var id=t.getAttribute('data-esq-designar-sel'), para=t.value; if(!para) return;
       if(esqDesignar(id, para)) esqToast('Passada para '+esqPrimeiro(para)+'.','ok');
@@ -28958,7 +29324,7 @@ html.uv-emp-vma #cdEsteira,html.uv-emp-vma #esqNavBadge{display:none!important}
   });
 
   /* mudança vinda de outro PC: o detalhe aberto acompanha (sem apagar formulário em uso) */
-  window.esqAposMudancaRemota=function(){ try{ esqRenderModal(); }catch(e){} };
+  window.esqAposMudancaRemota=function(){ try{ esqRenderModal(); }catch(e){} try{ if(esqIndAberto) esqRenderInd(); }catch(e){} };
 
   /* desenho inicial (o Control Desk redesenha de novo quando a nuvem chega) */
   try{ esqRender(); }catch(e){}
