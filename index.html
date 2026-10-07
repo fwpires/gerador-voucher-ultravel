@@ -4761,7 +4761,7 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
   <div class="hub-shell">
     <aside class="hub-sidebar" id="hubSidebar">
       <nav>
-        <button class="nav-item" data-screen="controldesk"><span class="nav-ic nav-ic-cd"><span class="ic-chat"><svg viewBox="0 0 24 24"><path d="M12 6.6c-3.3 0-6 2-6 4.6 0 1.4.8 2.7 2 3.6-.1.7-.5 1.5-1 2.1-.2.3 0 .6.3.5 1-.2 2-.6 2.8-1.1.6.2 1.2.3 1.9.3 3.3 0 6-2 6-4.6S15.3 6.6 12 6.6z" fill="#fff"/><circle cx="9.6" cy="11.3" r=".95" fill="#7a3fd0"/><circle cx="12" cy="11.3" r=".95" fill="#e0518b"/><circle cx="14.4" cy="11.3" r=".95" fill="#2f6bff"/></svg></span></span><span>Control Desk</span></button>
+        <button class="nav-item" data-screen="controldesk"><span class="nav-ic nav-ic-cd"><span class="ic-chat"><svg viewBox="0 0 24 24"><path d="M12 6.6c-3.3 0-6 2-6 4.6 0 1.4.8 2.7 2 3.6-.1.7-.5 1.5-1 2.1-.2.3 0 .6.3.5 1-.2 2-.6 2.8-1.1.6.2 1.2.3 1.9.3 3.3 0 6-2 6-4.6S15.3 6.6 12 6.6z" fill="#fff"/><circle cx="9.6" cy="11.3" r=".95" fill="#7a3fd0"/><circle cx="12" cy="11.3" r=".95" fill="#e0518b"/><circle cx="14.4" cy="11.3" r=".95" fill="#2f6bff"/></svg></span></span><span>Control Desk</span><span class="nav-badge" id="esqNavBadge" style="display:none" title="Solicitações aguardando quem pegue">0</span></button>
         <button class="nav-item" data-screen="dashboard"><span class="nav-ic">📊</span><span>Dashboard</span></button>
 
         <!-- (·479) "Gerador de Voucher" virou "Voucher": pasta SEM tela própria (como Equipe/Comercial); o conteúdo foi para a sub-pasta Gerador (id de tela "gerador" mantido) e "Vouchers Salvos" virou "Salvos" -->
@@ -5165,6 +5165,10 @@ body.dark .offline-warn button{background:#C62828;color:#fff}
              pelo módulo mrRender(). O contêiner nasce vazio de propósito: o
              conteúdo depende de quem está logado e do que já foi publicado. -->
         <section class="cd-mural" id="cdMural"></section>
+        <!-- (·520) ESTEIRA DE SOLICITAÇÕES — logo abaixo do Mural, pedido do Nando. Desenhada
+             por esqRender(); nasce ESCONDIDA e só aparece na Ultravel, com alguém logado
+             (a VMA não tem esta função). -->
+        <section class="cd-esteira" id="cdEsteira" hidden></section>
         <div class="dash-cards-cd">
         <div class="cd-aniv-wrap" id="cdAnivWrap"></div>
         <div class="dash-card ocp-card">
@@ -5583,7 +5587,13 @@ var LOG_AREA_POR_TIPO={
      procurar. Redundante com o `area` que wdRegistrar já manda? É: esta tabela
      é a rede de segurança para uma chamada futura que esqueça o campo — sem
      ela o evento cairia em "Outros", que é onde ninguém procura. */
-  wd_pauta_nova:'Control Desk', wd_pauta_editada:'Control Desk', wd_pauta_apagada:'Control Desk'
+  wd_pauta_nova:'Control Desk', wd_pauta_editada:'Control Desk', wd_pauta_apagada:'Control Desk',
+  /* (·520) Esteira de Solicitações — rede de segurança (as chamadas já mandam a área) */
+  esteira_nova:'Control Desk › Esteira de Solicitações', esteira_assumida:'Control Desk › Esteira de Solicitações',
+  esteira_designada:'Control Desk › Esteira de Solicitações', esteira_devolvida:'Control Desk › Esteira de Solicitações',
+  esteira_etapa:'Control Desk › Esteira de Solicitações', esteira_reaberta:'Control Desk › Esteira de Solicitações',
+  esteira_excluida:'Control Desk › Esteira de Solicitações', esteira_anexo:'Control Desk › Esteira de Solicitações',
+  esteira_arquivada:'Control Desk › Esteira de Solicitações'
 };
 /* (·502) ÁREA = CAMINHO DO MENU. Pedido do Nando: "não consigo verificar o que
    aconteceu na Matriz e no Comercial". Os registros EXISTIAM, mas com nomes soltos
@@ -5611,6 +5621,7 @@ var LOG_AREAS_FIXAS=['Matriz Operacional › Fornecedores Online','Matriz Operac
   'Matriz Operacional › Clientes','Matriz Operacional › Cartões de Crédito','Matriz Operacional › Cias Aéreas',
   'Matriz Operacional › Alertas Check-in','Comercial › Ações Comerciais','Comercial › Prospecção','Comercial › CRM'];
 try{ if(window.UV_EMP==='vma') LOG_AREAS_FIXAS.unshift('Voucher › Anexados'); }catch(e){}   /* (·507) */
+try{ if(window.UV_EMP!=='vma') LOG_AREAS_FIXAS.unshift('Control Desk › Esteira de Solicitações'); }catch(e){}   /* (·520) */
 function logArea(tipo, dados){
   if(dados && dados.area) return logAreaMenu(dados.area);
   return logAreaMenu(LOG_AREA_POR_TIPO[tipo] || 'Outros');
@@ -6233,7 +6244,7 @@ window.uvTelaPermitida=function(scr){
   };
 })();
 
-var UV_BUILD_NUM = 519; // (·519) OCUPAÇÃO: a caixa "Voe Mais Alto" ocupa SÓ a bolinha clicada (antes as três) e libera bolinha a bolinha. ANTERIOR:  (·518) MENU: bolinha vermelha de notificação na PASTA PRINCIPAL (Equipe, Comercial…) quando uma sub-pasta visível tem badge aceso (Insights, Ações Comerciais) — aparece mesmo com a pasta recolhida, antes da setinha. ANTERIOR:  (·517) VMA: etiquetas da Ultravel na Ocupação mais sutis — 10px/700 e 9px/500 (eram 12px/900 e 11px/700), piso 9px antes de quebrar com hífen. ANTERIOR:  (·516) ULTRAVEL ▸ Clientes: botões da linha (VMA, ver, editar, excluir, ✓ Na VMA) ~20% menores na mesma proporção; saiu o botão amarelo "＋ Adicionar Cliente VMA" do topo (o envio fica só pela caixinha VMA de cada linha). ANTERIOR:  (·515) ULTRAVEL ▸ Clientes: caixinha "VMA" e "✓ Na VMA" discretas, no mesmo molde dos botões ao lado (fundo escuro tingido, borda e letra amarelas, mesma altura). ANTERIOR:  (·514) ULTRAVEL ▸ Clientes: caixinha amarela "VMA" em cada linha (ao lado de ver/editar/excluir) — um clique envia o cliente para a VMA e vira "✓ Na VMA" (clicar nele reenvia, com confirmação). ANTERIOR:  (·513) ULTRAVEL ▸ Clientes: etiqueta "✓ Na VMA" também na lista, à esquerda das ações (quem tem acesso à VMA; conferido no servidor a cada 60 s e na hora após enviar). ANTERIOR:  (·512) AÇÕES COMERCIAIS: caixinha "☐ Marcar todos" no seletor de atendentes de cada card (marca os 12 de uma vez; com todos marcados vira "☑ Todos marcados" e desmarca todos). ANTERIOR:  (·511) VMA: etiqueta "Em Atendimento / Ultravel" (e as irmãs) com letra maior — 12px/11px, usando também o vão entre as bolinhas; se não couber encolhe só até 10,5px e depois quebra com hífen. ANTERIOR:  (·510) VMA: "Grupos" → "Campanha de Incentivo"; Matriz Operacional ▸ Clientes (dados próprios, campo vivo vmaClientes); Aniversários com diretoria + Juliana + Ghabriella (só nome/sexo/nascimento, /api/vma/aniversarios) e os mesmos alertas; Insights para Juliana e Ghabriella SÓ na VMA (servidor tiPodeVerEmpSrv + tela). ULTRAVEL: botão "Adicionar Cliente VMA" em Matriz ▸ Clientes (cópia com reenvio, só quem tem acesso à VMA). Registro (Log) sem eventos do Insights para quem não pode ver. Worker ·510. ANTERIOR:  (·508) SELO LARANJA "VMA" nos cards de Fernando, Diego, Juliana e Ghabriella na Ocupação da Ultravel quando a pessoa está no plantão da VMA (mesmo cálculo da escala da VMA + trocas da VMA por /api/ultravel/escala-vma, worker ·508) · rótulos da Ultravel na VMA com letra maior (10px; encolhe sozinho só se não couber). ANTERIOR:  (·507) VEZ ÚNICA ENTRE PCs (carimbo vezTs; liberar bolinha de Gestão Interna/Grupos não re-sorteia mais) · "Interno Ultravel" VERMELHO na VMA · voucher sempre com a logo da Ultravel · VMA ▸ Voucher ▸ Anexados (pastas de clientes com documentos e busca). ANTERIOR:  (·506) OCUPAÇÃO ULTRAVEL → VMA (Fernando, Diego, Juliana, Ghabriella): o que marcam na Ultravel aparece na VMA traduzido, em duas linhas centralizadas — Gestão Interna → "Interno / Ultravel"; cliente, Prospecção e demais → "Em Atendimento / Ultravel"; caixa nova roxa "Voe Mais Alto" (só os 4, só na Ultravel, cliente opcional) → "Atendimento VMA / cliente"; Ausente e Indisponível iguais. Espelho travado no Hub que recebe. VMA → Ultravel (Juliana/Ghabriella) passa a chegar como "Voe Mais Alto" (vindo da VMA). Worker ·506 faz o espelho nos dois sentidos sem pingue-pongue. ANTERIOR: (·505) ESCALA DE PLANTÕES DA VMA: grupo Nando, Diego, Juliana e Ghabi (Ana e Hynaê fora da VMA). "Quem manda é a Ultravel": se Nando/Juliana/Ghabi estão no plantão da Ultravel (escala efetiva, com as trocas), estão no da VMA no mesmo dia/fim de semana — travado na tela; os demais plantões seguem distribuição justa entre os 4 (Diego inclusive nos fins de semana), calculada da escala-padrão, a partir de 05/10/2026. As trocas da Ultravel chegam por /api/vma/escala-ultravel (worker ·505). ANTERIOR: (·504) DIRETORIA NA OCUPAÇÃO DA VMA (servidor, worker ·504: /api/vma/equipe inclui Fernando, Diego, Ana Maria e Hynaê antes da Juliana e da Ghabriella). Na tela: como na Ultravel, a diretoria aparece no painel mas NÃO entra no sorteio do atendente da vez nem na contagem de ausência da equipe de vendas (papel "vendas" no uvEquipeEmp). O espelho VMA→Ultravel segue só da Juliana e da Ghabriella. ANTERIOR: (·503) LOG DA MATRIZ E DO COMERCIAL COMPLETO: a lista de áreas do 📋 Log mostra SEMPRE todas as sub-pastas da Matriz Operacional e do Comercial (com a contagem, mesmo zero). Novos registros: Alertas Check-in (agendar com passageiros, excluir, dar baixa — antes ia como "Minhas Tarefas"; os antigos são remapeados), reação em Ações Comerciais, reordenar Fornecedores Online. Rótulos de tipo para cartão/check-in/CRM/prospecção. Cias Aéreas é só consulta (nada a registrar). ANTERIOR: (·502) AUDITORIA MATRIZ/COMERCIAL: (1) se o cofre (·500) não carrega — ex.: Worker antigo — aparece um aviso vermelho dizendo que os dados protegidos não carregaram e que NADA foi apagado (antes a tela mostrava só os registros editados pela tela, parecendo exclusão: Matriz › Clientes com 3 de 40). (2) Log: área vira o caminho do menu ("Matriz Operacional › Clientes", "Comercial › CRM"…), também nos registros antigos. (3) CRM ganhou log em tudo: card criado/editado/movido/excluído, coluna criada/renomeada/excluída (com os cards arquivados junto), Kanban renomeado. ANTERIOR: (·501) LOGO ALINHADA COM O MENU: no computador a logo (Ultravel e VMA) andou 10px para a direita e começa exatamente na borda esquerda das pastas do menu. Celular intocado. ANTERIOR: (·500) O COFRE — DADOS SENSÍVEIS FORA DO ARQUIVO PÚBLICO: equipe (CPF, nascimento, telefone, e-mail pessoal, endereço), os 18 cartões de crédito (número, validade, CVV), passageiros/vistos da Imersão CSDI + 8 PDFs (passaporte, ficha, visto), ~1.400 contatos de Prospecção, clientes corporativos, fornecedores, Cabeça de Rede e as sementes do Controle Geral/Gestão CSDI saíram do index.html e moram no Worker (rota /api/cofre e /api/cofre/doc — só conta da Ultravel logada; nunca VMA, nunca Letícia). Os módulos leem os mesmos "potes" (window.uvCofre), preenchidos no lugar quando o cofre chega. Comentários com CPF/cartão/passaporte/telefone reais mascarados. ANTERIOR: (·499) VMA — EQUIPE AUTOMÁTICA + ESPELHO DE OCUPAÇÃO: a equipe da VMA (Ocupação, escala, listas) vem sozinha das CONTAS — toda conta com empresa VMA + Juliana e Ghabriella (servidor /api/vma/equipe; guardada na máquina e conferida ao abrir e a cada 5 min; mudou → recarrega uma vez, coberta). TI e Financeiro (listas de função única) ficam vazias na VMA. Servidor (worker ·499): o que Juliana/Ghabriella marcam na Ocupação da VMA aparece igual na da Ultravel, bolinha a bolinha (vence a mudança mais nova); o contrário não. ANTERIOR: (·498) AÇÕES COMERCIAIS — UMA ABERTURA BASTA: o modo de teste do ·351 (AC_NOTIF_ADMIN_TUDO) estava ligado e fazia o admin ser avisado das PRÓPRIAS ações (responder, reagir, criar tópico), com a baixa suspensa até sair e reabrir o card — por isso o Nando precisava entrar duas vezes. Desligado: o admin segue a regra de todos (avisado só do que os outros fazem). Mesmo interruptor do Insights. ANTERIOR: (·497) FAVICON VMA COM CONTORNO: no tema claro o "b" branco sumia — contorno preto fino e sutil (≈2px em 64px, 80% de opacidade) só em volta das partes brancas (o b e as hastes); bolinhas sem contorno; fundo continua transparente. ANTERIOR: (·496) FAVICON VMA SEM FUNDO: pedido do Nando — tirado o quadrado grafite; ícone com fundo transparente, recortado rente e ocupando a altura inteira do quadro (64px; 180px no iPhone). ANTERIOR: (·495) SEM PISCAR A ULTRAVEL: ao entrar no Hub VMA aparecia por milésimos a cara da Ultravel (o arquivo de ~9MB é pintado aos pedaços e a troca para a VMA roda no fim do <body>). Agora, na VMA, a página nasce coberta (fundo grafite, <body> invisível) e só aparece no DOMContentLoaded, já toda VMA; o título da aba também já nasce "Hub VMA". Ultravel intocado. ANTERIOR: (·494) ADMIN PELO hubvma.com: conta da Ultravel com acesso à VMA (podeVerVma) que abre pelo hubvma.com fica no Hub VMA (antes era mandada de volta ao hubultravel.com); sem seletor nesse endereço (a página é sempre VMA). Quem chega ao hubvma.com é decidido no Cloudflare Access (equipe VMA de fora + Fernando). Conta sem acesso à VMA continua sendo levada ao hubultravel.com. ANTERIOR: (·493) FAVICON VMA: na VMA (hubvma.com ou seletor) o ícone da aba e dos favoritos vira o ícone da VMA (b com bolinhas verde/amarela/laranja/vermelha em fundo grafite arredondado — o branco sumiria em barra clara); no iPhone também ao salvar na tela de início (apple-touch-icon 180px). Ultravel intocado. ANTERIOR: (·492) HUB VMA — ETAPA 2 (tela): motor no <head> decide a empresa da página (conta VMA; seletor da diretoria/Juliana/Ghabriella; endereço hubvma.com antes do login), separa a cópia local (prefixo vma: no localStorage/sessionStorage), manda X-Hub-Empresa em toda chamada e &empresa=vma no WebSocket, e leva a sessão entre hubultravel.com e hubvma.com pelo #fragmento. Visual VMA: logo Voe Mais Alto Hub (mesmo tamanho), fundos grafite, tudo amarelo, seleção amarela com texto escuro. Menu VMA sem Dashboard/Voucher/Licitação/Cobrança; Matriz só com Alertas Check-in; Eventos e Grupos vazios; sem Welcome Day; listas de equipe e sementes vazias. Seletor Ultravel|VMA (topo no computador, alto do menu no celular). Usuários: empresa da conta, mover de empresa, sem opção Admin; redefinir senha mantém perfil/empresa. ANTERIOR: (·491) SERVIDOR: (1) seletor 'Ultravel | VMA' liberado também para Juliana Lupo e Ghabriella Bressan (sem o Insights); (2) admin do sistema = SÓ o Fernando Pires — o servidor trata qualquer outra conta marcada como admin como atendente. Tela sem mudança. ANTERIOR: (·490) MULTIEMPRESA — ETAPA 1 (servidor): worker.js separa Ultravel e VMA (gaveta vma:*, sala de tempo real hub-vma, conta com empresa, seletor da diretoria por X-Hub-Empresa, CORS para hubvma.com, backup e alertas por empresa). Nenhuma mudança de tela neste build além do ·489. ANTERIOR: (·489) VENCIMENTO DO DOMÍNIO: hubvma.com cadastrado (vence 02/10/2027, renovação automática ligada — print do painel Cloudflare). A semente agora entra por chave que falta, então aparece mesmo para quem já tinha editado a lista. ANTERIOR: (·488) VENCIMENTO DO DOMÍNIO: pílula '🌐 Domínio · N dias' ao lado de 'Nuvem Conectada', só para o Fernando (mesmo critério do Backup). Verde > 60 dias, amarelo até 60, vermelho piscando até 30; aviso na tela uma vez por dia quando perto. Clique abre a lista (editar data, renovação automática, adicionar domínio — ex.: hubvma.com). Semente: hubultravel.com, 03/08/2027, renovação automática ligada. ANTERIOR: (·487) LICITAÇÃO ▸ PRIORIDADE: opções agora Alta (vermelho), Média (amarelo), Baixa (azul claro, nova) e Finalizado (verde). Registros antigos: Perdido → Alta, Cancelado → Média (lidos assim, sem reescrever). ANTERIOR: (·486) HOTÉIS NÃO OFICIAIS — O CONTRÁRIO TAMBÉM: 'Voucher no sistema sem quarto no CSV' (auditoria) ganhou o botão '🏨 Hotel não oficial'; o voucher inteiro sai da conciliação por quarto/auditoria (e as pessoas dele do aviso 'sem Fechado'), vai para a pasta, e o Restaurar devolve o voucher inteiro. ANTERIOR: (·485) CONCILIAÇÃO WECANN — HOTÉIS NÃO OFICIAIS: no aviso 'Quarto no CSV sem voucher' (e na auditoria) o botão '🏨 Hotel não oficial' tira a pessoa da conciliação dos 3 hotéis oficiais e a leva para a nova pasta 'Hotéis não Oficiais' (abaixo de Template Enviado), onde ela é conferida contra o voucher de QUALQUER hotel (tem voucher? datas batem?) com ✅ Conciliado / ⚠️ pendente e ↩ Restaurar. Dado em appConfig.hoteisNaoOficiais, unido entre PCs por carimbo. ANTERIOR: (·484) MENU: (1) abrir OU fechar uma pasta com sub-pastas deixa o azul nela (fechar não passa mais a seleção para a tela aberta) — computador e celular. (2) Celular abre sem nenhuma pasta azul (nem o Control Desk); o azul aparece no primeiro toque. ANTERIOR: (·483) NOTAS PESSOAIS: (1) o quadro vazio 'Nenhuma nota avulsa…' saiu — sem nota avulsa, só aparece uma zona 'Solte aqui para tirar a nota da pasta' enquanto uma nota é arrastada. (2) A seção Notas fica sempre aberta (cabeçalho fixo, sem recolher). ANTERIOR: (·482) MENU: (1) 'Controle de Check-in' saiu de Minhas Tarefas e virou a sub-pasta 'Alertas Check-in' da Matriz Operacional, logo abaixo de Cias Aéreas (tela própria scr-checkin; mesmo dado appConfig.checkins). (2) Seção 'Controle Geral' removida de Minhas Tarefas (dado guardado intocado). (3) 'Minhas Tarefas' → 'Notas Pessoais'. (4) '＋ Adicionar evento' e '＋ Adicionar grupo' removidos. (5) WeCann Summit 2026 selecionada fica verde translúcida. (6) Clicar em WeCann seleciona Eventos (antes o azul pulava para o Control Desk). ANTERIOR: (·481) MENU: uma seleção só — com uma pasta principal selecionada (azul), o item da tela aberta e a pasta-mãe dela deixam de ficar azuis (computador e celular). ANTERIOR: (·480) MENU DESKTOP: clicar numa pasta principal (Voucher, Equipe, Comercial…) a deixa selecionada em azul; fechar ou navegar tira. ANTERIOR: (·479) MENU: 'Gerador de Voucher' virou 'Voucher' — pasta sem tela própria com as sub-pastas Gerador (o conteúdo que era da pasta; tela 'gerador') e Salvos (antes 'Vouchers Salvos'). Letícia continua vendo a pasta Voucher e as duas sub-pastas. ANTERIOR: (·478) MENU: 'Cabeça de Rede' 3px mais à esquerda (ajuste ótico — o ícone dela é mais estreito que os emojis das vizinhas e o vão antes do nome parecia maior). ANTERIOR: (·477) MENU: sub-pastas da Equipe alinhadas — os três ícones (Cabeça de Rede, Aniversários, Insights) numa caixa do mesmo tamanho, nomes começando no mesmo ponto. ANTERIOR: (·476) MENU: Equipe virou pasta sem tela própria com três sub-pastas — Cabeça de Rede (saiu do topo), Aniversários (o conteúdo que era da Equipe; id de tela 'equipe' mantido) e Insights, nessa ordem. ANTERIOR: (·475) CELULAR: o Hub sempre abre (e ao atualizar) com todas as pastas fechadas e o conteúdo recolhido — só a lista de pastas; a tela ativa volta com um toque. Desktop intocado. ANTERIOR: (·474) NÚCLEO COBRANÇA: o selo CPF/CNPJ ficava numa linha própria e desalinhava o campo CNPJ/CPF do campo Contato ao lado; agora fica na linha do rótulo, sem aumentar a altura. ANTERIOR: (·473) (1) CPF/CNPJ: selo ao lado do rótulo reconhece CPF (11 números, 123.456.789-09) ou CNPJ (14, 13.387.342/0001-58) e confere os dígitos (✓ / inválido); valor salvo antigo aparece formatado. (2) 'Núcleo de Cobrança' → 'Núcleo Cobrança'. (3) Celular: sub-pasta aberta laranja translúcido e a pasta principal azul, iguais ao desktop. ANTERIOR: (·472) MÁSCARAS QUE RESPEITAM O CURSOR: corrigir um dígito no meio do CNPJ jogava o cursor para o fim e embaralhava o número (13.387.342/0015-8); agora o cursor volta para depois do mesmo dígito (Cobrança e Licitação). + Telefone com máscara (48) 9••••-•••• (fixo: (48) 3333-4444). ANTERIOR: (·471) NÚCLEO DE COBRANÇA: responsável vira lista (Ruth Alves, Diego Oliveira, Ana Maria, Hynaê Teston); CNPJ/CPF com pontos, barra e traço automáticos ao digitar; valor total (e o do recebimento) com máscara de moeda R$ 3.000,00 enquanto digita. ANTERIOR: (·470) NOVA PASTA 'NÚCLEO DE COBRANÇA' (logo abaixo de Licitação), só para a diretoria + Ruth Alves. Tabela de casos (status coloridos, prioridade, responsável, vencimento, dias de atraso, total/recebido/saldo, barra de evolução, próxima ação, faturas), KPIs, gráfico de recebido por mês, distribuição por status, saldo por faixa de atraso, filtros/busca/ordenação, exportar CSV. Página do caso: dados editáveis, 8 status coloridos, recebimentos (quitado/parcial automático), faturas anexadas com visualizador (PDF página a página), linha do tempo com anotações/contatos, mensagem de cobrança pronta e WhatsApp. União entre PCs campo a campo / item a item. ANTERIOR: (·469) CELULAR: TRILHA MÓVEL SEM TREMOR. (1) a margem do conteúdo não muda mais a cada quadro de rolagem: muda uma vez por aparição/sumiço, compensada por transform (o movimento é só transform); (2) resize só de altura (barra do Safari ao rolar) não reacopla nem zera a trilha; (3) folga 24px na mesma direção e nada liga enquanto a trilha aparece no lugar natural; ao voltar a essa faixa ela pousa com troca compensada. ANTERIOR: (·468) CELULAR: TRILHA MÓVEL. Nada fica mais grudado o tempo todo: rolando para baixo (arrastar para cima) a barra do topo, a pasta e as sub-pastas saem da tela junto com a página; rolando para cima (arrastar para baixo) a pasta e as sub-pastas voltam na hora, grudadas no topo, EMPURRANDO o conteúdo (margem --uv-empurra) em vez de cobri-lo. Desktop intocado. ANTERIOR: (·467) MENU DESKTOP: Gerador de Voucher e Equipe (pastas com tela própria E sub-pastas) agora recolhem as sub-pastas no segundo clique, como Comercial/Matriz/Eventos/Grupos. Pasta EM USO (a tela dela ou uma sub-pasta dela aberta) com a árvore aberta → fecha sem navegar; nos outros casos → abre e navega. Celular intocado. ANTERIOR: (·466) MENU. (1) Todo NOVO acesso (aba/janela nova, navegador reaberto, depois de sair) abre no Control Desk; só o F5 na mesma aba devolve a tela (tela guardada no sessionStorage da aba, uv_hub_screen_aba; o localStorage uv_hub_screen não decide mais o boot). (2) Desktop: TODAS as pastas fechadas no 1º acesso do dia na máquina; depois o que se abriu/fechou persiste, inclusive no F5 (localStorage uv_menu_arvores com o dia). (3) Desktop: contorno branco discreto nas pastas principais (não nas sub-pastas). (4) Desktop: com sub-pasta aberta, a pasta principal fica AZUL e a sub-pasta LARANJA bem transparente. Celular intocado. ANTERIOR: (·465) MURAL: LIXEIRA PAGINADA. Pedido: na lista de excluídos, só os 5 mais recentes na primeira tela; o resto em páginas 1, 2, 3… (‹ › + números; só aparece com mais de 5). Abrir a lixeira volta sempre para a página 1; devolver o último recado de uma página não a deixa vazia. ANTERIOR: (·464) MURAL: LIXEIRA SÓ DO NANDO. Pedido: devolver recado excluído é função exclusiva do administrador (Fernando Pires), não da diretoria. mrPodeRestaurar compara o NOME COMPLETO normalizado (não a regra tolerante de mrMesmaPessoa, que aceitaria 'Fernando' sozinho). Excluir (✕) continua com a diretoria. ANTERIOR: (·463) MURAL: LIXEIRA — DEVOLVER RECADO EXCLUÍDO. Pedido do Nando: como admin, devolver ao mural um recado já excluído. A exclusão sempre foi suave (del=1); agora a diretoria (mesma porta do ✕) tem o botão '🗑 Excluídos (N)' no canto do quadro → lista dos excluídos (autor, data, quem excluiu) com '↩ Devolver ao mural'. Devolver = del:0 + mts novo (vence a cópia excluída de outro PC na união). Excluir passou a carimbar mts/delEm/delPor em vez de sobrescrever ts — o recado devolvido volta no mesmo lugar e com a data original. + Ocupação: badge do plantonista (noite/fim de semana) com nome comprido vazava a tela entre ~1000–1024px → pode encolher/quebrar (achado rodando a regressão num domingo). ANTERIOR: (·462) LICITAÇÃO — DEMANDA AÉREA COMPLETA + DATAS DIGITADAS. Passagem aérea agora tem Trecho + Data e hora de ida + Data e hora de volta (dd/mm/aaaa hh:mm, só números, formata sozinho, hora opcional, data impossível e volta antes da ida recusadas) + Cia aérea; Hotel esconde esses campos. Nascimento virou campo digitado dd/mm/aaaa (não calendário). CORREÇÃO: no ·461 a tabela de tipos da demanda se chamava LIC_TIPOS e sobrescrevia a de tipos de ANEXO (miniatura sem imagem dizia ARQ) — renomeada para LIC_DEM_TIPOS. ANTERIOR: (·461) LICITAÇÃO: SINAL + PÁGINA DO PROCESSO COM DEMANDAS. Bolinha na coluna # (ao lado do ⤢) com menu Sem cor/Verde/Amarelo/Vermelho (campo f.sinal, união campo a campo). Clicar em qualquer ponto da linha abre a PÁGINA do processo (resumo + Demandas): ＋ Adicionar demanda (Passagem aérea ou Hotel; trecho/nome do hotel em fonte grande de título) e, em cada demanda, ＋ Adicionar pessoas (nome, nascimento, CPF com máscara e dígito verificador). r.dem entra na união (licMergeDem — sem isso a união apagava as demandas). Redesenho de fora não apaga formulário aberto. ⤢ e 'Editar dados do processo' seguem abrindo o formulário de dados. ANTERIOR: (·460) LICITAÇÃO: GRADE PROTEGIDA. Pedido do Nando: todas as colunas bloqueadas na página principal — clicar numa célula não edita, sem ＋ de anexar nem arrastar arquivo na grade; documento aberto pela grade abre só para ver (sem Remover). Editar SÓ abrindo o processo no ⤢ (formulário mantém tudo: campos, opções coloridas, anexos, remover, excluir). Aviso 🔒 no topo. ANTERIOR: (·459) PASTA LICITAÇÃO ABERTA A TODOS, MENOS À LETÍCIA ROSA. Pedido do
+var UV_BUILD_NUM = 520; // (·520) ESTEIRA DE SOLICITAÇÕES no Control Desk, logo abaixo do Mural (pedido do Nando, 07/10): três categorias — Viagens (amarelo; funil Na fila → Atendimento Iniciado → Orçamento Enviado/Aguardando Aprovação → Venda Concluída e Cadastrada, com localizador/nº de reserva OBRIGATÓRIO, um ou mais | Venda Declinada, com motivo OBRIGATÓRIO), Compras (azul-bebê) e Manutenção Loja (verde) — solicitante → comprador/executante → baixa, 🔴 pendente / 🟢 feito, ou Cancelar com motivo. Criar e passar para alguém: só a diretoria; os demais pegam da fila (Assumir). Cliente, telefone, descrição e anexos PDF/PNG/JPEG (R2, /api/anexo). Linha do tempo com data, hora e quem fez cada passo. Arquivar → ARQUIVO à parte no servidor (Durable Object, chaves esa:<id>; busca por nome, filtros por categoria e resultado, paginado) — no estado vivo fica só uma lápide, para não engordar. Campo vivo appConfig.esteira, unido por esqMergeMaps (= mergeEsteira no worker) nos três pontos (boot, salvamento, WebSocket); histórico e anexos unidos por id; arquivada é definitivo. Badge no menu do Control Desk = solicitações sem responsável; aviso para quem recebe uma solicitação; card esquecido na fila há 15+ min pulsa laranja. Log em Control Desk › Esteira de Solicitações. VMA não tem a função (tela, servidor e limpeza da gaveta). Worker ·520. ANTERIOR:  (·519) OCUPAÇÃO: a caixa "Voe Mais Alto" ocupa SÓ a bolinha clicada (antes as três) e libera bolinha a bolinha. ANTERIOR:  (·518) MENU: bolinha vermelha de notificação na PASTA PRINCIPAL (Equipe, Comercial…) quando uma sub-pasta visível tem badge aceso (Insights, Ações Comerciais) — aparece mesmo com a pasta recolhida, antes da setinha. ANTERIOR:  (·517) VMA: etiquetas da Ultravel na Ocupação mais sutis — 10px/700 e 9px/500 (eram 12px/900 e 11px/700), piso 9px antes de quebrar com hífen. ANTERIOR:  (·516) ULTRAVEL ▸ Clientes: botões da linha (VMA, ver, editar, excluir, ✓ Na VMA) ~20% menores na mesma proporção; saiu o botão amarelo "＋ Adicionar Cliente VMA" do topo (o envio fica só pela caixinha VMA de cada linha). ANTERIOR:  (·515) ULTRAVEL ▸ Clientes: caixinha "VMA" e "✓ Na VMA" discretas, no mesmo molde dos botões ao lado (fundo escuro tingido, borda e letra amarelas, mesma altura). ANTERIOR:  (·514) ULTRAVEL ▸ Clientes: caixinha amarela "VMA" em cada linha (ao lado de ver/editar/excluir) — um clique envia o cliente para a VMA e vira "✓ Na VMA" (clicar nele reenvia, com confirmação). ANTERIOR:  (·513) ULTRAVEL ▸ Clientes: etiqueta "✓ Na VMA" também na lista, à esquerda das ações (quem tem acesso à VMA; conferido no servidor a cada 60 s e na hora após enviar). ANTERIOR:  (·512) AÇÕES COMERCIAIS: caixinha "☐ Marcar todos" no seletor de atendentes de cada card (marca os 12 de uma vez; com todos marcados vira "☑ Todos marcados" e desmarca todos). ANTERIOR:  (·511) VMA: etiqueta "Em Atendimento / Ultravel" (e as irmãs) com letra maior — 12px/11px, usando também o vão entre as bolinhas; se não couber encolhe só até 10,5px e depois quebra com hífen. ANTERIOR:  (·510) VMA: "Grupos" → "Campanha de Incentivo"; Matriz Operacional ▸ Clientes (dados próprios, campo vivo vmaClientes); Aniversários com diretoria + Juliana + Ghabriella (só nome/sexo/nascimento, /api/vma/aniversarios) e os mesmos alertas; Insights para Juliana e Ghabriella SÓ na VMA (servidor tiPodeVerEmpSrv + tela). ULTRAVEL: botão "Adicionar Cliente VMA" em Matriz ▸ Clientes (cópia com reenvio, só quem tem acesso à VMA). Registro (Log) sem eventos do Insights para quem não pode ver. Worker ·510. ANTERIOR:  (·508) SELO LARANJA "VMA" nos cards de Fernando, Diego, Juliana e Ghabriella na Ocupação da Ultravel quando a pessoa está no plantão da VMA (mesmo cálculo da escala da VMA + trocas da VMA por /api/ultravel/escala-vma, worker ·508) · rótulos da Ultravel na VMA com letra maior (10px; encolhe sozinho só se não couber). ANTERIOR:  (·507) VEZ ÚNICA ENTRE PCs (carimbo vezTs; liberar bolinha de Gestão Interna/Grupos não re-sorteia mais) · "Interno Ultravel" VERMELHO na VMA · voucher sempre com a logo da Ultravel · VMA ▸ Voucher ▸ Anexados (pastas de clientes com documentos e busca). ANTERIOR:  (·506) OCUPAÇÃO ULTRAVEL → VMA (Fernando, Diego, Juliana, Ghabriella): o que marcam na Ultravel aparece na VMA traduzido, em duas linhas centralizadas — Gestão Interna → "Interno / Ultravel"; cliente, Prospecção e demais → "Em Atendimento / Ultravel"; caixa nova roxa "Voe Mais Alto" (só os 4, só na Ultravel, cliente opcional) → "Atendimento VMA / cliente"; Ausente e Indisponível iguais. Espelho travado no Hub que recebe. VMA → Ultravel (Juliana/Ghabriella) passa a chegar como "Voe Mais Alto" (vindo da VMA). Worker ·506 faz o espelho nos dois sentidos sem pingue-pongue. ANTERIOR: (·505) ESCALA DE PLANTÕES DA VMA: grupo Nando, Diego, Juliana e Ghabi (Ana e Hynaê fora da VMA). "Quem manda é a Ultravel": se Nando/Juliana/Ghabi estão no plantão da Ultravel (escala efetiva, com as trocas), estão no da VMA no mesmo dia/fim de semana — travado na tela; os demais plantões seguem distribuição justa entre os 4 (Diego inclusive nos fins de semana), calculada da escala-padrão, a partir de 05/10/2026. As trocas da Ultravel chegam por /api/vma/escala-ultravel (worker ·505). ANTERIOR: (·504) DIRETORIA NA OCUPAÇÃO DA VMA (servidor, worker ·504: /api/vma/equipe inclui Fernando, Diego, Ana Maria e Hynaê antes da Juliana e da Ghabriella). Na tela: como na Ultravel, a diretoria aparece no painel mas NÃO entra no sorteio do atendente da vez nem na contagem de ausência da equipe de vendas (papel "vendas" no uvEquipeEmp). O espelho VMA→Ultravel segue só da Juliana e da Ghabriella. ANTERIOR: (·503) LOG DA MATRIZ E DO COMERCIAL COMPLETO: a lista de áreas do 📋 Log mostra SEMPRE todas as sub-pastas da Matriz Operacional e do Comercial (com a contagem, mesmo zero). Novos registros: Alertas Check-in (agendar com passageiros, excluir, dar baixa — antes ia como "Minhas Tarefas"; os antigos são remapeados), reação em Ações Comerciais, reordenar Fornecedores Online. Rótulos de tipo para cartão/check-in/CRM/prospecção. Cias Aéreas é só consulta (nada a registrar). ANTERIOR: (·502) AUDITORIA MATRIZ/COMERCIAL: (1) se o cofre (·500) não carrega — ex.: Worker antigo — aparece um aviso vermelho dizendo que os dados protegidos não carregaram e que NADA foi apagado (antes a tela mostrava só os registros editados pela tela, parecendo exclusão: Matriz › Clientes com 3 de 40). (2) Log: área vira o caminho do menu ("Matriz Operacional › Clientes", "Comercial › CRM"…), também nos registros antigos. (3) CRM ganhou log em tudo: card criado/editado/movido/excluído, coluna criada/renomeada/excluída (com os cards arquivados junto), Kanban renomeado. ANTERIOR: (·501) LOGO ALINHADA COM O MENU: no computador a logo (Ultravel e VMA) andou 10px para a direita e começa exatamente na borda esquerda das pastas do menu. Celular intocado. ANTERIOR: (·500) O COFRE — DADOS SENSÍVEIS FORA DO ARQUIVO PÚBLICO: equipe (CPF, nascimento, telefone, e-mail pessoal, endereço), os 18 cartões de crédito (número, validade, CVV), passageiros/vistos da Imersão CSDI + 8 PDFs (passaporte, ficha, visto), ~1.400 contatos de Prospecção, clientes corporativos, fornecedores, Cabeça de Rede e as sementes do Controle Geral/Gestão CSDI saíram do index.html e moram no Worker (rota /api/cofre e /api/cofre/doc — só conta da Ultravel logada; nunca VMA, nunca Letícia). Os módulos leem os mesmos "potes" (window.uvCofre), preenchidos no lugar quando o cofre chega. Comentários com CPF/cartão/passaporte/telefone reais mascarados. ANTERIOR: (·499) VMA — EQUIPE AUTOMÁTICA + ESPELHO DE OCUPAÇÃO: a equipe da VMA (Ocupação, escala, listas) vem sozinha das CONTAS — toda conta com empresa VMA + Juliana e Ghabriella (servidor /api/vma/equipe; guardada na máquina e conferida ao abrir e a cada 5 min; mudou → recarrega uma vez, coberta). TI e Financeiro (listas de função única) ficam vazias na VMA. Servidor (worker ·499): o que Juliana/Ghabriella marcam na Ocupação da VMA aparece igual na da Ultravel, bolinha a bolinha (vence a mudança mais nova); o contrário não. ANTERIOR: (·498) AÇÕES COMERCIAIS — UMA ABERTURA BASTA: o modo de teste do ·351 (AC_NOTIF_ADMIN_TUDO) estava ligado e fazia o admin ser avisado das PRÓPRIAS ações (responder, reagir, criar tópico), com a baixa suspensa até sair e reabrir o card — por isso o Nando precisava entrar duas vezes. Desligado: o admin segue a regra de todos (avisado só do que os outros fazem). Mesmo interruptor do Insights. ANTERIOR: (·497) FAVICON VMA COM CONTORNO: no tema claro o "b" branco sumia — contorno preto fino e sutil (≈2px em 64px, 80% de opacidade) só em volta das partes brancas (o b e as hastes); bolinhas sem contorno; fundo continua transparente. ANTERIOR: (·496) FAVICON VMA SEM FUNDO: pedido do Nando — tirado o quadrado grafite; ícone com fundo transparente, recortado rente e ocupando a altura inteira do quadro (64px; 180px no iPhone). ANTERIOR: (·495) SEM PISCAR A ULTRAVEL: ao entrar no Hub VMA aparecia por milésimos a cara da Ultravel (o arquivo de ~9MB é pintado aos pedaços e a troca para a VMA roda no fim do <body>). Agora, na VMA, a página nasce coberta (fundo grafite, <body> invisível) e só aparece no DOMContentLoaded, já toda VMA; o título da aba também já nasce "Hub VMA". Ultravel intocado. ANTERIOR: (·494) ADMIN PELO hubvma.com: conta da Ultravel com acesso à VMA (podeVerVma) que abre pelo hubvma.com fica no Hub VMA (antes era mandada de volta ao hubultravel.com); sem seletor nesse endereço (a página é sempre VMA). Quem chega ao hubvma.com é decidido no Cloudflare Access (equipe VMA de fora + Fernando). Conta sem acesso à VMA continua sendo levada ao hubultravel.com. ANTERIOR: (·493) FAVICON VMA: na VMA (hubvma.com ou seletor) o ícone da aba e dos favoritos vira o ícone da VMA (b com bolinhas verde/amarela/laranja/vermelha em fundo grafite arredondado — o branco sumiria em barra clara); no iPhone também ao salvar na tela de início (apple-touch-icon 180px). Ultravel intocado. ANTERIOR: (·492) HUB VMA — ETAPA 2 (tela): motor no <head> decide a empresa da página (conta VMA; seletor da diretoria/Juliana/Ghabriella; endereço hubvma.com antes do login), separa a cópia local (prefixo vma: no localStorage/sessionStorage), manda X-Hub-Empresa em toda chamada e &empresa=vma no WebSocket, e leva a sessão entre hubultravel.com e hubvma.com pelo #fragmento. Visual VMA: logo Voe Mais Alto Hub (mesmo tamanho), fundos grafite, tudo amarelo, seleção amarela com texto escuro. Menu VMA sem Dashboard/Voucher/Licitação/Cobrança; Matriz só com Alertas Check-in; Eventos e Grupos vazios; sem Welcome Day; listas de equipe e sementes vazias. Seletor Ultravel|VMA (topo no computador, alto do menu no celular). Usuários: empresa da conta, mover de empresa, sem opção Admin; redefinir senha mantém perfil/empresa. ANTERIOR: (·491) SERVIDOR: (1) seletor 'Ultravel | VMA' liberado também para Juliana Lupo e Ghabriella Bressan (sem o Insights); (2) admin do sistema = SÓ o Fernando Pires — o servidor trata qualquer outra conta marcada como admin como atendente. Tela sem mudança. ANTERIOR: (·490) MULTIEMPRESA — ETAPA 1 (servidor): worker.js separa Ultravel e VMA (gaveta vma:*, sala de tempo real hub-vma, conta com empresa, seletor da diretoria por X-Hub-Empresa, CORS para hubvma.com, backup e alertas por empresa). Nenhuma mudança de tela neste build além do ·489. ANTERIOR: (·489) VENCIMENTO DO DOMÍNIO: hubvma.com cadastrado (vence 02/10/2027, renovação automática ligada — print do painel Cloudflare). A semente agora entra por chave que falta, então aparece mesmo para quem já tinha editado a lista. ANTERIOR: (·488) VENCIMENTO DO DOMÍNIO: pílula '🌐 Domínio · N dias' ao lado de 'Nuvem Conectada', só para o Fernando (mesmo critério do Backup). Verde > 60 dias, amarelo até 60, vermelho piscando até 30; aviso na tela uma vez por dia quando perto. Clique abre a lista (editar data, renovação automática, adicionar domínio — ex.: hubvma.com). Semente: hubultravel.com, 03/08/2027, renovação automática ligada. ANTERIOR: (·487) LICITAÇÃO ▸ PRIORIDADE: opções agora Alta (vermelho), Média (amarelo), Baixa (azul claro, nova) e Finalizado (verde). Registros antigos: Perdido → Alta, Cancelado → Média (lidos assim, sem reescrever). ANTERIOR: (·486) HOTÉIS NÃO OFICIAIS — O CONTRÁRIO TAMBÉM: 'Voucher no sistema sem quarto no CSV' (auditoria) ganhou o botão '🏨 Hotel não oficial'; o voucher inteiro sai da conciliação por quarto/auditoria (e as pessoas dele do aviso 'sem Fechado'), vai para a pasta, e o Restaurar devolve o voucher inteiro. ANTERIOR: (·485) CONCILIAÇÃO WECANN — HOTÉIS NÃO OFICIAIS: no aviso 'Quarto no CSV sem voucher' (e na auditoria) o botão '🏨 Hotel não oficial' tira a pessoa da conciliação dos 3 hotéis oficiais e a leva para a nova pasta 'Hotéis não Oficiais' (abaixo de Template Enviado), onde ela é conferida contra o voucher de QUALQUER hotel (tem voucher? datas batem?) com ✅ Conciliado / ⚠️ pendente e ↩ Restaurar. Dado em appConfig.hoteisNaoOficiais, unido entre PCs por carimbo. ANTERIOR: (·484) MENU: (1) abrir OU fechar uma pasta com sub-pastas deixa o azul nela (fechar não passa mais a seleção para a tela aberta) — computador e celular. (2) Celular abre sem nenhuma pasta azul (nem o Control Desk); o azul aparece no primeiro toque. ANTERIOR: (·483) NOTAS PESSOAIS: (1) o quadro vazio 'Nenhuma nota avulsa…' saiu — sem nota avulsa, só aparece uma zona 'Solte aqui para tirar a nota da pasta' enquanto uma nota é arrastada. (2) A seção Notas fica sempre aberta (cabeçalho fixo, sem recolher). ANTERIOR: (·482) MENU: (1) 'Controle de Check-in' saiu de Minhas Tarefas e virou a sub-pasta 'Alertas Check-in' da Matriz Operacional, logo abaixo de Cias Aéreas (tela própria scr-checkin; mesmo dado appConfig.checkins). (2) Seção 'Controle Geral' removida de Minhas Tarefas (dado guardado intocado). (3) 'Minhas Tarefas' → 'Notas Pessoais'. (4) '＋ Adicionar evento' e '＋ Adicionar grupo' removidos. (5) WeCann Summit 2026 selecionada fica verde translúcida. (6) Clicar em WeCann seleciona Eventos (antes o azul pulava para o Control Desk). ANTERIOR: (·481) MENU: uma seleção só — com uma pasta principal selecionada (azul), o item da tela aberta e a pasta-mãe dela deixam de ficar azuis (computador e celular). ANTERIOR: (·480) MENU DESKTOP: clicar numa pasta principal (Voucher, Equipe, Comercial…) a deixa selecionada em azul; fechar ou navegar tira. ANTERIOR: (·479) MENU: 'Gerador de Voucher' virou 'Voucher' — pasta sem tela própria com as sub-pastas Gerador (o conteúdo que era da pasta; tela 'gerador') e Salvos (antes 'Vouchers Salvos'). Letícia continua vendo a pasta Voucher e as duas sub-pastas. ANTERIOR: (·478) MENU: 'Cabeça de Rede' 3px mais à esquerda (ajuste ótico — o ícone dela é mais estreito que os emojis das vizinhas e o vão antes do nome parecia maior). ANTERIOR: (·477) MENU: sub-pastas da Equipe alinhadas — os três ícones (Cabeça de Rede, Aniversários, Insights) numa caixa do mesmo tamanho, nomes começando no mesmo ponto. ANTERIOR: (·476) MENU: Equipe virou pasta sem tela própria com três sub-pastas — Cabeça de Rede (saiu do topo), Aniversários (o conteúdo que era da Equipe; id de tela 'equipe' mantido) e Insights, nessa ordem. ANTERIOR: (·475) CELULAR: o Hub sempre abre (e ao atualizar) com todas as pastas fechadas e o conteúdo recolhido — só a lista de pastas; a tela ativa volta com um toque. Desktop intocado. ANTERIOR: (·474) NÚCLEO COBRANÇA: o selo CPF/CNPJ ficava numa linha própria e desalinhava o campo CNPJ/CPF do campo Contato ao lado; agora fica na linha do rótulo, sem aumentar a altura. ANTERIOR: (·473) (1) CPF/CNPJ: selo ao lado do rótulo reconhece CPF (11 números, 123.456.789-09) ou CNPJ (14, 13.387.342/0001-58) e confere os dígitos (✓ / inválido); valor salvo antigo aparece formatado. (2) 'Núcleo de Cobrança' → 'Núcleo Cobrança'. (3) Celular: sub-pasta aberta laranja translúcido e a pasta principal azul, iguais ao desktop. ANTERIOR: (·472) MÁSCARAS QUE RESPEITAM O CURSOR: corrigir um dígito no meio do CNPJ jogava o cursor para o fim e embaralhava o número (13.387.342/0015-8); agora o cursor volta para depois do mesmo dígito (Cobrança e Licitação). + Telefone com máscara (48) 9••••-•••• (fixo: (48) 3333-4444). ANTERIOR: (·471) NÚCLEO DE COBRANÇA: responsável vira lista (Ruth Alves, Diego Oliveira, Ana Maria, Hynaê Teston); CNPJ/CPF com pontos, barra e traço automáticos ao digitar; valor total (e o do recebimento) com máscara de moeda R$ 3.000,00 enquanto digita. ANTERIOR: (·470) NOVA PASTA 'NÚCLEO DE COBRANÇA' (logo abaixo de Licitação), só para a diretoria + Ruth Alves. Tabela de casos (status coloridos, prioridade, responsável, vencimento, dias de atraso, total/recebido/saldo, barra de evolução, próxima ação, faturas), KPIs, gráfico de recebido por mês, distribuição por status, saldo por faixa de atraso, filtros/busca/ordenação, exportar CSV. Página do caso: dados editáveis, 8 status coloridos, recebimentos (quitado/parcial automático), faturas anexadas com visualizador (PDF página a página), linha do tempo com anotações/contatos, mensagem de cobrança pronta e WhatsApp. União entre PCs campo a campo / item a item. ANTERIOR: (·469) CELULAR: TRILHA MÓVEL SEM TREMOR. (1) a margem do conteúdo não muda mais a cada quadro de rolagem: muda uma vez por aparição/sumiço, compensada por transform (o movimento é só transform); (2) resize só de altura (barra do Safari ao rolar) não reacopla nem zera a trilha; (3) folga 24px na mesma direção e nada liga enquanto a trilha aparece no lugar natural; ao voltar a essa faixa ela pousa com troca compensada. ANTERIOR: (·468) CELULAR: TRILHA MÓVEL. Nada fica mais grudado o tempo todo: rolando para baixo (arrastar para cima) a barra do topo, a pasta e as sub-pastas saem da tela junto com a página; rolando para cima (arrastar para baixo) a pasta e as sub-pastas voltam na hora, grudadas no topo, EMPURRANDO o conteúdo (margem --uv-empurra) em vez de cobri-lo. Desktop intocado. ANTERIOR: (·467) MENU DESKTOP: Gerador de Voucher e Equipe (pastas com tela própria E sub-pastas) agora recolhem as sub-pastas no segundo clique, como Comercial/Matriz/Eventos/Grupos. Pasta EM USO (a tela dela ou uma sub-pasta dela aberta) com a árvore aberta → fecha sem navegar; nos outros casos → abre e navega. Celular intocado. ANTERIOR: (·466) MENU. (1) Todo NOVO acesso (aba/janela nova, navegador reaberto, depois de sair) abre no Control Desk; só o F5 na mesma aba devolve a tela (tela guardada no sessionStorage da aba, uv_hub_screen_aba; o localStorage uv_hub_screen não decide mais o boot). (2) Desktop: TODAS as pastas fechadas no 1º acesso do dia na máquina; depois o que se abriu/fechou persiste, inclusive no F5 (localStorage uv_menu_arvores com o dia). (3) Desktop: contorno branco discreto nas pastas principais (não nas sub-pastas). (4) Desktop: com sub-pasta aberta, a pasta principal fica AZUL e a sub-pasta LARANJA bem transparente. Celular intocado. ANTERIOR: (·465) MURAL: LIXEIRA PAGINADA. Pedido: na lista de excluídos, só os 5 mais recentes na primeira tela; o resto em páginas 1, 2, 3… (‹ › + números; só aparece com mais de 5). Abrir a lixeira volta sempre para a página 1; devolver o último recado de uma página não a deixa vazia. ANTERIOR: (·464) MURAL: LIXEIRA SÓ DO NANDO. Pedido: devolver recado excluído é função exclusiva do administrador (Fernando Pires), não da diretoria. mrPodeRestaurar compara o NOME COMPLETO normalizado (não a regra tolerante de mrMesmaPessoa, que aceitaria 'Fernando' sozinho). Excluir (✕) continua com a diretoria. ANTERIOR: (·463) MURAL: LIXEIRA — DEVOLVER RECADO EXCLUÍDO. Pedido do Nando: como admin, devolver ao mural um recado já excluído. A exclusão sempre foi suave (del=1); agora a diretoria (mesma porta do ✕) tem o botão '🗑 Excluídos (N)' no canto do quadro → lista dos excluídos (autor, data, quem excluiu) com '↩ Devolver ao mural'. Devolver = del:0 + mts novo (vence a cópia excluída de outro PC na união). Excluir passou a carimbar mts/delEm/delPor em vez de sobrescrever ts — o recado devolvido volta no mesmo lugar e com a data original. + Ocupação: badge do plantonista (noite/fim de semana) com nome comprido vazava a tela entre ~1000–1024px → pode encolher/quebrar (achado rodando a regressão num domingo). ANTERIOR: (·462) LICITAÇÃO — DEMANDA AÉREA COMPLETA + DATAS DIGITADAS. Passagem aérea agora tem Trecho + Data e hora de ida + Data e hora de volta (dd/mm/aaaa hh:mm, só números, formata sozinho, hora opcional, data impossível e volta antes da ida recusadas) + Cia aérea; Hotel esconde esses campos. Nascimento virou campo digitado dd/mm/aaaa (não calendário). CORREÇÃO: no ·461 a tabela de tipos da demanda se chamava LIC_TIPOS e sobrescrevia a de tipos de ANEXO (miniatura sem imagem dizia ARQ) — renomeada para LIC_DEM_TIPOS. ANTERIOR: (·461) LICITAÇÃO: SINAL + PÁGINA DO PROCESSO COM DEMANDAS. Bolinha na coluna # (ao lado do ⤢) com menu Sem cor/Verde/Amarelo/Vermelho (campo f.sinal, união campo a campo). Clicar em qualquer ponto da linha abre a PÁGINA do processo (resumo + Demandas): ＋ Adicionar demanda (Passagem aérea ou Hotel; trecho/nome do hotel em fonte grande de título) e, em cada demanda, ＋ Adicionar pessoas (nome, nascimento, CPF com máscara e dígito verificador). r.dem entra na união (licMergeDem — sem isso a união apagava as demandas). Redesenho de fora não apaga formulário aberto. ⤢ e 'Editar dados do processo' seguem abrindo o formulário de dados. ANTERIOR: (·460) LICITAÇÃO: GRADE PROTEGIDA. Pedido do Nando: todas as colunas bloqueadas na página principal — clicar numa célula não edita, sem ＋ de anexar nem arrastar arquivo na grade; documento aberto pela grade abre só para ver (sem Remover). Editar SÓ abrindo o processo no ⤢ (formulário mantém tudo: campos, opções coloridas, anexos, remover, excluir). Aviso 🔒 no topo. ANTERIOR: (·459) PASTA LICITAÇÃO ABERTA A TODOS, MENOS À LETÍCIA ROSA. Pedido do
 // Nando, trocando a regra do ·458 (só diretoria + Maria Eduarda). A exceção reaproveita a trava do
 // ·457 (uvSoVoucher) em vez de criar outra lista com o nome dela — uma segunda cópia do mesmo fato
 // ficaria para trás no dia em que a trava do voucher mudar. O portão em hubGoScreen continua: para
@@ -9405,7 +9416,7 @@ try{ window.UV_SESSAO_ID = UV_SESSAO_ID; }catch(e){}
    conferido no código antes de cortar. loadSaved também saiu: busca em rede da
    tela de Vouchers Salvos, que se recarrega ao abrir. */
 function uvRedesenharTudo(){
-  var sempre=['renderOcupacao','renderStatusColunas','tiAtualizarBadgeMenu','acAtualizarBadgeMenu'];
+  var sempre=['renderOcupacao','renderStatusColunas','tiAtualizarBadgeMenu','acAtualizarBadgeMenu','esqAtualizarBadgeMenu'];   /* (·520) badge da Esteira no menu */
   for(var i=0;i<sempre.length;i++){
     try{ if(typeof window[sempre[i]]==='function') window[sempre[i]](); }catch(e){}
   }
@@ -9627,6 +9638,21 @@ async function carregarConfig(){
       }
       if(typeof window.vxaMergeMaps==='function' && (local.vmaAnexados || c.vmaAnexados)){   // (·507) VMA ▸ Anexados
         appConfig.vmaAnexados=window.vxaMergeMaps(local.vmaAnexados, c.vmaAnexados);
+      }
+      /* (·520) ESTEIRA DE SOLICITAÇÕES — união local × nuvem (ponto 1 de 3). E, como o
+         mural (·421): se ESTE computador tem solicitação (ou mudança mais nova) que a nuvem
+         não tem, ela SOBE sozinha — sem isso, o resgate morreria ao fechar a página. */
+      if(typeof window.esqMergeMaps==='function' && window.UV_EMP!=='vma' && (local.esteira || c.esteira)){
+        appConfig.esteira=window.esqMergeMaps(local.esteira, c.esteira);
+        try{
+          var _esN=(c && c.esteira && typeof c.esteira==='object')?c.esteira:{}, _esL=(local.esteira&&typeof local.esteira==='object')?local.esteira:{};
+          var _esSo=Object.keys(_esL).filter(function(id){ var a=_esL[id], b=_esN[id]; return a && (!b || Math.max(+a.mts||0,+a.ts||0) > Math.max(+b.mts||0,+b.ts||0)); });
+          if(_esSo.length && !window.__esqResgateFeito){
+            window.__esqResgateFeito=true;   /* uma vez por aba — mesma cautela do ·319 */
+            console.log('[esteira] '+_esSo.length+' solicitação(ões) mais novas só neste computador — enviando para a nuvem');
+            setTimeout(function(){ try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){} }, 3000);
+          }
+        }catch(e){}
       }
       if(typeof window.mrMergeMaps==='function'){            // (·406) Mural de Recados
         appConfig.mural=window.mrMergeMaps(local.mural, c.mural);
@@ -10234,6 +10260,11 @@ async function salvarConfig(){
        acabou de publicar no mesmo minuto. */
     if(typeof window.mrMergeMaps==='function'){
       appConfig.mural=window.mrMergeMaps(appConfig.mural, cloud.mural);
+    }
+    /* (·520) Esteira — ponto 2 de 3: sem esta linha, quem salvasse qualquer coisa gravaria
+       a config inteira por cima da solicitação que outra pessoa acabou de registrar */
+    if(typeof window.esqMergeMaps==='function' && window.UV_EMP!=='vma' && (appConfig.esteira || cloud.esteira)){
+      appConfig.esteira=window.esqMergeMaps(appConfig.esteira, cloud.esteira);
     }
     if(typeof window.vxaMergeMaps==='function' && (appConfig.vmaAnexados || cloud.vmaAnexados)){   // (·507) VMA ▸ Anexados
       appConfig.vmaAnexados=window.vxaMergeMaps(appConfig.vmaAnexados, cloud.vmaAnexados);
@@ -17962,6 +17993,7 @@ function excluirNotaUI(id){
     try{ if(typeof window.wdDesenhar==='function') window.wdDesenhar(); }catch(e){}
     try{ if(typeof window.renderCdNotifs==='function') window.renderCdNotifs(); }catch(e){}
     try{ if(typeof window.mrRender==='function') window.mrRender(); }catch(e){}   /* (·406) Mural */
+    try{ if(typeof window.esqRender==='function') window.esqRender(); }catch(e){}   /* (·520) Esteira de Solicitações */
     try{ if(typeof window.renderCdAniversario==='function') window.renderCdAniversario(); }catch(e){}
     try{ if(typeof window.renderAusProg==='function') window.renderAusProg(); }catch(e){}
     try{ if(typeof window.aprSincronizarOcupacao==='function') window.aprSincronizarOcupacao(); }catch(e){}
@@ -18107,6 +18139,11 @@ function excluirNotaUI(id){
   // Os nomes que estão em OCP_ATENDENTES mas NÃO em OCP_SORTEAVEIS têm o sistema
   // completo de gestão, porém NUNCA são sorteados.
   var OCP_ATENDENTES=window.uvEquipeEmp(['Eduardo Vinícius','Ghabriella Bressan','Liliane Gaspar','Israel Hespanhol','Maria Eduarda','Juliana Lupo','Diego Oliveira','Fernando Pires','Ana Maria','Hynaê Teston','Ruth Alves','Mayara Marcelli']);
+  /* (·520) a Esteira de Solicitações usa ESTA lista (fonte única) para "passar para…".
+     Exposta por uma função com nome PRÓPRIO, e não como window.OCP_ATENDENTES: três
+     pontos antigos testam window.OCP_ATENDENTES como reserva (plantão, Usuários) e
+     passariam a se comportar diferente — mudança fora do escopo deste build. */
+  window.uvOcpAtendentes=function(){ return OCP_ATENDENTES.slice(); };
 
   /* (·224) "sou o dono deste card, ou sou admin?" — mesma cautela de
      correspondência que Ações Comerciais (acMesmaPessoa) e Minhas Tarefas
@@ -26244,6 +26281,8 @@ function excluirNotaUI(id){
         var antesMural=JSON.stringify(appConfig.mural||{});   // (·420) Mural de Recados
         var antesVxa=JSON.stringify(appConfig.vmaAnexados||{});   // (·507) VMA ▸ Anexados
         var antesVcl=JSON.stringify(appConfig.vmaClientes||{});   // (·510) VMA ▸ Clientes
+        var esqAntesObj=(appConfig.esteira&&typeof appConfig.esteira==='object')?appConfig.esteira:{};   // (·520) Esteira
+        var antesEsq=JSON.stringify(esqAntesObj);
 
         // --- Kanban: carteira + arquivados (carimbo mais recente vence) ---
         if(typeof uvMesclarCarteiraArq==='function'){
@@ -26327,6 +26366,11 @@ function excluirNotaUI(id){
         if(remoto.vmaAnexados && typeof window.vxaMergeMaps==='function'){   // (·507) pasta nova aparece na hora nos outros PCs
           appConfig.vmaAnexados=window.vxaMergeMaps(appConfig.vmaAnexados, remoto.vmaAnexados);
         }
+        /* (·520) Esteira — ponto 3 de 3: a solicitação nova, o "assumiu" e cada etapa chegam
+           aos outros PCs NA HORA, com a MESMA mescla do boot e do salvamento */
+        if(remoto.esteira && typeof window.esqMergeMaps==='function' && window.UV_EMP!=='vma'){
+          appConfig.esteira=window.esqMergeMaps(appConfig.esteira, remoto.esteira);
+        }
         try{ localStorage.setItem('uv_config',JSON.stringify(appConfig)); }catch(e){}
 
         // Só re-renderiza o que REALMENTE mudou (evita piscar tela à toa)
@@ -26357,6 +26401,13 @@ function excluirNotaUI(id){
         if(mudouMural){ try{ if(typeof window.mrRender==='function') window.mrRender(); }catch(e){} }
         if(JSON.stringify(appConfig.vmaClientes||{})!==antesVcl){ try{ if(typeof window.renderCliente==='function') window.renderCliente(); }catch(e){} }   // (·510)
         if(JSON.stringify(appConfig.vmaAnexados||{})!==antesVxa){ try{ if(typeof window.renderAnexados==='function') window.renderAnexados(); }catch(e){} }   // (·507)
+        /* (·520) Esteira: redesenha o quadro, o detalhe aberto e o badge; e avisa quem
+           acabou de RECEBER uma solicitação passada pela diretoria em outro PC */
+        if(JSON.stringify(appConfig.esteira||{})!==antesEsq){
+          try{ if(typeof window.esqRender==='function') window.esqRender(); }catch(e){}
+          try{ if(typeof window.esqAposMudancaRemota==='function') window.esqAposMudancaRemota(); }catch(e){}
+          try{ if(typeof window.esqVerificarDesignacoes==='function') window.esqVerificarDesignacoes(esqAntesObj, appConfig.esteira); }catch(e){}
+        }
       }catch(e){ /* nunca deixa o tempo real derrubar a tela */ }
       aplicando=false;
     }
@@ -27663,6 +27714,1249 @@ var MR_CORES=[
     var t=cd.getData('text/plain')||'';
     try{ document.execCommand('insertText', false, t); }catch(x){}
   });
+})();
+</script>
+<style>
+/* ═══ (·520) ESTEIRA DE SOLICITAÇÕES — prefixo esq- (conferido com grep: livre; "est-" já é do carrossel de estoque) ═══
+   Limpo de bater o olho: três abas com a cor da categoria, o funil de Viagens em
+   colunas (sem arrastar — um botão por passo) e Compras/Manutenção em linhas com o
+   status 🔴/🟢. A cor da categoria chega por --esq-cor (amarelo, azul-bebê, verde). */
+.cd-esteira{margin:14px 0;background:var(--card);border:1px solid var(--borda);border-radius:16px;padding:16px 18px;box-shadow:var(--sombra);min-width:0;max-width:100%;box-sizing:border-box}
+.cd-esteira[hidden]{display:none}
+.esq-cab{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.esq-tit{margin:0;font-family:'Sora',sans-serif;font-size:17px;font-weight:700;color:var(--texto);letter-spacing:-.01em}
+.esq-sub{display:block;margin-top:2px;font-size:12px;color:var(--texto-suave)}
+.esq-cab-acoes{display:flex;gap:8px;flex-wrap:wrap}
+.esq-abas{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.esq-aba{display:inline-flex;align-items:center;gap:7px;padding:7px 13px 7px 11px;border-radius:999px;border:1px solid var(--borda-forte);background:transparent;color:var(--texto-suave);font:600 13px 'Inter',sans-serif;cursor:pointer;transition:background .15s,border-color .15s,color .15s}
+.esq-aba:hover{color:var(--texto);border-color:var(--esq-cor)}
+.esq-aba.on{color:var(--texto);border-color:var(--esq-cor);background:color-mix(in srgb,var(--esq-cor) 15%,transparent)}
+.esq-aba-dot{width:9px;height:9px;border-radius:50%;background:var(--esq-cor);flex-shrink:0;box-shadow:0 0 0 3px color-mix(in srgb,var(--esq-cor) 22%,transparent)}
+.esq-aba-ico{font-size:13px}
+.esq-aba-n{min-width:20px;text-align:center;padding:0 6px;border-radius:999px;background:color-mix(in srgb,var(--texto) 10%,transparent);font-size:11.5px;font-weight:800;color:var(--texto)}
+.esq-aba-fila{padding:1px 7px;border-radius:999px;background:rgba(255,77,94,.16);border:1px solid rgba(255,77,94,.55);color:#FF7D8B;font-size:10.5px;font-weight:800}
+.esq-corpo{margin-top:14px;min-width:0}
+
+/* botões */
+.esq-bt{display:inline-flex;align-items:center;justify-content:center;gap:5px;height:30px;padding:0 12px;border-radius:8px;border:1px solid var(--borda-forte);background:transparent;color:var(--texto);font:700 12.5px 'Inter',sans-serif;cursor:pointer;white-space:nowrap;transition:filter .15s,background .15s,border-color .15s}
+.esq-bt:hover:not(:disabled){border-color:var(--texto-suave);background:color-mix(in srgb,var(--texto) 6%,transparent)}
+.esq-bt:disabled{opacity:.55;cursor:default}
+.esq-bt.pri{background:var(--esq-cor,#F2C230);border-color:transparent;color:#13202D}
+.esq-bt.pri:hover:not(:disabled){filter:brightness(1.08);background:var(--esq-cor,#F2C230)}
+.esq-bt.ok{background:#22A85F;border-color:transparent;color:#fff}
+.esq-bt.ok:hover:not(:disabled){filter:brightness(1.1);background:#22A85F}
+.esq-bt.nao{background:rgba(255,77,94,.14);border-color:rgba(255,77,94,.6);color:#FF7D8B}
+.esq-bt.arq{background:rgba(120,160,255,.12);border-color:rgba(120,160,255,.5);color:#9DB8FF}
+.esq-bt.fino{height:26px;padding:0 9px;font-size:11.5px;font-weight:600;color:var(--texto-suave)}
+.esq-bt.perigo{color:#FF7D8B;border-color:rgba(255,77,94,.35)}
+.esq-nova-bt{height:32px;padding:0 14px}
+.esq-mini{width:26px;height:26px;border-radius:7px;border:1px solid var(--borda-forte);background:transparent;color:var(--texto-suave);cursor:pointer;font-size:12px;flex-shrink:0}
+.esq-mini:hover{color:#FF7D8B;border-color:rgba(255,77,94,.5)}
+
+/* VIAGENS — o funil em colunas */
+.esq-board{display:grid;grid-template-columns:repeat(5,minmax(200px,1fr));gap:10px;overflow-x:auto;max-width:100%;padding-bottom:4px;scrollbar-width:thin}
+.esq-col{background:color-mix(in srgb,var(--texto) 3%,transparent);border:1px solid var(--borda);border-radius:12px;padding:8px;min-width:0;display:flex;flex-direction:column}
+.esq-col-cab{display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding:3px 4px 8px;border-bottom:1px solid var(--borda);margin-bottom:8px}
+.esq-col-nome{font-size:12.5px;font-weight:800;color:var(--texto);letter-spacing:.01em}
+.esq-col-n{min-width:20px;text-align:center;padding:0 6px;border-radius:999px;background:color-mix(in srgb,var(--texto) 10%,transparent);font-size:11px;font-weight:800;color:var(--texto)}
+.esq-col-sub{flex-basis:100%;font-size:10.5px;color:var(--texto-suave);margin-top:-2px}
+.esq-col.col-fila .esq-col-cab{border-bottom-color:color-mix(in srgb,var(--esq-cor) 55%,transparent)}
+.esq-col.fim-ok .esq-col-nome{color:#3DDC84}
+.esq-col.fim-nao .esq-col-nome{color:#FF7D8B}
+.esq-col-corpo{display:flex;flex-direction:column;gap:8px;flex:1}
+.esq-col-vazia{color:var(--texto-fraco);text-align:center;font-size:12px;padding:14px 0}
+.esq-card{position:relative;background:var(--card);border:1px solid var(--borda);border-left:3px solid var(--esq-cor);border-radius:10px;padding:9px 10px 9px 11px;cursor:pointer;transition:transform .12s,border-color .12s,box-shadow .12s;outline:none}
+body.dark .esq-card{background:#1B2837}
+.esq-card:hover,.esq-card:focus-visible{transform:translateY(-1px);border-color:var(--borda-forte);border-left-color:var(--esq-cor);box-shadow:0 6px 16px rgba(0,0,0,.18)}
+.esq-card.fim-ok{border-left-color:#22A85F}
+.esq-card.fim-nao{border-left-color:#E5484D}
+.esq-card.meu{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--esq-cor) 45%,transparent)}
+.esq-card.atrasado,.esq-lin.atrasado{border-left-color:#FF8A3D;animation:esqPulso 2.4s ease-in-out infinite}
+@keyframes esqPulso{0%,100%{box-shadow:0 0 0 0 rgba(255,138,61,0)}50%{box-shadow:0 0 0 3px rgba(255,138,61,.28)}}
+@media (prefers-reduced-motion:reduce){.esq-card.atrasado,.esq-lin.atrasado{animation:none;box-shadow:0 0 0 2px rgba(255,138,61,.35)}}
+.esq-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.esq-card-tit{margin:0;font-size:13.5px;font-weight:700;color:var(--texto);line-height:1.3;overflow-wrap:anywhere}
+.esq-tempo{flex-shrink:0;font-size:11px;font-weight:700;color:var(--texto-suave);white-space:nowrap;font-variant-numeric:tabular-nums}
+.esq-card.atrasado .esq-tempo{color:#FF9B5C}
+.esq-card-desc{margin:5px 0 0;font-size:12px;line-height:1.4;color:var(--texto-suave);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.esq-card-meta{display:flex;align-items:center;gap:6px;margin-top:8px;flex-wrap:wrap}
+.esq-card-pe{margin-top:6px;font-size:11px;color:var(--texto-fraco)}
+body.dark .esq-card-pe{color:#6E88A3}
+.esq-card-pe b{color:var(--texto-suave);font-weight:700}
+.esq-card-acoes{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
+.esq-card-acoes .esq-bt{height:27px;padding:0 10px;font-size:12px}
+.esq-pessoa{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:999px;background:color-mix(in srgb,var(--texto) 8%,transparent);font-size:11.5px;font-weight:700;color:var(--texto);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.esq-pessoa::before{content:"👤";font-size:10px}
+.esq-pessoa.eu{background:color-mix(in srgb,var(--esq-cor) 22%,transparent)}
+.esq-pessoa.vazio{background:transparent;border:1px dashed var(--borda-forte);color:var(--texto-suave);font-weight:600;font-style:italic}
+.esq-pessoa.vazio::before{content:none}
+.esq-nax{font-size:11px;font-weight:700;color:var(--texto-suave)}
+.esq-locs{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.esq-loc{padding:2px 8px;border-radius:6px;background:rgba(34,168,95,.14);border:1px solid rgba(34,168,95,.4);color:#3DDC84;font:700 11.5px 'JetBrains Mono',monospace}
+body:not(.dark) .esq-loc{color:#16794A}
+.esq-mot{margin-top:7px;font-size:12px;color:#FF8F9B;line-height:1.35}
+body:not(.dark) .esq-mot{color:#B4232D}
+
+/* "Passar para…" (diretoria) */
+/* abre DENTRO do card (o card cresce), e não flutuando: o quadro rola na horizontal e
+   corta tudo que vaza dele — o primeiro desenho flutuante aparecia cortado (screenshot) */
+.esq-passar{margin-top:8px;background:var(--card);border:1px solid var(--borda-forte);border-radius:10px;padding:6px;max-height:260px;overflow-y:auto;cursor:default}
+body.dark .esq-passar{background:#101823}
+.esq-passar-tit{font-size:10.5px;font-weight:800;color:var(--texto-suave);text-transform:uppercase;letter-spacing:.06em;padding:4px 8px 6px}
+.esq-passar-op{display:block;width:100%;text-align:left;padding:7px 9px;border:0;border-radius:7px;background:transparent;color:var(--texto);font:600 12.5px 'Inter',sans-serif;cursor:pointer}
+.esq-passar-op:hover:not(:disabled){background:color-mix(in srgb,var(--esq-cor) 18%,transparent)}
+.esq-passar-op:disabled{color:var(--texto-fraco);cursor:default}
+.esq-lin .esq-passar{grid-column:1/-1;margin-top:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:2px}
+.esq-lin .esq-passar-tit{grid-column:1/-1}
+
+/* COMPRAS / MANUTENÇÃO — linhas */
+.esq-lista{display:flex;flex-direction:column;gap:14px}
+.esq-lista-tit{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--texto-suave);margin:0 0 8px 2px}
+.esq-lista-tit span{margin-left:4px;color:var(--texto)}
+.esq-lin{position:relative;display:grid;grid-template-columns:minmax(200px,2.2fr) minmax(130px,1fr) minmax(130px,1fr) minmax(150px,1.1fr) auto;align-items:center;gap:12px;padding:10px 12px 10px 13px;margin-bottom:8px;background:var(--card);border:1px solid var(--borda);border-left:3px solid var(--esq-cor);border-radius:10px;cursor:pointer;outline:none;transition:border-color .12s,box-shadow .12s}
+body.dark .esq-lin{background:#1B2837}
+.esq-lin:hover,.esq-lin:focus-visible{border-color:var(--borda-forte);border-left-color:var(--esq-cor)}
+.esq-lin.meu{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--esq-cor) 45%,transparent)}
+.esq-lin.fim{opacity:.92}
+.esq-lin-item{display:flex;flex-direction:column;gap:2px;min-width:0}
+.esq-lin-item b{font-size:13.5px;color:var(--texto);overflow-wrap:anywhere}
+.esq-lin-desc{font-size:12px;color:var(--texto-suave);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.esq-lin-cel{display:flex;flex-direction:column;gap:2px;min-width:0;font-size:12.5px;color:var(--texto);align-items:flex-start}
+.esq-lin-lbl{display:block;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--texto-suave);margin-bottom:2px}
+.esq-lin-lbl i{font-style:normal;text-transform:none;letter-spacing:0;font-weight:600;color:var(--texto-fraco)}
+.esq-lin-sub{display:block;font-size:11px;color:var(--texto-suave);font-variant-numeric:tabular-nums}
+.esq-lin-sub.alerta{color:#FF9B5C;font-weight:700}
+.esq-lin-acoes{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
+.esq-st{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:800;white-space:nowrap}
+.esq-st.pend{background:rgba(255,77,94,.13);border:1px solid rgba(255,77,94,.5);color:#FF7D8B}
+.esq-st.ok{background:rgba(34,168,95,.14);border:1px solid rgba(34,168,95,.5);color:#3DDC84}
+.esq-st.nao{background:rgba(255,77,94,.13);border:1px solid rgba(255,77,94,.5);color:#FF7D8B}
+.esq-st.cancel{background:color-mix(in srgb,var(--texto) 8%,transparent);border:1px solid var(--borda-forte);color:var(--texto-suave)}
+body:not(.dark) .esq-st.ok{color:#16794A}
+body:not(.dark) .esq-st.pend,body:not(.dark) .esq-st.nao{color:#B4232D}
+.esq-vazio{padding:22px 10px;text-align:center;color:var(--texto-suave);font-size:13px;border:1px dashed var(--borda);border-radius:12px}
+.esq-vazio-mini{font-size:12px;color:var(--texto-fraco)}
+
+/* MODAIS (detalhe, nova, arquivo) */
+.esq-modal-bg{position:fixed;inset:0;background:rgba(4,8,16,.72);backdrop-filter:blur(3px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px}
+.esq-modal{width:100%;max-width:720px;max-height:90vh;display:flex;flex-direction:column;background:var(--card);border:1px solid var(--borda-forte);border-top:4px solid var(--esq-cor,#8BA4BF);border-radius:16px;box-shadow:0 24px 70px rgba(0,0,0,.55);overflow:hidden;color:var(--texto)}
+body.dark .esq-modal{background:#131c2b;border-color:rgba(255,255,255,.14);border-top-color:var(--esq-cor,#8BA4BF)}
+.esq-m-cab{position:relative;padding:14px 52px 12px 18px;border-bottom:1px solid var(--borda)}
+.esq-m-cat{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--texto-suave)}
+.esq-m-tit{margin:4px 0 0;font-family:'Sora',sans-serif;font-size:19px;font-weight:700;color:var(--texto);overflow-wrap:anywhere}
+.esq-m-x{position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:9px;border:1px solid var(--borda-forte);background:transparent;color:var(--texto-suave);font-size:14px;cursor:pointer}
+.esq-m-x:hover{color:var(--texto)}
+.esq-m-corpo{padding:14px 18px 18px;overflow-y:auto;display:flex;flex-direction:column;gap:14px}
+.esq-trilha{display:flex;align-items:center;flex-wrap:wrap;gap:4px}
+.esq-passo{padding:4px 10px;border-radius:999px;font-size:11.5px;font-weight:700;color:var(--texto-fraco);border:1px solid var(--borda)}
+body.dark .esq-passo{color:#6E88A3}
+.esq-passo.feito{color:var(--texto-suave);border-color:var(--borda-forte)}
+.esq-passo.feito::before{content:"✓ ";color:#3DDC84}
+.esq-passo.atual{background:var(--esq-cor);border-color:transparent;color:#13202D}
+.esq-passo.atual.fim-ok{background:#22A85F;color:#fff}
+.esq-passo.atual.fim-nao{background:#E5484D;color:#fff}
+.esq-passo-seta{color:var(--texto-fraco);font-size:13px}
+.esq-m-grade{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;padding:12px;border-radius:12px;background:color-mix(in srgb,var(--texto) 4%,transparent)}
+.esq-m-grade > div{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:0;font-size:13px}
+.esq-m-bloco{display:flex;flex-direction:column;gap:4px}
+.esq-m-desc{margin:0;font-size:13.5px;line-height:1.5;color:var(--texto);white-space:pre-wrap;overflow-wrap:anywhere}
+.esq-axs{display:flex;flex-wrap:wrap;gap:6px}
+.esq-ax{display:inline-flex;align-items:center;gap:6px;max-width:100%;padding:5px 9px;border-radius:9px;border:1px solid var(--borda-forte);background:transparent;color:var(--texto);font:600 12px 'Inter',sans-serif;cursor:pointer}
+.esq-ax:hover{border-color:var(--esq-cor,#8BA4BF)}
+.esq-ax-nome{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:240px}
+.esq-ax-tam{font-size:10.5px;color:var(--texto-suave);font-weight:700}
+.esq-ax-add{border-style:dashed;color:var(--texto-suave)}
+.esq-m-acoes{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding-top:2px}
+.esq-passar-sel{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--texto-suave)}
+.esq-passar-sel .esq-inp{height:30px;width:auto;min-width:170px}
+.esq-form{border-radius:12px;padding:12px 14px;border:1px solid var(--borda-forte);display:flex;flex-direction:column;gap:8px}
+.esq-form.ok{border-color:rgba(34,168,95,.55);background:rgba(34,168,95,.07)}
+.esq-form.nao{border-color:rgba(255,77,94,.5);background:rgba(255,77,94,.06)}
+.esq-form-tit{font-size:14px;font-weight:800;color:var(--texto)}
+.esq-form-dica{margin:0;font-size:12.5px;color:var(--texto-suave);line-height:1.45}
+.esq-form-acoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.esq-form > .esq-bt{align-self:flex-start}
+.esq-loc-lin{display:flex;gap:6px;align-items:center;margin-bottom:6px}
+.esq-loc-tipo{flex:0 0 190px}
+.esq-loc-cod{flex:1;font-family:'JetBrains Mono',monospace;text-transform:uppercase}
+.esq-mots{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:4px 12px}
+.esq-mot-op{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--texto);cursor:pointer;padding:3px 0}
+.esq-inp{height:34px;width:100%;box-sizing:border-box;border-radius:8px;border:1px solid var(--borda-forte);background:var(--card);color:var(--texto);padding:0 10px;font:500 13px 'Inter',sans-serif;outline:none}
+body.dark .esq-inp{background:#1E2E3E;border-color:#2E4460}
+.esq-inp:focus{border-color:var(--esq-cor,#8BA4BF);box-shadow:0 0 0 3px color-mix(in srgb,var(--esq-cor,#8BA4BF) 22%,transparent)}
+.esq-ta{height:auto;min-height:78px;padding:8px 10px;resize:vertical;line-height:1.45}
+.esq-erro{padding:8px 11px;border-radius:9px;background:rgba(255,77,94,.12);border:1px solid rgba(255,77,94,.45);color:#FF8F9B;font-size:12.5px;font-weight:600}
+body:not(.dark) .esq-erro{color:#B4232D}
+.esq-erro[hidden]{display:none}
+/* linha do tempo */
+.esq-tl{list-style:none;margin:2px 0 0;padding:0 0 0 14px;border-left:2px solid var(--borda-forte);display:flex;flex-direction:column;gap:9px}
+.esq-tl-i{position:relative;display:grid;grid-template-columns:118px 1fr;column-gap:10px;font-size:12.5px;line-height:1.4}
+.esq-tl-i::before{content:"";position:absolute;left:-20px;top:4px;width:10px;height:10px;border-radius:50%;background:var(--card);border:2px solid var(--texto-suave)}
+body.dark .esq-tl-i::before{background:#131c2b}
+.esq-tl-i.t-criada::before{border-color:var(--esq-cor,#8BA4BF);background:var(--esq-cor,#8BA4BF)}
+.esq-tl-i.p-concluida::before,.esq-tl-i.p-feito::before{border-color:#22A85F;background:#22A85F}
+.esq-tl-i.p-declinada::before,.esq-tl-i.p-cancelado::before{border-color:#E5484D;background:#E5484D}
+.esq-tl-quando{grid-row:span 2;font:600 11.5px 'JetBrains Mono',monospace;color:var(--texto-suave);padding-top:1px}
+.esq-tl-quem{font-weight:800;color:var(--texto)}
+.esq-tl-oque{color:var(--texto-suave)}
+.esq-tl-oque b{color:var(--texto)}
+/* nova solicitação */
+.esq-nova-cats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.esq-nova-cat{display:flex;flex-direction:column;align-items:center;gap:4px;padding:11px 8px;border-radius:12px;border:1px solid var(--borda-forte);background:transparent;color:var(--texto-suave);font:700 13px 'Inter',sans-serif;cursor:pointer}
+.esq-nova-cat-ico{font-size:20px}
+.esq-nova-cat:hover{border-color:var(--esq-cor);color:var(--texto)}
+.esq-nova-cat.on{border-color:var(--esq-cor);background:color-mix(in srgb,var(--esq-cor) 15%,transparent);color:var(--texto);box-shadow:inset 0 0 0 1px var(--esq-cor)}
+.esq-campos{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
+.esq-campo{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:700;color:var(--texto-suave);min-width:0}
+.esq-campo i{font-style:normal;font-weight:600;color:var(--texto-fraco);margin-left:4px}
+body.dark .esq-campo i{color:#6E88A3}
+.esq-campo.larga{grid-column:1/-1}
+/* arquivo */
+.esq-modal.esq-arq{max-width:860px}
+.esq-busca{height:38px;font-size:14px}
+.esq-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.esq-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;border:1px solid var(--borda-forte);background:transparent;color:var(--texto-suave);font:600 12px 'Inter',sans-serif;cursor:pointer}
+.esq-chip span{font-weight:800;color:var(--texto)}
+.esq-chip.on{color:var(--texto);border-color:var(--esq-cor,#8BA4BF);background:color-mix(in srgb,var(--esq-cor,#8BA4BF) 16%,transparent)}
+.esq-arq-lista{display:flex;flex-direction:column;gap:6px}
+.esq-arq-i{border:1px solid var(--borda);border-left:3px solid var(--esq-cor);border-radius:10px;overflow:hidden}
+.esq-arq-lin{display:grid;grid-template-columns:34px minmax(0,2fr) minmax(0,1fr) auto auto;align-items:center;gap:10px;width:100%;padding:9px 12px;border:0;background:transparent;color:var(--texto);text-align:left;font:500 12.5px 'Inter',sans-serif;cursor:pointer}
+.esq-arq-lin:hover{background:color-mix(in srgb,var(--texto) 4%,transparent)}
+.esq-arq-cat{display:flex;align-items:center;gap:5px}
+.esq-arq-tit{display:flex;flex-direction:column;min-width:0}
+.esq-arq-tit b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.esq-arq-resp{color:var(--texto-suave);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.esq-arq-em{font-size:11px;color:var(--texto-suave);white-space:nowrap}
+.esq-arq-det{padding:4px 14px 14px 48px;display:flex;flex-direction:column;gap:10px}
+.esq-pags{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:10px;font-size:12px;color:var(--texto-suave)}
+
+/* a VMA não tem a Esteira (decisão do Nando) — rede de segurança visual além do esqAtiva() */
+html.uv-emp-vma #cdEsteira,html.uv-emp-vma #esqNavBadge{display:none!important}
+@media (max-width:760px){
+  .cd-esteira{padding:12px}
+  .esq-board{grid-template-columns:repeat(5,minmax(230px,82vw));scroll-snap-type:x mandatory}
+  .esq-col{scroll-snap-align:start}
+  .esq-lin{grid-template-columns:1fr 1fr;gap:8px 10px}
+  .esq-lin-item{grid-column:1/-1}
+  .esq-lin-acoes{grid-column:1/-1;justify-content:flex-start}
+  .esq-campos{grid-template-columns:1fr}
+  .esq-nova-cats{grid-template-columns:1fr 1fr 1fr}
+  .esq-arq-lin{grid-template-columns:28px minmax(0,1fr) auto}
+  .esq-arq-resp,.esq-arq-em{display:none}
+  .esq-arq-det{padding-left:14px}
+  .esq-tl-i{grid-template-columns:1fr}
+  .esq-tl-quando{grid-row:auto}
+  .esq-loc-lin{flex-wrap:wrap}
+  .esq-loc-tipo{flex:1 1 100%}
+  .esq-modal-bg{padding:8px;align-items:flex-end}
+  .esq-modal{max-height:94vh}
+}
+</style>
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   (·520) ESTEIRA DE SOLICITAÇÕES — Control Desk, logo abaixo do Mural de Recados
+   ═══════════════════════════════════════════════════════════════════════════
+   PEDIDO DO NANDO (07/10/2026): um lugar para registrar o que precisa ser feito e
+   acompanhar, em tempo real, QUEM pegou e EM QUE ETAPA está. Três categorias:
+     • VIAGENS (amarelo) — demanda de cliente que vira venda. Funil:
+         Na fila → Atendimento Iniciado → Orçamento Enviado / Aguardando Aprovação
+         → Venda Concluída e Cadastrada (localizador/nº de reserva OBRIGATÓRIO, um ou
+           mais: aéreo + hotel…) | Venda Declinada (motivo OBRIGATÓRIO)
+     • COMPRAS (azul-bebê) — material da agência (café, pão, papel…): solicitante →
+       comprador → baixa. 🔴 Não comprado / 🟢 Comprado.
+     • MANUTENÇÃO LOJA (verde) — mesmas regras: solicitante → executante → baixa.
+       🔴 Não concluído / 🟢 Concluído.
+   Toda solicitação mostra quem pediu, data e hora; TODA mudança fica na linha do
+   tempo com data, hora e quem fez. Concluída/declinada/cancelada → botão Arquivar →
+   ARQUIVO com busca por nome e filtro por resultado.
+
+   DECISÕES DO NANDO (respostas às 7 perguntas):
+     1. criar solicitação: SÓ A DIRETORIA, por enquanto;
+     2. passar para um atendente específico: só a diretoria — os demais PEGAM DA FILA;
+     3. vermelho = pendente, verde = feito, + Cancelar com motivo;
+     4. Compras e Manutenção também vão para o Arquivo;
+     5. Viagens: cliente (obrig.), telefone (opcional), descrição livre + ANEXOS
+        (PDF, PNG, JPEG);
+     6. a VMA NÃO tem esta função (nem na tela, nem no servidor);
+     7. cores: Viagens amarelo, Compras azul-bebê, Manutenção verde.
+
+   DADOS — appConfig.esteira = { <id>: solicitação } — CAMPO VIVO no Worker (Durable
+   Object), unido entre PCs por esqMergeMaps (aqui) = mergeEsteira (worker.js), nos
+   TRÊS pontos de sempre: carregarConfig, salvarConfig e o WebSocket (aplicarEstado).
+   ⚠ SÓ AS ATIVAS moram aqui. Arquivar é UMA chamada ao servidor (/api/esteira/
+   arquivar): ele guarda a solicitação inteira no ARQUIVO (storage próprio do DO, uma
+   chave por solicitação) e deixa no estado vivo só uma LÁPIDE {id, cat, arq:1, …} de
+   ~80 bytes. "Arquivada é definitivo" na mescla: um PC atrasado nunca a devolve.
+   ⚠ HISTÓRICO e ANEXOS se unem por id (cada entrada tem id próprio): duas pessoas
+   mexendo no mesmo card em PCs diferentes não apagam a linha do tempo uma da outra.
+   ⚠ Anexo: o arquivo vai para o R2 (/api/anexo, a rota das Ações Comerciais); aqui
+   fica só a etiqueta {id, nome, tipo, tam}. Soft delete em tudo (del:1).          */
+(function(){
+  var ESQ_AREA='Control Desk › Esteira de Solicitações';
+  var ESQ_CATS=[
+    {id:'viagem', nome:'Viagens',         ico:'✈️', cor:'#F2C230', papel:'Atendente',  item:'Cliente'},
+    {id:'compra', nome:'Compras',         ico:'🛒', cor:'#9AD3F5', papel:'Comprador',  item:'Item'},
+    {id:'manut',  nome:'Manutenção Loja', ico:'🔧', cor:'#47C47A', papel:'Executante', item:'Situação'}
+  ];
+  var ESQ_CAT={}; ESQ_CATS.forEach(function(c){ ESQ_CAT[c.id]=c; });
+  /* etapas por categoria — os CÓDIGOS ficam gravados para sempre; os rótulos podem mudar */
+  var ESQ_ETAPAS={
+    viagem:[
+      {id:'fila',      nome:'Na fila',               sub:'aguardando atendente'},
+      {id:'iniciado',  nome:'Atendimento Iniciado',  sub:'em atendimento'},
+      {id:'orcamento', nome:'Orçamento Enviado',     sub:'aguardando aprovação'},
+      {id:'concluida', nome:'Venda Concluída',       sub:'e cadastrada', fim:'ok'},
+      {id:'declinada', nome:'Venda Declinada',       sub:'não fechou',   fim:'nao'}
+    ],
+    compra:[
+      {id:'fila',      nome:'Aguardando comprador'},
+      {id:'andamento', nome:'Com comprador'},
+      {id:'feito',     nome:'Comprado',  fim:'ok'},
+      {id:'cancelado', nome:'Cancelado', fim:'nao'}
+    ],
+    manut:[
+      {id:'fila',      nome:'Aguardando executante'},
+      {id:'andamento', nome:'Com executante'},
+      {id:'feito',     nome:'Concluído', fim:'ok'},
+      {id:'cancelado', nome:'Cancelado', fim:'nao'}
+    ]
+  };
+  var ESQ_PEND={compra:'Não comprado', manut:'Não concluído'};
+  var ESQ_OK  ={compra:'Comprado',     manut:'Concluído'};
+  /* motivos de declínio prontos (+ texto livre) — códigos estáveis, para um dia dar
+     para contar POR QUE as vendas não fecham */
+  var ESQ_MOTIVOS=[
+    {cod:'preco',      rot:'Preço acima do esperado'},
+    {cod:'concorrente',rot:'Fechou com outra agência'},
+    {cod:'desistiu',   rot:'Cliente desistiu da viagem'},
+    {cod:'dispon',     rot:'Sem disponibilidade (voo/hotel)'},
+    {cod:'semresp',    rot:'Cliente parou de responder'},
+    {cod:'datas',      rot:'Mudou datas ou planos'},
+    {cod:'outro',      rot:'Outro motivo'}
+  ];
+  var ESQ_FILA_ALERTA_MIN=15;   /* card esquecido na fila sem dono ganha destaque */
+  var ESQ_ANEXO_MAX=20*1024*1024;
+  var ESQ_ANEXO_TIPOS={'application/pdf':{rot:'PDF',ico:'📕'}, 'image/png':{rot:'PNG',ico:'🖼️'}, 'image/jpeg':{rot:'JPEG',ico:'🖼️'}};
+  var ESQ_ANEXO_EXT={pdf:'application/pdf', png:'image/png', jpg:'image/jpeg', jpeg:'image/jpeg'};
+
+  /* ---------- utilidades ---------- */
+  function esqEsc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function esqNome(){ try{ return (typeof window.uvAuthNome==='function'?window.uvAuthNome():'')||''; }catch(e){ return ''; } }
+  function esqUsuario(){ try{ return (typeof window.uvAuthUsuario==='function'?window.uvAuthUsuario():'')||''; }catch(e){ return ''; } }
+  function esqDir(){ try{ return typeof window.uvSouDiretoria==='function' && window.uvSouDiretoria()===true; }catch(e){ return false; } }
+  /* comparação TOLERANTE de nomes (a mesma do Mural, ·409): "Diego de Oliveira" = "Diego Oliveira" */
+  function esqMesma(a,b){
+    if(!a || !b) return false;
+    try{ if(typeof window.mrMesmaPessoa==='function') return window.mrMesmaPessoa(a,b); }catch(e){}
+    var n=function(x){ return (x||'').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,' ').trim(); };
+    return n(a)===n(b);
+  }
+  /* a equipe vem da MESMA lista da Ocupação (fonte única) */
+  function esqEquipe(){
+    try{ if(typeof window.uvOcpAtendentes==='function') return window.uvOcpAtendentes(); }catch(e){}
+    return [];
+  }
+  /* o nome "oficial" de quem está logado (o da lista), para o card casar com a Ocupação */
+  function esqEuCanon(){
+    var me=esqNome(), L=esqEquipe();
+    for(var i=0;i<L.length;i++){ if(esqMesma(L[i], me)) return L[i]; }
+    return me;
+  }
+  function esqPrimeiro(n){ return (n||'').toString().trim().split(/\s+/)[0]||''; }
+  function esqAgora(){ return Date.now(); }
+  function esqNovoId(p){ return p+esqAgora().toString(36)+Math.random().toString(36).slice(2,7); }
+  function esq2(n){ return String(n).padStart(2,'0'); }
+  function esqDataHora(ts){
+    if(!ts) return '—';
+    var d=new Date(ts);
+    return esq2(d.getDate())+'/'+esq2(d.getMonth()+1)+'/'+d.getFullYear()+' '+esq2(d.getHours())+':'+esq2(d.getMinutes());
+  }
+  function esqDataCurta(ts){
+    if(!ts) return '—';
+    var d=new Date(ts), h=new Date(); var mesmoDia=d.toDateString()===h.toDateString();
+    var on=new Date(h.getTime()-86400000); var ontem=d.toDateString()===on.toDateString();
+    var hora=esq2(d.getHours())+':'+esq2(d.getMinutes());
+    if(mesmoDia) return 'hoje '+hora;
+    if(ontem) return 'ontem '+hora;
+    return esq2(d.getDate())+'/'+esq2(d.getMonth()+1)+' '+hora;
+  }
+  function esqDecorrido(ts){
+    if(!ts) return '';
+    var m=Math.max(0, Math.floor((esqAgora()-ts)/60000));
+    if(m<1) return 'agora';
+    if(m<60) return m+' min';
+    var h=Math.floor(m/60), r=m%60;
+    if(h<24) return h+'h'+(r?esq2(r):'');
+    var d=Math.floor(h/24); return d+(d===1?' dia':' dias');
+  }
+  function esqToast(msg, tipo){ try{ if(typeof toast==='function'){ toast(msg, tipo||'info'); return; } }catch(e){} try{ window.alert(msg); }catch(e){} }
+
+  /* ---------- quem pode o quê ---------- */
+  /* a Esteira existe só na Ultravel, para quem está logado e não é a conta "só voucher" */
+  function esqAtiva(){
+    if(window.UV_EMP==='vma') return false;
+    if(!esqNome()) return false;
+    try{ if(typeof window.uvSoVoucher==='function' && window.uvSoVoucher()) return false; }catch(e){}
+    return true;
+  }
+  function esqPodeCriar(){ return esqAtiva() && esqDir(); }            /* 1. só a diretoria */
+  function esqPodeDesignar(){ return esqAtiva() && esqDir(); }         /* 2. só a diretoria */
+  function esqSouResp(it){ return !!(it && it.resp && esqMesma(it.resp, esqNome())); }
+  function esqPodeOperar(it){ return esqAtiva() && !!it && (esqDir() || esqSouResp(it)); }
+  function esqFinal(it){ var e=esqEtapa(it); return !!(e && e.fim); }
+  window.esqPodeCriar=esqPodeCriar;
+
+  /* ---------- dados ---------- */
+  function esqStore(){
+    if(!appConfig.esteira || typeof appConfig.esteira!=='object') appConfig.esteira={};
+    return appConfig.esteira;
+  }
+  function esqEtapa(it){
+    var L=ESQ_ETAPAS[(it&&it.cat)||'viagem']||[];
+    for(var i=0;i<L.length;i++){ if(L[i].id===it.etapa) return L[i]; }
+    return L[0]||null;
+  }
+  function esqTitulo(it){ return (it && (it.cat==='viagem' ? it.cli : it.tit)) || '(sem título)'; }
+  function esqVivas(cat){
+    var S=(appConfig && appConfig.esteira && typeof appConfig.esteira==='object') ? appConfig.esteira : {};
+    return Object.keys(S).map(function(k){ return S[k]; })
+      .filter(function(it){ return it && !it.del && !it.arq && (!cat || it.cat===cat); });
+  }
+  function esqSalvar(){ try{ if(typeof salvarConfig==='function') salvarConfig(); }catch(e){} }
+  function esqLog(tipo, msg){ try{ if(typeof logRemoto==='function') logRemoto(tipo, msg, {area:ESQ_AREA}); }catch(e){} }
+  /* linha do tempo: cada entrada tem id próprio — é isso que deixa a união entre PCs juntar as duas */
+  function esqMarcar(it, t, extra){
+    if(!it.hist || typeof it.hist!=='object') it.hist={};
+    var e={t:t, por:esqNome(), em:esqAgora()};
+    Object.keys(extra||{}).forEach(function(k){ e[k]=extra[k]; });
+    it.hist[esqNovoId('h')]=e;
+    it.mts=Math.max(esqAgora(), (it.mts||0)+1);
+  }
+
+  /* ---------- MESCLA MULTI-PC — espelho EXATO de mergeEsteira() do worker.js ---------- */
+  function esqCarimbo(x){ return Math.max((x && +x.mts)||0, (x && +x.ts)||0); }
+  function esqLapide(x){ return {id:x.id, cat:x.cat||'', arq:1, arqEm:x.arqEm||0, arqPor:x.arqPor||'', mts:esqCarimbo(x)}; }
+  function esqUniao(a,b,porCarimbo){
+    a=(a&&typeof a==='object')?a:{}; b=(b&&typeof b==='object')?b:{};
+    var out={}, ks={};
+    Object.keys(a).forEach(function(k){ks[k]=1;}); Object.keys(b).forEach(function(k){ks[k]=1;});
+    Object.keys(ks).forEach(function(k){
+      var x=a[k], y=b[k];
+      out[k]=(!x||!y)?(x||y):(porCarimbo?(esqCarimbo(x)>=esqCarimbo(y)?x:y):x);
+    });
+    return out;
+  }
+  window.esqMergeMaps=function(A,B){
+    A=(A&&typeof A==='object')?A:{}; B=(B&&typeof B==='object')?B:{};
+    var out={}, ids={};
+    Object.keys(A).forEach(function(k){ids[k]=1;}); Object.keys(B).forEach(function(k){ids[k]=1;});
+    Object.keys(ids).forEach(function(id){
+      var x=A[id], y=B[id];
+      if(!x || !y){ var v=x||y; out[id]=(v && v.arq)?esqLapide(v):v; return; }
+      if(x.arq || y.arq){
+        var l=(x.arq && y.arq)?(esqCarimbo(x)>=esqCarimbo(y)?x:y):(x.arq?x:y);
+        var t=esqLapide(l); t.mts=Math.max(esqCarimbo(x), esqCarimbo(y)); out[id]=t; return;
+      }
+      var w=(esqCarimbo(x)>=esqCarimbo(y))?x:y, c={};
+      Object.keys(w).forEach(function(k){ c[k]=w[k]; });
+      c.hist=esqUniao(x.hist, y.hist, false);
+      c.anexos=esqUniao(x.anexos, y.anexos, true);
+      c.mts=Math.max(esqCarimbo(x), esqCarimbo(y));
+      out[id]=c;
+    });
+    return out;
+  };
+
+  /* ---------- ações ---------- */
+  function esqCriar(d){
+    if(!esqPodeCriar()) return null;
+    var S=esqStore(), id=esqNovoId('esq'), agora=esqAgora();
+    var it={ id:id, cat:d.cat, ts:agora, mts:agora, etapa:'fila', etapaEm:agora,
+             sol:esqNome(), solU:esqUsuario(), resp:'', respEm:0,
+             cli:'', tel:'', tit:'', desc:(d.desc||'').trim(), anexos:{}, hist:{}, locs:[], mot:null, del:0 };
+    if(d.cat==='viagem'){ it.cli=(d.cli||'').trim(); it.tel=(d.tel||'').trim(); }
+    else it.tit=(d.tit||'').trim();
+    (d.anexos||[]).forEach(function(ax){ it.anexos[ax.id]={id:ax.id, nome:ax.nome, tipo:ax.tipo, tam:ax.tam, por:esqNome(), em:agora, mts:agora}; });
+    esqMarcar(it,'criada');
+    if(d.resp){
+      it.resp=d.resp; it.respEm=agora; it.etapa=(d.cat==='viagem'?'iniciado':'andamento'); it.etapaEm=agora;
+      esqMarcar(it,'designada',{para:d.resp});
+    }
+    S[id]=it;
+    esqSalvar();
+    esqLog('esteira_nova','Nova solicitação ('+ESQ_CAT[d.cat].nome+'): '+esqTitulo(it)+(d.resp?' — para '+d.resp:' — na fila'));
+    return id;
+  }
+  function esqAssumir(id){
+    var it=esqStore()[id]; if(!it || it.del || it.arq || !esqAtiva()) return false;
+    if(it.resp){ esqToast(esqPrimeiro(it.resp)+' já pegou esta solicitação.','err'); return false; }
+    var agora=esqAgora();
+    it.resp=esqEuCanon(); it.respEm=agora;
+    it.etapa=(it.cat==='viagem'?'iniciado':'andamento'); it.etapaEm=agora;
+    esqMarcar(it,'assumiu');
+    esqSalvar();
+    esqLog('esteira_assumida','Solicitação assumida ('+ESQ_CAT[it.cat].nome+'): '+esqTitulo(it));
+    return true;
+  }
+  function esqDesignar(id, nome){
+    var it=esqStore()[id]; if(!it || it.del || it.arq || !esqPodeDesignar() || !nome) return false;
+    if(it.resp && esqMesma(it.resp, nome)) return false;
+    var antes=it.resp||'', agora=esqAgora();
+    it.resp=nome; it.respEm=agora;
+    if(it.etapa==='fila'){ it.etapa=(it.cat==='viagem'?'iniciado':'andamento'); it.etapaEm=agora; }
+    esqMarcar(it,'designada',{para:nome, de:antes});
+    esqSalvar();
+    esqLog('esteira_designada','Solicitação passada para '+nome+(antes?' (antes: '+antes+')':'')+': '+esqTitulo(it));
+    return true;
+  }
+  function esqDevolver(id){
+    var it=esqStore()[id]; if(!it || !esqPodeOperar(it) || esqFinal(it)) return false;
+    var antes=it.resp, agora=esqAgora();
+    it.resp=''; it.respEm=0; it.etapa='fila'; it.etapaEm=agora;
+    esqMarcar(it,'devolvida',{de:antes});
+    esqSalvar();
+    esqLog('esteira_devolvida','Solicitação devolvida à fila: '+esqTitulo(it));
+    return true;
+  }
+  /* mudar de etapa — as finais exigem os dados que o Nando pediu */
+  function esqMudarEtapa(id, etapa, extra){
+    var it=esqStore()[id]; if(!it || it.del || it.arq || !esqPodeOperar(it)) return false;
+    if(!it.resp) return false;
+    var de=it.etapa, agora=esqAgora(), marca={de:de, para:etapa};
+    if(etapa==='concluida'){
+      var locs=((extra&&extra.locs)||[]).filter(function(l){ return l && (l.cod||'').trim(); })
+        .map(function(l){ return {tipo:l.tipo||'outro', cod:(l.cod||'').trim().toUpperCase().slice(0,60)}; });   /* o campo mostra em MAIÚSCULAS — grava como a pessoa viu */
+      if(!locs.length) return false;
+      it.locs=locs; marca.locs=locs;
+    }
+    if(etapa==='declinada' || etapa==='cancelado'){
+      var mot={cod:(extra&&extra.cod)||'', txt:((extra&&extra.txt)||'').trim().slice(0,500)};
+      if(etapa==='declinada' && !mot.cod) return false;
+      if((etapa==='cancelado' || mot.cod==='outro') && !mot.txt) return false;
+      it.mot=mot; marca.mot=mot;
+    }
+    it.etapa=etapa; it.etapaEm=agora;
+    esqMarcar(it,'etapa',marca);
+    esqSalvar();
+    var e=esqEtapa(it);
+    esqLog('esteira_etapa',ESQ_CAT[it.cat].nome+' › '+esqTitulo(it)+': '+(e?e.nome:etapa));
+    return true;
+  }
+  function esqReabrir(id){
+    var it=esqStore()[id]; if(!it || !esqPodeOperar(it) || !esqFinal(it)) return false;
+    var de=it.etapa, para=(it.cat==='viagem'?'orcamento':'andamento');
+    it.etapa=para; it.etapaEm=esqAgora(); it.locs=[]; it.mot=null;
+    esqMarcar(it,'reaberta',{de:de, para:para});
+    esqSalvar();
+    esqLog('esteira_reaberta','Solicitação reaberta: '+esqTitulo(it));
+    return true;
+  }
+  function esqExcluir(id){
+    var it=esqStore()[id]; if(!it || it.del || !esqDir()) return false;
+    it.del=1; it.delEm=esqAgora(); it.delPor=esqNome();
+    esqMarcar(it,'excluida');
+    esqSalvar();
+    esqLog('esteira_excluida','Solicitação excluída ('+ESQ_CAT[it.cat].nome+'): '+esqTitulo(it));
+    return true;
+  }
+  function esqAnexarNoItem(id, ax){
+    var it=esqStore()[id]; if(!it || it.del || it.arq) return false;
+    if(!it.anexos || typeof it.anexos!=='object') it.anexos={};
+    var agora=esqAgora();
+    it.anexos[ax.id]={id:ax.id, nome:ax.nome, tipo:ax.tipo, tam:ax.tam, por:esqNome(), em:agora, mts:agora};
+    esqMarcar(it,'anexo',{nome:ax.nome});
+    esqSalvar();
+    esqLog('esteira_anexo','Anexo em '+esqTitulo(it)+': '+ax.nome);
+    return true;
+  }
+  /* ARQUIVAR — passo único no servidor (guarda no arquivo + lápide no estado vivo) */
+  var esqArquivando={};
+  function esqArquivar(id){
+    var it=esqStore()[id]; if(!it || !esqPodeOperar(it) || !esqFinal(it) || esqArquivando[id]) return;
+    esqArquivando[id]=1; esqRender(); esqRenderModal();
+    api('/api/esteira/arquivar',{method:'POST', body:JSON.stringify({item:it})})
+      .then(function(d){
+        delete esqArquivando[id];
+        if(!d || !d.ok) throw new Error((d&&d.error)||'falha');
+        var arq=d.item||it, lap={}; lap[id]={id:id, cat:arq.cat||it.cat, arq:1, arqEm:arq.arqEm||esqAgora(), arqPor:arq.arqPor||esqNome(), mts:Math.max(esqAgora(), esqCarimbo(it)+1)};
+        appConfig.esteira=window.esqMergeMaps(appConfig.esteira, lap);
+        esqArqCache=null;
+        if(esqModalId===id) esqFecharModal();
+        esqRender();
+        esqSalvar();
+        esqToast('📚 Arquivada: '+esqTitulo(arq),'ok');
+      })
+      .catch(function(e){
+        delete esqArquivando[id]; esqRender(); esqRenderModal();
+        esqToast('Não consegui arquivar agora (o arquivo precisa da nuvem): '+(e&&e.message?e.message:e),'err');
+      });
+  }
+
+  /* ---------- anexos (R2, pela rota /api/anexo) ---------- */
+  function esqTipoDe(file){
+    var t=(file&&file.type||'').toLowerCase(); if(ESQ_ANEXO_TIPOS[t]) return t;
+    var nm=(file&&file.name||'').toLowerCase(), p=nm.lastIndexOf('.');
+    return ESQ_ANEXO_EXT[p>=0?nm.slice(p+1):'']||'';
+  }
+  function esqTam(n){ n=+n||0; if(n<1024) return n+' B'; if(n<1048576) return Math.round(n/1024)+' KB'; return (n/1048576).toFixed(1)+' MB'; }
+  function esqBase(){ try{ return (typeof getWorkerUrl==='function')?(getWorkerUrl()||''):''; }catch(e){ return ''; } }
+  function esqHdr(){ var h={}; try{ var t=(typeof uvAuthToken==='function')?uvAuthToken():localStorage.getItem('uv_auth_token'); if(t) h['Authorization']='Bearer '+t; }catch(e){} return h; }
+  function esqEnviarArquivo(file){
+    return new Promise(function(ok, falha){
+      var tipo=esqTipoDe(file);
+      if(!tipo) return falha(new Error('"'+(file.name||'arquivo')+'": formato não aceito — envie PDF, PNG ou JPEG.'));
+      if(file.size>ESQ_ANEXO_MAX) return falha(new Error('"'+file.name+'" tem '+esqTam(file.size)+' — o limite é 20 MB.'));
+      var b=esqBase(); if(!b) return falha(new Error('Sem conexão com o servidor.'));
+      fetch(b+'/api/anexo?tipo='+encodeURIComponent(tipo)+'&nome='+encodeURIComponent(file.name||'arquivo')+'&area='+encodeURIComponent(ESQ_AREA),
+            {method:'POST', headers:esqHdr(), body:file})
+        .then(function(r){ return r.json().then(function(d){ return {ok:r.ok, d:d}; }); })
+        .then(function(x){ if(!x.ok || !x.d || !x.d.id) throw new Error((x.d&&x.d.error)||'falha ao enviar'); ok({id:x.d.id, nome:x.d.nome||file.name, tipo:tipo, tam:x.d.tam||file.size}); })
+        .catch(falha);
+    });
+  }
+  function esqEnviarVarios(files){
+    var out=[], i=0;
+    return new Promise(function(ok, falha){
+      (function prox(){
+        if(i>=files.length) return ok(out);
+        esqEnviarArquivo(files[i++]).then(function(ax){ out.push(ax); prox(); }).catch(falha);
+      })();
+    });
+  }
+  /* abrir: PDF e imagem abrem numa aba nova (o navegador mostra); token no cabeçalho, nunca na URL */
+  function esqAbrirAnexo(id, nome, tipo){
+    var b=esqBase(); if(!b){ esqToast('Sem conexão com o servidor.','err'); return; }
+    var janela=null; try{ janela=window.open('', '_blank'); }catch(e){}
+    fetch(b+'/api/anexo/'+encodeURIComponent(id), {headers:esqHdr()})
+      .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.blob(); })
+      .then(function(bl){
+        var blob=tipo?new Blob([bl],{type:tipo}):bl, u=URL.createObjectURL(blob);
+        if(janela){ try{ janela.location.href=u; return; }catch(e){} }
+        var a=document.createElement('a'); a.href=u; a.download=nome||'arquivo'; document.body.appendChild(a); a.click();
+        setTimeout(function(){ try{ document.body.removeChild(a); }catch(e){} }, 1500);
+      })
+      .catch(function(e){ try{ if(janela) janela.close(); }catch(x){} esqToast('Não consegui abrir o anexo: '+(e&&e.message?e.message:e),'err'); });
+  }
+  function esqAnexosHtml(it, podeAnexar){
+    var A=it.anexos||{}, ks=Object.keys(A).filter(function(k){ return A[k] && !A[k].del; })
+      .sort(function(a,b){ return (A[a].em||0)-(A[b].em||0); });
+    var h=ks.map(function(k){
+      var ax=A[k], d=ESQ_ANEXO_TIPOS[ax.tipo]||{rot:'ARQ',ico:'📎'};
+      return '<button type="button" class="esq-ax" data-esq-ax="'+esqEsc(ax.id)+'" data-esq-ax-nome="'+esqEsc(ax.nome)+'" data-esq-ax-tipo="'+esqEsc(ax.tipo)+'" title="Abrir '+esqEsc(ax.nome)+'">'
+        +'<span class="esq-ax-ico">'+d.ico+'</span><span class="esq-ax-nome">'+esqEsc(ax.nome)+'</span><span class="esq-ax-tam">'+d.rot+' · '+esqTam(ax.tam)+'</span></button>';
+    }).join('');
+    if(podeAnexar) h+='<label class="esq-ax esq-ax-add" title="Anexar PDF, PNG ou JPEG"><input type="file" accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" multiple data-esq-anexar="'+esqEsc(it.id)+'" hidden>'+(esqEnviandoAx[it.id]?'⏳ Enviando…':'＋ Anexar arquivo')+'</label>';
+    return h || '<span class="esq-vazio-mini">Nenhum anexo.</span>';
+  }
+  var esqEnviandoAx={};
+
+  /* ---------- estado de tela (morre no refresh) ---------- */
+  var esqTab='viagem';
+  try{ var _t=localStorage.getItem('uv_esq_aba'); if(ESQ_CAT[_t]) esqTab=_t; }catch(e){}
+  var esqModalId=null;      /* solicitação aberta no detalhe */
+  var esqForm='';           /* formulário aberto dentro do detalhe: concluir | declinar | cancelar */
+  var esqPassarAberto='';   /* id com o seletor "Passar para" aberto (no quadro) */
+  var esqNova=null;         /* {cat} quando o formulário de nova solicitação está aberto */
+  var esqNovaArquivos=[];   /* File[] escolhidos no formulário novo */
+  var esqArqAberto=false, esqArqQ='', esqArqCat='', esqArqRes='', esqArqPag=1, esqArqCache=null, esqArqCarregando=false, esqArqVer=null;
+
+  /* ---------- desenho: o quadro ---------- */
+  function esqPessoaHtml(nome){
+    if(!nome) return '<span class="esq-pessoa vazio">sem responsável</span>';
+    return '<span class="esq-pessoa'+(esqMesma(nome, esqNome())?' eu':'')+'">'+esqEsc(nome)+'</span>';
+  }
+  function esqNAnexos(it){ var A=it.anexos||{}; return Object.keys(A).filter(function(k){ return A[k] && !A[k].del; }).length; }
+  function esqPassarHtml(it){
+    if(esqPassarAberto!==it.id) return '';
+    return '<div class="esq-passar" role="listbox">'
+      +'<div class="esq-passar-tit">Passar para…</div>'
+      +esqEquipe().map(function(n){
+        var at=it.resp && esqMesma(it.resp,n);
+        return '<button type="button" class="esq-passar-op'+(at?' on':'')+'" data-esq-designar="'+esqEsc(it.id)+'" data-esq-para="'+esqEsc(n)+'"'+(at?' disabled':'')+'>'+esqEsc(n)+(at?' · atual':'')+'</button>';
+      }).join('')
+      +'</div>';
+  }
+  function esqAcoesCard(it){
+    var h='';
+    var fim=esqFinal(it);
+    if(!it.resp){
+      h+='<button type="button" class="esq-bt pri" data-esq-assumir="'+esqEsc(it.id)+'" title="Pegar esta solicitação para você">Assumir</button>';
+    }
+    if(esqPodeDesignar() && !fim){
+      h+='<button type="button" class="esq-bt" data-esq-passar="'+esqEsc(it.id)+'" title="Passar para um atendente específico (diretoria)">'+(it.resp?'Trocar ▾':'Passar ▾')+'</button>';
+    }
+    if(fim && esqPodeOperar(it)){
+      h+='<button type="button" class="esq-bt arq" data-esq-arquivar="'+esqEsc(it.id)+'"'+(esqArquivando[it.id]?' disabled':'')+'>'+(esqArquivando[it.id]?'Arquivando…':'📚 Arquivar')+'</button>';
+    }
+    return h?'<div class="esq-card-acoes">'+h+'</div>':'';
+  }
+  function esqResumoFim(it){
+    if(it.etapa==='concluida' && it.locs && it.locs.length){
+      return '<div class="esq-locs">'+it.locs.map(function(l){ return '<span class="esq-loc">'+esqLocIco(l.tipo)+' '+esqEsc(l.cod)+'</span>'; }).join('')+'</div>';
+    }
+    if((it.etapa==='declinada'||it.etapa==='cancelado') && it.mot){
+      return '<div class="esq-mot">'+esqEsc(esqMotRot(it.mot))+'</div>';
+    }
+    return '';
+  }
+  function esqMotRot(m){
+    if(!m) return '';
+    var r=''; for(var i=0;i<ESQ_MOTIVOS.length;i++){ if(ESQ_MOTIVOS[i].cod===m.cod) r=ESQ_MOTIVOS[i].rot; }
+    if(m.cod==='outro') r='';
+    return [r, m.txt].filter(Boolean).join(' — ');
+  }
+  function esqProdutos(){
+    var P=(window.OCP_PRODUTOS&&window.OCP_PRODUTOS.length)?window.OCP_PRODUTOS:[
+      {cod:'aereo',rot:'Passagem Aérea',ico:'✈️'},{cod:'hosp',rot:'Hospedagem',ico:'🏨'},{cod:'outro',rot:'Outro Serviço',ico:'➕'}];
+    return P;
+  }
+  function esqLocIco(cod){ var P=esqProdutos(); for(var i=0;i<P.length;i++){ if(P[i].cod===cod) return P[i].ico; } return '➕'; }
+  function esqLocRot(cod){ var P=esqProdutos(); for(var i=0;i<P.length;i++){ if(P[i].cod===cod) return P[i].rot; } return 'Outro'; }
+
+  function esqCardViagem(it){
+    var et=esqEtapa(it), naFila=(it.etapa==='fila');
+    var atras=naFila && (esqAgora()-(it.etapaEm||it.ts))>ESQ_FILA_ALERTA_MIN*60000;
+    var nax=esqNAnexos(it);
+    return '<article class="esq-card'+(atras?' atrasado':'')+(et&&et.fim?' fim-'+et.fim:'')+(esqSouResp(it)?' meu':'')+'" data-esq-abrir="'+esqEsc(it.id)+'" tabindex="0">'
+      +'<div class="esq-card-top"><h4 class="esq-card-tit">'+esqEsc(esqTitulo(it))+'</h4>'
+        +(et&&et.fim?'':'<span class="esq-tempo" data-esq-desde="'+(it.etapaEm||it.ts)+'" title="tempo nesta etapa">'+(atras?'⏰ ':'')+esqDecorrido(it.etapaEm||it.ts)+'</span>')+'</div>'
+      +(it.desc?'<p class="esq-card-desc">'+esqEsc(it.desc)+'</p>':'')
+      +esqResumoFim(it)
+      +'<div class="esq-card-meta">'
+        +'<span class="esq-resp-lbl">'+esqPessoaHtml(it.resp)+'</span>'
+        +(nax?'<span class="esq-nax" title="'+nax+' anexo(s)">📎 '+nax+'</span>':'')
+      +'</div>'
+      +'<div class="esq-card-pe">Pedido por <b>'+esqEsc(esqPrimeiro(it.sol)||'—')+'</b> · '+esqEsc(esqDataCurta(it.ts))+'</div>'
+      +esqAcoesCard(it)
+      +esqPassarHtml(it)
+    +'</article>';
+  }
+  function esqQuadroViagens(){
+    var L=esqVivas('viagem');
+    return '<div class="esq-board" id="esqBoard">'+ESQ_ETAPAS.viagem.map(function(et){
+      var itens=L.filter(function(it){ return it.etapa===et.id; })
+        .sort(function(a,b){ return et.fim ? (b.etapaEm||0)-(a.etapaEm||0) : (a.etapaEm||a.ts||0)-(b.etapaEm||b.ts||0); });
+      return '<section class="esq-col col-'+et.id+(et.fim?' fim-'+et.fim:'')+'">'
+        +'<header class="esq-col-cab"><span class="esq-col-nome">'+esqEsc(et.nome)+'</span>'
+          +'<span class="esq-col-n">'+itens.length+'</span>'
+          +(et.sub?'<span class="esq-col-sub">'+esqEsc(et.sub)+'</span>':'')+'</header>'
+        +'<div class="esq-col-corpo">'+(itens.length?itens.map(esqCardViagem).join(''):'<div class="esq-col-vazia">—</div>')+'</div>'
+      +'</section>';
+    }).join('')+'</div>';
+  }
+  function esqStatusPill(it){
+    if(it.etapa==='feito') return '<span class="esq-st ok">🟢 '+ESQ_OK[it.cat]+'</span>';
+    if(it.etapa==='cancelado') return '<span class="esq-st cancel">⚪ Cancelado</span>';
+    return '<span class="esq-st pend">🔴 '+ESQ_PEND[it.cat]+'</span>';
+  }
+  function esqLinha(it){
+    var c=ESQ_CAT[it.cat], fim=esqFinal(it), nax=esqNAnexos(it);
+    var atras=(it.etapa==='fila') && (esqAgora()-(it.etapaEm||it.ts))>ESQ_FILA_ALERTA_MIN*60000;
+    var baixa='';
+    if(fim){
+      var hb=esqUltimo(it, function(e){ return e.t==='etapa' && e.para===it.etapa; });
+      baixa='<span class="esq-lin-sub">'+(it.etapa==='feito'?'baixa ':'cancelado ')+esqEsc(esqDataCurta(it.etapaEm))+(hb&&hb.por?' · '+esqEsc(esqPrimeiro(hb.por)):'')+'</span>';
+    }
+    var acoes='';
+    if(!it.resp) acoes+='<button type="button" class="esq-bt pri" data-esq-assumir="'+esqEsc(it.id)+'">Assumir</button>';
+    if(it.resp && !fim && esqPodeOperar(it)) acoes+='<button type="button" class="esq-bt ok" data-esq-baixa="'+esqEsc(it.id)+'" title="Dar baixa: '+esqEsc(ESQ_OK[it.cat].toLowerCase())+'">✓ Dar baixa</button>';
+    if(esqPodeDesignar() && !fim) acoes+='<button type="button" class="esq-bt" data-esq-passar="'+esqEsc(it.id)+'">'+(it.resp?'Trocar ▾':'Passar ▾')+'</button>';
+    if(fim && esqPodeOperar(it)) acoes+='<button type="button" class="esq-bt arq" data-esq-arquivar="'+esqEsc(it.id)+'"'+(esqArquivando[it.id]?' disabled':'')+'>'+(esqArquivando[it.id]?'Arquivando…':'📚 Arquivar')+'</button>';
+    return '<div class="esq-lin'+(fim?' fim':'')+(atras?' atrasado':'')+(esqSouResp(it)?' meu':'')+'" data-esq-abrir="'+esqEsc(it.id)+'" tabindex="0">'
+      +'<div class="esq-lin-item"><b>'+esqEsc(esqTitulo(it))+'</b>'
+        +(it.desc?'<span class="esq-lin-desc">'+esqEsc(it.desc)+'</span>':'')
+        +(nax?'<span class="esq-nax">📎 '+nax+'</span>':'')+'</div>'
+      +'<div class="esq-lin-cel"><span class="esq-lin-lbl">Solicitante</span><span>'+esqEsc(it.sol||'—')+'</span><span class="esq-lin-sub">'+esqEsc(esqDataCurta(it.ts))+'</span></div>'
+      +'<div class="esq-lin-cel"><span class="esq-lin-lbl">'+c.papel+'</span>'+esqPessoaHtml(it.resp)
+        +(it.resp?'<span class="esq-lin-sub">assumiu '+esqEsc(esqDataCurta(it.respEm))+'</span>'
+                 :'<span class="esq-lin-sub'+(atras?' alerta':'')+'" data-esq-desde="'+(it.etapaEm||it.ts)+'" data-esq-pre="na fila há ">na fila há '+esqDecorrido(it.etapaEm||it.ts)+'</span>')+'</div>'
+      +'<div class="esq-lin-cel"><span class="esq-lin-lbl">Status</span>'+esqStatusPill(it)+baixa+'</div>'
+      +'<div class="esq-lin-acoes">'+acoes+'</div>'
+      +esqPassarHtml(it)
+    +'</div>';
+  }
+  function esqListaSimples(cat){
+    var L=esqVivas(cat);
+    var pend=L.filter(function(it){ return !esqFinal(it); }).sort(function(a,b){ return (a.ts||0)-(b.ts||0); });
+    var feitos=L.filter(function(it){ return esqFinal(it); }).sort(function(a,b){ return (b.etapaEm||0)-(a.etapaEm||0); });
+    var c=ESQ_CAT[cat];
+    if(!L.length) return '<div class="esq-vazio">Nenhuma solicitação de '+esqEsc(c.nome.toLowerCase())+' em aberto.'+(esqPodeCriar()?' Clique em <b>＋ Nova solicitação</b>.':'')+'</div>';
+    return '<div class="esq-lista">'
+      +(pend.length?'<div class="esq-lista-grupo"><div class="esq-lista-tit">Pendentes <span>'+pend.length+'</span></div>'+pend.map(esqLinha).join('')+'</div>':'')
+      +(feitos.length?'<div class="esq-lista-grupo"><div class="esq-lista-tit">Finalizadas — prontas para arquivar <span>'+feitos.length+'</span></div>'+feitos.map(esqLinha).join('')+'</div>':'')
+      +'</div>';
+  }
+  function esqContagem(cat){
+    var L=esqVivas(cat);
+    return { total:L.length, fila:L.filter(function(it){ return !it.resp; }).length };
+  }
+
+  function esqRender(){
+    var wrap=document.getElementById('cdEsteira'); if(!wrap) return;
+    if(!esqAtiva()){ wrap.hidden=true; wrap.innerHTML=''; return; }
+    wrap.hidden=false;
+    /* guarda a rolagem horizontal do quadro: redesenhar não pode jogar a pessoa de volta ao início */
+    var sx=0; try{ var bo=document.getElementById('esqBoard'); if(bo) sx=bo.scrollLeft; }catch(e){}
+    var c=ESQ_CAT[esqTab];
+    wrap.style.setProperty('--esq-cor', c.cor);
+    var abas=ESQ_CATS.map(function(k){
+      var n=esqContagem(k.id);
+      return '<button type="button" class="esq-aba'+(k.id===esqTab?' on':'')+'" data-esq-aba="'+k.id+'" style="--esq-cor:'+k.cor+'" aria-pressed="'+(k.id===esqTab)+'">'
+        +'<span class="esq-aba-dot"></span><span class="esq-aba-ico">'+k.ico+'</span><span class="esq-aba-nome">'+esqEsc(k.nome)+'</span>'
+        +'<span class="esq-aba-n">'+n.total+'</span>'
+        +(n.fila?'<span class="esq-aba-fila" title="'+n.fila+' sem responsável">'+n.fila+' na fila</span>':'')
+      +'</button>';
+    }).join('');
+    wrap.innerHTML=
+      '<div class="esq-cab">'
+        +'<div class="esq-cab-txt"><h3 class="esq-tit">Esteira de Solicitações</h3>'
+          +'<span class="esq-sub">quem pediu, quem pegou e em que etapa está — em tempo real</span></div>'
+        +'<div class="esq-cab-acoes">'
+          +'<button type="button" class="esq-bt" id="esqArqBt" data-esq-arquivo="1" title="Solicitações arquivadas — busca por nome e filtros">📚 Arquivo</button>'
+          +(esqPodeCriar()?'<button type="button" class="esq-bt pri esq-nova-bt" data-esq-nova="'+esqTab+'">＋ Nova solicitação</button>':'')
+        +'</div>'
+      +'</div>'
+      +'<div class="esq-abas" role="tablist">'+abas+'</div>'
+      +'<div class="esq-corpo">'+(esqTab==='viagem'?esqQuadroViagens():esqListaSimples(esqTab))+'</div>';
+    try{ var bo2=document.getElementById('esqBoard'); if(bo2 && sx) bo2.scrollLeft=sx; }catch(e){}
+    esqAtualizarBadgeMenu();
+  }
+  window.esqRender=esqRender;
+
+  /* relógios "há X min" sem redesenhar nada (o quadro não tem campo de texto, mas o
+     seletor "Passar para" aberto ficaria piscando) */
+  function esqTique(){
+    try{
+      document.querySelectorAll('[data-esq-desde]').forEach(function(el){
+        var ts=+el.getAttribute('data-esq-desde'); if(!ts) return;
+        var atras=(esqAgora()-ts)>ESQ_FILA_ALERTA_MIN*60000;
+        var pre=el.getAttribute('data-esq-pre')||'';
+        var card=el.closest('.esq-card,.esq-lin');
+        var naFila=card && !card.querySelector('.esq-pessoa:not(.vazio)');
+        el.textContent=(!pre && atras && naFila?'⏰ ':'')+pre+esqDecorrido(ts);
+        if(card && naFila){ card.classList.toggle('atrasado', atras); if(pre) el.classList.toggle('alerta', atras); }
+      });
+    }catch(e){}
+  }
+  setInterval(esqTique, 30000);
+
+  /* ---------- badge do menu: solicitações SEM responsável (todas as categorias) ---------- */
+  function esqAtualizarBadgeMenu(){
+    var b=document.getElementById('esqNavBadge'); if(!b) return;
+    var n=0;
+    try{ if(esqAtiva()) n=esqVivas('').filter(function(it){ return !it.resp; }).length; }catch(e){}
+    if(n>0){ b.textContent=n>9?'9+':String(n); b.style.display='inline-block'; b.title=n+' solicitação(ões) aguardando quem pegue — Esteira de Solicitações'; }
+    else b.style.display='none';
+  }
+  window.esqAtualizarBadgeMenu=esqAtualizarBadgeMenu;
+
+  /* ---------- aviso para quem RECEBEU uma solicitação vinda de outro PC ---------- */
+  function esqUltimo(it, f){
+    var H=it.hist||{}, best=null;
+    Object.keys(H).forEach(function(k){ var e=H[k]; if(e && f(e) && (!best || (e.em||0)>(best.em||0))) best=e; });
+    return best;
+  }
+  window.esqVerificarDesignacoes=function(antes, depois){
+    try{
+      if(!esqAtiva()) return;
+      var me=esqNome(); antes=antes||{}; depois=depois||{};
+      Object.keys(depois).forEach(function(id){
+        var d=depois[id], a=antes[id];
+        if(!d || d.del || d.arq || !d.resp || !esqMesma(d.resp, me)) return;
+        if(a && a.resp && esqMesma(a.resp, me)) return;
+        var h=esqUltimo(d, function(e){ return e.t==='designada'; });
+        if(!h || esqMesma(h.por, me)) return;
+        esqToast('📌 '+esqPrimeiro(h.por)+' passou para você: '+esqTitulo(d)+' ('+ESQ_CAT[d.cat].nome+')','ok');
+      });
+    }catch(e){}
+  };
+
+  /* ---------- detalhe (modal) ---------- */
+  var ESQ_HIST_TXT={
+    criada:function(e){ return 'Solicitação criada'; },
+    assumiu:function(e,it){ return 'Assumiu a solicitação'+(it.cat==='viagem'?' — Atendimento Iniciado':''); },
+    designada:function(e){ return 'Passou para <b>'+esqEsc(e.para||'')+'</b>'+(e.de?' (antes: '+esqEsc(e.de)+')':''); },
+    devolvida:function(e){ return 'Devolveu à fila'+(e.de?' (estava com '+esqEsc(e.de)+')':''); },
+    etapa:function(e,it){
+      var L=ESQ_ETAPAS[it.cat]||[], n=e.para; L.forEach(function(x){ if(x.id===e.para) n=x.nome+(x.sub&&it.cat==='viagem'&&x.id==='orcamento'?' / Aguardando Aprovação':'')+(x.id==='concluida'?' e Cadastrada':''); });
+      var x='<b>'+esqEsc(n)+'</b>';
+      if(e.locs && e.locs.length) x+=' — '+e.locs.map(function(l){ return esqLocIco(l.tipo)+' '+esqEsc(esqLocRot(l.tipo))+': <b>'+esqEsc(l.cod)+'</b>'; }).join(' · ');
+      if(e.mot) x+=' — motivo: '+esqEsc(esqMotRot(e.mot));
+      return x;
+    },
+    reaberta:function(e){ return 'Reabriu a solicitação'; },
+    anexo:function(e){ return 'Anexou <b>'+esqEsc(e.nome||'arquivo')+'</b>'; },
+    excluida:function(e){ return 'Excluiu a solicitação'; }
+  };
+  function esqLinhaDoTempo(it){
+    var H=it.hist||{};
+    var L=Object.keys(H).map(function(k){ return H[k]; }).filter(Boolean).sort(function(a,b){ return (a.em||0)-(b.em||0); });
+    if(!L.length) return '<div class="esq-vazio-mini">Sem registros.</div>';
+    return '<ol class="esq-tl">'+L.map(function(e){
+      var f=ESQ_HIST_TXT[e.t];
+      return '<li class="esq-tl-i t-'+esqEsc(e.t)+(e.t==='etapa'?' p-'+esqEsc(e.para||''):'')+'"><span class="esq-tl-quando">'+esqEsc(esqDataHora(e.em))+'</span>'
+        +'<span class="esq-tl-quem">'+esqEsc(e.por||'—')+'</span><span class="esq-tl-oque">'+(f?f(e,it):esqEsc(e.t))+'</span></li>';
+    }).join('')+'</ol>';
+  }
+  function esqEtapasTrilha(it){
+    var L=(ESQ_ETAPAS[it.cat]||[]).filter(function(e){ return !(e.fim==='nao' && it.etapa!==e.id) && !(e.fim==='ok' && it.etapa!==e.id && (it.etapa==='declinada'||it.etapa==='cancelado')); });
+    var idx=-1; L.forEach(function(e,i){ if(e.id===it.etapa) idx=i; });
+    return '<div class="esq-trilha">'+L.map(function(e,i){
+      return '<span class="esq-passo'+(i<idx?' feito':'')+(i===idx?' atual':'')+(e.fim?' fim-'+e.fim:'')+'">'+esqEsc(e.nome)+'</span>';
+    }).join('<span class="esq-passo-seta">›</span>')+'</div>';
+  }
+  function esqFormHtml(it){
+    if(esqForm==='concluir'){
+      var P=esqProdutos();
+      var linha=function(i){
+        return '<div class="esq-loc-lin" data-esq-loc-lin="'+i+'">'
+          +'<select class="esq-inp esq-loc-tipo">'+P.map(function(p){ return '<option value="'+esqEsc(p.cod)+'">'+p.ico+' '+esqEsc(p.rot)+'</option>'; }).join('')+'</select>'
+          +'<input type="text" class="esq-inp esq-loc-cod" maxlength="60" placeholder="Localizador / nº da reserva">'
+          +'<button type="button" class="esq-mini" data-esq-loc-tirar="1" title="Tirar esta linha">✕</button></div>';
+      };
+      return '<div class="esq-form ok"><div class="esq-form-tit">✓ Venda Concluída e Cadastrada</div>'
+        +'<p class="esq-form-dica">Informe o <b>localizador</b> da passagem aérea ou o <b>número da reserva</b> (hotel, transfer, seguro, cruzeiro, carro…). Passagem + hotel? Uma linha para cada.</p>'
+        +'<div id="esqLocs">'+linha(0)+'</div>'
+        +'<button type="button" class="esq-bt fino" data-esq-loc-mais="1">＋ outro item</button>'
+        +'<div class="esq-form-acoes"><button type="button" class="esq-bt ok" data-esq-confirmar="concluida">Confirmar venda concluída</button><button type="button" class="esq-bt" data-esq-form-fechar="1">Cancelar</button></div>'
+        +'<div class="esq-erro" id="esqFormErro" hidden></div></div>';
+    }
+    if(esqForm==='declinar'){
+      return '<div class="esq-form nao"><div class="esq-form-tit">✕ Venda Declinada</div>'
+        +'<p class="esq-form-dica">O <b>motivo</b> é obrigatório.</p>'
+        +'<div class="esq-mots">'+ESQ_MOTIVOS.map(function(m){ return '<label class="esq-mot-op"><input type="radio" name="esqMot" value="'+m.cod+'"> '+esqEsc(m.rot)+'</label>'; }).join('')+'</div>'
+        +'<textarea class="esq-inp esq-ta" id="esqMotTxt" maxlength="500" placeholder="Detalhe o motivo (obrigatório em “Outro motivo”)"></textarea>'
+        +'<div class="esq-form-acoes"><button type="button" class="esq-bt nao" data-esq-confirmar="declinada">Confirmar venda declinada</button><button type="button" class="esq-bt" data-esq-form-fechar="1">Cancelar</button></div>'
+        +'<div class="esq-erro" id="esqFormErro" hidden></div></div>';
+    }
+    if(esqForm==='cancelar'){
+      return '<div class="esq-form nao"><div class="esq-form-tit">Cancelar solicitação</div>'
+        +'<p class="esq-form-dica">Por que não vai ser '+(it.cat==='compra'?'comprado':'feito')+'? O motivo é obrigatório.</p>'
+        +'<textarea class="esq-inp esq-ta" id="esqMotTxt" maxlength="500" placeholder="Ex.: já tinha no estoque / fornecedor sem o produto"></textarea>'
+        +'<div class="esq-form-acoes"><button type="button" class="esq-bt nao" data-esq-confirmar="cancelado">Confirmar cancelamento</button><button type="button" class="esq-bt" data-esq-form-fechar="1">Voltar</button></div>'
+        +'<div class="esq-erro" id="esqFormErro" hidden></div></div>';
+    }
+    return '';
+  }
+  function esqBotoesDetalhe(it){
+    var b=[], fim=esqFinal(it), op=esqPodeOperar(it);
+    if(!it.resp) b.push('<button type="button" class="esq-bt pri" data-esq-assumir="'+esqEsc(it.id)+'">Assumir esta solicitação</button>');
+    if(it.resp && op && !fim){
+      if(it.cat==='viagem'){
+        if(it.etapa==='iniciado') b.push('<button type="button" class="esq-bt pri" data-esq-ir="orcamento">Orçamento enviado ›</button>');
+        if(it.etapa==='orcamento') b.push('<button type="button" class="esq-bt" data-esq-ir="iniciado">‹ Voltar para Atendimento Iniciado</button>');
+        b.push('<button type="button" class="esq-bt ok" data-esq-form="concluir">✓ Venda concluída</button>');
+        b.push('<button type="button" class="esq-bt nao" data-esq-form="declinar">✕ Venda declinada</button>');
+      } else {
+        b.push('<button type="button" class="esq-bt ok" data-esq-baixa="'+esqEsc(it.id)+'">✓ Dar baixa — '+esqEsc(ESQ_OK[it.cat].toLowerCase())+'</button>');
+        b.push('<button type="button" class="esq-bt nao" data-esq-form="cancelar">Cancelar…</button>');
+      }
+      b.push('<button type="button" class="esq-bt fino" data-esq-devolver="'+esqEsc(it.id)+'">↩ Devolver à fila</button>');
+    }
+    if(fim && op){
+      b.push('<button type="button" class="esq-bt arq" data-esq-arquivar="'+esqEsc(it.id)+'"'+(esqArquivando[it.id]?' disabled':'')+'>'+(esqArquivando[it.id]?'Arquivando…':'📚 Arquivar')+'</button>');
+      b.push('<button type="button" class="esq-bt fino" data-esq-reabrir="'+esqEsc(it.id)+'">↺ Reabrir</button>');
+    }
+    if(esqPodeDesignar() && !fim){
+      b.push('<label class="esq-passar-sel">'+(it.resp?'Trocar responsável':'Passar para')+' <select class="esq-inp" data-esq-designar-sel="'+esqEsc(it.id)+'"><option value="">escolha…</option>'
+        +esqEquipe().map(function(n){ return '<option value="'+esqEsc(n)+'"'+(it.resp&&esqMesma(it.resp,n)?' disabled':'')+'>'+esqEsc(n)+'</option>'; }).join('')+'</select></label>');
+    }
+    if(esqDir()) b.push('<button type="button" class="esq-bt fino perigo" data-esq-excluir="'+esqEsc(it.id)+'" title="Excluir (diretoria) — fica registrado no log">Excluir</button>');
+    return b.join('');
+  }
+  function esqRenderModal(){
+    var raiz=document.getElementById('esqModal');
+    if(!esqModalId){ if(raiz) raiz.remove(); return; }
+    var it=esqStore()[esqModalId];
+    if(!it || it.del || it.arq){ esqFecharModal(); return; }
+    /* formulário aberto: só a linha do tempo e o cabeçalho se atualizam — o que a pessoa
+       está digitando (localizador, motivo) nunca é apagado por uma mudança de outro PC */
+    if(raiz && esqForm && raiz.querySelector('.esq-form')){
+      var tl=raiz.querySelector('#esqTl'); if(tl) tl.innerHTML=esqLinhaDoTempo(it);
+      return;
+    }
+    var c=ESQ_CAT[it.cat], et=esqEtapa(it);
+    var html='<div class="esq-modal" role="dialog" aria-modal="true" style="--esq-cor:'+c.cor+'">'
+      +'<header class="esq-m-cab"><div class="esq-m-cat"><span class="esq-aba-dot"></span>'+c.ico+' '+esqEsc(c.nome)+'</div>'
+        +'<h3 class="esq-m-tit">'+esqEsc(esqTitulo(it))+'</h3>'
+        +'<button type="button" class="esq-m-x" data-esq-fechar="1" aria-label="Fechar">✕</button></header>'
+      +'<div class="esq-m-corpo">'
+        +esqEtapasTrilha(it)
+        +'<div class="esq-m-grade">'
+          +'<div><span class="esq-lin-lbl">Solicitante</span><b>'+esqEsc(it.sol||'—')+'</b><span class="esq-lin-sub">'+esqEsc(esqDataHora(it.ts))+'</span></div>'
+          +'<div><span class="esq-lin-lbl">'+c.papel+' responsável</span>'+esqPessoaHtml(it.resp)+(it.resp?'<span class="esq-lin-sub">desde '+esqEsc(esqDataHora(it.respEm))+'</span>':'')+'</div>'
+          +'<div><span class="esq-lin-lbl">Etapa atual</span><b>'+esqEsc(et?et.nome:'—')+'</b><span class="esq-lin-sub">desde '+esqEsc(esqDataHora(it.etapaEm))+'</span></div>'
+          +(it.cat==='viagem'&&it.tel?'<div><span class="esq-lin-lbl">Telefone / WhatsApp</span><b>'+esqEsc(it.tel)+'</b></div>':'')
+        +'</div>'
+        +(it.desc?'<div class="esq-m-bloco"><span class="esq-lin-lbl">'+(it.cat==='viagem'?'O que o cliente pediu':'Detalhes')+'</span><p class="esq-m-desc">'+esqEsc(it.desc)+'</p></div>':'')
+        +(esqFinal(it)?'<div class="esq-m-bloco">'+esqResumoFim(it)+'</div>':'')
+        +'<div class="esq-m-bloco"><span class="esq-lin-lbl">Anexos</span><div class="esq-axs">'+esqAnexosHtml(it, esqPodeOperar(it)||esqMesma(it.sol,esqNome()))+'</div></div>'
+        +'<div class="esq-m-acoes">'+esqBotoesDetalhe(it)+'</div>'
+        +esqFormHtml(it)
+        +'<div class="esq-m-bloco"><span class="esq-lin-lbl">Linha do tempo</span><div id="esqTl">'+esqLinhaDoTempo(it)+'</div></div>'
+      +'</div></div>';
+    if(!raiz){ raiz=document.createElement('div'); raiz.id='esqModal'; raiz.className='esq-modal-bg'; document.body.appendChild(raiz); }
+    raiz.innerHTML=html;
+  }
+  function esqAbrirModal(id){ esqModalId=id; esqForm=''; esqPassarAberto=''; esqRenderModal(); }
+  function esqFecharModal(){ esqModalId=null; esqForm=''; var r=document.getElementById('esqModal'); if(r) r.remove(); }
+  window.esqAbrirModal=esqAbrirModal;
+
+  /* ---------- nova solicitação ---------- */
+  function esqRenderNova(erro){
+    var raiz=document.getElementById('esqNovaModal');
+    if(!esqNova){ if(raiz) raiz.remove(); return; }
+    /* preserva o que já foi digitado ao trocar de categoria — num RASCUNHO que vive
+       enquanto o formulário estiver aberto: só ler o que está na tela perderia o
+       "Cliente" ao ir para Compras (lá o campo não existe) e voltar (o teste pegou) */
+    if(!esqNova.rasc) esqNova.rasc={};
+    var val=esqNova.rasc;
+    if(raiz){ raiz.querySelectorAll('[data-esq-campo]').forEach(function(el){ val[el.getAttribute('data-esq-campo')]=el.value; }); }
+    var cat=esqNova.cat, c=ESQ_CAT[cat];
+    var campos='';
+    if(cat==='viagem'){
+      campos='<label class="esq-campo"><span>Cliente <i>obrigatório</i></span><input class="esq-inp" data-esq-campo="cli" maxlength="120" placeholder="Nome do cliente"></label>'
+        +'<label class="esq-campo"><span>Telefone / WhatsApp <i>opcional</i></span><input class="esq-inp" data-esq-campo="tel" maxlength="40" placeholder="(48) 9 9999-9999"></label>'
+        +'<label class="esq-campo larga"><span>O que o cliente pediu <i>obrigatório</i></span><textarea class="esq-inp esq-ta" data-esq-campo="desc" maxlength="2000" placeholder="Ex.: passagem Florianópolis → Lisboa, 12 a 26/11, 2 adultos + hotel 4★ no centro"></textarea></label>';
+    } else {
+      campos='<label class="esq-campo larga"><span>'+(cat==='compra'?'Item':'Situação')+' <i>obrigatório</i></span><input class="esq-inp" data-esq-campo="tit" maxlength="120" placeholder="'+(cat==='compra'?'Ex.: Café para a agência':'Ex.: Arrumar a pia do banheiro')+'"></label>'
+        +'<label class="esq-campo larga"><span>Detalhes <i>opcional</i></span><textarea class="esq-inp esq-ta" data-esq-campo="desc" maxlength="1000" placeholder="'+(cat==='compra'?'Quantidade, marca, onde comprar…':'Onde fica, o que está acontecendo…')+'"></textarea></label>';
+    }
+    campos+='<label class="esq-campo larga"><span>'+c.papel+' <i>opcional</i></span><select class="esq-inp" data-esq-campo="resp"><option value="">Deixar na fila — quem pegar primeiro</option>'
+      +esqEquipe().map(function(n){ return '<option value="'+esqEsc(n)+'">Passar direto para '+esqEsc(n)+'</option>'; }).join('')+'</select></label>';
+    var arqs=esqNovaArquivos.map(function(f,i){ return '<span class="esq-ax"><span class="esq-ax-ico">'+((ESQ_ANEXO_TIPOS[esqTipoDe(f)]||{}).ico||'📎')+'</span><span class="esq-ax-nome">'+esqEsc(f.name)+'</span><span class="esq-ax-tam">'+esqTam(f.size)+'</span><button type="button" class="esq-mini" data-esq-nova-tirar="'+i+'" title="Tirar">✕</button></span>'; }).join('');
+    var html='<div class="esq-modal esq-nova" role="dialog" aria-modal="true" style="--esq-cor:'+c.cor+'">'
+      +'<header class="esq-m-cab"><div class="esq-m-cat">Nova solicitação</div><h3 class="esq-m-tit">O que precisa ser feito?</h3>'
+        +'<button type="button" class="esq-m-x" data-esq-nova-fechar="1" aria-label="Fechar">✕</button></header>'
+      +'<div class="esq-m-corpo">'
+        +'<div class="esq-nova-cats">'+ESQ_CATS.map(function(k){
+            return '<button type="button" class="esq-nova-cat'+(k.id===cat?' on':'')+'" data-esq-nova-cat="'+k.id+'" style="--esq-cor:'+k.cor+'"><span class="esq-nova-cat-ico">'+k.ico+'</span>'+esqEsc(k.nome)+'</button>';
+          }).join('')+'</div>'
+        +'<div class="esq-campos">'+campos+'</div>'
+        +'<div class="esq-m-bloco"><span class="esq-lin-lbl">Anexos <i>PDF, PNG ou JPEG · até 20 MB cada</i></span><div class="esq-axs">'+arqs
+          +'<label class="esq-ax esq-ax-add"><input type="file" accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" multiple data-esq-nova-arq="1" hidden>＋ Anexar arquivo</label></div></div>'
+        +'<div class="esq-erro" id="esqNovaErro"'+(erro?'':' hidden')+'>'+esqEsc(erro||'')+'</div>'
+        +'<div class="esq-form-acoes"><button type="button" class="esq-bt pri" data-esq-nova-salvar="1"'+(esqNova.enviando?' disabled':'')+'>'+(esqNova.enviando?'Enviando…':'Registrar na esteira')+'</button>'
+          +'<button type="button" class="esq-bt" data-esq-nova-fechar="1">Cancelar</button></div>'
+      +'</div></div>';
+    if(!raiz){ raiz=document.createElement('div'); raiz.id='esqNovaModal'; raiz.className='esq-modal-bg'; document.body.appendChild(raiz); }
+    raiz.innerHTML=html;
+    raiz.querySelectorAll('[data-esq-campo]').forEach(function(el){ var k=el.getAttribute('data-esq-campo'); if(val[k]!=null) el.value=val[k]; });
+    var foco=raiz.querySelector('[data-esq-campo="cli"],[data-esq-campo="tit"]'); if(foco && !foco.value){ try{ foco.focus(); }catch(e){} }
+  }
+  function esqAbrirNova(cat){ if(!esqPodeCriar()) return; esqNova={cat:ESQ_CAT[cat]?cat:'viagem'}; esqNovaArquivos=[]; esqRenderNova(); }
+  function esqFecharNova(){ esqNova=null; esqNovaArquivos=[]; var r=document.getElementById('esqNovaModal'); if(r) r.remove(); }
+  function esqSalvarNova(){
+    var raiz=document.getElementById('esqNovaModal'); if(!raiz || !esqNova || esqNova.enviando) return;
+    var v={}; raiz.querySelectorAll('[data-esq-campo]').forEach(function(el){ v[el.getAttribute('data-esq-campo')]=(el.value||'').trim(); });
+    var cat=esqNova.cat;
+    if(cat==='viagem' && !v.cli) return esqRenderNova('Informe o nome do cliente.');
+    if(cat==='viagem' && !v.desc) return esqRenderNova('Descreva o que o cliente pediu.');
+    if(cat!=='viagem' && !v.tit) return esqRenderNova(cat==='compra'?'Informe o item a comprar.':'Descreva a situação.');
+    var fazer=function(anexos){
+      var id=esqCriar({cat:cat, cli:v.cli, tel:v.tel, tit:v.tit, desc:v.desc, resp:v.resp, anexos:anexos});
+      esqFecharNova();
+      esqTab=cat; try{ localStorage.setItem('uv_esq_aba', cat); }catch(e){}
+      esqRender();
+      if(id) esqToast('✅ Solicitação registrada'+(v.resp?' e passada para '+esqPrimeiro(v.resp):' — está na fila'),'ok');
+    };
+    if(!esqNovaArquivos.length) return fazer([]);
+    esqNova.enviando=true; esqRenderNova();
+    esqEnviarVarios(esqNovaArquivos).then(function(axs){ fazer(axs); })
+      .catch(function(e){ if(esqNova){ esqNova.enviando=false; esqRenderNova('Anexo não enviado: '+(e&&e.message?e.message:e)+' — nada foi registrado ainda; tente de novo.'); } });
+  }
+
+  /* ---------- arquivo ---------- */
+  function esqCarregarArquivo(){
+    esqArqCarregando=true; esqRenderArquivo();
+    var qs='?q='+encodeURIComponent(esqArqQ)+'&cat='+encodeURIComponent(esqArqCat)+'&res='+encodeURIComponent(esqArqRes)+'&pag='+esqArqPag+'&por=15';
+    var pedido=qs;
+    api('/api/esteira/arquivo'+qs).then(function(d){
+      if(pedido!==('?q='+encodeURIComponent(esqArqQ)+'&cat='+encodeURIComponent(esqArqCat)+'&res='+encodeURIComponent(esqArqRes)+'&pag='+esqArqPag+'&por=15')) return;   /* resposta velha */
+      esqArqCarregando=false; esqArqCache=d||{itens:[],total:0}; esqRenderArquivo();
+    }).catch(function(e){ esqArqCarregando=false; esqArqCache={erro:(e&&e.message?e.message:String(e)), itens:[], total:0}; esqRenderArquivo(); });
+  }
+  function esqResultado(v){
+    if(v.etapa==='concluida') return '<span class="esq-st ok">✓ Venda concluída</span>';
+    if(v.etapa==='declinada') return '<span class="esq-st nao">✕ Venda declinada</span>';
+    if(v.etapa==='feito') return '<span class="esq-st ok">🟢 '+ESQ_OK[v.cat]+'</span>';
+    return '<span class="esq-st cancel">⚪ Cancelado</span>';
+  }
+  function esqRenderArquivo(){
+    var raiz=document.getElementById('esqArqModal');
+    if(!esqArqAberto){ if(raiz) raiz.remove(); return; }
+    var d=esqArqCache, cont=(d&&d.contagens)||{};
+    var chip=function(grupo, val, rot, n){
+      var on=(grupo==='cat'?esqArqCat:esqArqRes)===val;
+      return '<button type="button" class="esq-chip'+(on?' on':'')+'" data-esq-arq-f="'+grupo+'" data-esq-arq-v="'+val+'"'+(grupo==='cat'&&val?' style="--esq-cor:'+ESQ_CAT[val].cor+'"':'')+'>'+rot+(n!=null?' <span>'+n+'</span>':'')+'</button>';
+    };
+    var lista='';
+    if(esqArqCarregando && !d) lista='<div class="esq-vazio">Carregando o arquivo…</div>';
+    else if(d && d.erro) lista='<div class="esq-erro">Não consegui abrir o arquivo: '+esqEsc(d.erro)+'</div>';
+    else if(d && !d.itens.length) lista='<div class="esq-vazio">'+(esqArqQ||esqArqCat||esqArqRes?'Nada encontrado com esses filtros.':'Nenhuma solicitação arquivada ainda.')+'</div>';
+    else if(d) lista=d.itens.map(function(v){
+      var c=ESQ_CAT[v.cat]||ESQ_CAT.viagem, aberto=(esqArqVer===v.id);
+      return '<div class="esq-arq-i'+(aberto?' aberto':'')+'" style="--esq-cor:'+c.cor+'">'
+        +'<button type="button" class="esq-arq-lin" data-esq-arq-ver="'+esqEsc(v.id)+'">'
+          +'<span class="esq-arq-cat"><span class="esq-aba-dot"></span>'+c.ico+'</span>'
+          +'<span class="esq-arq-tit"><b>'+esqEsc(esqTitulo(v))+'</b><span class="esq-lin-sub">pedido por '+esqEsc(v.sol||'—')+' · '+esqEsc(esqDataHora(v.ts))+'</span></span>'
+          +'<span class="esq-arq-resp">'+esqEsc(v.resp||'—')+'</span>'
+          +'<span class="esq-arq-res">'+esqResultado(v)+'</span>'
+          +'<span class="esq-arq-em">arquivada '+esqEsc(esqDataCurta(v.arqEm))+'</span>'
+        +'</button>'
+        +(aberto?'<div class="esq-arq-det">'
+            +(v.desc?'<p class="esq-m-desc">'+esqEsc(v.desc)+'</p>':'')
+            +(v.tel?'<div class="esq-lin-sub">Telefone: '+esqEsc(v.tel)+'</div>':'')
+            +esqResumoFim(v)
+            +(esqNAnexos(v)?'<div class="esq-axs">'+esqAnexosHtml(v,false)+'</div>':'')
+            +esqLinhaDoTempo(v)
+            +'<div class="esq-lin-sub">Arquivada por '+esqEsc(v.arqPor||'—')+' em '+esqEsc(esqDataHora(v.arqEm))+'</div>'
+          +'</div>':'')
+      +'</div>';
+    }).join('');
+    var tot=(d&&d.total)||0, pags=Math.max(1, Math.ceil(tot/15));
+    var pag= tot>15 ? '<nav class="esq-pags"><button type="button" class="esq-bt fino" data-esq-arq-pag="'+(esqArqPag-1)+'"'+(esqArqPag<=1?' disabled':'')+'>‹ anterior</button><span>página '+esqArqPag+' de '+pags+' · '+tot+' solicitações</span><button type="button" class="esq-bt fino" data-esq-arq-pag="'+(esqArqPag+1)+'"'+(esqArqPag>=pags?' disabled':'')+'>próxima ›</button></nav>' : (tot?'<div class="esq-pags"><span>'+tot+' solicitaç'+(tot===1?'ão':'ões')+'</span></div>':'');
+    var corpoHtml='<div class="esq-arq-lista" id="esqArqLista">'+lista+'</div>'+pag;
+    if(raiz && raiz.querySelector('#esqArqBusca')){
+      /* a caixa de busca NÃO é redesenhada: o cursor e o que a pessoa digita ficam onde estão */
+      raiz.querySelector('#esqArqFiltros').innerHTML=esqArqFiltrosHtml(chip, cont);
+      raiz.querySelector('#esqArqCorpo').innerHTML=corpoHtml;
+      return;
+    }
+    var html='<div class="esq-modal esq-arq" role="dialog" aria-modal="true">'
+      +'<header class="esq-m-cab"><div class="esq-m-cat">Esteira de Solicitações</div><h3 class="esq-m-tit">📚 Arquivo</h3>'
+        +'<button type="button" class="esq-m-x" data-esq-arq-fechar="1" aria-label="Fechar">✕</button></header>'
+      +'<div class="esq-m-corpo">'
+        +'<input type="search" class="esq-inp esq-busca" id="esqArqBusca" placeholder="Buscar por nome — cliente, item, solicitante, responsável ou localizador" value="'+esqEsc(esqArqQ)+'">'
+        +'<div id="esqArqFiltros">'+esqArqFiltrosHtml(chip, cont)+'</div>'
+        +'<div id="esqArqCorpo">'+corpoHtml+'</div>'
+      +'</div></div>';
+    if(!raiz){ raiz=document.createElement('div'); raiz.id='esqArqModal'; raiz.className='esq-modal-bg'; document.body.appendChild(raiz); }
+    raiz.innerHTML=html;
+    try{ raiz.querySelector('#esqArqBusca').focus(); }catch(e){}
+  }
+  function esqArqFiltrosHtml(chip, cont){
+    return '<div class="esq-chips">'+chip('cat','','Todas',cont.total)+ESQ_CATS.map(function(k){ return chip('cat',k.id,k.ico+' '+esqEsc(k.nome),cont[k.id]||0); }).join('')+'</div>'
+      +'<div class="esq-chips">'+chip('res','','Todos os resultados')+chip('res','ok','✓ Concluídas',cont.ok||0)+chip('res','nao','✕ Declinadas / canceladas',cont.nao||0)+'</div>';
+  }
+  var esqArqTimer=null;
+
+  /* ---------- cliques (um ouvinte só, delegado) ---------- */
+  document.addEventListener('click', function(e){
+    var t=e.target; if(!t || !t.closest) return;
+    var dentro=t.closest('#cdEsteira,#esqModal,#esqNovaModal,#esqArqModal');
+    /* clique fora fecha o seletor "Passar para" do quadro */
+    if(esqPassarAberto && !t.closest('.esq-passar') && !t.closest('[data-esq-passar]')){ esqPassarAberto=''; esqRender(); }
+    if(!dentro) return;
+    var el;
+    /* fundo escuro do modal fecha */
+    if(t.classList && t.classList.contains('esq-modal-bg')){
+      if(t.id==='esqModal') esqFecharModal();
+      else if(t.id==='esqArqModal'){ esqArqAberto=false; esqRenderArquivo(); }
+      return;   /* o de "nova" não fecha no fundo: perderia o que foi digitado */
+    }
+    if((el=t.closest('[data-esq-aba]'))){ esqTab=el.getAttribute('data-esq-aba'); try{ localStorage.setItem('uv_esq_aba', esqTab); }catch(x){} esqPassarAberto=''; esqRender(); return; }
+    if((el=t.closest('[data-esq-nova]'))){ esqAbrirNova(el.getAttribute('data-esq-nova')); return; }
+    if((el=t.closest('[data-esq-arquivo]'))){ esqArqAberto=true; esqArqPag=1; esqArqVer=null; esqArqCache=null; esqRenderArquivo(); esqCarregarArquivo(); return; }
+    if((el=t.closest('[data-esq-passar]'))){ e.stopPropagation(); var pid=el.getAttribute('data-esq-passar'); esqPassarAberto=(esqPassarAberto===pid?'':pid); esqRender(); return; }
+    if((el=t.closest('[data-esq-designar]'))){ var did=el.getAttribute('data-esq-designar'), para=el.getAttribute('data-esq-para'); esqPassarAberto=''; if(esqDesignar(did, para)) esqToast('Passada para '+esqPrimeiro(para)+'.','ok'); esqRender(); esqRenderModal(); return; }
+    if((el=t.closest('[data-esq-assumir]'))){ if(esqAssumir(el.getAttribute('data-esq-assumir'))) esqToast('Agora é sua. Bom atendimento!','ok'); esqRender(); esqRenderModal(); return; }
+    if((el=t.closest('[data-esq-baixa]'))){ var bid=el.getAttribute('data-esq-baixa'); if(esqMudarEtapa(bid,'feito',{})){ var bi=esqStore()[bid]; esqToast('🟢 '+ESQ_OK[bi.cat]+': '+esqTitulo(bi),'ok'); } esqRender(); esqRenderModal(); return; }
+    if((el=t.closest('[data-esq-arquivar]'))){ esqArquivar(el.getAttribute('data-esq-arquivar')); return; }
+    if((el=t.closest('[data-esq-ax]'))){ esqAbrirAnexo(el.getAttribute('data-esq-ax'), el.getAttribute('data-esq-ax-nome'), el.getAttribute('data-esq-ax-tipo')); return; }
+    /* ---- detalhe ---- */
+    if((el=t.closest('[data-esq-fechar]'))){ esqFecharModal(); return; }
+    if((el=t.closest('[data-esq-ir]'))){ esqMudarEtapa(esqModalId, el.getAttribute('data-esq-ir'), {}); esqRender(); esqRenderModal(); return; }
+    if((el=t.closest('[data-esq-form]'))){ esqForm=el.getAttribute('data-esq-form'); var r0=document.getElementById('esqModal'); if(r0) r0.innerHTML=''; esqRenderModal(); try{ var f=document.querySelector('#esqModal .esq-form'); if(f) f.scrollIntoView({block:'nearest'}); var i0=document.querySelector('#esqModal .esq-loc-cod,#esqModal #esqMotTxt'); if(i0&&esqForm!=='declinar') i0.focus(); }catch(x){} return; }
+    if((el=t.closest('[data-esq-form-fechar]'))){ esqForm=''; var r1=document.getElementById('esqModal'); if(r1) r1.innerHTML=''; esqRenderModal(); return; }
+    if((el=t.closest('[data-esq-loc-mais]'))){
+      var box=document.getElementById('esqLocs'); if(!box) return;
+      var mod=box.querySelector('.esq-loc-lin'); if(!mod) return;
+      var nova=mod.cloneNode(true); nova.querySelector('.esq-loc-cod').value=''; box.appendChild(nova);
+      try{ nova.querySelector('.esq-loc-cod').focus(); }catch(x){} return;
+    }
+    if((el=t.closest('[data-esq-loc-tirar]'))){ var bx=document.getElementById('esqLocs'); var lin=el.closest('.esq-loc-lin'); if(bx && lin && bx.querySelectorAll('.esq-loc-lin').length>1) lin.remove(); else if(lin) lin.querySelector('.esq-loc-cod').value=''; return; }
+    if((el=t.closest('[data-esq-confirmar]'))){
+      var alvo=el.getAttribute('data-esq-confirmar'), erroEl=document.getElementById('esqFormErro'), ok=false, msg='';
+      if(alvo==='concluida'){
+        var locs=[]; document.querySelectorAll('#esqLocs .esq-loc-lin').forEach(function(l){ locs.push({tipo:l.querySelector('.esq-loc-tipo').value, cod:l.querySelector('.esq-loc-cod').value}); });
+        if(!locs.some(function(l){ return (l.cod||'').trim(); })) msg='Informe pelo menos um localizador ou número de reserva.';
+        else ok=esqMudarEtapa(esqModalId,'concluida',{locs:locs});
+      } else if(alvo==='declinada'){
+        var m=document.querySelector('#esqModal input[name="esqMot"]:checked'), tx=(document.getElementById('esqMotTxt')||{}).value||'';
+        if(!m) msg='Escolha o motivo.';
+        else if(m.value==='outro' && !tx.trim()) msg='Em “Outro motivo”, descreva o motivo.';
+        else ok=esqMudarEtapa(esqModalId,'declinada',{cod:m.value, txt:tx});
+      } else if(alvo==='cancelado'){
+        var tx2=(document.getElementById('esqMotTxt')||{}).value||'';
+        if(!tx2.trim()) msg='O motivo do cancelamento é obrigatório.';
+        else ok=esqMudarEtapa(esqModalId,'cancelado',{cod:'cancel', txt:tx2});
+      }
+      if(!ok){ if(erroEl){ erroEl.textContent=msg||'Não foi possível salvar.'; erroEl.hidden=false; } return; }
+      esqForm=''; var r2=document.getElementById('esqModal'); if(r2) r2.innerHTML='';
+      esqRender(); esqRenderModal(); return;
+    }
+    if((el=t.closest('[data-esq-devolver]'))){ if(window.confirm('Devolver esta solicitação à fila? Ela fica sem responsável até alguém assumir.')){ esqDevolver(el.getAttribute('data-esq-devolver')); esqRender(); esqRenderModal(); } return; }
+    if((el=t.closest('[data-esq-reabrir]'))){ if(window.confirm('Reabrir esta solicitação? Ela volta para '+(esqStore()[el.getAttribute('data-esq-reabrir')].cat==='viagem'?'“Orçamento Enviado”':'“pendente”')+' e o fechamento fica só na linha do tempo.')){ esqReabrir(el.getAttribute('data-esq-reabrir')); esqRender(); esqRenderModal(); } return; }
+    if((el=t.closest('[data-esq-excluir]'))){ var xid=el.getAttribute('data-esq-excluir'); if(window.confirm('Excluir “'+esqTitulo(esqStore()[xid])+'”? Ela sai da esteira (fica registrado no log).')){ esqExcluir(xid); esqFecharModal(); esqRender(); } return; }
+    /* ---- nova ---- */
+    if((el=t.closest('[data-esq-nova-cat]'))){ if(esqNova){ esqNova.cat=el.getAttribute('data-esq-nova-cat'); esqRenderNova(); } return; }
+    if((el=t.closest('[data-esq-nova-fechar]'))){ esqFecharNova(); return; }
+    if((el=t.closest('[data-esq-nova-salvar]'))){ esqSalvarNova(); return; }
+    if((el=t.closest('[data-esq-nova-tirar]'))){ esqNovaArquivos.splice(+el.getAttribute('data-esq-nova-tirar'),1); esqRenderNova(); return; }
+    /* ---- arquivo ---- */
+    if((el=t.closest('[data-esq-arq-fechar]'))){ esqArqAberto=false; esqRenderArquivo(); return; }
+    if((el=t.closest('[data-esq-arq-f]'))){ var g=el.getAttribute('data-esq-arq-f'), vv=el.getAttribute('data-esq-arq-v'); if(g==='cat') esqArqCat=vv; else esqArqRes=vv; esqArqPag=1; esqArqVer=null; esqCarregarArquivo(); return; }
+    if((el=t.closest('[data-esq-arq-pag]'))){ esqArqPag=Math.max(1,+el.getAttribute('data-esq-arq-pag')); esqArqVer=null; esqCarregarArquivo(); return; }
+    if((el=t.closest('[data-esq-arq-ver]'))){ var vid=el.getAttribute('data-esq-arq-ver'); esqArqVer=(esqArqVer===vid?null:vid); esqRenderArquivo(); return; }
+    /* ---- abrir o detalhe (por último: o card inteiro é clicável) ---- */
+    if((el=t.closest('[data-esq-abrir]')) && !t.closest('button,select,input,label,a')){ esqAbrirModal(el.getAttribute('data-esq-abrir')); return; }
+  });
+  document.addEventListener('keydown', function(e){
+    if(e.key==='Escape'){
+      if(document.getElementById('esqArqModal')){ esqArqAberto=false; esqRenderArquivo(); return; }
+      if(document.getElementById('esqModal')){ if(esqForm){ esqForm=''; var r=document.getElementById('esqModal'); if(r) r.innerHTML=''; esqRenderModal(); } else esqFecharModal(); return; }
+      if(esqPassarAberto){ esqPassarAberto=''; esqRender(); }
+      return;
+    }
+    if(e.key==='Enter'){
+      var c=e.target && e.target.closest && e.target.closest('[data-esq-abrir]');
+      if(c && (e.target===c)){ esqAbrirModal(c.getAttribute('data-esq-abrir')); }
+    }
+  });
+  document.addEventListener('change', function(e){
+    var t=e.target; if(!t || !t.getAttribute) return;
+    if(t.hasAttribute('data-esq-designar-sel')){
+      var id=t.getAttribute('data-esq-designar-sel'), para=t.value; if(!para) return;
+      if(esqDesignar(id, para)) esqToast('Passada para '+esqPrimeiro(para)+'.','ok');
+      esqRender(); esqRenderModal(); return;
+    }
+    if(t.hasAttribute('data-esq-nova-arq')){
+      var fs=[].slice.call(t.files||[]), recusados=[];
+      fs.forEach(function(f){ if(!esqTipoDe(f)) recusados.push(f.name); else if(f.size>ESQ_ANEXO_MAX) recusados.push(f.name+' (acima de 20 MB)'); else esqNovaArquivos.push(f); });
+      esqRenderNova(recusados.length?'Não aceito: '+recusados.join(', ')+' — envie PDF, PNG ou JPEG.':'');
+      return;
+    }
+    if(t.hasAttribute('data-esq-anexar')){
+      var iid=t.getAttribute('data-esq-anexar'), fl=[].slice.call(t.files||[]); if(!fl.length) return;
+      esqEnviandoAx[iid]=1; esqRenderModal();
+      esqEnviarVarios(fl).then(function(axs){ delete esqEnviandoAx[iid]; axs.forEach(function(ax){ esqAnexarNoItem(iid, ax); }); esqRender(); esqRenderModal(); esqToast('📎 '+axs.length+' anexo(s) enviado(s).','ok'); })
+        .catch(function(er){ delete esqEnviandoAx[iid]; esqRenderModal(); esqToast('Anexo não enviado: '+(er&&er.message?er.message:er),'err'); });
+    }
+  });
+  document.addEventListener('input', function(e){
+    if(e.target && e.target.id==='esqArqBusca'){
+      clearTimeout(esqArqTimer);
+      var v=e.target.value;
+      esqArqTimer=setTimeout(function(){ esqArqQ=v.trim(); esqArqPag=1; esqArqVer=null; esqCarregarArquivo(); }, 300);
+    }
+  });
+
+  /* mudança vinda de outro PC: o detalhe aberto acompanha (sem apagar formulário em uso) */
+  window.esqAposMudancaRemota=function(){ try{ esqRenderModal(); }catch(e){} };
+
+  /* desenho inicial (o Control Desk redesenha de novo quando a nuvem chega) */
+  try{ esqRender(); }catch(e){}
 })();
 </script>
 
